@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+sqlalchemy
+alembic
+psycopg2-binary
+procrastinate
+python-dotenv
+pydantic-settings
+pre-commit
+black
