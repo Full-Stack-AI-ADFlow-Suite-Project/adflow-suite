@@ -1,0 +1,46 @@
+# ADR · AdFlow Suite
+
+Registro delle decisioni architetturali. Una riga per decisione. Per cambiarne una: nuova riga che la sostituisce, mai cancellare.
+Dettaglio e motivazioni: `docs/architettura/AdFlow-flusso-architettura-v4.md`.
+
+| ID | Data | Decisione | Stato |
+|---|---|---|---|
+| ADR-01 | 25/09/2026 | Monolite modulare (API) + processo worker separato, stesso codice Python | Accettata |
+| ADR-02 | 25/09/2026 | Backend Python 3.11+ con FastAPI; SQLAlchemy 2 + Alembic; PostgreSQL 16 | Accettata |
+| ADR-03 | 25/09/2026 | Coda job e job pianificati con Procrastinate, dentro PostgreSQL | Accettata |
+| ADR-04 | 25/09/2026 | Frontend React + Vite + TypeScript, libreria UI Mantine | Accettata |
+| ADR-05 | 25/09/2026 | Login con sessione lato server e cookie httpOnly (niente JWT) | Accettata |
+| ADR-06 | 25/09/2026 | AI dietro un adattatore; dentro usa LiteLLM; primo provider OpenAI; provider "finto" per sviluppo e test | Accettata |
+| ADR-07 | 25/09/2026 | Social dietro un adattatore; nel MVP implementazione simulata | Accettata |
+| ADR-08 | 25/09/2026 | Un solo consorzio (niente multi-tenant) | Accettata |
+| ADR-09 | 25/09/2026 | Ambiente fase 1: locale sul sistema operativo (Windows). Fase 2: Docker su server proprio | Accettata |
+| ADR-10 | 25/09/2026 | Monorepo: `backend/`, `frontend/`, `docs/` | Accettata |
+| ADR-11 | 25/09/2026 | Test: unitari + API (pytest su PostgreSQL reale); un solo test end-to-end finale | Accettata |
+| ADR-12 | 25/09/2026 | Ogni rigenerazione o modifica crea una nuova versione del post; nessuna versione si cancella | Accettata |
+| ADR-13 | 25/09/2026 | Pubblicazione idempotente: il tentativo si registra prima di chiamare il social | Accettata |
+| ADR-14 | 25/09/2026 | Errore tecnico dell'AI dopo 3 esecuzioni del job: la campagna passa a `generazione_fallita` (non resta bloccata "in generazione"); l'operatore la rilancia con "Riprova" (→ inviata). Distinto dal testo non valido, che dopo 3 rigenerazioni si salva "da rivedere" | Accettata |
+| ADR-15 | 26/09/2026 | Profilo bottega e creazione campagna sono **una sola pagina web** (un unico percorso a passi), non due pagine separate | Accettata |
+| ADR-16 | 26/09/2026 | Al ritorno dell'artigiano (già loggato), la pagina precarica il profilo e mostra un **riepilogo con scelta "va bene così" / "modifica"** prima di procedere alla nuova campagna | Accettata |
+| ADR-17 | 26/09/2026 | `profilo_bottega` si arricchisce con i campi emersi dall'intervista tipo (valori, tono come lista, cortesia, obiettivo, clienti ideali, zona, presenza social esistente, politica foto) oltre a storia/vincoli già previsti | Sostituita da ADR-21 |
+| ADR-18 | 26/09/2026 | Calendario eventi ricorrenti della bottega: **campo lista dentro `profilo_bottega`** (JSON), non tabella dedicata, finché restano pochi eventi per bottega | Accettata |
+| ADR-19 | 26/09/2026 | `campagna` guadagna un campo `descrizione` (commenti/note del periodo per l'operatore), oggi assente | Accettata |
+| ADR-20 | 26/09/2026 | Le foto di una campagna si caricano **a gruppi con una descrizione condivisa per gruppo**: `foto` guadagna `gruppo_id` (nullable), la descrizione resta per riga ma duplicata nel gruppo — nessuna nuova tabella per ora, per non toccare lo sprint 1 già completato | Sostituita da ADR-22 |
+| ADR-21 | 26/09/2026 | Sostituisce ADR-17. `profilo_bottega` contiene esattamente i campi dei passi 1–9 della scheda bottega (`docs/architettura/AdFlow-scheda-bottega.html`); obbligatori: nome, referente, città, tipo_prodotto, clienti_ideali, obiettivo, canali. Elenco completo in SPEC-CODICE §4 | Accettata |
+| ADR-22 | 26/09/2026 | Sostituisce ADR-20. Foto a gruppi: `foto.gruppo_id` generato dal client; la foto si carica subito, la descrizione del gruppo si imposta con `PUT /campagne/{id}/gruppi/{gruppo_id}` (copiata su ogni foto del gruppo) ed è obbligatoria all'invio; `richieste` resta facoltativo per compatibilità con lo sprint 1 | Accettata |
+| ADR-23 | 26/09/2026 | Canali, frequenza e obiettivo stanno nel profilo; la campagna li copia all'invio. `campagna.canale` diventa `campagna.canali[]`. Frequenza = post totali a settimana, canali alternati negli slot | Accettata |
+| ADR-24 | 26/09/2026 | All'invio la campagna salva `profilo_snapshot` (JSON); generazione, Riprova e rigenerazioni della campagna usano lo snapshot, non il profilo corrente | Accettata |
+| ADR-25 | 26/09/2026 | Bozza: creata al passo 10, modificabile solo in bozza, una sola per artigiano, ripresa al rientro. Campagne dello stesso artigiano non sovrapposte; durata massima 3 mesi | Accettata |
+| ADR-26 | 26/09/2026 | Il collegamento dell'account social resta fuori dalla scheda (una volta, con l'operatore). L'invio è consentito senza account; alla prima pubblicazione senza account la campagna passa a `sospesa` (come per il permesso scaduto) | Accettata |
+| ADR-27 | 26/09/2026 | Eventi ricorrenti e chiusure del profilo sono contesto per il prompt AI, non generano slot automatici | Accettata |
+| ADR-28 | 26/09/2026 | Controllo tecnico foto al caricamento: JPG/PNG/WEBP, ≤ 10 MB, lato corto ≥ 1080 px (422 altrimenti). Luce e nitidezza solo segnalate dall'analisi AI all'operatore | Accettata |
+| ADR-29 | 26/09/2026 | All'invio la generazione parte in automatico, senza approvazione preventiva della scheda. L'operatore vede scheda (snapshot) e foto in sola lettura durante la revisione | Accettata |
+| ADR-30 | 28/09/2026 | L'operatore approva la campagna **in blocco**, con tre esiti: **approva** (tutti i post passano ad approvato e la campagna ad `attiva`), **rimanda**, **respingi**. L'approvazione in blocco scrive una riga `approvazione` per la versione corrente di ogni post. Non esistono più l'approvazione e lo scarto del singolo post | Accettata |
+| ADR-31 | 28/09/2026 | In revisione il singolo post si può solo **rigenerare** (max 3) o **modificare a mano**. "Approva" risponde 409 se un post è "da rivedere" o in rigenerazione | Accettata |
+| ADR-32 | 28/09/2026 | **Rimanda**: nessuno stato nuovo. La campagna resta `in_revisione` con l'etichetta "rimandata" e una nota interna; nessuna email; la scadenza (ADR-34) resta valida | Accettata |
+| ADR-33 | 28/09/2026 | **Respingi**: nota obbligatoria con la richiesta di modifica, inviata per email all'artigiano. La campagna passa a `respinta` (stato finale) e i suoi post a `scartato`; l'artigiano rifà una nuova campagna da zero, ricaricando le foto; la schermata Bentornato mostra l'ultima richiesta. Una campagna `respinta` non blocca il periodo. In revisione si chiude con Respingi; Annulla resta per le campagne `attiva` e `sospesa` | Accettata |
+| ADR-34 | 28/09/2026 | **Scaduta**: una campagna non approvata entro le 00:00 (Europe/Rome) del giorno di inizio passa a `scaduta` da `inviata`, `in_generazione`, `generazione_fallita` o `in_revisione`; tutti i suoi post passano a `scaduto`; email all'artigiano. Il promemoria all'operatore parte 48 h prima dell'inizio. Sostituisce la scadenza del singolo post alla sua data. Una campagna `scaduta` non blocca il periodo | Accettata |
+| ADR-35 | 28/09/2026 | **Anticipo minimo**: inizio della campagna ≥ oggi + 3 giorni (configurabile, `ANTICIPO_MINIMO_GIORNI`), controllato alla creazione e modifica della bozza e di nuovo all'invio (422). Sostituisce "inizio ≥ oggi" | Accettata |
+| ADR-36 | 28/09/2026 | In campagna `attiva` l'operatore può **modificare a mano** un post non ancora pubblicato: la nuova versione vale già come approvata (nuova riga `approvazione`). Niente rigenerazione AI in campagna attiva. Sostituisce "modifica dopo l'approvazione → torna da approvare" | Accettata |
+| ADR-37 | 28/09/2026 | Nuova tabella `decisione_campagna` (campagna, operatore, esito approvata/rimandata/respinta, nota, data): storico delle decisioni. La tabella `notifica` e l'adattatore email (catcher locale) si anticipano allo sprint 2b, perché servono a respinta e scadenza | Accettata |
+| ADR-38 | 28/09/2026 | **Anagrafica artigiano** (tabella `anagrafica_artigiano`, 1:1 con l'utente): codice artigiano, codice consorzio, nome bottega, referente, città, telefono, stato e data di iscrizione. La crea e la modifica solo l'operatore, insieme all'account; nell'MVP si inserisce a mano, l'import dal sito del consorzio è da decidere (impatta ADR-05). Nome, referente e città restano anche nel passo 1 del profilo; il dato ufficiale è quello dell'anagrafica. Il profilo bottega è in sola lettura per l'operatore | Accettata |
+| ADR-39 | 28/09/2026 | **Dashboard operatore** in quattro pagine: elenco artigiani, pagina artigiano, Vedi campagna, metriche. Nella pagina artigiano le campagne stanno in quattro sezioni — da approvare (`inviata`, `in_generazione`, `generazione_fallita`, `in_revisione`), in corso (`attiva`, `sospesa`), scadute (`scaduta`), passate (`conclusa`, `annullata`, `respinta`) — con il solo pulsante **Vedi campagna**: tutti i post in ogni stato, elenco e calendario, decisioni sulla campagna e azioni sui post. Schema statico: `docs/architettura/AdFlow-operatore-artigiano.html` | Accettata |

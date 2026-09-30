@@ -1,0 +1,493 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Operatore · Artigiano</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F6F3EC; --paper-raised:#FFFFFF; --ink:#201D17; --ink-soft:#6E6656; --ink-faint:#9C927D;
+    --accent:#2E6B5C; --accent-strong:#1D4A3F; --accent-soft:#DCEAE3; --accent-on-soft:#1D4A3F;
+    --line:#DDD5C2; --danger:#AE3B2C; --danger-soft:#F6E1DC; --danger-on-soft:#7A281C;
+    --warn:#8A6A1F; --warn-soft:#F3E7C9;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#1B1914; --paper-raised:#26231C; --ink:#EFEAE0; --ink-soft:#B7AE9B; --ink-faint:#837A68;
+      --accent:#7EC4AE; --accent-strong:#A9DCC9; --accent-soft:#22392F; --accent-on-soft:#A9DCC9;
+      --line:#3A362B; --danger:#E08776; --danger-soft:#3A2420; --danger-on-soft:#E08776;
+      --warn:#E4C878; --warn-soft:#3A331C;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#1B1914; --paper-raised:#26231C; --ink:#EFEAE0; --ink-soft:#B7AE9B; --ink-faint:#837A68;
+    --accent:#7EC4AE; --accent-strong:#A9DCC9; --accent-soft:#22392F; --accent-on-soft:#A9DCC9;
+    --line:#3A362B; --danger:#E08776; --danger-soft:#3A2420; --danger-on-soft:#E08776;
+    --warn:#E4C878; --warn-soft:#3A331C;
+    color-scheme: dark;
+  }
+
+  *{ box-sizing:border-box; }
+  body{ background:var(--paper); color:var(--ink); font-family:"IBM Plex Sans", system-ui, sans-serif; margin:0; }
+  h1,h2,h3{ font-family:"Fraunces", Georgia, serif; font-weight:600; text-wrap:balance; margin:0; }
+  a{ color:var(--accent-strong); }
+  .wrap{ max-width:1100px; margin-inline:auto; padding-inline:16px; }
+  .mono{ font-family:"IBM Plex Mono", monospace; }
+
+  /* Barra di navigazione comune alle tre pagine operatore */
+  .topbar{ background:var(--paper-raised); border-bottom:1px solid var(--line); }
+  .topbar .wrap{ display:flex; align-items:center; gap:22px; min-height:54px; flex-wrap:wrap; }
+  .brand{ font-family:"Fraunces", Georgia, serif; font-weight:600; font-size:17px; color:var(--ink); text-decoration:none; }
+  .brand small{ font-family:"IBM Plex Mono", monospace; font-size:11px; font-weight:400; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); margin-left:6px; }
+  .nav{ display:flex; gap:4px; flex:1; }
+  .nav a{ text-decoration:none; font-size:14px; color:var(--ink-soft); padding:7px 12px; border-radius:8px; }
+  .nav a.current{ background:var(--accent-soft); color:var(--accent-on-soft); font-weight:500; }
+  .user{ font-size:13px; color:var(--ink-soft); display:flex; gap:12px; align-items:center; }
+
+  main{ padding-block:24px 48px; }
+  .crumb{ font-size:13px; margin-bottom:14px; }
+  .crumb a{ text-decoration:none; }
+
+  .masthead{ display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap; margin-bottom:18px; }
+  .eyebrow{ font-family:"IBM Plex Mono", monospace; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); }
+  .masthead h1{ font-size:30px; margin-top:6px; }
+  .masthead p{ color:var(--ink-soft); font-size:14.5px; margin:6px 0 0; }
+  .jump{ display:flex; gap:8px; flex-wrap:wrap; }
+  .jump a{ font-size:13px; text-decoration:none; border:1px solid var(--line); background:var(--paper-raised); border-radius:20px; padding:6px 13px; }
+
+  .banner{ border-radius:10px; padding:12px 14px; font-size:13.5px; line-height:1.5; margin-bottom:22px; display:flex; gap:10px; align-items:flex-start; }
+  .banner.info{ background:var(--accent-soft); border:1px solid var(--accent); color:var(--accent-on-soft); }
+  .banner.warn{ background:var(--warn-soft); border:1px solid var(--warn); color:var(--warn); }
+  .banner .icon{ flex:none; font-family:"IBM Plex Mono", monospace; font-weight:500; }
+
+  .card{ background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:20px; }
+  .card .tab{ font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--accent-strong); letter-spacing:.06em; }
+  .card h3{ font-size:18px; margin-top:4px; margin-bottom:12px; }
+  .card .foot{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:14px; }
+  .note{ font-size:12.5px; color:var(--ink-faint); line-height:1.5; margin-top:10px; }
+
+  .top-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:16px; margin-bottom:34px; }
+
+  .rev-line{ display:flex; gap:10px; font-size:13.5px; padding:5px 0; border-top:1px solid var(--line); margin:0; }
+  .rev-line dt{ color:var(--ink-soft); flex:0 0 42%; margin:0; }
+  .rev-line dd{ margin:0; flex:1; min-width:0; overflow-wrap:anywhere; }
+  .empty{ color:var(--ink-faint); }
+
+  .badge{ display:inline-block; font-family:"IBM Plex Mono", monospace; font-size:11.5px; border-radius:20px; padding:2px 9px; border:1px solid var(--line); color:var(--ink-soft); background:var(--paper); white-space:nowrap; }
+  .badge.ok{ border-color:var(--accent); background:var(--accent-soft); color:var(--accent-on-soft); }
+  .badge.warn{ border-color:var(--warn); background:var(--warn-soft); color:var(--warn); }
+  .badge.danger{ border-color:var(--danger); background:var(--danger-soft); color:var(--danger-on-soft); }
+
+  .btn{ font-family:inherit; border-radius:8px; padding:8px 14px; font-size:13.5px; font-weight:500; border:1px solid var(--line); background:var(--paper-raised); color:var(--ink); display:inline-block; text-decoration:none; }
+  .btn.primary{ background:var(--accent); border-color:var(--accent); color:var(--paper-raised); }
+  .btn.quiet{ color:var(--ink-soft); }
+  .btn.danger{ color:var(--danger); }
+
+  .social-row{ display:flex; justify-content:space-between; align-items:center; gap:10px; padding:9px 0; border-top:1px solid var(--line); font-size:13.5px; }
+  .social-row .sub{ display:block; font-size:12px; color:var(--ink-faint); }
+
+  .section-head{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+  .section-head h2{ font-size:24px; }
+  .section-head p{ margin:0; font-size:13.5px; color:var(--ink-soft); }
+  section{ scroll-margin-top:16px; }
+
+  .counts{ display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:18px; }
+  .count{ display:block; background:var(--paper-raised); border:1px solid var(--line); border-radius:10px; padding:12px 14px; text-decoration:none; color:var(--ink); }
+  .count b{ display:block; font-family:"IBM Plex Mono", monospace; font-weight:500; font-size:24px; }
+  .count span{ font-size:13px; color:var(--ink-soft); }
+  .count.attn{ border-color:var(--warn); background:var(--warn-soft); }
+  .count.attn span, .count.attn b{ color:var(--warn); }
+  @media (max-width:640px){ .counts{ grid-template-columns:repeat(2, 1fr); } }
+
+  .group{ margin-bottom:22px; }
+  .group-title{ display:flex; align-items:baseline; gap:10px; font-family:"IBM Plex Sans", sans-serif; font-size:15px; font-weight:600; margin:0 0 8px; }
+  .group-title .n{ font-family:"IBM Plex Mono", monospace; font-weight:400; font-size:13px; color:var(--ink-faint); }
+  .group-empty{ border:1px dashed var(--line); border-radius:12px; padding:14px 16px; font-size:13.5px; color:var(--ink-faint); }
+
+  .camp{ background:var(--paper-raised); border:1px solid var(--line); border-radius:12px; padding:16px 18px; display:grid; grid-template-columns:1fr auto; gap:14px 24px; margin-bottom:10px; }
+  .camp.attn{ border-left:4px solid var(--warn); }
+  .camp.lost{ border-left:4px solid var(--danger); }
+  .camp h3{ font-size:17px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+  .camp .meta{ font-size:13px; color:var(--ink-soft); margin-top:5px; display:flex; gap:6px 16px; flex-wrap:wrap; }
+  .camp .desc{ font-size:13px; color:var(--ink-soft); margin:8px 0 0; line-height:1.5; font-style:italic; }
+  .posts{ display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+  .camp .next{ font-size:13px; margin-top:10px; }
+  .camp .actions{ display:flex; flex-direction:column; gap:8px; align-items:stretch; min-width:170px; }
+  .camp .actions .links{ display:flex; flex-direction:column; gap:4px; font-size:13px; margin-top:2px; }
+  @media (max-width:640px){
+    .camp{ grid-template-columns:1fr; }
+    .camp .actions{ flex-direction:row; flex-wrap:wrap; min-width:0; }
+  }
+
+  .profile-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:14px; }
+  .profile-grid .card{ padding:16px 18px; }
+  .profile-grid h3{ font-size:16px; margin-bottom:8px; }
+  .chips{ display:flex; flex-wrap:wrap; gap:5px; }
+  .chip{ border:1px solid var(--line); background:var(--paper); border-radius:20px; padding:2px 10px; font-size:12.5px; }
+  .diff{ font-family:"IBM Plex Mono", monospace; font-size:11px; color:var(--warn); margin-left:4px; }
+  .diff.block{ display:block; margin-left:0; margin-top:2px; }
+  .evento{ font-size:13px; padding:6px 0; }
+</style>
+
+<!-- ============ Barra comune alle pagine operatore ============ -->
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="#">AdFlow <small>Operatore</small></a>
+    <nav class="nav" aria-label="Sezioni operatore">
+      <a href="AdFlow-operatore-elenco.html" class="current">Artigiani</a>
+      <a href="AdFlow-operatore-metriche.html">Metriche</a>
+    </nav>
+    <div class="user"><span>Laura Rossi · operatore</span><a href="#">Esci</a></div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="banner warn">
+    <span class="icon">i</span>
+    <span><b>Schema statico, non interattivo</b> (v4.6, ADR-38 e ADR-39). Pagina dell'operatore dedicata a un artigiano, con dati di esempio (Falegnameria Bianchi, come nella scheda bottega). Nessun pulsante funziona: è lo scheletro da cui costruire la pagina reale (sprint 3). Oggi è il 28/09/2026.</span>
+  </div>
+
+  <div class="crumb"><a href="AdFlow-operatore-elenco.html">← Elenco artigiani</a></div>
+
+  <div class="masthead">
+    <div>
+      <div class="eyebrow">Artigiano · ART-0042</div>
+      <h1>Falegnameria Bianchi</h1>
+      <p>Mario Bianchi · Bra (CN) · Legno e mobili</p>
+    </div>
+    <div class="jump">
+      <a href="#campagne">Campagne</a>
+      <a href="#profilo">Profilo bottega</a>
+      <a href="AdFlow-operatore-metriche.html?artigiano=ART-0042">Metriche di questa bottega →</a>
+    </div>
+  </div>
+
+  <!-- ============ Riga alta: anagrafica · account social · situazione ============ -->
+  <div class="top-grid">
+
+    <div class="card">
+      <div class="tab">Anagrafica · gestita dall'operatore</div>
+      <h3>Dati di iscrizione</h3>
+      <dl style="margin:0;">
+        <div class="rev-line"><dt>ID artigiano</dt><dd class="mono">ART-0042</dd></div>
+        <div class="rev-line"><dt>Codice consorzio</dt><dd class="mono">CNS-2019-0117</dd></div>
+        <div class="rev-line"><dt>Nome bottega</dt><dd>Falegnameria Bianchi</dd></div>
+        <div class="rev-line"><dt>Referente</dt><dd>Mario Bianchi</dd></div>
+        <div class="rev-line"><dt>Città</dt><dd>Bra (CN)</dd></div>
+        <div class="rev-line"><dt>Email di accesso</dt><dd>mario@falegnameriabianchi.it</dd></div>
+        <div class="rev-line"><dt>Telefono</dt><dd>0172 000 000</dd></div>
+        <div class="rev-line"><dt>Iscrizione</dt><dd><span class="badge ok">attiva</span> dal 14/03/2019</dd></div>
+      </dl>
+      <div class="foot"><button type="button" class="btn">Modifica anagrafica</button></div>
+      <p class="note">Dati fissi: li modifica solo l'operatore. Oggi inseriti a mano; in futuro importati dal sito del consorzio, dove l'artigiano è già iscritto (da decidere, ADR-38).</p>
+    </div>
+
+    <div class="card">
+      <div class="tab">Account social · segnaposto sprint 3</div>
+      <h3>Pagine su cui si pubblica</h3>
+      <div class="social-row">
+        <span>Facebook<span class="sub">Falegnameria Bianchi · permesso fino al 12/12/2026</span></span>
+        <span class="badge ok">collegato</span>
+      </div>
+      <div class="social-row">
+        <span>Instagram<span class="sub">canale scelto nel profilo (passo 9)</span></span>
+        <span class="badge danger">non collegato</span>
+      </div>
+      <div class="foot">
+        <button type="button" class="btn primary">Collega Instagram</button>
+        <button type="button" class="btn quiet">Ricollega Facebook</button>
+      </div>
+      <p class="note">Si collega una volta, insieme all'artigiano (ADR-26). Senza account la campagna si genera e si rivede, ma alla prima pubblicazione su quel canale passa a "sospesa".</p>
+    </div>
+
+    <div class="card">
+      <div class="tab">Situazione</div>
+      <h3>In breve</h3>
+      <dl style="margin:0;">
+        <div class="rev-line"><dt>Bozza dell'artigiano</dt><dd>Campagna Novembre 2026 · 01/11–30/11 · 3 foto in 1 gruppo · ferma al passo 11</dd></div>
+        <div class="rev-line"><dt>Profilo aggiornato</dt><dd>20/09/2026 <span class="diff block">dopo l'invio di 1 campagna in corso</span></dd></div>
+        <div class="rev-line"><dt>Campagne inviate</dt><dd>6 dal 01/04/2026</dd></div>
+        <div class="rev-line"><dt>Post pubblicati</dt><dd>41 in totale · 3 falliti</dd></div>
+        <div class="rev-line"><dt>Campagne non uscite</dt><dd>1 scaduta · 1 respinta</dd></div>
+      </dl>
+      <div class="foot"><a class="btn" href="AdFlow-operatore-metriche.html?artigiano=ART-0042">Vedi metriche →</a></div>
+      <p class="note">La bozza è solo informativa: la compila e la invia l'artigiano.</p>
+    </div>
+
+  </div>
+
+  <!-- ============ Campagne ============ -->
+  <section id="campagne">
+    <div class="section-head">
+      <h2>Campagne</h2>
+      <p>Dalla più urgente alla più vecchia · per tutte un solo pulsante: Vedi campagna</p>
+    </div>
+
+    <div class="banner info">
+      <span class="icon">i</span>
+      <span><b>Sezioni (ADR-39).</b> Da approvare: <span class="mono">inviata</span>, <span class="mono">in_generazione</span>, <span class="mono">generazione_fallita</span>, <span class="mono">in_revisione</span> (anche "rimandata") · In corso: <span class="mono">attiva</span>, <span class="mono">sospesa</span> · Scadute: <span class="mono">scaduta</span>, cioè inviate dall'artigiano e non approvate entro l'inizio · Passate: <span class="mono">conclusa</span>, <span class="mono">annullata</span>, <span class="mono">respinta</span>. Approva, rimanda, respingi e le azioni sui post stanno nella pagina <b>Vedi campagna</b>, con tutti i post e il calendario.</span>
+    </div>
+
+    <div class="counts">
+      <a class="count attn" href="#da-approvare"><b>1</b><span>Da approvare</span></a>
+      <a class="count" href="#in-corso"><b>1</b><span>In corso</span></a>
+      <a class="count" href="#scadute"><b>1</b><span>Scadute</span></a>
+      <a class="count" href="#passate"><b>3</b><span>Passate</span></a>
+    </div>
+
+    <div class="group" id="da-approvare">
+      <h3 class="group-title">Da approvare <span class="n">1</span></h3>
+      <article class="camp attn">
+        <div>
+          <h3>Campagna Ottobre 2026 <span class="badge warn">in_revisione</span> <span class="badge">rimandata</span></h3>
+          <div class="meta">
+            <span>01/10/2026 → 31/10/2026 · 31 giorni</span>
+            <span>Facebook, Instagram</span>
+            <span>3 post/settimana</span>
+            <span>6 foto in 3 gruppi</span>
+            <span>Inviata il 25/09/2026</span>
+          </div>
+          <div class="posts">
+            <span class="badge">12 post</span>
+            <span class="badge warn">12 da approvare</span>
+            <span class="badge danger">1 da rivedere</span>
+          </div>
+          <p class="desc">"A ottobre voglio spingere i regali su misura per Natale, ho anche il mercatino il weekend del 6-7 dicembre da preparare."</p>
+          <div class="next"><b>Scade se non approvata entro:</b> 01/10 ore 00:00 · promemoria il 29/09</div>
+          <div class="next"><b>Nota interna</b> (rimandata il 27/09, L. Rossi): aspetto conferma delle date del mercatino.</div>
+        </div>
+        <div class="actions">
+          <a class="btn primary" href="#">Vedi campagna →</a>
+        </div>
+      </article>
+    </div>
+
+    <div class="group" id="in-corso">
+      <h3 class="group-title">In corso <span class="n">1</span></h3>
+      <article class="camp">
+        <div>
+          <h3>Campagna Settembre 2026 <span class="badge ok">attiva</span></h3>
+          <div class="meta">
+            <span>01/09/2026 → 30/09/2026 · 30 giorni</span>
+            <span>Facebook</span>
+            <span>3 post/settimana</span>
+            <span>7 foto in 3 gruppi</span>
+            <span>Approvata il 29/08/2026</span>
+          </div>
+          <div class="posts">
+            <span class="badge">13 post</span>
+            <span class="badge ok">10 pubblicati</span>
+            <span class="badge">2 approvati</span>
+            <span class="badge danger">1 fallito</span>
+          </div>
+          <div class="next"><b>Prossima pubblicazione:</b> 29/09 ore 18:30 · Facebook</div>
+        </div>
+        <div class="actions">
+          <a class="btn primary" href="#">Vedi campagna →</a>
+        </div>
+      </article>
+    </div>
+
+    <div class="group" id="scadute">
+      <h3 class="group-title">Scadute <span class="n">1</span></h3>
+      <article class="camp lost">
+        <div>
+          <h3>Campagna Agosto 2026 <span class="badge danger">scaduta</span></h3>
+          <div class="meta">
+            <span>01/08/2026 → 31/08/2026</span>
+            <span>Facebook</span>
+            <span>2 post/settimana</span>
+            <span>5 foto in 2 gruppi</span>
+            <span>Inviata il 27/07/2026</span>
+          </div>
+          <div class="posts">
+            <span class="badge">8 post</span>
+            <span class="badge danger">8 scaduti</span>
+          </div>
+          <div class="next"><b>Non approvata entro l'inizio</b> (01/08 ore 00:00) · email all'artigiano inviata il 01/08</div>
+        </div>
+        <div class="actions">
+          <a class="btn" href="#">Vedi campagna →</a>
+        </div>
+      </article>
+    </div>
+
+    <div class="group" id="passate">
+      <h3 class="group-title">Passate <span class="n">3</span></h3>
+      <article class="camp">
+        <div>
+          <h3>Campagna Luglio 2026 <span class="badge">conclusa</span></h3>
+          <div class="meta">
+            <span>01/07/2026 → 31/07/2026</span>
+            <span>Facebook</span>
+            <span>3 post/settimana</span>
+            <span>Approvata il 27/06/2026</span>
+          </div>
+          <div class="posts">
+            <span class="badge">13 post</span>
+            <span class="badge ok">12 pubblicati</span>
+            <span class="badge danger">1 fallito</span>
+          </div>
+        </div>
+        <div class="actions">
+          <a class="btn" href="#">Vedi campagna →</a>
+        </div>
+      </article>
+      <article class="camp">
+        <div>
+          <h3>Campagna Luglio 2026 · primo invio <span class="badge danger">respinta</span></h3>
+          <div class="meta">
+            <span>01/07/2026 → 31/07/2026</span>
+            <span>Facebook</span>
+            <span>Respinta il 22/06/2026</span>
+          </div>
+          <div class="posts">
+            <span class="badge">13 post</span>
+            <span class="badge">13 scartati</span>
+          </div>
+          <p class="desc">Richiesta di modifica: "Le foto del laboratorio sono troppo buie: ricaricale con più luce e aggiungi il tavolo finito."</p>
+        </div>
+        <div class="actions">
+          <a class="btn" href="#">Vedi campagna →</a>
+        </div>
+      </article>
+      <article class="camp">
+        <div>
+          <h3>Campagna Primavera 2026 <span class="badge">conclusa</span></h3>
+          <div class="meta">
+            <span>01/04/2026 → 30/06/2026</span>
+            <span>Facebook</span>
+            <span>2 post/settimana</span>
+          </div>
+          <div class="posts">
+            <span class="badge">20 post</span>
+            <span class="badge ok">19 pubblicati</span>
+            <span class="badge danger">1 fallito</span>
+          </div>
+        </div>
+        <div class="actions">
+          <a class="btn" href="#">Vedi campagna →</a>
+        </div>
+      </article>
+    </div>
+
+    <!-- Esempio di sezione vuota, per lo sviluppo -->
+    <div class="group">
+      <h3 class="group-title">Esempio · sezione vuota</h3>
+      <div class="group-empty">Nessuna campagna da approvare. Le campagne arrivano qui appena l'artigiano le invia.</div>
+    </div>
+  </section>
+
+  <!-- ============ Profilo bottega (passi 1–9, sola lettura) ============ -->
+  <section id="profilo" style="margin-top:36px;">
+    <div class="section-head">
+      <h2>Profilo bottega</h2>
+      <p>Compilato dall'artigiano con la scheda bottega · sola lettura · aggiornato il 20/09/2026</p>
+    </div>
+
+    <div class="banner info">
+      <span class="icon">i</span>
+      <span>Qui c'è il profilo <b>di oggi</b>. Ogni campagna inviata usa la fotografia del profilo salvata all'invio (ADR-24), visibile nella sua pagina Vedi campagna. I campi facoltativi vuoti si mostrano come <span class="empty">—</span>; * = obbligatorio.</span>
+    </div>
+
+    <div class="profile-grid">
+
+      <div class="card">
+        <div class="tab">01 · Identità</div>
+        <h3>Chi è l'artigiano</h3>
+        <dl style="margin:0;">
+          <div class="rev-line"><dt>Nome bottega *</dt><dd>Falegnameria Bianchi — mobili su misura <span class="diff">≠ anagrafica</span></dd></div>
+          <div class="rev-line"><dt>Referente *</dt><dd>Mario Bianchi</dd></div>
+          <div class="rev-line"><dt>Città *</dt><dd>Bra (CN)</dd></div>
+          <div class="rev-line"><dt>Anni di attività</dt><dd>12 anni, dal 2014</dd></div>
+          <div class="rev-line"><dt>Sito</dt><dd>www.falegnameriabianchi.it</dd></div>
+        </dl>
+      </div>
+
+      <div class="card">
+        <div class="tab">02 · Storia</div>
+        <h3>La storia da raccontare</h3>
+        <dl style="margin:0;">
+          <div class="rev-line"><dt>Cosa fa</dt><dd>Costruisco mobili su misura in legno massello, ogni pezzo è unico e nasce da un disegno condiviso con il cliente.</dd></div>
+          <div class="rev-line"><dt>Come è nata</dt><dd>Ho imparato il mestiere da mio padre, ho aperto la bottega nel 2014 dopo anni come dipendente.</dd></div>
+          <div class="rev-line"><dt>Valori</dt><dd><div class="chips"><span class="chip">Artigianalità</span><span class="chip">Tradizione</span></div></dd></div>
+        </dl>
+      </div>
+
+      <div class="card">
+        <div class="tab">03 · Prodotti</div>
+        <h3>Cosa vende</h3>
+        <dl style="margin:0;">
+          <div class="rev-line"><dt>Tipo di prodotto *</dt><dd>Legno e mobili</dd></div>
+          <div class="rev-line"><dt>Gamma</dt><dd>Tavoli e sedie su misura, piccoli oggetti da regalo, restauro mobili antichi.</dd></div>
+          <div class="rev-line"><dt>Fascia di prezzo</dt><dd>Media</dd></div>
+          <div class="rev-line"><dt>Stagionalità</dt><dd>Presepi a Natale, regali laurea</dd></div>
+        </dl>
+      </div>
+
+      <div class="card">
+        <div class="tab">04 · Pubblico e obiettivo</div>
+        <h3>Per chi lavora</h3>
+        <dl style="margin:0;">
+          <div class="rev-line"><dt>Clienti ideali *</dt><dd>Coppie che stanno arredando casa, 30-50 anni, zona Cuneo e Torino.</dd></div>
+          <div class="rev-line"><dt>Obiettivo *</dt><dd>Farmi conoscere</dd></div>
+          <div class="rev-line"><dt>Zona</dt><dd>Provincia di Cuneo</dd></div>
+        </dl>
+      </div>
+
+      <div class="card">
+        <div class="tab">05 · Voce e vincoli</div>
+        <h3>Come devono suonare i post</h3>
+        <dl style="margin:0;">
+          <div class="rev-line"><dt>Tono</dt><dd><div class="chips"><span class="chip">Caldo e familiare</span></div></dd></div>
+          <div class="rev-line"><dt>Cortesia</dt><dd>Do sempre del tu</dd></div>
+          <div class="rev-line"><dt>Cose da non dire mai</dt><dd>Niente prezzi dei concorrenti, niente sconti non autorizzati dal consorzio.</dd></div>
+        </dl>
+      </div>
+
+      <div class="card">
+        <div class="tab">06 · Presenza social</div>
+        <h3>Dove è già presente</h3>
+        <dl style="margin:0;">
+          <div class="rev-line"><dt>Canali attivi</dt><dd>Facebook</dd></div>
+          <div class="rev-line"><dt>Profili</dt><dd>@falegnameriabianchi</dd></div>
+          <div class="rev-line"><dt>Cosa funziona</dt><dd>I video brevi mentre lavoro il legno hanno sempre molte condivisioni.</dd></div>
+        </dl>
+      </div>
+
+      <div class="card">
+        <div class="tab">07 · Foto e contenuti</div>
+        <h3>Cosa si può fotografare</h3>
+        <dl style="margin:0;">
+          <div class="rev-line"><dt>Foto al mese</dt><dd>Tra 5 e 12</dd></div>
+          <div class="rev-line"><dt>Chi scatta</dt><dd>Io stesso, con il telefono</dd></div>
+          <div class="rev-line"><dt>Persone</dt><dd>A volte, sempre con consenso scritto</dd></div>
+        </dl>
+      </div>
+
+      <div class="card">
+        <div class="tab">08 · Calendario eventi</div>
+        <h3>Date da tenere a mente</h3>
+        <dl style="margin:0;">
+          <div class="rev-line"><dt>Eventi</dt><dd><div class="evento" style="padding-top:0;">Mercatino di Natale · 6-8 dicembre 2026 <span class="badge">fiera o mercatino</span></div></dd></div>
+          <div class="rev-line"><dt>Chiusure</dt><dd>Ferie dal 10 al 24 agosto, chiuso la domenica.</dd></div>
+        </dl>
+      </div>
+
+      <div class="card">
+        <div class="tab">09 · Logistica</div>
+        <h3>Come pubblicare</h3>
+        <dl style="margin:0;">
+          <div class="rev-line"><dt>Canali *</dt><dd>Facebook, Instagram</dd></div>
+          <div class="rev-line"><dt>Frequenza</dt><dd>3-4 a settimana <span class="empty">(= 3 post/settimana)</span></dd></div>
+          <div class="rev-line"><dt>Orari</dt><dd>La sera e nel weekend</dd></div>
+        </dl>
+      </div>
+
+    </div>
+  </section>
+
+</main>
