@@ -1,8 +1,10 @@
-# AdFlow Suite · Flusso aggiornato e architettura software (v4.6)
+# AdFlow Suite · Flusso aggiornato e architettura software (v4.7)
 
-**Data:** 28/09/2026 · **Stato:** v4.6 del 28/09/2026 (v4.5 approvata il 26/09/2026) · **Ruolo:** B3 · Architetto software
+**Data:** 30/09/2026 · **Stato:** v4.7 del 30/09/2026 (v4.6 del 28/09/2026) · **Ruolo:** B3 · Architetto software
 
 > I diagrammi sono nella cartella `diagrammi/` (PNG) e tutti insieme in `AdFlow-diagrammi.html`. Da lì ogni diagramma si scarica in PNG, oppure si stampa in PDF. Lo schema statico della pagina di raccolta dati (non interattivo, da usare come base per lo sviluppo) è in `AdFlow-scheda-bottega.html`; il diagramma 09 lo collega ad API e dati. La pagina dell'operatore dedicata a un artigiano è in `AdFlow-operatore-artigiano.html` (schema statico). Per rigenerare i PNG dopo una modifica ai diagrammi: `strumenti/LEGGIMI.md`.
+
+**Novità v4.7:** **motivi del No** nella revisione, ciascuno con il suo ciclo: foto scattate male → campagna **respinta con motivo "foto"** e foto segnate; foto ritoccate male dall'AI → **ritocca di nuovo** (solo per quel post); testo o hashtag scritti male → **rigenera da zero** o **da un testo proposto** con indicazioni, tenendo la foto. Nuovo passo di **ritocco AI delle foto** in generazione (originale sempre conservato, `versione_foto`). **Cicli separati** per post: 3 rigenerazioni del testo e 3 ritocchi della foto. **Niente modifica a mano** dei post e **nessuna modifica in campagna attiva**. Decisioni D-30…D-34 (D-06, D-21 e D-26 sostituite, D-02 aggiornata), regole R-02, R-03, R-16 aggiornate, R-17 e R-18 nuove; aggiornati §0, §2, Fase 2 e Fase 3 (§3), §5, §6, §8, §10, §12. Diagrammi aggiornati: 01, 04, 05, 06, 09. ADR-40…ADR-44. Il tipo di ritocco e i prompt AI si decidono in un task dedicato.
 
 **Novità v4.6:** **approvazione in blocco** della campagna da parte dell'operatore (approva / rimanda / respingi), sul singolo post solo rigenera e modifica; campagna **respinta** (email all'artigiano, si riparte da zero) e **scaduta** (non approvata entro l'inizio); anticipo minimo di 3 giorni tra invio e inizio; **anagrafica artigiano** gestita dall'operatore; **dashboard operatore** in quattro pagine con pulsante unico "Vedi campagna" (schema statico `AdFlow-operatore-artigiano.html`). Decisioni D-20…D-29 (D-03 e D-05 sostituite), regole R-06 e R-08 aggiornate, R-14…R-16 nuove; riscritte Fase 3 e dashboard artigiano (§3), stati (§4), schema dati (§6), matrice (§8), sprint (§12). Diagrammi aggiornati: 01, 03, 04, 06, 09. ADR-30…ADR-39.
 
@@ -21,8 +23,8 @@
 ## 0. Sintesi
 
 - L'artigiano entra con il login nella **scheda bottega**: la prima volta compila il profilo (passi 1–9), ai rientri lo conferma o lo modifica. Nella stessa pagina crea la campagna del periodo (passi 10–11: durata, commenti, **foto reali** a gruppi, ciascuno con la sua descrizione) e la invia (passo 12). Il **proprio** account social si collega una volta, con l'operatore.
-- Un **worker** (programma in background) analizza le foto con l'AI e genera **tutti i post del periodo**. Una validazione a regole controlla i testi.
-- **L'operatore del consorzio** rivede la campagna nella pagina **Vedi campagna**: sui singoli post può **rigenerare** o **modificare a mano** (le versioni precedenti restano salvate), poi decide **sulla campagna intera**: **approva** tutti i post, **rimanda** la decisione o **respinge** la campagna con una richiesta di modifica inviata per email all'artigiano. Se nessuno approva entro l'inizio, la campagna **scade**.
+- Un **worker** (programma in background) analizza le foto con l'AI, le **ritocca** (l'originale resta sempre) e genera **tutti i post del periodo**. Una validazione a regole controlla i testi.
+- **L'operatore del consorzio** rivede la campagna nella pagina **Vedi campagna**. Se un post non va, sceglie il motivo e chiede all'AI di **ritoccare di nuovo la foto** o di **rigenerare il testo** (da zero o da un testo proposto), sempre con un numero massimo di cicli; niente modifica a mano (le versioni precedenti restano salvate). Poi decide **sulla campagna intera**: **approva** tutti i post, **rimanda** la decisione o **respinge** la campagna con un motivo (per esempio foto scattate male) inviato per email all'artigiano. Se nessuno approva entro l'inizio, la campagna **scade**.
 - Lo **scheduler** pubblica **solo i post approvati**, nelle date stabilite, sulla **pagina dell'artigiano**. Poi raccoglie le metriche.
 - **Architettura:** monolite modulare più worker, con PostgreSQL (dati e coda dei job), archivio foto e tre adattatori (AI, social, email).
 - **Stack:** React + Vite (TypeScript) · Python + FastAPI · PostgreSQL · AI multi-provider tramite LiteLLM (primo provider: OpenAI) · login con sessione e cookie · un solo consorzio. Fase 1 in locale sul sistema operativo, fase 2 in Docker su server proprio.
@@ -36,11 +38,11 @@
 | ID | Decisione | Motivazione | Alternative scartate |
 |---|---|---|---|
 | D-01 | Il form acquisisce il **tipo di prodotto** (da elenco) | Guida testi, hashtag, linea guida foto e vincoli | Campo libero |
-| D-02 | **Foto reali** con descrizione e richieste; analisi AI della foto | Contenuti veri e specifici | Immagini generate dall'AI |
+| D-02 | **Foto reali** con descrizione e richieste; analisi AI della foto · *aggiornata v4.7:* l'AI ritocca le foto reali, non le genera (D-31) | Contenuti veri e specifici | Immagini generate dall'AI |
 | D-03 | Si ricevono **tutti i post del periodo**: accetta o rigenera; **le versioni precedenti restano** · **Sostituita da D-20 (v4.6)** | Nessun post esce senza essere visto | Approvare solo il piano; 3 piani alternativi |
 | D-04 | Lo **scheduler pubblica** nelle date stabilite | Nessun intervento quotidiano | Pubblicazione manuale |
 | D-05 | **L'operatore** accetta, rigenera o modifica · **Sostituita da D-20 e D-21 (v4.6)** | Un solo punto di controllo | Artigiano; doppia approvazione (roadmap) |
-| D-06 | Ammessa la **modifica manuale** del testo | Sblocca i casi che l'AI non centra | Solo rigenerazione |
+| D-06 | Ammessa la **modifica manuale** del testo · **Sostituita da D-32 (v4.7)** | Sblocca i casi che l'AI non centra | Solo rigenerazione |
 | D-07 | Si pubblica sulla **pagina social dell'artigiano**; in futuro approverà anche lui | Il cliente segue l'artigiano | Pagina del consorzio |
 | D-08 | Profilo bottega e nuova campagna sono **un'unica pagina** a passi, non due pagine separate | Un solo percorso da seguire, nessuna sincronizzazione tra pagine | Due pagine collegate da un link |
 | D-09 | Al ritorno (già loggato), l'artigiano vede un **riepilogo con "va bene così" o "modifica"** prima della nuova campagna | Non deve rileggere/riscrivere tutto ogni volta, ma può aggiornarlo | Andare sempre al form vuoto; saltare sempre dritto alla campagna |
@@ -55,15 +57,20 @@
 | D-18 | All'invio la **generazione parte da sola**: l'operatore non approva la scheda prima dell'AI | Un solo punto di controllo, sui post; nessun collo di bottiglia in più (rischio 2) | Operatore che approva la scheda prima della generazione |
 | D-19 | **Frequenza** = post totali a settimana (1-2 → 2, 3-4 → 3, 5 o più → 5, "decidete voi" → 3); i canali scelti si alternano negli slot | Carico di revisione prevedibile; R-05 invariata | Un post per ogni canale in ogni slot (raddoppia la revisione) |
 | D-20 | L'operatore **approva la campagna in blocco**: approva (tutti i post), rimanda, respinge (ADR-30) | Una decisione per campagna invece di una per post: meno lavoro per l'operatore (rischio 2), stato della campagna sempre chiaro | Approvazione post per post (D-03, D-05) |
-| D-21 | In revisione, sul singolo post solo **rigenera** o **modifica a mano**; niente scarto del singolo post (ADR-31) | I post si sistemano prima della decisione; un post che non va si corregge, non si toglie | Scartare il singolo post |
+| D-21 | In revisione, sul singolo post solo **rigenera** o **modifica a mano**; niente scarto del singolo post (ADR-31) · **Sostituita da D-32 (v4.7)** | I post si sistemano prima della decisione; un post che non va si corregge, non si toglie | Scartare il singolo post |
 | D-22 | **Rimanda** = etichetta e nota interna, nessuno stato nuovo (ADR-32) | Serve solo a ricordare "decido dopo"; la scadenza resta la stessa | Stato "rimandata"; spostare il periodo della campagna |
 | D-23 | **Respingi** = campagna chiusa (`respinta`), email all'artigiano con la richiesta di modifica; l'artigiano rifà una campagna da zero (ADR-33) | Storico e fotografia del profilo intatti, nessun "giro" di reinvio da gestire | Riaprire la stessa campagna; nuova bozza precompilata |
 | D-24 | **Scaduta** = campagna non approvata entro l'inizio; tutti i post scaduti, email all'artigiano (ADR-34) | Regola netta: una campagna approvata non ha mai post nel passato | Scadenza post per post; scadenza a fine periodo |
 | D-25 | **Anticipo minimo** di 3 giorni tra invio e inizio (ADR-35) | Tempo per generazione, eventuale Riprova e revisione prima della scadenza | Inizio anche oggi |
-| D-26 | In campagna attiva l'operatore **modifica** un post non pubblicato e la modifica vale già come approvata; niente rigenerazione (ADR-36) | L'approvatore è lui; nessun job AI in corso all'ora di pubblicare | Tornare "da approvare" |
+| D-26 | In campagna attiva l'operatore **modifica** un post non pubblicato e la modifica vale già come approvata; niente rigenerazione (ADR-36) · **Sostituita da D-34 (v4.7)** | L'approvatore è lui; nessun job AI in corso all'ora di pubblicare | Tornare "da approvare" |
 | D-27 | **Storico decisioni** in `decisione_campagna`; notifiche ed email anticipate allo sprint 2b (ADR-37) | Tracciabilità di rinvii e respinte; la respinta deve arrivare all'artigiano | Solo lo stato della campagna |
 | D-28 | **Anagrafica artigiano** gestita dall'operatore, distinta dal profilo bottega (ADR-38) | Dati ufficiali di iscrizione stabili; il profilo resta dell'artigiano | Tutto nel profilo, modificabile dall'artigiano |
 | D-29 | **Dashboard operatore** in quattro pagine; pagina artigiano con quattro sezioni e pulsante unico **Vedi campagna** (ADR-39) | Un solo punto di ingresso per ogni campagna, con tutti i post e il calendario | Azioni diverse per ogni sezione |
+| D-30 | **Respingi con motivo**: `foto` (con le foto da rifare segnate) o `altro`; motivo, nota e foto segnate vanno all'artigiano (ADR-40) | Foto scattate male non si salvano con l'AI: l'artigiano deve sapere cosa rifotografare | Nota libera senza motivo; cancellare la campagna (perde lo storico, ADR-12) |
+| D-31 | **Ritocco AI delle foto** in generazione; originale sempre conservato; versioni della foto (ADR-41) | Le foto da smartphone migliorano molto con un ritocco; con l'originale si può sempre tornare indietro | Solo analisi; ritocco solo su richiesta dell'operatore |
+| D-32 | Sul singolo post solo **tre interventi AI**: ritocca di nuovo la foto, rigenera il testo da zero, rigenera da un testo proposto con indicazioni; **niente modifica a mano** (ADR-42) | Ogni testo passa dall'AI e dalla validazione; il motivo del No resta tracciato nella versione | Modifica a mano (D-06, D-21) |
+| D-33 | **Cicli separati** per post: 3 rigenerazioni del testo e 3 ritocchi della foto; finiti i ritocchi si sceglie l'originale o una versione precedente, finite le rigenerazioni si respinge (ADR-43) | Costi AI sotto controllo; un problema di foto non consuma i tentativi sul testo | Contatore unico; limite per campagna |
+| D-34 | **Nessuna modifica in campagna attiva**: si sospende o si annulla (ADR-44) | Esce esattamente ciò che è stato approvato; nessun job AI vicino all'ora di pubblicazione | Modifica a mano già approvata (D-26) |
 | D-A | **Monolite modulare + worker** | Semplice da spiegare e costruire | Microservizi, serverless |
 | D-B | **Coda dei job in PostgreSQL** | Nessun servizio in più | Redis, cron |
 | D-C1 | Backend e worker in **Python + FastAPI** | Ecosistema AI più ricco; un solo linguaggio lato server; documentazione API automatica | Node/TypeScript, Next.js |
@@ -96,7 +103,7 @@ Il metodo ha tre passi: si disegna il flusso, se ne ricava l'architettura, si ve
 | 2 | Post non approvato entro la data | Promemoria 48 h prima, poi "scaduto" |
 | 2 | Un nuovo tentativo può pubblicare due volte | Tentativo registrato prima dell'invio (**idempotenza**) |
 | 2 | Metriche: quando leggerle? | Job giornaliero + rilevazioni nel tempo |
-| 2 | Modifica di un post già approvato | Torna "da approvare" (in v4.6: vale già come approvata, D-26) |
+| 2 | Modifica di un post già approvato | Torna "da approvare" (in v4.6: vale già come approvata, D-26; in v4.7: nessuna modifica in campagna attiva, D-34) |
 | 2 | Un nuovo prompt cambia la qualità senza che nessuno lo sappia | Versione del prompt salvata su ogni versione |
 | 3 | Verifica finale | Matrice completa (§8); i residui vanno in roadmap |
 | 4 *(stack)* | Con più provider AI, qualità e costi cambiano senza traccia | **Provider e modello** salvati su ogni versione del post |
@@ -112,6 +119,11 @@ Il metodo ha tre passi: si disegna il flusso, se ne ricava l'architettura, si ve
 | 6 *(dashboard operatore)* | L'artigiano non sa perché una campagna non esce | Respinta con email e richiesta di modifica; scaduta con email (D-23, D-24) |
 | 6 *(dashboard operatore)* | Una campagna inviata oggi per oggi non si può rivedere in tempo | Anticipo minimo di 3 giorni (D-25) |
 | 6 *(dashboard operatore)* | Dati di iscrizione dell'artigiano senza un proprietario | Anagrafica gestita dall'operatore (D-28) |
+| 7 *(motivi del No)* | Il No dell'operatore non dice cosa non va, né cosa fare | Tre motivi, ciascuno con il suo ciclo (D-30, D-32) |
+| 7 *(motivi del No)* | Le foto scattate male non si sistemano con l'AI | Respinta con motivo "foto" e foto segnate (D-30) |
+| 7 *(motivi del No)* | Un ritocco AI sbagliato può rovinare la foto | Originale sempre conservato, versioni della foto (D-31) |
+| 7 *(motivi del No)* | Una foto alimenta due post: un nuovo ritocco li cambia entrambi | Il ritocco vale solo per il post scelto (D-32) |
+| 7 *(motivi del No)* | Rigenerazioni senza fine | Cicli separati per testo e foto, massimo 3 (D-33) |
 
 ---
 
@@ -158,8 +170,9 @@ Profilo e campagna non sono due pagine distinte: è **un unico percorso a passi*
 | # | Passo | Dettaglio |
 |---|---|---|
 | 2.1 | Analisi foto | Modello AI con visione (provider da configurazione); usa la descrizione del gruppo; annota eventuali problemi di luce o nitidezza per l'operatore |
+| 2.1b | Ritocco foto *(sprint 3)* | L'AI ritocca ogni foto (versione 1); l'originale resta come versione 0 (D-31). Tipo di ritocco e prompt: task dedicato |
 | 2.2 | Calendario del periodo | Slot data, ora e canale in base a frequenza e canali copiati dal profilo (canali alternati, D-19) e al numero di foto; orari preferiti del profilo come indicazione |
-| 2.3 | Generazione post | Testo e hashtag per canale, foto abbinata (max 2 usi), prompt per tipo di prodotto con la fotografia del profilo, eventi e chiusure del periodo e commenti della campagna |
+| 2.3 | Generazione post | Testo e hashtag per canale, foto ritoccata abbinata (max 2 usi), prompt per tipo di prodotto con la fotografia del profilo, eventi e chiusure del periodo e commenti della campagna |
 | 2.4 | Validazione a regole | Lunghezza, numero di hashtag, parole vietate (comprese le "cose da non dire" del profilo, passo 05), niente prezzi o premi inventati. Se non valido si rigenera (max 3), poi "da rivedere" |
 | 2.5 | Campagna pronta | Post salvati "da approvare", campagna "in revisione"; email all'operatore (sprint 3) |
 | 2.6 | Errore tecnico dell'AI | Il job riparte da solo (3 esecuzioni in tutto, ogni 30 s). Se fallisce anche la 3ª: campagna "generazione fallita", visibile in dashboard (email dallo sprint 3); l'operatore preme **Riprova** |
@@ -169,11 +182,24 @@ Profilo e campagna non sono due pagine distinte: è **un unico percorso a passi*
 |---|---|---|
 | 3.1 | Dashboard operatore | Pagina artigiano con le campagne in quattro sezioni (da approvare, in corso, scadute, passate) e un solo pulsante **Vedi campagna** (D-29); promemoria 48 h prima dell'inizio (sprint 3) |
 | 3.2 | Vedi campagna | Tutti i post della campagna in ogni stato, in elenco e in calendario: testo, hashtag, foto, canale, storico versioni; scheda bottega (fotografia del profilo) e foto con descrizioni in sola lettura |
-| 3.3 | Sistemare i post | Sul singolo post: **Rigenera** (nota facoltativa, max 3) o **Modifica a mano**. Entrambe creano una nuova versione che ripassa la validazione; il post resta "da approvare" (D-21) |
-| 3.4 | Decisione sulla campagna | **Approva**: tutti i post approvati, campagna attiva (non se un post è "da rivedere" o in rigenerazione). **Rimanda**: etichetta e nota interna, nessun cambio di stato. **Respingi**: nota obbligatoria, campagna respinta, email all'artigiano con la richiesta di modifica (D-20, D-22, D-23) |
+| 3.3 | Sistemare i post | Sul singolo post, secondo il motivo: **Ritocca di nuovo la foto** (max 3), **Rigenera il testo da zero** o **Rigenera da un testo proposto** con indicazioni (max 3 insieme), tenendo la foto. Ogni intervento crea una nuova versione che ripassa la validazione; il post resta "da approvare". Niente modifica a mano (D-32, D-33) |
+| 3.4 | Decisione sulla campagna | **Approva**: tutti i post approvati, campagna attiva (non se un post è "da rivedere" o ha un intervento in corso). **Rimanda**: etichetta e nota interna, nessun cambio di stato. **Respingi**: motivo (`foto` o `altro`) e nota obbligatori, con `foto` anche le foto da rifare; campagna respinta, email all'artigiano (D-20, D-22, D-23, D-30) |
 | 3.5 | Scadenza | Nessuna approvazione entro le 00:00 del giorno di inizio: campagna **scaduta**, tutti i post scaduti, email all'artigiano (D-24) |
-| 3.6 | Dopo l'approvazione | In campagna attiva l'operatore può ancora modificare a mano un post non pubblicato: la modifica vale già come approvata (D-26). Sospendi, riattiva, annulla dalla stessa pagina |
+| 3.6 | Dopo l'approvazione | In campagna attiva nessuna modifica ai post (D-34). Se un post non va più bene: sospendi o annulla dalla stessa pagina; riattiva dopo una sospensione |
 | 3.7 | Artigiano informato | Calendario approvato in sola lettura + email di riepilogo (sprint 3); email per respinta e scadenza (sprint 2b) |
+
+#### Dettaglio 3.3–3.4 · Motivi del No e cicli
+
+Quando la campagna non va bene (ramo **No** del rombo "Campagna ok?"), l'operatore sceglie il motivo; ogni motivo ha il suo ciclo.
+
+| Motivo | Dove agisce | Ciclo | Limite | Quando i cicli finiscono |
+|---|---|---|---|---|
+| **Foto scattate male** (buie, mosse, soggetto sbagliato) | Campagna intera | **Respingi** con motivo `foto`: nota obbligatoria e foto da rifare segnate; email all'artigiano con le miniature; la campagna resta `respinta` nello storico e l'artigiano ne crea una nuova con foto nuove | — | — |
+| **Foto ritoccate male dall'AI** | Singolo post *(sprint 3)* | **Ritocca di nuovo**, con nota facoltativa: nuova versione della foto, **solo per quel post** anche se la foto alimenta un altro post | 3 ritocchi per post | Si sceglie la foto originale o una versione precedente (non consuma cicli) |
+| **Testo o hashtag coerenti ma scritti male** | Singolo post | ① **Rigenera da zero**, tenendo la foto · ② **Rigenera da un testo proposto** dall'operatore più indicazioni, tenendo la foto | 3 rigenerazioni per post (① e ② insieme) | Resta solo **Respingi** con motivo `altro` |
+| Altro | Campagna intera | **Respingi** con motivo `altro` e nota | — | — |
+
+Ogni intervento crea una nuova versione del post (tipo di intervento, nota e testo proposto salvati), che ripassa la validazione; le versioni rifiutate diventano esempi di "cosa non rifare" (R-04). Il post "da rivedere" si sblocca solo con un nuovo intervento. Quando tutti i post vanno bene, l'operatore **approva** in blocco.
 
 #### Dettaglio 3.1 · Dashboard operatore
 
@@ -206,7 +232,7 @@ L'artigiano non ha una vista "in sola lettura di tutto": la dashboard è filtrat
 | `inviata` / `in_generazione` | Etichetta di stato, messaggio "Generazione dei post in corso…" (la pagina si aggiorna da sola) | Nessuna: solo attesa |
 | `generazione_fallita` | Avviso che la generazione non è riuscita per un problema tecnico | Nessuna: solo il consorzio (operatore) può rilanciarla con "Riprova" (ADR-14) |
 | `in_revisione` | Ancora **nessun post**: i post restano visibili solo all'operatore finché la campagna non è approvata (anche se rimandata) | Nessuna: solo attesa |
-| `respinta` | La **richiesta di modifica** dell'operatore (arriva anche per email e nel Bentornato) | Crea una nuova campagna, da zero (D-23) |
+| `respinta` | Il **motivo** e la **richiesta di modifica** dell'operatore, con le foto da rifare se il motivo è "foto" (arriva anche per email e nel Bentornato) | Crea una nuova campagna, da zero (D-23, D-30) |
 | `scaduta` | Messaggio "La campagna non è stata approvata in tempo" (arriva anche per email) | Crea una nuova campagna |
 | `attiva` | Calendario/lista dei post nello stato **approvato**, **pubblicato** o **fallito** | Nessuna: sola consultazione |
 | `conclusa` | Come sopra, storico completo del periodo | Nessuna |
@@ -234,8 +260,8 @@ L'artigiano non ha una vista "in sola lettura di tutto": la dashboard è filtrat
 | ID | Regola |
 |---|---|
 | R-01 | Si pubblica solo un post **approvato**. |
-| R-02 | Rigenerare o modificare crea una **nuova versione**; le precedenti restano e si possono ripristinare. |
-| R-03 | Massimo **3 rigenerazioni AI** per post; modifiche manuali senza limite. |
+| R-02 | Ogni intervento (rigenera il testo, ritocca o scegli la foto) crea una **nuova versione**; le precedenti restano *(aggiornata v4.7)*. |
+| R-03 | Per post, massimo **3 rigenerazioni del testo** e **3 ritocchi della foto**; niente modifica a mano *(aggiornata v4.7, D-33)*. |
 | R-04 | Le versioni rifiutate vengono passate all'AI come esempi di "cosa non rifare". |
 | R-05 | Una foto alimenta **al massimo 2 post**; se le foto non bastano, si propongono meno post. |
 | R-06 | Promemoria all'operatore **48 ore prima dell'inizio** della campagna; se all'inizio la campagna non è approvata, è **scaduta** con tutti i suoi post *(aggiornata v4.6, D-24)*. |
@@ -248,7 +274,9 @@ L'artigiano non ha una vista "in sola lettura di tutto": la dashboard è filtrat
 | R-13 | Ogni **gruppo di foto** ha una descrizione obbligatoria; senza, la campagna non si invia. |
 | R-14 | L'operatore **approva la campagna in blocco**; non si approva se un post è "da rivedere" o in rigenerazione. |
 | R-15 | Una campagna **respinta** o **scaduta** è chiusa: l'artigiano ne crea una nuova, e il periodo resta libero. |
-| R-16 | Dopo l'approvazione, una modifica manuale dell'operatore vale già come approvata; niente rigenerazione AI in campagna attiva. |
+| R-16 | Dopo l'approvazione **nessuna modifica** ai post: si sospende o si annulla *(aggiornata v4.7, D-34)*. |
+| R-17 | La foto originale **non si perde mai**; un nuovo ritocco vale solo per il post su cui si lavora. |
+| R-18 | Foto scattate male: la campagna si **respinge con motivo "foto"** e le foto da rifare segnate; l'AI non prova a salvarle. |
 
 ---
 
@@ -266,13 +294,13 @@ L'artigiano non ha una vista "in sola lettura di tutto": la dashboard è filtrat
 
 | Componente | Tecnologia | Cosa fa | Con chi parla | Se si rompe |
 |---|---|---|---|---|
-| **Web App** | React + Vite (TypeScript) | Viste per ruolo. Artigiano: pagina unica profilo bottega + nuova campagna (dettaglio in §3, "Dettaglio 1.1–1.6"), calendario in lettura, metriche (dettaglio in §3, "Dashboard artigiano"). Operatore: quattro pagine (elenco artigiani, pagina artigiano, Vedi campagna con decisioni in blocco, editor post e calendario, metriche; D-29) | Backend API | Nessuna azione possibile, ma le pubblicazioni continuano |
+| **Web App** | React + Vite (TypeScript) | Viste per ruolo. Artigiano: pagina unica profilo bottega + nuova campagna (dettaglio in §3, "Dettaglio 1.1–1.6"), calendario in lettura, metriche (dettaglio in §3, "Dashboard artigiano"). Operatore: quattro pagine (elenco artigiani, pagina artigiano, Vedi campagna con decisioni in blocco, motivi del No e interventi AI sui post, calendario, metriche; D-29) | Backend API | Nessuna azione possibile, ma le pubblicazioni continuano |
 | **Backend API** | Python + FastAPI, Pydantic; sessione con cookie | Moduli: autenticazione, utenti e ruoli, anagrafica artigiani, profili (lettura e salvataggio della scheda), campagne e bozze, foto a gruppi, post e versioni, decisioni sulla campagna (approva, rimanda, respingi), approvazioni, pubblicazioni, metriche, notifiche. All'invio copia canali/frequenza/obiettivo e fotografa il profilo. Mette i job in coda. Collega l'account social | DB, archivio, validatore, adattatore social | L'app si ferma; il worker continua |
-| **Worker** | Python (stesso codice dell'API) | Job (quelli della campagna leggono `profilo_snapshot`): `analizza_foto`, `genera_campagna`, `rigenera_post`, `pubblica_post` e scadenza delle campagne (ogni minuto), `invia_notifica`, `raccogli_metriche` (ogni giorno), `promemoria`, `report_settimanale` | DB, archivio, validatore, adattatori | I job restano in coda e ripartono: solo ritardo |
+| **Worker** | Python (stesso codice dell'API) | Job (quelli della campagna leggono `profilo_snapshot`): `analizza_foto`, `genera_campagna` (con il ritocco delle foto), `rigenera_post`, `ritocca_foto`, `pubblica_post` e scadenza delle campagne (ogni minuto), `invia_notifica`, `raccogli_metriche` (ogni giorno), `promemoria`, `report_settimanale` | DB, archivio, validatore, adattatori | I job restano in coda e ripartono: solo ritardo |
 | **PostgreSQL** | PostgreSQL + SQLAlchemy/Alembic | Tutti i dati + coda dei job | API, worker | Tutto fermo: backup giornalieri |
-| **Archivio foto** | Cartella locale → volume Docker | Originali e ritagli | API, worker | Generazione e pubblicazione ferme |
+| **Archivio foto** | Cartella locale → volume Docker | Originali, ritocchi AI e ritagli | API, worker | Generazione e pubblicazione ferme |
 | **Validatore** | Modulo Python | Regole verificabili sui testi | API, worker | Post "da rivedere", mai pubblicato senza controllo |
-| **Adattatore AI** | Nostra interfaccia + LiteLLM | `analizzaImmagine()`, `generaPost()`; provider e modello da configurazione; prompt per tipo di prodotto, con versione | Provider AI | Nuovo tentativo, eventuale provider di riserva, poi "da rivedere" |
+| **Adattatore AI** | Nostra interfaccia + LiteLLM | `analizzaImmagine()`, `ritoccaImmagine()`, `generaPost()`; provider e modello da configurazione; prompt per tipo di prodotto, con versione | Provider AI | Nuovo tentativo, eventuale provider di riserva, poi "da rivedere" |
 | **Adattatore social** | Interfaccia propria | `collegaAccount()`, `pubblica()`, `leggiMetriche()`; implementazioni Meta e **simulata** | Social | Nuovo tentativo, "fallito" o "account da ricollegare" |
 | **Adattatore email** | SMTP | Notifiche e report | Catcher locale / SMTP reale | Notifica salvata e reinviata |
 
@@ -303,10 +331,11 @@ L'artigiano non ha una vista "in sola lettura di tutto": la dashboard è filtrat
 | **Profilo bottega** | *identità:* nome, referente, città, anni_attivita, sito · *storia:* storia, origine, valori[] · *prodotti:* **tipo_prodotto**, gamma, fascia_prezzo, stagionalita · *pubblico:* clienti_ideali, obiettivo, zona · *voce:* tono[], cortesia, vincoli · *logistica:* **canali[]**, frequenza, orari · JSON: social_esistenti, foto_policy, **eventi_ricorrenti** (D-11) · chiusure · aggiornato_il | 1:N Account social, Campagna, Foto |
 | **Account social** | piattaforma, id_pagina, permesso (cifrato), scadenza, stato | 1:N Pubblicazione |
 | **Campagna** | titolo, periodo, **descrizione**, **canali[]**, frequenza, obiettivo (copiati dal profilo all'invio, D-12), **profilo_snapshot** (D-13), **stato** (con `respinta` e `scaduta`, D-23, D-24), rimandata | 1:N Post, Decisione campagna |
-| **Decisione campagna** | operatore, **esito** (approvata / rimandata / respinta), nota, data (D-27) | — |
-| **Foto** | file, mime, **gruppo_id** (D-10), descrizione (del gruppo), richieste, analisi_ai, consenso_persone, n_utilizzi; legata a profilo e campagna | 1:N Versione post |
-| **Post** | canale, data_ora, **stato**, n_rigenerazioni. La versione corrente è **l'ultima** (niente campo dedicato) | 1:N Versione post, Pubblicazione |
-| **Versione post** | numero, testo, hashtag, foto, **autore** (AI / operatore), nota, versione_prompt, **provider_ai, modello_ai**, errori_validazione | 1:N Approvazione |
+| **Decisione campagna** | operatore, **esito** (approvata / rimandata / respinta), **motivo** (foto / altro), nota, foto segnate, data (D-27, D-30) | — |
+| **Foto** | file, mime, **gruppo_id** (D-10), descrizione (del gruppo), richieste, analisi_ai, consenso_persone, n_utilizzi; legata a profilo e campagna | 1:N Versione foto |
+| **Versione foto** | numero (0 = originale), file, **origine** (originale / ritocco AI), nota, provider e modello AI, versione_prompt (D-31) | 1:N Versione post |
+| **Post** | canale, data_ora, **stato**, **n_rigenerazioni_testo**, **n_ritocchi_foto** (max 3 ciascuno, D-33). La versione corrente è **l'ultima** (niente campo dedicato) | 1:N Versione post, Pubblicazione |
+| **Versione post** | numero, testo, hashtag, **versione della foto**, **tipo di intervento** (generazione / rigenera da zero / rigenera da proposta / ritocco foto / scelta foto), testo proposto, nota, versione_prompt, **provider_ai, modello_ai**, errori_validazione | 1:N Approvazione |
 | **Approvazione** | versione, utente, **ruolo**, esito, data; scritta in blocco per ogni post all'approvazione della campagna (D-20) | pronta per l'approvazione dell'artigiano |
 | **Pubblicazione** | n_tentativo, stato (in_corso / ok / errore), id_esterno, errore, data; **al massimo un "ok" per post** | 1:N Metrica |
 | **Metrica** | data_rilevazione, like, commenti, copertura, salvataggi | — |
@@ -314,11 +343,13 @@ L'artigiano non ha una vista "in sola lettura di tutto": la dashboard è filtrat
 
 **Tabelle tecniche:** `sessione` (login: hash del token, scadenza) e `procrastinate_*` (coda dei job, gestite dalla libreria).
 
-**Nel codice oggi (sprint 1):** utente, sessione, profilo_bottega, campagna, foto, post, versione_post, approvazione, pubblicazione. Da aggiungere: decisione_campagna e notifica (sprint 2b), anagrafica_artigiano e account_social (sprint 3), metrica (sprint 4).
+**Nel codice oggi (sprint 1):** utente, sessione, profilo_bottega, campagna, foto, post, versione_post, approvazione, pubblicazione. Da aggiungere: decisione_campagna e notifica (sprint 2b), anagrafica_artigiano, account_social e versione_foto (sprint 3), metrica (sprint 4).
 
 **Migrazione della scheda bottega (sprint 2a):** nessuna tabella nuova. Colonne nuove su `profilo_bottega` (campi dei passi 1–9; `tono` da testo a lista), `campagna` (`descrizione`, `canali[]` al posto di `canale`, `frequenza`, `obiettivo`, `profilo_snapshot`) e `foto` (`gruppo_id`, dimensioni in pixel). Le campagne dello sprint 1 migrano con `canali = [canale]` e senza snapshot.
 
-**Migrazione della revisione in blocco (sprint 2b):** tabelle nuove `decisione_campagna` e `notifica`; `campagna.rimandata` e i valori di stato `respinta`, `scaduta`. Spariscono le API di approvazione e scarto del singolo post dello sprint 1.
+**Migrazione della revisione in blocco (sprint 2b):** tabelle nuove `decisione_campagna` (con `motivo` e `foto_segnate`) e `notifica`; `campagna.rimandata` e i valori di stato `respinta`, `scaduta`; `post.n_rigenerazioni` diventa `n_rigenerazioni_testo`; `versione_post` guadagna `tipo_intervento`, `testo_proposto`, `nota`. Spariscono le API di approvazione e scarto del singolo post dello sprint 1 e la modifica a mano (`PUT /post/{id}`).
+
+**Migrazione del ritocco foto (sprint 3):** tabella nuova `versione_foto`, con una versione 0 per ogni foto già caricata; `versione_post.versione_foto_id` e `post.n_ritocchi_foto`.
 
 ---
 
@@ -341,13 +372,14 @@ L'artigiano non ha una vista "in sola lettura di tutto": la dashboard è filtrat
 | 1.4–1.5 Foto a gruppi e controllo tecnico | Web App, API, Archivio foto | Foto (`gruppo_id`) | ✓ |
 | 1.6 Invio e fotografia del profilo | API, Worker (coda) | Campagna (`profilo_snapshot`) | ✓ |
 | 2.1 Analisi foto | Worker, Adattatore AI | Foto.analisi_ai | ✓ |
+| 2.1b Ritocco foto | Worker, Adattatore AI, Archivio foto | Versione foto | ✓ |
 | 2.2–2.4 Calendario, post, validazione | Worker, Adattatore AI, Validatore | Post, Versione post | ✓ |
 | 2.5 Email "pronta" | Worker, Adattatore email | Notifica | ✓ |
 | 3.1 Dashboard operatore e anagrafica | Web App, API | Anagrafica artigiano, Campagna | ✓ |
-| 3.2–3.3 Vedi campagna, rigenera e modifica | Web App, API, Worker, Validatore | Post, Versione post | ✓ |
-| 3.4 Decisione in blocco | Web App, API, Adattatore email | Decisione campagna, Approvazione, Notifica | ✓ |
+| 3.2–3.3 Vedi campagna, motivi del No, rigenera testo e ritocca foto | Web App, API, Worker, Validatore, Adattatore AI | Post, Versione post, Versione foto | ✓ |
+| 3.4 Decisione in blocco (respingi con motivo) | Web App, API, Adattatore email | Decisione campagna, Approvazione, Notifica | ✓ |
 | 3.5 Promemoria e scadenza della campagna | Worker, Adattatore email | Campagna, Post, Notifica | ✓ |
-| 3.6–3.7 Modifica dopo l'ok, vista artigiano | Web App (ruolo), API | Versione post, Approvazione | ✓ |
+| 3.6–3.7 Campagna attiva senza modifiche, vista artigiano | Web App (ruolo), API | Campagna, Approvazione | ✓ |
 | 4.1–4.4 Pubblicazione ed esiti | Worker, Adattatore social, Adattatore email | Pubblicazione, Account social | ✓ |
 | 4.5 Metriche e report | Worker, Adattatore social, Web App | Metrica | ✓ |
 | Sospensione / annullamento campagna | Web App, API | Campagna | ✓ |
@@ -357,7 +389,7 @@ L'artigiano non ha una vista "in sola lettura di tutto": la dashboard è filtrat
 ## 9. Rischi principali
 1. **Testi AI ripetitivi** → prompt per tipo di prodotto, versioni rifiutate come contesto, validatore.
 2. **Collo di bottiglia dell'operatore** (es. 20 artigiani × 12 post = 240 post al mese) → approvazione in blocco (D-20), anticipo minimo di 3 giorni (D-25); misurare nella demo il tempo di revisione per campagna.
-3. **Costo delle chiamate AI** (analisi foto e rigenerazioni) → limite di 3 rigenerazioni, stima nel piano costi, confronto tra provider.
+3. **Costo delle chiamate AI** (analisi e ritocco foto, rigenerazioni) → limite di 3 rigenerazioni del testo e 3 ritocchi per post, stima nel piano costi, confronto tra provider.
 4. **Troppo lavoro per 6 settimane** → la demo copre le fasi 1→3 e simula la pubblicazione. La scheda bottega (sprint 2a) viene prima della revisione in blocco (2b): se il tempo stringe si tagliano i campi facoltativi della scheda, mai gli obbligatori. Lo sprint 2b cresce (notifiche ed email anticipate dallo sprint 3): il calendario resta nello sprint 3.
 5. **Multi-provider che si "allarga"** → nell'MVP bastano **2 implementazioni** (un provider reale + uno finto per i test); le altre si aggiungono dopo.
 6. **"Funziona sul mio PC"** in fase 1 → versioni fissate (Python, Node, PostgreSQL), file `.env.example`, istruzioni di avvio nel README.
@@ -377,7 +409,9 @@ L'artigiano non ha una vista "in sola lettura di tutto": la dashboard è filtrat
 - server proprio: dominio e certificato HTTPS per il callback OAuth dei social;
 - accordo di delega consorzio–artigiano (da far verificare a un professionista);
 - **anagrafica e accesso dal sito del consorzio** (D-28): import dei dati di iscrizione e login con le credenziali del consorzio; se si fa, cambia ADR-05 (login locale);
-- anticipo minimo di 3 giorni (D-25): da tarare con l'operatore sui tempi reali di revisione.
+- anticipo minimo di 3 giorni (D-25): da tarare con l'operatore sui tempi reali di revisione;
+- **ritocco AI delle foto** (D-31): che cosa fa l'AI sulle immagini, con quali modelli e prompt, e i prompt per le rigenerazioni del testo: **task dedicato**; costo per foto da stimare;
+- cicli (3 + 3, D-33): da tarare dopo la prova con foto reali.
 
 **Prossime scelte da fare:**
 1. Libreria per la vista calendario (sprint 3).
@@ -430,14 +464,14 @@ Un provider di riserva automatico è in roadmap.
 
 ## 12. Stato dell'implementazione
 
-**Repository:** monorepo `adflow-suite` (sul PC di Giovanni; da pubblicare su un repository condiviso). Documenti tecnici: `docs/ADR.md` (ADR-01…39) e `docs/SPEC-CODICE.md` (regole, API, sprint).
+**Repository:** monorepo `adflow-suite` su GitHub (`Full-Stack-AI-ADFlow-Suite-Project/adflow-suite`). Documenti tecnici: `docs/ADR.md` (ADR-01…44) e `docs/SPEC-CODICE.md` (regole, API, sprint).
 
 | Sprint | Contenuto | Stato |
 |---|---|---|
 | 1 · Scheletro che cammina | Login; campagna, foto, invio; generazione (1 post per foto) con validazione; accetta/scarta; scadenze e pubblicazione simulata idempotente | ✔ completato, 24 test verdi |
 | 2a · Scheda bottega | Pagina unica profilo + nuova campagna (D-08…D-19, D-25): `GET`/`PUT /profilo`, schermata Bentornato, bozza con anticipo minimo di 3 giorni, foto a gruppi, invio con fotografia del profilo; migrazione dello schema (§6) | da fare |
-| 2b · Revisione in blocco | Vedi campagna (elenco), approva / rimanda / respingi, scadenza della campagna, rigenera con nota (max 3) e modifica a mano, storico e ripristino versioni, notifiche ed email (catcher locale) per respinta e scadenza | da fare |
-| 3 · Pagine operatore e affidabilità | Anagrafica, elenco artigiani e pagina artigiano, calendario in Vedi campagna, account social simulato, promemoria 48 h, 2 post per foto | da fare |
+| 2b · Revisione in blocco | Vedi campagna (elenco), approva / rimanda / respingi con motivo, scadenza della campagna, rigenera il testo da zero o da un testo proposto (max 3), niente modifica a mano né in campagna attiva, storico versioni, notifiche ed email (catcher locale) per respinta e scadenza | da fare |
+| 3 · Pagine operatore e affidabilità | Ritocco AI delle foto e versioni della foto, ritocca di nuovo e scegli foto (max 3); anagrafica, elenco artigiani e pagina artigiano, calendario in Vedi campagna, account social simulato, promemoria 48 h, 2 post per foto | da fare |
 | 4 · Monitoraggio e demo | Metriche simulate, pagina metriche e dashboard artigiano, report, test end-to-end, dati demo, prova con OpenAI | da fare |
 
 **Scostamenti voluti rispetto al flusso completo, solo nello sprint 1:**
@@ -485,4 +519,4 @@ Un provider di riserva automatico è in roadmap.
 
 ---
 
-**Confidenza:** alta su flusso, architettura e stack; alta sull'approvazione in blocco (v4.6), media sui tempi (3 giorni di anticipo, 48 h di promemoria); media sulle librerie indicate come "proposta" (coda, multi-provider, catcher email), da verificare; i numeri (12 foto al mese, 2 post per foto, 48 h) sono stime da tarare. Sui campi estesi di `profilo_bottega` (§6, v4.5) la confidenza è media: nati da un'intervista tipo con un solo artigiano immaginario, vanno confermati con un caso reale prima di congelare lo schema.
+**Confidenza:** alta su flusso, architettura e stack; alta sull'approvazione in blocco (v4.6) e sui motivi del No (v4.7); media sul ritocco AI delle foto finché il task sui prompt non ne fissa tipo e costi; media sui tempi (3 giorni di anticipo, 48 h di promemoria); media sulle librerie indicate come "proposta" (coda, multi-provider, catcher email), da verificare; i numeri (12 foto al mese, 2 post per foto, 48 h) sono stime da tarare. Sui campi estesi di `profilo_bottega` (§6, v4.5) la confidenza è media: nati da un'intervista tipo con un solo artigiano immaginario, vanno confermati con un caso reale prima di congelare lo schema.
