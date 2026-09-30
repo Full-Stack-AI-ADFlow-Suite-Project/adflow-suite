@@ -2,7 +2,7 @@
 
 Appunti che spiegano l'architettura disegnata nella cartella `architettura/` (diagrammi 02, 05, 06, 08), con il perché delle scelte tecniche. Il dettaglio per gli agenti (modello dati, API, job) sta in `docs/agenti/plan.md`; decisioni in [`ADR.md`](ADR.md); rischi e punti da verificare in [`lavori-aperti.md`](lavori-aperti.md). Versione 4.7 del 30/09/2026.
 
-Si parte **da zero** nel repository del team (ADR-45): ogni tabella nasce già nella sua forma definitiva, nello sprint indicato, senza migrazioni "di passaggio".
+Si parte **da zero** nel repository del team (ADR-45): ogni tabella nasce già nella sua forma definitiva, nello sprint indicato in `docs/agenti/plan.md` §2, senza migrazioni "di passaggio".
 
 ---
 
@@ -71,7 +71,7 @@ SMTP_PORT=1025
 |---|---|---|---|
 | **Web App** | Viste per ruolo. Artigiano: scheda bottega + nuova campagna, calendario in lettura, metriche. Operatore: elenco artigiani, pagina artigiano, Vedi campagna (decisioni in blocco, motivi del No, interventi AI), metriche | Backend API | Nessuna azione possibile, ma le pubblicazioni continuano |
 | **Backend API** | Moduli: autenticazione, utenti e ruoli, anagrafica, profili, campagne e bozze, foto a gruppi, post e versioni, decisioni sulla campagna, approvazioni, pubblicazioni, metriche, notifiche. All'invio copia canali/frequenza/obiettivo e salva `profilo_snapshot`. Mette i job in coda | DB, archivio, validatore, adattatori | L'app si ferma; il worker continua |
-| **Worker** | Esegue i job (§5); quelli della campagna leggono `profilo_snapshot` | DB, archivio, validatore, adattatori | I job restano in coda: solo ritardo |
+| **Worker** | Esegue i job (elenco in `docs/agenti/plan.md` §4); quelli della campagna leggono `profilo_snapshot` | DB, archivio, validatore, adattatori | I job restano in coda: solo ritardo |
 | **PostgreSQL** | Tutti i dati + coda dei job | API, worker | Tutto fermo: backup giornalieri |
 | **Archivio foto** | Originali, ritocchi AI, ritagli | API, worker | Generazione e pubblicazione ferme |
 | **Validatore** | Regole verificabili sui testi (lunghezza, hashtag, parole vietate, "cose da non dire", niente prezzi o premi inventati) | API, worker | Post "da rivedere", mai pubblicato senza controllo |
@@ -91,7 +91,7 @@ Metodo (diagramma 02): si disegna il flusso, se ne ricava l'architettura, si ver
 
 ![Ciclo iterativo](architettura/diagrammi/02-ciclo-flusso-architettura.png)
 
-| Passo (spec) | Componenti | Entità |
+| Passo (note-flusso) | Componenti | Entità |
 |---|---|---|
 | 1.0 Accesso | Web App, API | utente, sessione, profilo_bottega |
 | 1.1–1.1b Profilo e Bentornato | Web App, API | profilo_bottega, decisione_campagna (ultima respinta) |

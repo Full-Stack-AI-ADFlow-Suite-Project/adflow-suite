@@ -1,6 +1,6 @@
 # ADR · decisioni in vigore · AdFlow Suite
 
-Una riga per decisione. Una decisione nuova è una riga nuova; quella che cambia si sposta in fondo, tra le sostituite. Le motivazioni stanno nelle note (`note-flusso.md` §10, `note-architettura.md` §1); il testo originale completo di ogni ADR è nella storia di git (file `docs/ADR.md` fino al 30/09/2026).
+Una riga per decisione. Una decisione nuova è una riga nuova; quella che cambia si sposta in fondo, tra le sostituite. Le motivazioni stanno nelle note (`note-flusso.md` §10, `note-architettura.md` §1); il testo originale completo di ogni ADR è nella storia di git (il vecchio file ADR.md che stava in docs/, fino al 30/09/2026).
 
 | ID | Data | Decisione |
 |---|---|---|

@@ -36,6 +36,7 @@ La versione corrente di un post è l'ultima. Versioni e decisioni non si cancell
 **Transizioni** (`domain.py`):
 - campagna: bozza → inviata → in_generazione → in_revisione → attiva → conclusa · in_generazione → generazione_fallita → inviata · in_revisione → respinta · inviata / in_generazione / generazione_fallita / in_revisione → scaduta · attiva ⇄ sospesa · attiva / sospesa → annullata
 - post: da_approvare → approvato → pubblicato / fallito · fallito → approvato · da_approvare → scaduto · da_approvare → scartato
+- `da_rivedere` è un indicatore (campo bool del post), non uno stato.
 
 **Valori ammessi** (`domain.py`):
 | Campo | Valori |

@@ -9,10 +9,13 @@ I numeri stanno solo nelle regole (§5); il resto rimanda agli ID.
 Un solo consorzio.
 
 ## 2. Flusso
-1. **Scheda bottega** (una pagina, passi 1–12). Passi 1–9 = profilo (una volta; ai rientri schermata **Bentornato**: "Va bene così" → passo 10 senza salvare, "Modifica" → passo 1). Passo 10 = campagna in **bozza** (titolo, inizio, fine, descrizione). Passo 11 = foto a **gruppi**, una descrizione per gruppo. Passo 12 = **invio**: copia canali, frequenza e obiettivo dal profilo e ne salva la fotografia (`profilo_snapshot`). R-08, R-10…R-13.
-2. **Generazione** (worker): analisi foto → ritocco foto (dallo sprint 3) → slot del calendario → testo e hashtag per slot → validatore. R-05, R-08, R-09. Fine: post `da_approvare`, campagna `in_revisione`.
-3. **Revisione** (operatore, pagina **Vedi campagna**): sistema i post con gli interventi AI (§3), poi decide sulla campagna: **approva** (tutti i post approvati, campagna `attiva`), **rimanda** (etichetta + nota, stato invariato, nessuna email), **respingi** (motivo + nota, email all'artigiano). R-06, R-14…R-18.
-4. **Pubblicazione** (tick ogni minuto): pubblica i post approvati alla loro data sulla pagina dell'artigiano; errori temporanei ritentati; tutti pubblicati o falliti → `conclusa`. R-01, R-07.
+**2.1 Scheda bottega** (una pagina, passi 1–12). Passi 1–9 = profilo (una volta; ai rientri schermata **Bentornato**: "Va bene così" → passo 10 senza salvare, "Modifica" → passo 1). Passo 10 = campagna in **bozza** (titolo, inizio, fine, descrizione). Passo 11 = foto a **gruppi**, una descrizione per gruppo. Passo 12 = **invio**: copia canali, frequenza e obiettivo dal profilo e ne salva la fotografia (`profilo_snapshot`). R-08, R-10…R-13.
+
+**2.2 Generazione** (worker): analisi foto → ritocco foto (dallo sprint 3) → slot del calendario → testo e hashtag per slot → validatore. R-05, R-08, R-09. Fine: post `da_approvare`, campagna `in_revisione`.
+
+**2.3 Revisione** (operatore, pagina **Vedi campagna**): sistema i post con gli interventi AI (§3), poi decide sulla campagna: **approva** (tutti i post approvati, campagna `attiva`), **rimanda** (etichetta + nota, stato invariato, nessuna email), **respingi** (motivo + nota, email all'artigiano). R-06, R-14…R-18.
+
+**2.4 Pubblicazione** (tick ogni minuto): pubblica i post approvati alla loro data sulla pagina dell'artigiano; errori temporanei ritentati; tutti pubblicati o falliti → `conclusa`. R-01, R-07.
 
 ## 3. Motivi del No e interventi
 | Motivo | Azione | Limite | Dopo il limite |
@@ -48,7 +51,7 @@ Ogni intervento crea una nuova versione del post, che ripassa il validatore; le 
 | R-15 | Respinta o scaduta = chiusa; non blocca il periodo; l'artigiano ne crea una nuova. |
 | R-16 | In campagna attiva o sospesa nessun intervento sui post; si sospende o si annulla. |
 | R-17 | Il ritocco vale solo per il post su cui si lavora; l'originale resta. |
-| R-18 | Respingi richiede motivo (`foto` / `altro`) e nota; con `foto` si possono segnare le foto da rifare. |
+| R-18 | Foto scattate male → Respingi con motivo `foto` e le foto da rifare segnate; l'AI non prova a salvarle. Respingi richiede sempre motivo (`foto` / `altro`) e nota. |
 
 ## 6. Criteri di accettazione
 Dato / Quando / Allora in forma breve. `S` = sprint in cui diventa verde. Il test porta l'ID nel nome (`test_ca09_...`).

@@ -165,7 +165,7 @@ L'artigiano vede **l'esito** del lavoro dell'operatore, mai il lavoro in corso.
 | R-04 | Le versioni rifiutate vengono passate all'AI come esempi di "cosa non rifare". |
 | R-05 | Una foto alimenta **al massimo 2 post**; se le foto non bastano, si propongono meno post. |
 | R-06 | Promemoria all'operatore **48 ore prima dell'inizio**; se all'inizio la campagna non è approvata, è **scaduta** con tutti i suoi post. |
-| R-07 | Se il permesso dell'account scade, o l'account non è mai stato collegato, i post dell'artigiano vengono sospesi e partono le notifiche. |
+| R-07 | Se il permesso dell'account scade, o l'account non è mai stato collegato, alla pubblicazione la campagna passa a "sospesa" e partono le notifiche. |
 | R-08 | Nessuno slot nel passato: una data già passata diventa **adesso + 15 minuti** (configurabile). Una campagna inizia almeno **3 giorni dopo l'invio**. |
 | R-09 | Due giri di tentativi distinti: **testo non valido** → riscrive (max 3), poi "da rivedere"; **errore tecnico AI** → riprova (3 volte), poi "generazione fallita" e Riprova dell'operatore. |
 | R-10 | Il profilo si compila **una volta**; ai rientri si conferma o si modifica, mai da zero. |
