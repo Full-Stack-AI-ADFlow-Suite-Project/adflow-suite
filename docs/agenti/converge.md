@@ -25,4 +25,4 @@ Su `main` pulito, da database vuoto: comandi del §1 verdi, tutti i CA con S = 1
 5. data di test avanti: i post si pubblicano (simulato), campagna conclusa;
 6. prove negative: inizio tra 1 giorno, un PDF come foto, artigiano su pagina operatore.
 
-Il controllo visivo contro le pagine statiche lo fa una persona, nel canale umano.
+Il controllo visivo contro le pagine statiche lo fa una persona (vedi gli appunti).

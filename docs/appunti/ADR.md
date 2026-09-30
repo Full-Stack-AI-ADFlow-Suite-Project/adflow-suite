@@ -1,6 +1,6 @@
 # ADR · decisioni in vigore · AdFlow Suite
 
-Una riga per decisione. Testo completo, motivazioni e decisioni sostituite (ADR-17, 20, 31, 36) in [`ADR-archivio.md`](ADR-archivio.md). Una decisione nuova si aggiunge in entrambi i file.
+Una riga per decisione. Una decisione nuova è una riga nuova; quella che cambia si sposta in fondo, tra le sostituite. Le motivazioni stanno nelle note (`note-flusso.md` §10, `note-architettura.md` §1); il testo originale completo di ogni ADR è nella storia di git (file `docs/ADR.md` fino al 30/09/2026).
 
 | ID | Data | Decisione |
 |---|---|---|
@@ -45,4 +45,12 @@ Una riga per decisione. Testo completo, motivazioni e decisioni sostituite (ADR-
 | 43 | 30/09 | Cicli separati: 3 rigenerazioni del testo, 3 ritocchi per post |
 | 44 | 30/09 | Nessuna modifica in campagna attiva o sospesa |
 | 45 | 30/09 | Si riparte da zero nel repository del team; sprint 1 sul modello definitivo |
-| 46 | 30/09 | Due canali di documentazione: umano (fonte) e agenti (derivato) |
+| 46 | 30/09 | Due canali di documentazione: appunti (fonte, `docs/appunti/`) e agenti (derivato, `docs/agenti/`) |
+
+## Sostituite
+| ID | Data | Decisione | Sostituita da |
+|---|---|---|---|
+| 17 | 26/09 | Profilo arricchito con i campi dell'intervista tipo | 21 |
+| 20 | 26/09 | Foto a gruppi con descrizione duplicata per riga | 22 |
+| 31 | 28/09 | In revisione sul post solo rigenera o modifica a mano | 42 |
+| 36 | 28/09 | In campagna attiva modifica a mano già approvata | 44 |

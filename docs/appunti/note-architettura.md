@@ -1,6 +1,6 @@
-# Tecnica · AdFlow Suite
+# Note sull'architettura · AdFlow Suite
 
-Documento del **canale umano**: le scelte tecniche con le loro motivazioni, gli ambienti, i rischi. Il dettaglio normativo per gli agenti (modello dati, API, job) sta in `docs/agenti/plan.md`. Decisioni ufficiali in [`ADR.md`](ADR.md). Versione 4.7 del 30/09/2026.
+Appunti che spiegano l'architettura disegnata nella cartella `architettura/` (diagrammi 02, 05, 06, 08), con il perché delle scelte tecniche. Il dettaglio per gli agenti (modello dati, API, job) sta in `docs/agenti/plan.md`; decisioni in [`ADR.md`](ADR.md); rischi e punti da verificare in [`lavori-aperti.md`](lavori-aperti.md). Versione 4.7 del 30/09/2026.
 
 Si parte **da zero** nel repository del team (ADR-45): ogni tabella nasce già nella sua forma definitiva, nello sprint indicato, senza migrazioni "di passaggio".
 
@@ -108,22 +108,3 @@ Metodo (diagramma 02): si disegna il flusso, se ne ricava l'architettura, si ver
 | 3.6 Sospendi / annulla | Web App, API | campagna |
 | 4.1–4.4 Pubblicazione | worker, adattatore social, adattatore email | pubblicazione, account_social |
 | 4.5 Metriche e report | worker, adattatore social, Web App | metrica |
-
-## 5. Rischi tecnici
-
-1. **Testi AI ripetitivi** → prompt per tipo di prodotto, versioni rifiutate come contesto, validatore.
-2. **Collo di bottiglia dell'operatore** (20 artigiani × 12 post = 240 post al mese) → approvazione in blocco, anticipo di 3 giorni; misurare nella demo il tempo di revisione per campagna.
-3. **Costo delle chiamate AI** (analisi e ritocco foto, rigenerazioni) → cicli 3 + 3, stima dei costi, confronto tra provider.
-4. **Troppo lavoro per 6 settimane** → la demo copre le fasi 1→3 e simula la pubblicazione; se il tempo stringe si tagliano i campi facoltativi della scheda, mai gli obbligatori.
-5. **Multi-provider che si allarga** → nell'MVP due implementazioni: un provider reale e uno finto.
-6. **"Funziona sul mio PC"** → versioni fissate (Python, Node, PostgreSQL), `.env.example`, istruzioni di avvio nel README; una sola persona non deve essere l'unica a saper avviare il progetto.
-7. **Lavoro in parallelo di più persone** → task piccoli con dipendenze esplicite, un branch per task, `domain.py` e `models.py` toccati da un task alla volta (vedi `docs/agenti/tasks.md`).
-
-## 6. Punti tecnici da verificare
-
-- LiteLLM: supporto delle immagini per i modelli OpenAI scelti; formato dei nomi dei modelli.
-- Modelli OpenAI per visione, testo e **ritocco immagini**, con costi (lavori.md A-01).
-- Modello locale: solo se serve davvero; l'hardware deve reggere la visione.
-- Catcher email per lo sviluppo (proposta: Mailpit).
-- Libreria per la vista calendario (sprint 3, lavori.md A-03).
-- Server proprio: dominio e certificato HTTPS per l'OAuth dei social.

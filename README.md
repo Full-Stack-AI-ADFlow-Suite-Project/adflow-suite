@@ -10,8 +10,8 @@ Repository ufficiale per il progetto di fine tirocinio Full Stack AI.
 ## 📚 Documentazione
 
 La documentazione ha **due canali** (ADR-46):
-- **Canale umano** · [`docs/umano/`](docs/umano/LEGGIMI.md): prodotto, scelte tecniche, decisioni (ADR), diagrammi e pagine statiche. Lo mantiene l'amministratore dei documenti ed è la fonte di verità. Si parte da [`LEGGIMI.md`](docs/umano/LEGGIMI.md).
-- **Canale agenti** · [`AGENTS.md`](AGENTS.md) + [`docs/agenti/`](docs/agenti/): regole (`constitution.md`), cosa (`spec.md`), come (`plan.md`), task (`tasks.md`), verifica (`converge.md`). Breve, derivato dal canale umano. Anche le persone ci trovano i task da prendere.
+- **Appunti** · [`docs/appunti/`](docs/appunti/LEGGIMI.md): diagrammi e pagine statiche (`architettura/`), note sul flusso e sull'architettura, lavori aperti, decisioni (ADR). Materiale in continua rimodulazione, mantenuto dall'amministratore dei documenti; è la fonte di verità. Si parte da [`LEGGIMI.md`](docs/appunti/LEGGIMI.md).
+- **Canale agenti** · [`AGENTS.md`](AGENTS.md) + [`docs/agenti/`](docs/agenti/): regole (`constitution.md`), cosa (`spec.md`), come (`plan.md`), task (`tasks.md`), verifica (`converge.md`). Breve, derivato dagli appunti. Anche le persone ci trovano i task da prendere.
 
 ## 🚀 Setup Iniziale (Fase 1 - Locale)
 

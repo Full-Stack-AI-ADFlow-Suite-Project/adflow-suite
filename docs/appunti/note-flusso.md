@@ -1,6 +1,6 @@
-# Prodotto · AdFlow Suite
+# Note sul flusso · AdFlow Suite
 
-Documento del **canale umano**: cosa fa il prodotto e perché, con motivazioni e contesto. Lo mantiene l'amministratore dei documenti. La versione breve e normativa per gli agenti è `docs/agenti/spec.md`, che deriva da questo file (vedi `LEGGIMI.md`). Il *come* per le persone sta in [`tecnica.md`](tecnica.md).
+Appunti che spiegano il flusso disegnato nella cartella `architettura/` (diagrammi 01, 03, 04, 07, 09 e pagine statiche), con il perché delle decisioni. Materiale in continua rimodulazione. La versione breve per gli agenti è `docs/agenti/spec.md` (vedi `LEGGIMI.md`); l'architettura è spiegata in [`note-architettura.md`](note-architettura.md); ciò che è ancora aperto sta in [`lavori-aperti.md`](lavori-aperti.md).
 
 **Versione:** 4.7 del 30/09/2026 · **Autore:** B3 · Architetto software · Diagrammi in `architettura/diagrammi/` (sorgente `architettura/AdFlow-diagrammi.html`).
 
@@ -65,7 +65,7 @@ Profilo e campagna sono **un'unica pagina a passi** (D-08), divisa in tre parti.
 | # | Passo | Cosa succede |
 |---|---|---|
 | 2.1 | Analisi foto | L'AI descrive soggetto, dettagli e qualità di ogni foto, usando la descrizione del gruppo; segnala problemi di luce o nitidezza |
-| 2.1b | Ritocco foto | L'AI ritocca ogni foto; l'originale resta sempre (D-31). *Che cosa fa il ritocco e con quali istruzioni lo decide un task di analisi* (lavori.md A-01) |
+| 2.1b | Ritocco foto | L'AI ritocca ogni foto; l'originale resta sempre (D-31). *Che cosa fa il ritocco e con quali istruzioni lo decide un task di analisi* (lavori-aperti.md A-01) |
 | 2.2 | Calendario del periodo | Numero di post = il minore tra (post a settimana × settimane) e (foto × 2). I canali scelti si alternano; gli orari preferiti sono un'indicazione (D-19, R-05) |
 | 2.3 | Generazione post | Testo e hashtag per canale, foto ritoccata abbinata, istruzioni per tipo di prodotto con la fotografia del profilo, eventi, chiusure e commenti del periodo (D-16) |
 | 2.4 | Controllo a regole | Lunghezza, numero di hashtag, parole vietate (comprese le "cose da non dire" del profilo), niente prezzi o premi inventati. Se non va si riscrive (max 3), poi il post è **"da rivedere"** |
@@ -233,16 +233,7 @@ Lo stato ufficiale delle decisioni è in [`ADR.md`](ADR.md); qui le decisioni su
 |---|---|---|
 | Fasi 1–4 complete con Instagram e Facebook | Fasi 1→3 reali con un vero modello AI, in locale; pubblicazione simulata; metriche finte ma realistiche; cambio di provider AI da configurazione | Approvazione dell'artigiano, anagrafica e accesso dal sito del consorzio, riuso delle foto di una campagna respinta, date strutturate per gli eventi, LinkedIn/TikTok/X, ottimizzazione dalle metriche, più consorzi, calendario drag & drop, app mobile |
 
-## 12. Domande aperte (prodotto)
-
-- Quali campi del profilo servono davvero all'AI e quali solo all'operatore: da confermare con un artigiano reale prima di costruire la scheda definitiva (lavori.md A-02).
-- **Ritocco AI**: che cosa fa sulle immagini e con quali istruzioni; istruzioni per le rigenerazioni del testo (lavori.md A-01).
-- Numeri da tarare: durata massima (3 mesi), conversione della frequenza, 1080 px, anticipo di 3 giorni, promemoria 48 ore, cicli 3 + 3, 12 foto al mese, 2 post per foto.
-- Anagrafica e accesso dal sito del consorzio: se si fa, cambia il login (ADR-05).
-- Accordo di delega consorzio–artigiano per pubblicare sulle sue pagine (da far verificare a un professionista).
-- Layout delle metriche nella dashboard artigiano (sprint 4).
-
-## 13. Glossario
+## 12. Glossario
 
 - **Campagna**: un periodo di post di un artigiano, creato dalla scheda e deciso in blocco dall'operatore.
 - **Versione**: ogni stesura di un post (o di una foto); le precedenti restano.
@@ -274,7 +265,7 @@ Lo stato ufficiale delle decisioni è in [`ADR.md`](ADR.md); qui le decisioni su
 
 | Versione | Data | Cosa cambia |
 |---|---|---|
-| 4.7 | 30/09/2026 | Motivi del No e cicli, ritocco AI delle foto, niente modifica a mano, nessuna modifica in campagna attiva (ADR-40…44). Si riparte da zero nel repository del team (ADR-45); documentazione in due canali, umano e agenti (ADR-46) |
+| 4.7 | 30/09/2026 | Motivi del No e cicli, ritocco AI delle foto, niente modifica a mano, nessuna modifica in campagna attiva (ADR-40…44). Si riparte da zero nel repository del team (ADR-45); documentazione in due canali, appunti e agenti (ADR-46) |
 | 4.6 | 28/09/2026 | Approvazione in blocco, respinta e scaduta, anticipo 3 giorni, anagrafica, dashboard operatore (ADR-30…39) |
 | 4.5 | 26/09/2026 | Scheda bottega unica con Bentornato (ADR-15…29) |
 | 4.1–4.4 | 25/09/2026 | Stack, login con sessione, LiteLLM, dashboard artigiano (ADR-01…14) |
