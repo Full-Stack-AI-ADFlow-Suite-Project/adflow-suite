@@ -7,6 +7,7 @@ Checklist ordinata dei lavori. Come si prende ed esegue un task: [`constitution.
 - Chi lo prende scrive il nome in "Assegnato a"; chi lo chiude cambia ☐ in ☑ nella stessa PR.
 - "Fatto quando" + i criteri `CA-xx` di [`spec.md`](spec.md) §9 sono la definizione di fatto del task.
 - Solo lo **sprint corrente** è diviso in micro-task; gli altri si dettagliano quando si arriva.
+- Gli sprint non hanno date fisse: il ritmo si decide dopo lo sprint 1.
 
 **Si parte da zero** nel repository del team (ADR-45): oggi ci sono solo lo scheletro di FastAPI e il template Vite.
 
@@ -18,7 +19,7 @@ Producono decisioni scritte (spec, plan, ADR), non codice.
 
 | ID | Task | Serve prima di | Assegnato a | Fatto quando | Stato |
 |---|---|---|---|---|---|
-| A-01 | **AI e immagini, prompt**: che cosa fa il ritocco (luce, colori, ritaglio, sfondo?), con quali modelli e costi; prompt di analisi foto, generazione post, rigenerazione "da zero" e "da proposta"; formato della risposta dell'AI | sprint 2b (prompt di rigenerazione), sprint 3 (ritocco) | | spec §4 (2.1b) e plan §8 aggiornati, nuova ADR, prompt di esempio in `docs/` | ☐ |
+| A-01 | **AI e immagini, prompt**: che cosa fa il ritocco (luce, colori, ritaglio, sfondo?), con quali modelli e costi; prompt di analisi foto, generazione post, rigenerazione "da zero" e "da proposta"; formato della risposta dell'AI | in parallelo allo sprint 1; pronto per il 2b (prompt di rigenerazione) e il 3 (ritocco) | | spec §4 (2.1b) e plan §8 aggiornati, nuova ADR, prompt di esempio in `docs/` | ☐ |
 | A-02 | **Campi del profilo**: confermare con un artigiano o un operatore reale quali campi dei passi 1–9 servono davvero | sprint 2a | | elenco confermato in spec §3 e plan §3; ADR se cambia qualcosa | ☐ |
 | A-03 | **Libreria calendario** per Vedi campagna e dashboard artigiano | sprint 3 | | scelta con motivazione in plan §1 e ADR | ☐ |
 | A-04 | **Pagine statiche mancanti**: Vedi campagna, elenco artigiani, metriche (come `AdFlow-operatore-artigiano.html`) | Vedi campagna: sprint 2b · elenco: sprint 3 · metriche: sprint 4 | | pagine in `docs/architettura/`, citate in spec §5.2 | ☐ |
@@ -56,7 +57,6 @@ Producono decisioni scritte (spec, plan, ADR), non codice.
 
 **Si possono fare in parallelo:** dopo T1-01 → T1-02, T1-03, T1-11 insieme; dopo T1-03 → T1-12 e T1-13 insieme; il frontend (T1-17) parte appena il contratto di login (T1-04) è stabile. `models.py` e le migrazioni (T1-02, T1-05, T1-06) si fanno in ordine, da una persona alla volta.
 
-**Nota:** esiste già il branch `feature/gianluca-auth-profile`, ancora senza commit; può diventare T1-04 quando T1-02 è chiuso.
 
 ---
 
