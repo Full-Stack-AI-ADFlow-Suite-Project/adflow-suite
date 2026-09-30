@@ -34,6 +34,11 @@ API FastAPI per il progetto AdFlow Suite.
    CREATE DATABASE adflow_test;
    ```
 
+7. Applica le migrazioni del database:
+   ```bash
+   alembic upgrade head
+   ```
+
 ## Avvio
 
 Avvia il server di sviluppo:
@@ -43,11 +48,40 @@ uvicorn main:app --reload
 
 L'API sarà disponibile su `http://localhost:8000`
 
+## Migrazioni Alembic
+
+Per applicare le migrazioni:
+```bash
+alembic upgrade head
+```
+
+Per generare una nuova migrazione:
+```bash
+alembic revision --autogenerate -m "descrizione"
+```
+
+Per revertare l'ultima migrazione:
+```bash
+alembic downgrade -1
+```
+
+Vedi `COMANDI_MIGRAZIONI.md` per tutti i comandi dettagliati.
+
 ## Test
 
 Esegui i test su PostgreSQL:
 ```bash
 pytest
+```
+
+Per testare solo le migrazioni (richiede PostgreSQL):
+```bash
+pytest tests/test_migrazioni.py -v
+```
+
+Per testare la struttura delle migrazioni (senza database):
+```bash
+pytest tests/test_migrazione_struttura.py -v
 ```
 
 ## Struttura
@@ -67,6 +101,8 @@ backend/
 │   ├── coda.py       # Worker queue
 │   ├── security.py   # Autenticazione/autorizzazione
 │   └── cli.py        # Comandi CLI
+├── alembic/          # Migrazioni database
+│   └── versions/     # File di migrazione
 ├── tests/
 │   ├── unit/         # Test unitari
 │   ├── services/     # Test servizi
