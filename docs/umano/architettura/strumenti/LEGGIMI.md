@@ -1,6 +1,6 @@
 # Strumenti per i diagrammi
 
-`AdFlow-diagrammi.html` è la sorgente dei diagrammi (HTML + connettori disegnati da script). Dopo averlo modificato, da `docs/architettura`:
+`AdFlow-diagrammi.html` è la sorgente dei diagrammi (HTML + connettori disegnati da script). Dopo averlo modificato, da `docs/umano/architettura`:
 
 ```
 node strumenti/render-diagrammi.mjs          # rigenera diagrammi/*.png (tutti, oppure: d01,d09)

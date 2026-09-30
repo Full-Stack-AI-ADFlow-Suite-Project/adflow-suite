@@ -1,6 +1,6 @@
-# Spec · AdFlow Suite
+# Prodotto · AdFlow Suite
 
-**Cosa** fa il prodotto e **perché**. Qui non ci sono scelte tecnologiche: il *come* sta in [`plan.md`](plan.md), le regole di lavoro in [`constitution.md`](constitution.md).
+Documento del **canale umano**: cosa fa il prodotto e perché, con motivazioni e contesto. Lo mantiene l'amministratore dei documenti. La versione breve e normativa per gli agenti è `docs/agenti/spec.md`, che deriva da questo file (vedi `LEGGIMI.md`). Il *come* per le persone sta in [`tecnica.md`](tecnica.md).
 
 **Versione:** 4.7 del 30/09/2026 · **Autore:** B3 · Architetto software · Diagrammi in `architettura/diagrammi/` (sorgente `architettura/AdFlow-diagrammi.html`).
 
@@ -65,7 +65,7 @@ Profilo e campagna sono **un'unica pagina a passi** (D-08), divisa in tre parti.
 | # | Passo | Cosa succede |
 |---|---|---|
 | 2.1 | Analisi foto | L'AI descrive soggetto, dettagli e qualità di ogni foto, usando la descrizione del gruppo; segnala problemi di luce o nitidezza |
-| 2.1b | Ritocco foto | L'AI ritocca ogni foto; l'originale resta sempre (D-31). *Che cosa fa il ritocco e con quali istruzioni lo decide un task di analisi* (tasks.md A-01) |
+| 2.1b | Ritocco foto | L'AI ritocca ogni foto; l'originale resta sempre (D-31). *Che cosa fa il ritocco e con quali istruzioni lo decide un task di analisi* (lavori.md A-01) |
 | 2.2 | Calendario del periodo | Numero di post = il minore tra (post a settimana × settimane) e (foto × 2). I canali scelti si alternano; gli orari preferiti sono un'indicazione (D-19, R-05) |
 | 2.3 | Generazione post | Testo e hashtag per canale, foto ritoccata abbinata, istruzioni per tipo di prodotto con la fotografia del profilo, eventi, chiusure e commenti del periodo (D-16) |
 | 2.4 | Controllo a regole | Lunghezza, numero di hashtag, parole vietate (comprese le "cose da non dire" del profilo), niente prezzi o premi inventati. Se non va si riscrive (max 3), poi il post è **"da rivedere"** |
@@ -182,90 +182,13 @@ L'artigiano vede **l'esito** del lavoro dell'operatore, mai il lavoro in corso.
 
 ## 9. Criteri di accettazione
 
-Scritti come **Dato / Quando / Allora**. Ognuno diventa almeno un test (mappa in `converge.md` §4). La colonna "Sprint" dice quando deve diventare verde.
-
-### Accesso e permessi
-| ID | Sprint | Criterio |
-|---|---|---|
-| CA-01 | 1 | **Dato** un utente attivo, **quando** entra con email e password corrette, **allora** accede con il suo ruolo e resta collegato finché non esce o la sessione scade. |
-| CA-02 | 1 | **Dato** un utente, **quando** sbaglia la password, **allora** non entra e riceve un messaggio che non dice quale dato è sbagliato. |
-| CA-03 | 1 | **Dato** un artigiano collegato, **quando** apre una funzione dell'operatore, **allora** l'accesso è negato. |
-| CA-04 | 1 | **Dato** un artigiano collegato, **quando** chiede una campagna o una foto di un altro artigiano, **allora** riceve "non trovato", come se non esistesse. |
-
-### Profilo e Bentornato
-| ID | Sprint | Criterio |
-|---|---|---|
-| CA-05 | 2a | **Dato** un artigiano senza profilo, **quando** entra, **allora** parte dal passo 1 della scheda. |
-| CA-06 | 2a | **Dato** un artigiano con profilo, **quando** rientra, **allora** vede il Bentornato; con "Va bene così" va al passo 10 e il profilo non viene salvato di nuovo. |
-| CA-07 | 2a | **Dato** il passo 9, **quando** manca un campo obbligatorio del profilo, **allora** il profilo non si salva e il campo è indicato. |
-| CA-08 | 2a | **Dato** un artigiano con una bozza aperta, **quando** rientra, **allora** riprende la bozza dal passo 10 con dati e foto. |
-
-### Campagna e foto
-| ID | Sprint | Criterio |
-|---|---|---|
-| CA-09 | 1 | **Dato** un artigiano, **quando** crea o invia una campagna che inizia prima di oggi + 3 giorni, **allora** è rifiutata (anche per una bozza rimasta ferma). |
-| CA-10 | 1 | **Dato** un artigiano, **quando** crea una campagna più lunga di 3 mesi o con fine prima dell'inizio, **allora** è rifiutata. |
-| CA-11 | 1 | **Dato** un artigiano con una bozza, **quando** ne crea un'altra, **allora** è rifiutata. |
-| CA-12 | 1 | **Dato** un artigiano con una campagna attiva, **quando** ne crea una con periodo sovrapposto, **allora** è rifiutata; **se** la campagna precedente è respinta o scaduta, **allora** è accettata. |
-| CA-13 | 1 | **Dato** una bozza, **quando** l'artigiano carica un file non immagine, oltre 10 MB o con lato corto sotto 1080 px, **allora** la foto è rifiutata con il motivo. |
-| CA-14 | 1 | **Dato** una bozza senza foto o con un gruppo senza descrizione, **quando** l'artigiano invia, **allora** l'invio è rifiutato e il problema è indicato. |
-| CA-15 | 1 | **Dato** una bozza completa, **quando** l'artigiano invia, **allora** la campagna passa a inviata, copia canali, frequenza e obiettivo dal profilo e ne salva la fotografia. |
-| CA-16 | 2a | **Dato** una campagna inviata, **quando** l'artigiano modifica il profilo, **allora** generazione, Riprova e rigenerazioni di quella campagna usano ancora la fotografia. |
-
-### Generazione
-| ID | Sprint | Criterio |
-|---|---|---|
-| CA-17 | 1 | **Dato** una campagna inviata di 4 settimane, 3 post a settimana, due canali e 5 foto, **quando** la generazione finisce, **allora** ci sono min(12, 10) = 10 post, con i canali alternati e nessuna foto usata più di 2 volte. |
-| CA-18 | 1 | **Dato** un testo che viola le regole (per esempio contiene una "cosa da non dire"), **quando** anche la terza riscrittura non va, **allora** il post è salvato "da rivedere". |
-| CA-19 | 1 | **Dato** un errore tecnico dell'AI a ogni tentativo, **quando** falliscono 3 tentativi, **allora** la campagna è "generazione fallita"; **quando** l'operatore preme Riprova, **allora** torna inviata e la generazione riparte. |
-| CA-20 | 1 | **Dato** una generazione riuscita, **allora** tutti i post sono da approvare e la campagna è in revisione. |
-
-### Revisione e decisione
-| ID | Sprint | Criterio |
-|---|---|---|
-| CA-21 | 1 | **Dato** una campagna in revisione senza post da rivedere, **quando** l'operatore approva, **allora** tutti i post sono approvati, la campagna è attiva e l'approvazione è registrata per ogni post. |
-| CA-22 | 1 | **Dato** una campagna con un post "da rivedere" o con un intervento in corso, **quando** l'operatore approva, **allora** l'approvazione è rifiutata. |
-| CA-23 | 2b | **Dato** una campagna in revisione, **quando** l'operatore rimanda con una nota, **allora** lo stato non cambia, compare l'etichetta "rimandata" e non parte nessuna email. |
-| CA-24 | 2b | **Dato** una campagna in revisione, **quando** l'operatore respinge senza motivo o senza nota, **allora** è rifiutato. |
-| CA-25 | 2b | **Dato** una campagna in revisione, **quando** l'operatore respinge con motivo "foto" e segna 2 foto, **allora** la campagna è respinta, i post scartati, e l'artigiano riceve un'email con motivo, nota e le 2 miniature. |
-| CA-26 | 2b | **Dato** un post da approvare, **quando** l'operatore chiede "rigenera da zero", **allora** nasce una nuova versione con testo nuovo e la stessa foto, che ripassa il controllo a regole. |
-| CA-27 | 2b | **Dato** un post da approvare, **quando** l'operatore chiede "rigenera da proposta" senza testo proposto, **allora** è rifiutato; con testo e indicazioni, nasce una nuova versione con la stessa foto. |
-| CA-28 | 2b | **Dato** un post già rigenerato 3 volte, **quando** l'operatore chiede una quarta rigenerazione, **allora** è rifiutata. |
-| CA-29 | 2b | **Dato** una campagna attiva o sospesa, **quando** l'operatore prova un qualsiasi intervento su un post, **allora** è rifiutato. |
-| CA-30 | 2b | **Dato** una campagna inviata, in generazione, generazione fallita o in revisione, **quando** arrivano le 00:00 del giorno di inizio senza approvazione, **allora** è scaduta, i post sono scaduti e l'artigiano riceve un'email. |
-| CA-31 | 2b | **Dato** una campagna in revisione (anche rimandata), **quando** l'artigiano la apre, **allora** non vede nessun post; **dato** una campagna respinta, vede motivo, nota e foto da rifare, anche nel Bentornato. |
-| CA-32 | 2b | **Dato** una campagna attiva, **quando** l'operatore la sospende, **allora** non si pubblica nulla finché non la riattiva; **quando** la annulla, **allora** non si pubblica più nulla. |
-
-### Ritocco foto
-| ID | Sprint | Criterio |
-|---|---|---|
-| CA-33 | 3 | **Dato** una campagna inviata, **quando** la generazione finisce, **allora** ogni foto ha una versione ritoccata e l'originale è ancora disponibile. |
-| CA-34 | 3 | **Dato** una foto usata da due post, **quando** l'operatore la fa ritoccare di nuovo per uno dei due, **allora** cambia solo quel post. |
-| CA-35 | 3 | **Dato** un post con 3 ritocchi, **quando** l'operatore chiede il quarto, **allora** è rifiutato; **quando** sceglie l'originale, **allora** il post torna all'originale senza consumare cicli. |
-
-### Pubblicazione
-| ID | Sprint | Criterio |
-|---|---|---|
-| CA-36 | 1 | **Dato** un post approvato con data raggiunta, **quando** passa il controllo periodico, **allora** viene pubblicato una volta sola, anche se il controllo parte due volte. |
-| CA-37 | 1 | **Dato** un post da approvare con data raggiunta, **quando** passa il controllo periodico, **allora** non viene pubblicato. |
-| CA-38 | 1 | **Dato** un errore temporaneo del social, **quando** fallisce 3 volte, **allora** il post è fallito e l'operatore è avvisato. |
-| CA-39 | 1 | **Dato** una campagna attiva, **quando** tutti i suoi post sono pubblicati o falliti, **allora** è conclusa. |
-| CA-40 | 3 | **Dato** un artigiano senza account collegato o con permesso scaduto, **quando** arriva la prima pubblicazione, **allora** la campagna è sospesa e partono gli avvisi. |
-
-### Pagine operatore, promemoria, metriche
-| ID | Sprint | Criterio |
-|---|---|---|
-| CA-41 | 3 | **Dato** un artigiano con campagne in stati diversi, **quando** l'operatore apre la sua pagina, **allora** ogni campagna è nella sezione giusta (5.2) con il solo pulsante Vedi campagna. |
-| CA-42 | 3 | **Dato** una campagna in revisione che inizia tra meno di 48 ore, **quando** passa il controllo orario, **allora** l'operatore riceve un promemoria, una volta sola. |
-| CA-43 | 3 | **Dato** anagrafica e profilo con nome diverso, **quando** l'operatore apre la pagina artigiano, **allora** la differenza è segnalata. |
-| CA-44 | 4 | **Dato** un post pubblicato, **quando** passa la lettura giornaliera, **allora** le metriche del giorno sono salvate e visibili nelle dashboard. |
-| CA-45 | 4 | **Dato** il sistema completo, **quando** un artigiano invia una campagna e l'operatore la approva, **allora** i post risultano pubblicati (percorso completo nel browser, pubblicazione simulata). |
+Stanno solo nel canale agenti: `docs/agenti/spec.md` §6 (CA-01…CA-45, forma Dato / Quando / Allora). Si rigenerano da questo documento con un assorbimento.
 
 ---
 
 ## 10. Decisioni di prodotto
 
-Le decisioni tecniche e il loro stato ufficiale stanno in [`ADR.md`](ADR.md); qui le decisioni sul flusso con motivazione e alternative.
+Lo stato ufficiale delle decisioni è in [`ADR.md`](ADR.md); qui le decisioni sul flusso con motivazione e alternative.
 
 | ID | Decisione | Motivazione | Alternative scartate |
 |---|---|---|---|
@@ -312,8 +235,8 @@ Le decisioni tecniche e il loro stato ufficiale stanno in [`ADR.md`](ADR.md); qu
 
 ## 12. Domande aperte (prodotto)
 
-- Quali campi del profilo servono davvero all'AI e quali solo all'operatore: da confermare con un artigiano reale prima di costruire la scheda definitiva (tasks.md A-02).
-- **Ritocco AI**: che cosa fa sulle immagini e con quali istruzioni; istruzioni per le rigenerazioni del testo (tasks.md A-01).
+- Quali campi del profilo servono davvero all'AI e quali solo all'operatore: da confermare con un artigiano reale prima di costruire la scheda definitiva (lavori.md A-02).
+- **Ritocco AI**: che cosa fa sulle immagini e con quali istruzioni; istruzioni per le rigenerazioni del testo (lavori.md A-01).
 - Numeri da tarare: durata massima (3 mesi), conversione della frequenza, 1080 px, anticipo di 3 giorni, promemoria 48 ore, cicli 3 + 3, 12 foto al mese, 2 post per foto.
 - Anagrafica e accesso dal sito del consorzio: se si fa, cambia il login (ADR-05).
 - Accordo di delega consorzio–artigiano per pubblicare sulle sue pagine (da far verificare a un professionista).
@@ -351,7 +274,7 @@ Le decisioni tecniche e il loro stato ufficiale stanno in [`ADR.md`](ADR.md); qu
 
 | Versione | Data | Cosa cambia |
 |---|---|---|
-| 4.7 | 30/09/2026 | Motivi del No e cicli, ritocco AI delle foto, niente modifica a mano, nessuna modifica in campagna attiva (ADR-40…44). Documentazione riorganizzata in constitution / spec / plan / tasks / converge; si riparte da zero nel repository del team (ADR-45) |
+| 4.7 | 30/09/2026 | Motivi del No e cicli, ritocco AI delle foto, niente modifica a mano, nessuna modifica in campagna attiva (ADR-40…44). Si riparte da zero nel repository del team (ADR-45); documentazione in due canali, umano e agenti (ADR-46) |
 | 4.6 | 28/09/2026 | Approvazione in blocco, respinta e scaduta, anticipo 3 giorni, anagrafica, dashboard operatore (ADR-30…39) |
 | 4.5 | 26/09/2026 | Scheda bottega unica con Bentornato (ADR-15…29) |
 | 4.1–4.4 | 25/09/2026 | Stack, login con sessione, LiteLLM, dashboard artigiano (ADR-01…14) |

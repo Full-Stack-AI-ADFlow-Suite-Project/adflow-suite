@@ -1,7 +1,6 @@
-# ADR · AdFlow Suite
+# ADR · archivio completo · AdFlow Suite
 
-Registro delle decisioni architetturali. Una riga per decisione. Per cambiarne una: nuova riga che la sostituisce, mai cancellare.
-Dettaglio e motivazioni: `docs/spec.md` (flusso e decisioni di prodotto D-xx) e `docs/plan.md` (come). Regole di lavoro: `docs/constitution.md`.
+Testo integrale di tutte le decisioni, comprese quelle sostituite. Non si cancella nulla: una decisione nuova è una riga nuova. L'indice breve delle decisioni in vigore è [`ADR.md`](ADR.md).
 
 | ID | Data | Decisione | Stato |
 |---|---|---|---|
@@ -50,3 +49,4 @@ Dettaglio e motivazioni: `docs/spec.md` (flusso e decisioni di prodotto D-xx) e 
 | ADR-43 | 30/09/2026 | **Cicli per post, contatori separati**: max 3 rigenerazioni del testo (② e ③ insieme) e max 3 ritocchi della foto. Finiti i ritocchi, l'operatore sceglie la foto originale o una versione precedente, senza consumare cicli. Finite le rigenerazioni, resta solo Respingi (motivo `altro`). Sostituisce R-03 | Accettata |
 | ADR-44 | 30/09/2026 | Sostituisce ADR-36. In campagna `attiva` o `sospesa` **nessuna modifica ai post**. Se un post non va più bene, l'operatore sospende la campagna (ferma le pubblicazioni) o la annulla | Accettata |
 | ADR-45 | 30/09/2026 | **Si riparte da zero** nel repository del team (`Full-Stack-AI-ADFlow-Suite-Project/adflow-suite`): il codice dello sprint 1 scritto altrove non si importa. Lo sprint 1 diventa lo scheletro sul **modello definitivo v4.7** (canali[], `profilo_snapshot`, approvazione in blocco; `decisione_campagna` nasce nello sprint 1), senza forme di passaggio né migrazioni di adattamento. Documentazione riorganizzata con metodo spec-driven: `constitution.md`, `spec.md`, `plan.md`, `tasks.md`, `converge.md`; `SPEC-CODICE.md` e il flusso v4.7 rimossi, contenuto ripartito. Più `CLAUDE.md` / `AGENTS.md` alla radice per gli agenti AI | Accettata |
+| ADR-46 | 30/09/2026 | **Due canali di documentazione.** *Canale umano* (`docs/umano/`: prodotto, tecnica, lavori, ADR, diagrammi e pagine HTML) gestito dall'amministratore dei documenti, fonte di verità. *Canale agenti* (`AGENTS.md` + `docs/agenti/`: constitution, spec, plan, tasks, converge) breve e senza ripetizioni, derivato dal canale umano con richieste di "assorbimento". Gli agenti non leggono il canale umano se non ricevono un brief esplicito; i task ampi ricevono un brief volta per volta. `CLAUDE.md` importa `AGENTS.md` | Accettata |

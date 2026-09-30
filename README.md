@@ -9,16 +9,9 @@ Repository ufficiale per il progetto di fine tirocinio Full Stack AI.
 
 ## 📚 Documentazione
 
-Il progetto segue un metodo **spec-driven**: prima cosa e perché, poi come, poi i task, poi il codice, poi la verifica. Prima di scrivere codice, leggere:
-- [`docs/constitution.md`](docs/constitution.md): regole non negoziabili, sicurezza, standard, come si esegue un task
-- [`docs/spec.md`](docs/spec.md): cosa fa il prodotto e perché, regole di processo, criteri di accettazione
-- [`docs/plan.md`](docs/plan.md): come lo costruiamo (stack, architettura, modello dati, API, job)
-- [`docs/tasks.md`](docs/tasks.md): i task da fare, con dipendenze e assegnazioni
-- [`docs/converge.md`](docs/converge.md): come si verifica un task e uno sprint
-- [`docs/ADR.md`](docs/ADR.md): registro delle decisioni (una riga per decisione, mai cancellata)
-- [`docs/architettura/`](docs/architettura/): diagrammi, pagine statiche di riferimento (scheda bottega, pagina operatore) e strumenti per rigenerarli
-
-Gli agenti AI partono da [`CLAUDE.md`](CLAUDE.md) / [`AGENTS.md`](AGENTS.md).
+La documentazione ha **due canali** (ADR-46):
+- **Canale umano** · [`docs/umano/`](docs/umano/LEGGIMI.md): prodotto, scelte tecniche, decisioni (ADR), diagrammi e pagine statiche. Lo mantiene l'amministratore dei documenti ed è la fonte di verità. Si parte da [`LEGGIMI.md`](docs/umano/LEGGIMI.md).
+- **Canale agenti** · [`AGENTS.md`](AGENTS.md) + [`docs/agenti/`](docs/agenti/): regole (`constitution.md`), cosa (`spec.md`), come (`plan.md`), task (`tasks.md`), verifica (`converge.md`). Breve, derivato dal canale umano. Anche le persone ci trovano i task da prendere.
 
 ## 🚀 Setup Iniziale (Fase 1 - Locale)
 
