@@ -2,9 +2,11 @@ fastapi
 uvicorn
 sqlalchemy
 alembic
-psycopg2-binary
+psycopg[binary]
 procrastinate
 python-dotenv
 pydantic-settings
 pre-commit
 black
+pytest
+httpx
