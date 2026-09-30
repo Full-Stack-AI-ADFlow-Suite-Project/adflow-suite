@@ -1,7 +1,7 @@
 # ADR · AdFlow Suite
 
 Registro delle decisioni architetturali. Una riga per decisione. Per cambiarne una: nuova riga che la sostituisce, mai cancellare.
-Dettaglio e motivazioni: `docs/architettura/AdFlow-flusso-architettura-v4.md`.
+Dettaglio e motivazioni: `docs/spec.md` (flusso e decisioni di prodotto D-xx) e `docs/plan.md` (come). Regole di lavoro: `docs/constitution.md`.
 
 | ID | Data | Decisione | Stato |
 |---|---|---|---|
@@ -25,7 +25,7 @@ Dettaglio e motivazioni: `docs/architettura/AdFlow-flusso-architettura-v4.md`.
 | ADR-18 | 26/09/2026 | Calendario eventi ricorrenti della bottega: **campo lista dentro `profilo_bottega`** (JSON), non tabella dedicata, finché restano pochi eventi per bottega | Accettata |
 | ADR-19 | 26/09/2026 | `campagna` guadagna un campo `descrizione` (commenti/note del periodo per l'operatore), oggi assente | Accettata |
 | ADR-20 | 26/09/2026 | Le foto di una campagna si caricano **a gruppi con una descrizione condivisa per gruppo**: `foto` guadagna `gruppo_id` (nullable), la descrizione resta per riga ma duplicata nel gruppo — nessuna nuova tabella per ora, per non toccare lo sprint 1 già completato | Sostituita da ADR-22 |
-| ADR-21 | 26/09/2026 | Sostituisce ADR-17. `profilo_bottega` contiene esattamente i campi dei passi 1–9 della scheda bottega (`docs/architettura/AdFlow-scheda-bottega.html`); obbligatori: nome, referente, città, tipo_prodotto, clienti_ideali, obiettivo, canali. Elenco completo in SPEC-CODICE §4 | Accettata |
+| ADR-21 | 26/09/2026 | Sostituisce ADR-17. `profilo_bottega` contiene esattamente i campi dei passi 1–9 della scheda bottega (`docs/architettura/AdFlow-scheda-bottega.html`); obbligatori: nome, referente, città, tipo_prodotto, clienti_ideali, obiettivo, canali. Elenco completo in plan.md §3 | Accettata |
 | ADR-22 | 26/09/2026 | Sostituisce ADR-20. Foto a gruppi: `foto.gruppo_id` generato dal client; la foto si carica subito, la descrizione del gruppo si imposta con `PUT /campagne/{id}/gruppi/{gruppo_id}` (copiata su ogni foto del gruppo) ed è obbligatoria all'invio; `richieste` resta facoltativo per compatibilità con lo sprint 1 | Accettata |
 | ADR-23 | 26/09/2026 | Canali, frequenza e obiettivo stanno nel profilo; la campagna li copia all'invio. `campagna.canale` diventa `campagna.canali[]`. Frequenza = post totali a settimana, canali alternati negli slot | Accettata |
 | ADR-24 | 26/09/2026 | All'invio la campagna salva `profilo_snapshot` (JSON); generazione, Riprova e rigenerazioni della campagna usano lo snapshot, non il profilo corrente | Accettata |
@@ -49,3 +49,4 @@ Dettaglio e motivazioni: `docs/architettura/AdFlow-flusso-architettura-v4.md`.
 | ADR-42 | 30/09/2026 | Sostituisce ADR-31. In revisione, sul singolo post, solo **tre interventi AI**: ① **ritocca di nuovo la foto** (nota facoltativa; vale solo per quel post, anche se la foto alimenta un altro post), ② **rigenera il testo da zero** tenendo la foto, ③ **rigenera da un testo proposto** dall'operatore più indicazioni, tenendo la foto. Ognuno crea una nuova versione del post, che ripassa la validazione. **Niente modifica a mano.** "Approva" risponde 409 se un post è "da rivedere" o ha un intervento in corso. ① dallo sprint 3 | Accettata |
 | ADR-43 | 30/09/2026 | **Cicli per post, contatori separati**: max 3 rigenerazioni del testo (② e ③ insieme) e max 3 ritocchi della foto. Finiti i ritocchi, l'operatore sceglie la foto originale o una versione precedente, senza consumare cicli. Finite le rigenerazioni, resta solo Respingi (motivo `altro`). Sostituisce R-03 | Accettata |
 | ADR-44 | 30/09/2026 | Sostituisce ADR-36. In campagna `attiva` o `sospesa` **nessuna modifica ai post**. Se un post non va più bene, l'operatore sospende la campagna (ferma le pubblicazioni) o la annulla | Accettata |
+| ADR-45 | 30/09/2026 | **Si riparte da zero** nel repository del team (`Full-Stack-AI-ADFlow-Suite-Project/adflow-suite`): il codice dello sprint 1 scritto altrove non si importa. Lo sprint 1 diventa lo scheletro sul **modello definitivo v4.7** (canali[], `profilo_snapshot`, approvazione in blocco; `decisione_campagna` nasce nello sprint 1), senza forme di passaggio né migrazioni di adattamento. Documentazione riorganizzata con metodo spec-driven: `constitution.md`, `spec.md`, `plan.md`, `tasks.md`, `converge.md`; `SPEC-CODICE.md` e il flusso v4.7 rimossi, contenuto ripartito. Più `CLAUDE.md` / `AGENTS.md` alla radice per gli agenti AI | Accettata |
