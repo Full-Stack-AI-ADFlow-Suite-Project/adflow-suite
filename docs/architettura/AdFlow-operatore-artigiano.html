@@ -147,7 +147,7 @@
 
   <div class="banner warn">
     <span class="icon">i</span>
-    <span><b>Schema statico, non interattivo</b> (v4.6, ADR-38 e ADR-39). Pagina dell'operatore dedicata a un artigiano, con dati di esempio (Falegnameria Bianchi, come nella scheda bottega). Nessun pulsante funziona: è lo scheletro da cui costruire la pagina reale (sprint 3). Oggi è il 28/09/2026.</span>
+    <span><b>Schema statico, non interattivo</b> (v4.7, ADR-38, ADR-39 e ADR-40…44). Pagina dell'operatore dedicata a un artigiano, con dati di esempio (Falegnameria Bianchi, come nella scheda bottega). Nessun pulsante funziona: è lo scheletro da cui costruire la pagina reale (sprint 3). Oggi è il 28/09/2026.</span>
   </div>
 
   <div class="crumb"><a href="AdFlow-operatore-elenco.html">← Elenco artigiani</a></div>
@@ -228,7 +228,7 @@
 
     <div class="banner info">
       <span class="icon">i</span>
-      <span><b>Sezioni (ADR-39).</b> Da approvare: <span class="mono">inviata</span>, <span class="mono">in_generazione</span>, <span class="mono">generazione_fallita</span>, <span class="mono">in_revisione</span> (anche "rimandata") · In corso: <span class="mono">attiva</span>, <span class="mono">sospesa</span> · Scadute: <span class="mono">scaduta</span>, cioè inviate dall'artigiano e non approvate entro l'inizio · Passate: <span class="mono">conclusa</span>, <span class="mono">annullata</span>, <span class="mono">respinta</span>. Approva, rimanda, respingi e le azioni sui post stanno nella pagina <b>Vedi campagna</b>, con tutti i post e il calendario.</span>
+      <span><b>Sezioni (ADR-39).</b> Da approvare: <span class="mono">inviata</span>, <span class="mono">in_generazione</span>, <span class="mono">generazione_fallita</span>, <span class="mono">in_revisione</span> (anche "rimandata") · In corso: <span class="mono">attiva</span>, <span class="mono">sospesa</span> · Scadute: <span class="mono">scaduta</span>, cioè inviate dall'artigiano e non approvate entro l'inizio · Passate: <span class="mono">conclusa</span>, <span class="mono">annullata</span>, <span class="mono">respinta</span>. Approva, rimanda, respingi (con motivo: foto o altro) e gli interventi AI sui post (rigenera il testo, ritocca la foto: max 3 + 3 per post) stanno nella pagina <b>Vedi campagna</b>, con tutti i post e il calendario. In campagna attiva nessuna modifica ai post: si sospende o si annulla (ADR-44).</span>
     </div>
 
     <div class="counts">
@@ -254,6 +254,7 @@
             <span class="badge">12 post</span>
             <span class="badge warn">12 da approvare</span>
             <span class="badge danger">1 da rivedere</span>
+            <span class="badge">5 rigenerazioni del testo usate</span>
           </div>
           <p class="desc">"A ottobre voglio spingere i regali su misura per Natale, ho anche il mercatino il weekend del 6-7 dicembre da preparare."</p>
           <div class="next"><b>Scade se non approvata entro:</b> 01/10 ore 00:00 · promemoria il 29/09</div>
@@ -284,6 +285,7 @@
             <span class="badge danger">1 fallito</span>
           </div>
           <div class="next"><b>Prossima pubblicazione:</b> 29/09 ore 18:30 · Facebook</div>
+          <div class="next"><b>Post non modificabili</b> dopo l'approvazione: se uno non va, si sospende o si annulla la campagna</div>
         </div>
         <div class="actions">
           <a class="btn primary" href="#">Vedi campagna →</a>
@@ -338,7 +340,7 @@
       </article>
       <article class="camp">
         <div>
-          <h3>Campagna Luglio 2026 · primo invio <span class="badge danger">respinta</span></h3>
+          <h3>Campagna Luglio 2026 · primo invio <span class="badge danger">respinta</span> <span class="badge">motivo: foto</span></h3>
           <div class="meta">
             <span>01/07/2026 → 31/07/2026</span>
             <span>Facebook</span>
@@ -348,7 +350,7 @@
             <span class="badge">13 post</span>
             <span class="badge">13 scartati</span>
           </div>
-          <p class="desc">Richiesta di modifica: "Le foto del laboratorio sono troppo buie: ricaricale con più luce e aggiungi il tavolo finito."</p>
+          <p class="desc">Foto scattate male · 2 foto da rifare segnate. Richiesta di modifica: "Le foto del laboratorio sono troppo buie: ricaricale con più luce e aggiungi il tavolo finito."</p>
         </div>
         <div class="actions">
           <a class="btn" href="#">Vedi campagna →</a>
