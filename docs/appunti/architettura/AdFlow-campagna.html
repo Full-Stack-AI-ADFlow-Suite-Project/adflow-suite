@@ -1,0 +1,265 @@
+<title>Campagna</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F6F3EC; --paper-raised:#FFFFFF; --ink:#201D17; --ink-soft:#6E6656; --ink-faint:#9C927D;
+    --accent:#2E6B5C; --accent-strong:#1D4A3F; --accent-soft:#DCEAE3; --accent-on-soft:#1D4A3F;
+    --line:#DDD5C2; --danger:#AE3B2C; --danger-soft:#F6E1DC; --danger-on-soft:#7A281C;
+    --warn:#8A6A1F; --warn-soft:#F3E7C9;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#1B1914; --paper-raised:#26231C; --ink:#EFEAE0; --ink-soft:#B7AE9B; --ink-faint:#837A68;
+      --accent:#7EC4AE; --accent-strong:#A9DCC9; --accent-soft:#22392F; --accent-on-soft:#A9DCC9;
+      --line:#3A362B; --danger:#E08776; --danger-soft:#3A2420; --danger-on-soft:#E08776;
+      --warn:#E4C878; --warn-soft:#3A331C;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#1B1914; --paper-raised:#26231C; --ink:#EFEAE0; --ink-soft:#B7AE9B; --ink-faint:#837A68;
+    --accent:#7EC4AE; --accent-strong:#A9DCC9; --accent-soft:#22392F; --accent-on-soft:#A9DCC9;
+    --line:#3A362B; --danger:#E08776; --danger-soft:#3A2420; --danger-on-soft:#E08776;
+    --warn:#E4C878; --warn-soft:#3A331C;
+    color-scheme: dark;
+  }
+
+  *{ box-sizing:border-box; }
+  body{ background:var(--paper); color:var(--ink); font-family:"IBM Plex Sans", system-ui, sans-serif; padding-inline:16px; padding-block:28px; }
+  h1,h2,h3{ font-family:"Fraunces", Georgia, serif; font-weight:600; text-wrap:balance; margin:0; }
+  a{ color:var(--accent-strong); }
+  .wrap{ max-width:640px; margin-inline:auto; }
+
+  .masthead{ margin-bottom:18px; }
+  .eyebrow{ font-family:"IBM Plex Mono", monospace; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); }
+  .masthead h1{ font-size:28px; margin-top:6px; }
+  .masthead p{ color:var(--ink-soft); font-size:14.5px; line-height:1.55; margin-top:8px; max-width:60ch; }
+
+  .banner{ border-radius:10px; padding:12px 14px; font-size:13.5px; margin-bottom:22px; display:flex; gap:10px; align-items:flex-start; }
+  .banner.info{ background:var(--accent-soft); border:1px solid var(--accent); color:var(--accent-on-soft); }
+  .banner.warn{ background:var(--warn-soft); border:1px solid var(--warn); color:var(--warn); }
+  .banner .icon{ flex:none; font-family:"IBM Plex Mono", monospace; font-weight:500; }
+
+  .toc{ background:var(--paper-raised); border:1px solid var(--line); border-radius:12px; padding:16px 20px; margin-bottom:26px; }
+  .toc .tab{ font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--accent-strong); letter-spacing:.06em; }
+  .toc ol{ margin:10px 0 0; padding-left:20px; columns:2; column-gap:20px; }
+  .toc li{ font-size:13px; padding:2px 0; break-inside:avoid; }
+  .toc a{ text-decoration:none; }
+  .toc a:hover{ text-decoration:underline; }
+  @media (max-width:520px){ .toc ol{ columns:1; } }
+
+  .card{ background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:22px; margin-bottom:18px; scroll-margin-top:16px; }
+  .card .tab{ font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--accent-strong); letter-spacing:.06em; }
+  .card h2{ font-size:21px; margin-top:4px; }
+  .card .hint{ color:var(--ink-soft); font-size:13.5px; line-height:1.5; margin-top:8px; margin-bottom:18px; }
+
+  .field{ margin-bottom:16px; }
+  .field:last-child{ margin-bottom:0; }
+  .field label, .field legend{ display:block; font-size:13px; font-weight:500; margin-bottom:6px; padding:0; }
+  .field .desc{ font-size:12.5px; color:var(--ink-faint); margin-bottom:6px; }
+  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media (max-width:560px){ .row2{ grid-template-columns:1fr; } }
+
+  input[type=text], input[type=date], select, textarea{
+    width:100%; font-family:inherit; font-size:14.5px; color:var(--ink); background:var(--paper);
+    border:1px solid var(--line); border-radius:8px; padding:9px 11px; line-height:1.4;
+  }
+  textarea{ min-height:76px; resize:vertical; }
+  input:focus, select:focus, textarea:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+  .err{ color:var(--danger); font-size:12.5px; margin-top:5px; display:none; }
+  .choice-grid{ display:flex; flex-wrap:wrap; gap:8px; }
+  .choice{ border:1px solid var(--line); border-radius:20px; padding:7px 13px; font-size:13.5px; user-select:none; background:var(--paper); display:inline-flex; align-items:center; gap:6px; }
+  .choice input{ accent-color:var(--accent); margin:0; }
+  .choice.checked{ border-color:var(--accent); background:var(--accent-soft); color:var(--accent-on-soft); }
+
+  .chip-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
+  .chip{ border:1px solid var(--line); background:var(--paper); border-radius:20px; padding:6px 13px; font-size:13px; color:var(--ink-soft); }
+  .chip.chosen{ border-color:var(--accent); color:var(--accent-strong); background:var(--accent-soft); }
+
+  .evento{ border:1px solid var(--line); border-radius:10px; padding:14px; margin-bottom:12px; background:var(--paper); }
+  .evento-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+  .evento-head span{ font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--ink-faint); }
+  .icon-btn{ background:none; border:none; color:var(--ink-faint); font-size:18px; line-height:1; padding:2px 6px; }
+  .add-btn{ width:100%; border:1px dashed var(--line); border-radius:10px; padding:12px; background:none; color:var(--accent-strong); font-size:14px; font-weight:500; }
+  .empty-note{ color:var(--ink-faint); font-size:13px; margin-bottom:12px; }
+
+  .gruppo{ border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:14px; background:var(--paper); }
+  .gruppo-head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; }
+  .gruppo-head .tag{ font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--ink-faint); }
+  .gruppo-head .rm{ background:none; border:none; color:var(--ink-faint); font-size:13px; text-decoration:underline; }
+  .thumbs{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
+  .thumb{ position:relative; width:84px; height:84px; border-radius:8px; overflow:hidden; border:1px solid var(--line); background:var(--accent-soft); color:var(--accent-on-soft); flex:none;
+    display:flex; align-items:center; justify-content:center; font-family:"IBM Plex Mono", monospace; font-size:10px; text-align:center; padding:6px; }
+  .thumb .rm-x{ position:absolute; top:2px; right:2px; width:20px; height:20px; border-radius:50%; background:rgba(0,0,0,.4); color:#fff; border:none; font-size:13px; line-height:1; }
+  .add-thumb{ width:84px; height:84px; border-radius:8px; border:1px dashed var(--line); background:none; color:var(--ink-faint); font-size:22px; flex:none; display:flex; align-items:center; justify-content:center; }
+  .stat-row{ display:flex; gap:18px; flex-wrap:wrap; margin-top:14px; }
+  .stat-row .stat{ font-size:13px; color:var(--ink-soft); }
+  .stat-row .stat b{ color:var(--ink); font-family:"IBM Plex Mono", monospace; font-weight:500; }
+
+  .btn{ font-family:inherit; border-radius:8px; padding:10px 18px; font-size:14px; font-weight:500; border:1px solid var(--line); background:var(--paper-raised); color:var(--ink); display:inline-block; text-decoration:none; }
+  .btn.primary{ background:var(--accent); border-color:var(--accent); color:var(--paper-raised); }
+  .gate-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:20px; }
+  .link-btn{ background:none; border:none; color:var(--accent-strong); font-size:13px; padding:0; text-decoration:underline; }
+
+  .rev-group{ margin-bottom:16px; }
+  .rev-group h3{ font-size:14px; font-family:"IBM Plex Sans"; font-weight:600; margin-bottom:6px; }
+  .rev-line{ display:flex; gap:10px; font-size:13.5px; padding:5px 0; border-top:1px solid var(--line); }
+  .rev-line dt{ color:var(--ink-soft); flex:0 0 42%; margin:0; }
+  .rev-line dd{ margin:0; flex:1; }
+
+  .final-actions{ text-align:center; margin-top:8px; }
+</style>
+
+<div class="wrap">
+
+  <div class="masthead">
+    <div class="eyebrow">AdFlow Suite · Pagina 2 di 2 · Campagna</div>
+    <h1>Campagna</h1>
+    <p>Ogni volta che serve un nuovo periodo di pubblicazioni: durata, descrizione e foto (sezioni 10 e 11), poi il riepilogo con un unico invio all'operatore. Il profilo si compila nella pagina <a href="AdFlow-profilo-bottega.html">Profilo bottega</a> (sezioni 1–9).</p>
+  </div>
+
+  <div class="banner warn">
+    <span class="icon">i</span>
+    <span>Schema statico, non interattivo (v5.0, ADR-47 e ADR-48): mostra in sequenza tutte le schermate della pagina con dati di esempio. Non salva né valida nulla — è lo scheletro da cui costruire la pagina reale nel software.</span>
+  </div>
+
+  <nav class="toc">
+    <div class="tab">Schermate</div>
+    <ol>
+      <li><a href="#gate">Bentornato (profilo già salvato)</a></li>
+      <li><a href="#s10">10 · Durata campagna</a></li>
+      <li><a href="#s11">11 · Foto della campagna</a></li>
+      <li><a href="#s12">12 · Riepilogo e invio</a></li>
+    </ol>
+  </nav>
+
+  <div class="card" id="gate">
+    <div class="tab">Schermata · Bentornato</div>
+    <h2>Bentornato, Mario</h2>
+    <p class="hint">La pagina Campagna si apre con questo riepilogo del profilo già salvato. Chi non ha ancora un profilo viene portato prima alla pagina Profilo bottega.</p>
+    <div class="banner warn" style="margin-bottom:16px;">
+      <span class="icon">!</span>
+      <span><b>Solo se l'ultima campagna è stata respinta.</b> Il consorzio non ha approvato "Campagna Luglio 2026". <b>Motivo: foto scattate male.</b> Richiesta di modifica: "Le foto del laboratorio sono troppo buie: ricaricale con più luce e aggiungi il tavolo finito." Foto da rifare (segnate dall'operatore, nell'email come miniature): laboratorio-1.jpg, laboratorio-2.jpg. Tienine conto nella nuova campagna: foto e testi vanno inseriti di nuovo (ADR-40).</span>
+    </div>
+    <div class="rev-line"><dt>Bottega</dt><dd>Falegnameria Bianchi</dd></div>
+    <div class="rev-line"><dt>Referente</dt><dd>Mario Bianchi</dd></div>
+    <div class="rev-line"><dt>Tipo di prodotto</dt><dd>Legno e mobili</dd></div>
+    <div class="rev-line"><dt>Obiettivo</dt><dd>Farmi conoscere</dd></div>
+    <div class="rev-line"><dt>Canali</dt><dd>Facebook, Instagram</dd></div>
+    <a class="link-btn" href="AdFlow-profilo-bottega.html">Vedi tutte le risposte</a>
+    <div class="gate-actions">
+      <button type="button" class="btn primary">Va bene così, vai alla campagna →</button>
+      <a class="btn" href="AdFlow-profilo-bottega.html">Voglio modificare il profilo</a>
+    </div>
+  </div>
+
+  <div class="card" id="s10">
+    <div class="tab">10 · Durata campagna</div>
+    <h2>Di che campagna si tratta</h2>
+    <p class="hint">Ogni volta che si arriva fin qui si sta preparando un nuovo periodo di pubblicazioni: nome, inizio e fine.</p>
+    <div class="field">
+      <label for="camp_nome">Nome della campagna *</label>
+      <input type="text" id="camp_nome" value="Campagna Ottobre 2026">
+    </div>
+    <div class="row2">
+      <div class="field">
+        <label for="camp_inizio">Inizio *</label>
+        <input type="date" id="camp_inizio" value="2026-10-01" min="2026-10-01">
+      </div>
+      <div class="field">
+        <label for="camp_fine">Fine *</label>
+        <input type="date" id="camp_fine" value="2026-10-31">
+      </div>
+    </div>
+    <div class="desc" style="font-size:12.5px;color:var(--ink-faint);">L'inizio deve cadere almeno 3 giorni dopo oggi: il consorzio deve avere il tempo di approvare i post prima che partano.</div>
+    <div class="chip-row">
+      <span class="chip">2 settimane</span>
+      <span class="chip chosen">1 mese</span>
+      <span class="chip">2 mesi</span>
+    </div>
+    <div class="field" style="margin-top:18px;">
+      <label for="camp_descrizione">Descrizione e commenti della campagna *</label>
+      <textarea id="camp_descrizione">A ottobre voglio spingere i regali su misura per Natale, ho anche il mercatino il weekend del 6-7 dicembre da preparare.</textarea>
+    </div>
+  </div>
+
+  <div class="card" id="s11">
+    <div class="tab">11 · Foto della campagna</div>
+    <h2>Le foto di questo periodo</h2>
+    <p class="hint">Ogni gruppo di foto caricato ha bisogno di una descrizione, anche breve, prima di poter inviare la campagna. Chi non ha foto, o vuole aggiungerne altre, può chiedere all'intelligenza artificiale di creare le immagini.</p>
+    <div class="banner info" style="margin-bottom:16px;">
+      <span class="icon">i</span>
+      <span>Per 31 giorni di campagna sono consigliate almeno circa 12 foto. Esempio: 4 caricate in 2 gruppi.</span>
+    </div>
+    <div class="gruppo">
+      <div class="gruppo-head"><span class="tag">Gruppo 1 · 2 foto</span><button type="button" class="rm">Rimuovi gruppo</button></div>
+      <div class="thumbs">
+        <div class="thumb">tavolo-rovere-01.jpg<button type="button" class="rm-x" aria-label="Rimuovi foto">×</button></div>
+        <div class="thumb">tavolo-rovere-02.jpg<button type="button" class="rm-x" aria-label="Rimuovi foto">×</button></div>
+        <div class="add-thumb">+</div>
+      </div>
+      <div class="field">
+        <label>Descrizione o richieste per queste foto *</label>
+        <textarea>Tavolo in rovere appena finito, luce naturale, per un post di presentazione prodotto.</textarea>
+      </div>
+    </div>
+    <button type="button" class="add-btn">+ Aggiungi foto</button>
+    <div class="stat-row">
+      <span class="stat"><b>1</b> gruppo</span>
+      <span class="stat"><b>2</b> foto in totale</span>
+    </div>
+
+    <div class="field" style="margin-top:20px;">
+      <label>Non hai foto, o vuoi aggiungerne altre?</label>
+      <div class="choice-grid">
+        <label class="choice checked"><input type="checkbox" checked>Crea immagini con intelligenza artificiale</label>
+      </div>
+      <div class="desc" style="margin-top:8px;">Nuova funzione (ADR-48). Con la spunta l'AI crea immagini per questa campagna, da sole oppure in aggiunta alle foto caricate. Senza foto caricate la spunta è l'unico modo per inviare la campagna.</div>
+    </div>
+    <div class="banner warn" style="margin-top:12px;margin-bottom:0;">
+      <span class="icon">!</span>
+      <span><b>Da definire (lavori-aperti.md A-05).</b> Da che cosa parte l'AI per creare le immagini, quante ne crea, come le vede e le corregge l'operatore, se il post deve dire che l'immagine è creata dall'AI.</span>
+    </div>
+  </div>
+
+  <div class="card" id="s12">
+    <div class="tab">12 · Riepilogo</div>
+    <h2>Rivedi prima di inviare</h2>
+    <p class="hint">Ultimo controllo prima dell'invio. Da qui si torna alle sezioni 10 e 11; i dati del profilo sono in sola lettura e si cambiano nella pagina <a href="AdFlow-profilo-bottega.html">Profilo bottega</a>.</p>
+
+    <div class="rev-group">
+      <h3>Identità</h3>
+      <div class="rev-line"><dt>Bottega</dt><dd>Falegnameria Bianchi</dd></div>
+      <div class="rev-line"><dt>Referente</dt><dd>Mario Bianchi</dd></div>
+      <div class="rev-line"><dt>Città</dt><dd>Bra (CN)</dd></div>
+    </div>
+    <div class="rev-group">
+      <h3>Prodotti e pubblico</h3>
+      <div class="rev-line"><dt>Tipo di prodotto</dt><dd>Legno e mobili</dd></div>
+      <div class="rev-line"><dt>Obiettivo</dt><dd>Farmi conoscere</dd></div>
+    </div>
+    <div class="rev-group">
+      <h3>Logistica</h3>
+      <div class="rev-line"><dt>Canali</dt><dd>Facebook, Instagram</dd></div>
+      <div class="rev-line"><dt>Frequenza</dt><dd>3-4 a settimana</dd></div>
+    </div>
+    <div class="rev-group">
+      <h3>Durata campagna</h3>
+      <div class="rev-line"><dt>Nome campagna</dt><dd>Campagna Ottobre 2026</dd></div>
+      <div class="rev-line"><dt>Periodo</dt><dd>2026-10-01 → 2026-10-31</dd></div>
+    </div>
+    <div class="rev-group">
+      <h3>Foto della campagna</h3>
+      <div class="rev-line"><dt>Gruppi</dt><dd>2 foto in 1 gruppo</dd></div>
+      <div class="rev-line"><dt>Immagini create dall'AI</dt><dd>Sì</dd></div>
+    </div>
+
+    <div class="final-actions" style="margin-top:22px;">
+      <button type="button" class="btn primary">Invia all'operatore</button>
+    </div>
+  </div>
+
+</div>

@@ -3,15 +3,15 @@
 I numeri stanno solo nelle regole (§5); il resto rimanda agli ID.
 
 ## 1. Attori
-- **Artigiano**: compila il profilo della bottega, crea e invia campagne con foto, vede il calendario approvato.
+- **Artigiano**: compila il profilo della bottega, crea e invia campagne con foto (o chiede immagini create dall'AI), vede il calendario approvato.
 - **Operatore** (del consorzio): rivede le campagne e decide; gestisce anagrafica e account social.
 - **Admin**: crea operatori, configura. **Sistema**: genera, controlla scadenze, pubblica, invia email.
 Un solo consorzio.
 
 ## 2. Flusso
-**2.1 Scheda bottega** (una pagina, passi 1–12). Passi 1–9 = profilo (una volta; ai rientri schermata **Bentornato**: "Va bene così" → passo 10 senza salvare, "Modifica" → passo 1). Passo 10 = campagna in **bozza** (titolo, inizio, fine, descrizione). Passo 11 = foto a **gruppi**, una descrizione per gruppo. Passo 12 = **invio**: copia canali, frequenza e obiettivo dal profilo e ne salva la fotografia (`profilo_snapshot`). R-08, R-10…R-13.
+**2.1 Profilo e campagna** (due pagine). Pagina **Profilo** = passi 1–9 (una volta; si salva uscendo dal passo 9 e porta alla pagina Campagna). Pagina **Campagna** = passi 10–12; con profilo già salvato si apre con il **Bentornato**: "Va bene così" → passo 10 senza salvare, "Modifica" → pagina Profilo. Passo 10 = campagna in **bozza** (titolo, inizio, fine, descrizione). Passo 11 = foto a **gruppi**, una descrizione per gruppo, e spunta **"Crea immagini con intelligenza artificiale"** (`crea_immagini_ai`). Passo 12 = riepilogo e **invio**: copia canali, frequenza e obiettivo dal profilo e ne salva la fotografia (`profilo_snapshot`). R-08, R-10…R-13, R-19.
 
-**2.2 Generazione** (worker): analisi foto → ritocco foto (dallo sprint 3) → slot del calendario → testo e hashtag per slot → validatore. R-05, R-08, R-09. Fine: post `da_approvare`, campagna `in_revisione`.
+**2.2 Generazione** (worker): analisi foto → ritocco foto (dallo sprint 3) → creazione immagini se `crea_immagini_ai` (non ancora pianificata, R-19) → slot del calendario → testo e hashtag per slot → validatore. R-05, R-08, R-09. Fine: post `da_approvare`, campagna `in_revisione`.
 
 **2.3 Revisione** (operatore, pagina **Vedi campagna**): sistema i post con gli interventi AI (§3), poi decide sulla campagna: **approva** (tutti i post approvati, campagna `attiva`), **rimanda** (etichetta + nota, stato invariato, nessuna email), **respingi** (motivo + nota, email all'artigiano). R-06, R-14…R-18.
 
@@ -46,12 +46,13 @@ Ogni intervento crea una nuova versione del post, che ripassa il validatore; le 
 | R-10 | Profilo compilato una volta; ai rientri si conferma o si modifica. |
 | R-11 | All'invio la campagna salva la fotografia del profilo; generazione e rigenerazioni usano quella. |
 | R-12 | Una sola bozza per artigiano; campagne non `annullata/conclusa/respinta/scaduta` non sovrapposte. |
-| R-13 | Invio solo con almeno un gruppo di foto e una descrizione per ogni gruppo. Foto: JPG/PNG/WEBP, ≤ **10 MB**, lato corto ≥ **1080 px**. |
+| R-13 | Invio solo con almeno un gruppo di foto e una descrizione per ogni gruppo. Foto: JPG/PNG/WEBP, ≤ **10 MB**, lato corto ≥ **1080 px**. Quando la creazione delle immagini sarà costruita (R-19), al posto del gruppo di foto basterà `crea_immagini_ai`. |
 | R-14 | Si approva la campagna in blocco; mai con un post `da_rivedere` o con un intervento in corso. |
 | R-15 | Respinta o scaduta = chiusa; non blocca il periodo; l'artigiano ne crea una nuova. |
 | R-16 | In campagna attiva o sospesa nessun intervento sui post; si sospende o si annulla. |
 | R-17 | Il ritocco vale solo per il post su cui si lavora; l'originale resta. |
 | R-18 | Foto scattate male → Respingi con motivo `foto` e le foto da rifare segnate; l'AI non prova a salvarle. Respingi richiede sempre motivo (`foto` / `altro`) e nota. |
+| R-19 | L'AI crea immagini solo se la campagna ha `crea_immagini_ai`; le foto caricate restano sempre. La spunta si salva sulla campagna fin da subito; la creazione delle immagini **non è ancora pianificata**: non costruirla finché non c'è un task. |
 
 ## 6. Criteri di accettazione
 Dato / Quando / Allora in forma breve. `S` = sprint in cui diventa verde. Il test porta l'ID nel nome (`test_ca09_...`).
@@ -62,10 +63,10 @@ Dato / Quando / Allora in forma breve. `S` = sprint in cui diventa verde. Il tes
 | CA-02 | 1 | utente → password errata → rifiutato, senza dire quale dato è sbagliato |
 | CA-03 | 1 | artigiano → funzione operatore → 403 |
 | CA-04 | 1 | artigiano → campagna o foto di un altro → 404 |
-| CA-05 | 2a | artigiano senza profilo → entra → passo 1 |
-| CA-06 | 2a | artigiano con profilo → rientra → Bentornato; "Va bene così" non salva il profilo |
+| CA-05 | 2a | artigiano senza profilo → entra → pagina Profilo, passo 1 |
+| CA-06 | 2a | artigiano con profilo → rientra → pagina Campagna con Bentornato; "Va bene così" non salva il profilo, "Modifica" apre la pagina Profilo |
 | CA-07 | 2a | passo 9 → manca un obbligatorio → non salva e lo indica |
-| CA-08 | 2a | bozza aperta → rientra → riprende dal passo 10 con dati e foto |
+| CA-08 | 2a | bozza aperta → rientra → pagina Campagna dal passo 10 con dati, foto e spunta |
 | CA-09 | 1 | → crea o invia con inizio < oggi + 3 giorni → 422 (anche bozza ferma) |
 | CA-10 | 1 | → durata > 92 giorni o fine ≤ inizio → 422 |
 | CA-11 | 1 | bozza esistente → nuova bozza → 409 |
@@ -95,7 +96,7 @@ Dato / Quando / Allora in forma breve. `S` = sprint in cui diventa verde. Il tes
 | CA-35 | 3 | 3 ritocchi → quarto → 409; scegli originale → ok senza consumare cicli |
 | CA-36 | 1 | post approvato con data raggiunta → due tick → pubblicato una volta sola |
 | CA-37 | 1 | post da approvare con data raggiunta → tick → non pubblicato |
-| CA-38 | 1 | errore temporaneo del social ×3 → post fallito, operatore avvisato |
+| CA-38 | 1 | errore temporaneo del social ×3 → post `fallito`, visibile all'operatore in Vedi campagna |
 | CA-39 | 1 | attiva → tutti i post pubblicati o falliti → conclusa |
 | CA-40 | 3 | account assente o permesso scaduto → prima pubblicazione → sospesa + avvisi |
 | CA-41 | 3 | campagne in stati diversi → pagina artigiano → ognuna nella sezione giusta (§4) |
@@ -103,3 +104,4 @@ Dato / Quando / Allora in forma breve. `S` = sprint in cui diventa verde. Il tes
 | CA-43 | 3 | nome diverso tra anagrafica e profilo → pagina artigiano → differenza segnalata |
 | CA-44 | 4 | post pubblicato → lettura giornaliera → metriche salvate e visibili |
 | CA-45 | 4 | sistema completo → invio e approvazione → post pubblicati (E2E nel browser) |
+| CA-46 | 1 | bozza → creata o modificata con `crea_immagini_ai` → valore salvato e restituito nel dettaglio; senza foto l'invio resta 422 (CA-14) |
