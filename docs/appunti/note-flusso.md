@@ -2,7 +2,7 @@
 
 Appunti che spiegano il flusso disegnato nella cartella `architettura/` (diagrammi 01, 03, 04, 07, 09 e pagine statiche), con il perché delle decisioni. Materiale in continua rimodulazione. La versione breve per gli agenti è `docs/agenti/spec.md` (vedi `LEGGIMI.md`); l'architettura è spiegata in [`note-architettura.md`](note-architettura.md); ciò che è ancora aperto sta in [`lavori-aperti.md`](lavori-aperti.md).
 
-**Versione:** 4.7 del 30/09/2026 · **Autore:** B3 · Architetto software · Diagrammi in `architettura/diagrammi/` (sorgente `architettura/AdFlow-diagrammi.html`).
+**Versione:** 5.0 del 01/10/2026 · **Autore:** B3 · Architetto software · Diagrammi in `architettura/diagrammi/` (sorgente `architettura/AdFlow-diagrammi.html`).
 
 ---
 
@@ -11,8 +11,8 @@ Appunti che spiegano il flusso disegnato nella cartella `architettura/` (diagram
 Gli artigiani di un consorzio non hanno tempo né competenze per pubblicare con regolarità sui social. AdFlow Suite trasforma **le loro foto reali** e **il racconto della loro bottega** in un calendario di post per Facebook e Instagram. Un **operatore del consorzio** controlla tutto prima che esca: nessun post viene pubblicato senza la sua approvazione.
 
 In sintesi:
-- l'artigiano compila una volta la **scheda della bottega** e, per ogni periodo, crea una **campagna** con le sue foto;
-- l'AI analizza e ritocca le foto e scrive **tutti i post del periodo**; un controllo a regole verifica i testi;
+- l'artigiano compila una volta il **profilo della bottega** e, per ogni periodo, crea una **campagna** con le sue foto; se non ha foto, o ne vuole altre, chiede all'AI di **creare le immagini**;
+- l'AI analizza e ritocca le foto, crea le immagini richieste e scrive **tutti i post del periodo**; un controllo a regole verifica i testi;
 - l'operatore rivede la campagna: se qualcosa non va sceglie **il motivo del No** e il suo ciclo, poi **approva, rimanda o respinge** la campagna intera;
 - i post approvati si pubblicano da soli, alle date stabilite, sulla **pagina social dell'artigiano**; poi si raccolgono le metriche.
 
@@ -22,7 +22,7 @@ In sintesi:
 
 | Attore | Chi è | Cosa fa |
 |---|---|---|
-| **Artigiano** | Titolare di una bottega iscritta al consorzio | Compila il profilo, crea e invia le campagne con le foto, vede il calendario approvato e le metriche |
+| **Artigiano** | Titolare di una bottega iscritta al consorzio | Compila il profilo, crea e invia le campagne con le foto (o con le immagini create dall'AI), vede il calendario approvato e le metriche |
 | **Operatore** | Persona del consorzio | Gestisce anagrafica e account social degli artigiani, rivede le campagne, decide su ognuna |
 | **Admin** | Amministratore del sistema | Crea operatori, configura il sistema |
 | **Sistema** | Processi automatici | Genera i post, controlla scadenze, pubblica, raccoglie metriche, invia email |
@@ -31,28 +31,29 @@ C'è **un solo consorzio**.
 
 ---
 
-## 3. Fase 1 · Scheda bottega e nuova campagna (artigiano)
+## 3. Fase 1 · Profilo bottega e nuova campagna (artigiano)
 
-Profilo e campagna sono **un'unica pagina a passi** (D-08), divisa in tre parti. Schema di riferimento: `architettura/AdFlow-scheda-bottega.html`; diagramma 09.
+Profilo e campagna sono **due pagine** (D-35): la pagina **Profilo bottega** con i passi 1–9 e la pagina **Campagna** con i passi 10–11 e il riepilogo con l'invio. La numerazione dei passi resta quella di prima, così i riferimenti non cambiano. Schemi di riferimento: `architettura/AdFlow-profilo-bottega.html` e `architettura/AdFlow-campagna.html`; diagramma 09.
 
-| Parte | Passi | Contenuto | Quando si salva |
+| Pagina | Passi | Contenuto | Quando si salva |
 |---|---|---|---|
-| A · Profilo bottega | 1–9 | Identità, storia, prodotti (**tipo di prodotto** da elenco), pubblico e obiettivo, voce e vincoli ("cose da non dire mai"), presenza social attuale, politica foto, calendario eventi ricorrenti, logistica (canali, frequenza, orari) | Lasciando il passo 9 |
-| B · Nuova campagna | 10–11 | Nome, inizio, fine, commenti del periodo; foto caricate a **gruppi**, con una descrizione per gruppo | Lasciando il passo 10 nasce la **bozza**; ogni foto appena caricata; la descrizione mentre si scrive |
-| C · Riepilogo | 12 | Rilettura, campi obbligatori mancanti evidenziati, un solo invio | Controlla e invia |
+| Profilo bottega | 1–9 | Identità, storia, prodotti (**tipo di prodotto** da elenco), pubblico e obiettivo, voce e vincoli ("cose da non dire mai"), presenza social attuale, politica foto, calendario eventi ricorrenti, logistica (canali, frequenza, orari) | Lasciando il passo 9 |
+| Campagna | 10–11 | Nome, inizio, fine, commenti del periodo; foto caricate a **gruppi**, con una descrizione per gruppo; spunta **"Crea immagini con intelligenza artificiale"** | Lasciando il passo 10 nasce la **bozza**; ogni foto appena caricata; la descrizione mentre si scrive |
+| Campagna · riepilogo | 12 | Rilettura, campi obbligatori mancanti evidenziati, un solo invio | Controlla e invia |
 
 | # | Passo | Cosa succede |
 |---|---|---|
-| 1.0 | Accesso | L'artigiano entra con le sue credenziali. Se il profilo esiste va al Bentornato, altrimenti al passo 1 |
-| 1.1 | Profilo · passi 1–9 *(una volta)* | Compila la parte A |
-| 1.1b | **Bentornato** *(ai rientri)* | Riepilogo del profilo: **Va bene così** → passo 10 senza salvare nulla; **Modifica** → passo 1 già compilato. Riprende la bozza aperta. Se l'ultima campagna è stata respinta mostra **motivo, richiesta di modifica e foto da rifare** (D-09, D-23, D-30) |
-| 1.2 | Account social *(una volta, fuori dalla scheda)* | L'artigiano autorizza la sua pagina insieme all'operatore. Non blocca l'invio (D-15) |
-| 1.3 | Nuova campagna · passo 10 | Inizio **almeno 3 giorni dopo oggi**, durata massima **3 mesi**, periodo non sovrapposto ad altre sue campagne (D-14, D-25) |
+| 1.0 | Accesso | L'artigiano entra con le sue credenziali. Se il profilo esiste va alla pagina Campagna, che si apre con il Bentornato; altrimenti alla pagina Profilo, passo 1 |
+| 1.1 | Pagina Profilo · passi 1–9 *(una volta)* | Compila il profilo; salvandolo passa alla pagina Campagna |
+| 1.1b | **Bentornato** *(ai rientri)* | In cima alla pagina Campagna, riepilogo del profilo: **Va bene così** → passo 10 senza salvare nulla; **Modifica** → pagina Profilo già compilata. Riprende la bozza aperta. Se l'ultima campagna è stata respinta mostra **motivo, richiesta di modifica e foto da rifare** (D-09, D-23, D-30) |
+| 1.2 | Account social *(una volta, fuori dalle due pagine)* | L'artigiano autorizza la sua pagina insieme all'operatore. Non blocca l'invio (D-15) |
+| 1.3 | Pagina Campagna · passo 10 | Inizio **almeno 3 giorni dopo oggi**, durata massima **3 mesi**, periodo non sovrapposto ad altre sue campagne (D-14, D-25) |
 | 1.4 | Foto a gruppi · passo 11 | Foto reali caricate subito; una descrizione per gruppo, obbligatoria all'invio; linea guida per tipo di prodotto (Appendice A) (D-10) |
-| 1.5 | Controllo tecnico foto | Al caricamento: JPG, PNG o WEBP, al massimo 10 MB, lato corto almeno 1080 px; altrimenti si ricarica. Luce e nitidezza sono solo segnalate dall'AI all'operatore (D-17) |
+| 1.4b | Immagini AI · passo 11 | Se non ha foto, o vuole aggiungerne, l'artigiano spunta **"Crea immagini con intelligenza artificiale"**: l'AI crea le immagini in generazione, da sole o in aggiunta alle foto caricate (D-36). *Da che cosa parte l'AI, quante immagini crea e come si rivedono lo decide un task di analisi* (lavori-aperti.md A-05) |
+| 1.5 | Controllo tecnico foto | Solo per le foto caricate. Al caricamento: JPG, PNG o WEBP, al massimo 10 MB, lato corto almeno 1080 px; altrimenti si ricarica. Luce e nitidezza sono solo segnalate dall'AI all'operatore (D-17) |
 | 1.6 | Riepilogo e invio · passo 12 | Controlla gli obbligatori, copia nella campagna canali, frequenza e obiettivo del profilo e ne salva una **fotografia**; la generazione parte da sola (D-12, D-13, D-18) |
 
-**Obbligatori.** Profilo: nome bottega, referente, città, tipo di prodotto, clienti ideali, obiettivo, canali di pubblicazione. Campagna: nome, inizio, fine, commenti. Foto: almeno un gruppo, ciascuno con la sua descrizione (R-13).
+**Obbligatori.** Profilo: nome bottega, referente, città, tipo di prodotto, clienti ideali, obiettivo, canali di pubblicazione. Campagna: nome, inizio, fine, commenti. Foto: almeno un gruppo **oppure** la spunta delle immagini AI; ogni gruppo caricato con la sua descrizione (R-13; per la spunta vedi anche R-19).
 
 **Perché la fotografia del profilo.** Il profilo può cambiare mentre una campagna è in corso. La campagna usa sempre il profilo com'era all'invio: la modifica vale dalla campagna successiva, e l'operatore vede esattamente ciò che ha ricevuto l'AI (D-13).
 
@@ -66,7 +67,8 @@ Profilo e campagna sono **un'unica pagina a passi** (D-08), divisa in tre parti.
 |---|---|---|
 | 2.1 | Analisi foto | L'AI descrive soggetto, dettagli e qualità di ogni foto, usando la descrizione del gruppo; segnala problemi di luce o nitidezza |
 | 2.1b | Ritocco foto | L'AI ritocca ogni foto; l'originale resta sempre (D-31). *Che cosa fa il ritocco e con quali istruzioni lo decide un task di analisi* (lavori-aperti.md A-01) |
-| 2.2 | Calendario del periodo | Numero di post = il minore tra (post a settimana × settimane) e (foto × 2). I canali scelti si alternano; gli orari preferiti sono un'indicazione (D-19, R-05) |
+| 2.1c | Creazione immagini | Solo se la campagna ha la spunta delle immagini AI: l'AI crea le immagini (D-36). *Dettagli da definire* (lavori-aperti.md A-05) |
+| 2.2 | Calendario del periodo | Numero di post = il minore tra (post a settimana × settimane) e (foto × 2). I canali scelti si alternano; gli orari preferiti sono un'indicazione (D-19, R-05). *Come contano le immagini create dall'AI è da definire* (A-05) |
 | 2.3 | Generazione post | Testo e hashtag per canale, foto ritoccata abbinata, istruzioni per tipo di prodotto con la fotografia del profilo, eventi, chiusure e commenti del periodo (D-16) |
 | 2.4 | Controllo a regole | Lunghezza, numero di hashtag, parole vietate (comprese le "cose da non dire" del profilo), niente prezzi o premi inventati. Se non va si riscrive (max 3), poi il post è **"da rivedere"** |
 | 2.5 | Campagna pronta | Post "da approvare", campagna "in revisione", email all'operatore |
@@ -77,7 +79,7 @@ Profilo e campagna sono **un'unica pagina a passi** (D-08), divisa in tre parti.
 | # | Passo | Cosa succede |
 |---|---|---|
 | 3.1 | Dashboard operatore | Elenco artigiani; pagina artigiano con le campagne in quattro sezioni e un solo pulsante **Vedi campagna**; promemoria 48 ore prima dell'inizio (D-29) |
-| 3.2 | Vedi campagna | Tutti i post in ogni stato, in elenco e in calendario: testo, hashtag, foto, canale, storico versioni; scheda bottega (fotografia) e foto in sola lettura |
+| 3.2 | Vedi campagna | Tutti i post in ogni stato, in elenco e in calendario: testo, hashtag, foto, canale, storico versioni; profilo bottega (fotografia) e foto in sola lettura |
 | 3.3 | Sistemare i post | Se un post non va, si sceglie il motivo e il suo ciclo (tabella sotto). Ogni intervento crea una nuova versione, che ripassa il controllo a regole. **Niente modifica a mano** (D-32) |
 | 3.4 | Decisione sulla campagna | **Approva**: tutti i post approvati, campagna attiva (non se un post è "da rivedere" o ha un intervento in corso). **Rimanda**: etichetta e nota interna, nessun cambio di stato. **Respingi**: motivo e nota obbligatori, email all'artigiano (D-20, D-22, D-23, D-30) |
 | 3.5 | Scadenza | Nessuna approvazione entro le 00:00 del giorno di inizio: campagna **scaduta**, post scaduti, email all'artigiano (D-24) |
@@ -122,7 +124,7 @@ L'artigiano vede **l'esito** del lavoro dell'operatore, mai il lavoro in corso.
 
 | Stato campagna | Cosa vede | Cosa può fare |
 |---|---|---|
-| bozza | La scheda dal passo 10 con dati e foto salvati | Modifica, aggiunge o toglie foto, invia |
+| bozza | La pagina Campagna con dati e foto salvati | Modifica, aggiunge o toglie foto, invia |
 | inviata / in generazione | "Generazione dei post in corso…" | Attendere |
 | generazione fallita | Avviso di problema tecnico | Attendere: rilancia l'operatore |
 | in revisione | Nessun post (anche se rimandata) | Attendere |
@@ -163,7 +165,7 @@ L'artigiano vede **l'esito** del lavoro dell'operatore, mai il lavoro in corso.
 | R-02 | Ogni intervento (rigenera il testo, ritocca o scegli la foto) crea una **nuova versione**; le precedenti restano. |
 | R-03 | Per post, massimo **3 rigenerazioni del testo** e **3 ritocchi della foto**; niente modifica a mano. |
 | R-04 | Le versioni rifiutate vengono passate all'AI come esempi di "cosa non rifare". |
-| R-05 | Una foto alimenta **al massimo 2 post**; se le foto non bastano, si propongono meno post. |
+| R-05 | Una foto alimenta **al massimo 2 post**; se le foto non bastano, si propongono meno post. Per le immagini create dall'AI il limite è da definire (A-05). |
 | R-06 | Promemoria all'operatore **48 ore prima dell'inizio**; se all'inizio la campagna non è approvata, è **scaduta** con tutti i suoi post. |
 | R-07 | Se il permesso dell'account scade, o l'account non è mai stato collegato, alla pubblicazione la campagna passa a "sospesa" e partono le notifiche. |
 | R-08 | Nessuno slot nel passato: una data già passata diventa **adesso + 15 minuti** (configurabile). Una campagna inizia almeno **3 giorni dopo l'invio**. |
@@ -171,18 +173,19 @@ L'artigiano vede **l'esito** del lavoro dell'operatore, mai il lavoro in corso.
 | R-10 | Il profilo si compila **una volta**; ai rientri si conferma o si modifica, mai da zero. |
 | R-11 | All'invio la campagna **fotografa il profilo**; le modifiche al profilo valgono dalla campagna successiva. |
 | R-12 | **Una sola bozza** per artigiano; campagne dello stesso artigiano non sovrapposte; durata massima 3 mesi. |
-| R-13 | Ogni **gruppo di foto** ha una descrizione obbligatoria; senza, la campagna non si invia. |
+| R-13 | Ogni **gruppo di foto** ha una descrizione obbligatoria; senza, la campagna non si invia. La campagna si invia con almeno un gruppo di foto **oppure** con la spunta delle immagini AI. |
 | R-14 | L'operatore **approva la campagna in blocco**; non si approva se un post è "da rivedere" o ha un intervento in corso. |
 | R-15 | Una campagna **respinta** o **scaduta** è chiusa: l'artigiano ne crea una nuova, e il periodo resta libero. |
 | R-16 | Dopo l'approvazione **nessuna modifica** ai post: si sospende o si annulla. |
 | R-17 | La foto originale **non si perde mai**; un nuovo ritocco vale solo per il post su cui si lavora. |
 | R-18 | Foto scattate male: la campagna si **respinge con motivo "foto"** e le foto da rifare segnate; l'AI non prova a salvarle. |
+| R-19 | L'AI **crea immagini solo se l'artigiano lo chiede** con la spunta nella campagna; le foto caricate restano sempre nella campagna. Finché la creazione delle immagini non è costruita (A-05), la spunta viene solo salvata e per inviare serve comunque un gruppo di foto. |
 
 ---
 
 ## 9. Criteri di accettazione
 
-Stanno solo nel canale agenti: `docs/agenti/spec.md` §6 (CA-01…CA-45, forma Dato / Quando / Allora). Si rigenerano da questo documento con un assorbimento.
+Stanno solo nel canale agenti: `docs/agenti/spec.md` §6 (CA-01…CA-46, forma Dato / Quando / Allora). Si rigenerano da questo documento con un assorbimento.
 
 ---
 
@@ -193,23 +196,23 @@ Lo stato ufficiale delle decisioni è in [`ADR.md`](ADR.md); qui le decisioni su
 | ID | Decisione | Motivazione | Alternative scartate |
 |---|---|---|---|
 | D-01 | Il form acquisisce il **tipo di prodotto** (da elenco) | Guida testi, hashtag, linea guida foto e vincoli | Campo libero |
-| D-02 | **Foto reali** con descrizione; l'AI le analizza e le ritocca, non le genera (D-31) | Contenuti veri e specifici | Immagini generate dall'AI |
+| D-02 | **Foto reali** con descrizione; l'AI le analizza e le ritocca (D-31). Le immagini generate, prima escluse, sono ammesse su richiesta dell'artigiano (D-36) | Contenuti veri e specifici | — |
 | D-03 | ~~Tutti i post del periodo: accetta o rigenera~~ · Sostituita da D-20 | — | — |
 | D-04 | Lo **scheduler pubblica** nelle date stabilite | Nessun intervento quotidiano | Pubblicazione manuale |
 | D-05 | ~~L'operatore accetta, rigenera o modifica~~ · Sostituita da D-20 e D-32 | — | — |
 | D-06 | ~~Modifica manuale del testo~~ · Sostituita da D-32 | — | — |
 | D-07 | Si pubblica sulla **pagina social dell'artigiano**; in futuro approverà anche lui | Il cliente segue l'artigiano | Pagina del consorzio |
-| D-08 | Profilo e nuova campagna sono **un'unica pagina** a passi | Un solo percorso, nessuna sincronizzazione tra pagine | Due pagine collegate |
+| D-08 | ~~Profilo e nuova campagna sono un'unica pagina a passi~~ · Sostituita da D-35 | — | — |
 | D-09 | Ai rientri, **riepilogo con "va bene così" o "modifica"** | Non si riscrive tutto ogni volta, ma si può aggiornare | Form sempre vuoto; salto diretto alla campagna |
 | D-10 | Foto **a gruppi**, una descrizione per gruppo, obbligatoria all'invio | Niente descrizioni ripetute per scatti dello stesso soggetto | Descrizione per singola foto |
 | D-11 | **Eventi ricorrenti** come lista dentro il profilo | Pochi eventi per bottega | Entità dedicata (rimandata) |
 | D-12 | **Canali, frequenza e obiettivo** nel profilo; la campagna li copia all'invio | Nessuna domanda ripetuta; il calendario non cambia se cambia il profilo | Chiederli a ogni campagna |
 | D-13 | All'invio la campagna **fotografa il profilo** | Tracciabilità; l'operatore vede ciò che ha ricevuto l'AI | Leggere sempre il profilo corrente |
 | D-14 | **Una bozza alla volta**, campagne non sovrapposte, massimo 3 mesi | Niente campagne orfane né post doppi; costi AI sotto controllo | Più bozze in parallelo |
-| D-15 | **Account social** collegato fuori dalla scheda, con l'operatore; invio consentito anche senza | L'autorizzazione porta su Meta e richiede HTTPS | Passo obbligatorio nella scheda |
+| D-15 | **Account social** collegato fuori dalle due pagine, con l'operatore; invio consentito anche senza | L'autorizzazione porta su Meta e richiede HTTPS | Passo obbligatorio nel profilo |
 | D-16 | **Eventi e chiusure** sono contesto per l'AI, non slot automatici | Il "quando" è testo libero | Date strutturate subito (roadmap) |
 | D-17 | **Controllo foto** oggettivo al caricamento; luce e nitidezza solo segnalate | Nessun rifiuto sbagliato | Rifiuto automatico per qualità |
-| D-18 | All'invio la **generazione parte da sola** | Un solo punto di controllo, sui post | Operatore che approva la scheda prima |
+| D-18 | All'invio la **generazione parte da sola** | Un solo punto di controllo, sui post | Operatore che approva la campagna prima |
 | D-19 | **Frequenza** = post totali a settimana (1-2 → 2, 3-4 → 3, 5+ → 5, "decidete voi" → 3); canali alternati | Carico di revisione prevedibile | Un post per canale in ogni slot |
 | D-20 | L'operatore **approva la campagna in blocco**: approva, rimanda, respingi | Una decisione per campagna; stato sempre chiaro | Approvazione post per post |
 | D-21 | ~~Sul singolo post rigenera o modifica a mano~~ · Sostituita da D-32 | — | — |
@@ -226,6 +229,8 @@ Lo stato ufficiale delle decisioni è in [`ADR.md`](ADR.md); qui le decisioni su
 | D-32 | Sul singolo post solo **tre interventi AI**; niente modifica a mano | Ogni testo passa da AI e controllo; il motivo resta tracciato | Modifica a mano |
 | D-33 | **Cicli separati**: 3 per il testo, 3 per la foto | Costi sotto controllo; un problema di foto non consuma i tentativi sul testo | Contatore unico; limite per campagna |
 | D-34 | **Nessuna modifica in campagna attiva** | Esce ciò che è stato approvato | Modifica già approvata |
+| D-35 | Profilo e campagna su **due pagine**: Profilo (passi 1–9) e Campagna (passi 10–11, riepilogo e invio) | Decisione del 01/10/2026; il Bentornato resta, in cima alla pagina Campagna | Un'unica pagina a passi (D-08) |
+| D-36 | **Immagini create dall'AI** su richiesta: spunta "Crea immagini con intelligenza artificiale" nella campagna | Anche chi non ha foto, o ne ha poche, può avere una campagna | Solo foto reali (D-02) |
 
 ## 11. MVP, demo e roadmap
 
@@ -235,7 +240,8 @@ Lo stato ufficiale delle decisioni è in [`ADR.md`](ADR.md); qui le decisioni su
 
 ## 12. Glossario
 
-- **Campagna**: un periodo di post di un artigiano, creato dalla scheda e deciso in blocco dall'operatore.
+- **Campagna**: un periodo di post di un artigiano, creato dalla pagina Campagna e deciso in blocco dall'operatore.
+- **Immagine AI**: immagine creata dall'AI per una campagna, quando l'artigiano mette la spunta; è diversa dal ritocco, che parte sempre da una foto caricata.
 - **Versione**: ogni stesura di un post (o di una foto); le precedenti restano.
 - **Fotografia del profilo**: copia del profilo salvata nella campagna al momento dell'invio.
 - **Ciclo**: un giro di intervento AI su un post (rigenerazione del testo o ritocco della foto), con un limite.
@@ -265,6 +271,7 @@ Lo stato ufficiale delle decisioni è in [`ADR.md`](ADR.md); qui le decisioni su
 
 | Versione | Data | Cosa cambia |
 |---|---|---|
+| 5.0 | 01/10/2026 | Reset: la scheda bottega si divide in due pagine, Profilo e Campagna (ADR-47); immagini create dall'AI su richiesta dell'artigiano (ADR-48); backend a moduli e lavoro in sei corsie (ADR-49, ADR-50), spiegati in note-architettura.md §3 |
 | 4.7 | 30/09/2026 | Motivi del No e cicli, ritocco AI delle foto, niente modifica a mano, nessuna modifica in campagna attiva (ADR-40…44). Si riparte da zero nel repository del team (ADR-45); documentazione in due canali, appunti e agenti (ADR-46) |
 | 4.6 | 28/09/2026 | Approvazione in blocco, respinta e scaduta, anticipo 3 giorni, anagrafica, dashboard operatore (ADR-30…39) |
 | 4.5 | 26/09/2026 | Scheda bottega unica con Bentornato (ADR-15…29) |

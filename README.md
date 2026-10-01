@@ -2,20 +2,22 @@
 
 Repository ufficiale per il progetto di fine tirocinio Full Stack AI.
 
-## Struttura del Progetto
+## 📁 Struttura del Progetto
 
-- ackend/: API FastAPI e worker Procrastinate (Python)
-- rontend/: Interfaccia utente (React + TypeScript + Mantine)
+Il repository riparte dai soli documenti (ADR-51): il codice nasce con i task dello sprint 1.
+
 - docs/: documentazione del progetto (vedi sotto)
+- ackend/: API FastAPI e Worker Procrastinate (Python) · nasce con il task T1-01 (struttura modulare)
+- rontend/: Interfaccia utente (React + TypeScript + Mantine) · nasce con il task T1-51
 
-## Documentazione
+## 📚 Documentazione
 
 La documentazione ha **due canali** (ADR-46):
 
 - **Appunti** · docs/appunti/: diagrammi e pagine statiche (rchitettura/), note sul flusso e sull'architettura, lavori aperti, decisioni (ADR). Materiale in continua rimodulazione, mantenuto dall'amministratore dei documenti; è la fonte di verità. Si parte da LEGGIMI.md.
 - **Canale agenti** · AGENTS.md + docs/agenti/: regole (constitution.md), cosa (spec.md), come (plan.md), task (	asks.md), verifica (converge.md). Breve, derivato dagli appunti. Anche le persone ci trovano i task da prendere.
 
-## Setup Iniziale (Fase 1 - Locale)
+## 🚀 Setup Iniziale (Fase 1 - Locale)
 
 ### 1. Backend & Worker
 
@@ -40,9 +42,9 @@ pm install
 4. Avvia il server di sviluppo: 
 pm run dev
 
-## Regole di Git (Leggere attentamente!)
+## 🔧 Regole di Git (Leggere attentamente!)
 
 1. **NON** lavorare mai direttamente sul branch main.
-2. Prima di iniziare un task, crea un branch: git checkout -b feature/nome-task
-3. Prima di fare git commit, assicurati di aver lanciato pre-commit install al primo setup. Questo formatterà automaticamente il tuo codice.
-4. Quando hai finito, pusha il branch e apri una **Pull Request** su GitHub. L'admin farà la review e il merge.
+2. Prima di iniziare un task, crea un branch: git checkout -b feature/<id>-<breve> (es. eature/T1-01-struttura-modulare)
+3. Dopo il primo setup del backend lancia pre-commit install (una volta sola): formatterà automaticamente il tuo codice a ogni git commit.
+4. Quando hai finito, pusha il branch e apri una **Pull Request** su GitHub. Revisione: corsia 0 approvata da tutto il team, corsie 1–5 riviste in gruppo; il merge lo fa l'admin.
