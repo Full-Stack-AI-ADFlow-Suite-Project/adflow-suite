@@ -1,4 +1,4 @@
-<title>Scheda Bottega</title>
+<title>Profilo bottega</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -99,7 +99,7 @@
   .stat-row .stat{ font-size:13px; color:var(--ink-soft); }
   .stat-row .stat b{ color:var(--ink); font-family:"IBM Plex Mono", monospace; font-weight:500; }
 
-  .btn{ font-family:inherit; border-radius:8px; padding:10px 18px; font-size:14px; font-weight:500; border:1px solid var(--line); background:var(--paper-raised); color:var(--ink); display:inline-block; }
+  .btn{ font-family:inherit; border-radius:8px; padding:10px 18px; font-size:14px; font-weight:500; border:1px solid var(--line); background:var(--paper-raised); color:var(--ink); display:inline-block; text-decoration:none; }
   .btn.primary{ background:var(--accent); border-color:var(--accent); color:var(--paper-raised); }
   .gate-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:20px; }
   .link-btn{ background:none; border:none; color:var(--accent-strong); font-size:13px; padding:0; text-decoration:underline; }
@@ -116,20 +116,19 @@
 <div class="wrap">
 
   <div class="masthead">
-    <div class="eyebrow">AdFlow Suite · Scheda bottega per generazione campagna</div>
-    <h1>Scheda bottega</h1>
-    <p>Percorso guidato per raccogliere il profilo dell'artigiano e, ogni volta che serve, i dati di una nuova campagna: durata, descrizione e foto, con un unico invio finale all'operatore.</p>
+    <div class="eyebrow">AdFlow Suite · Pagina 1 di 2 · Profilo bottega</div>
+    <h1>Profilo bottega</h1>
+    <p>Percorso guidato in nove sezioni per raccogliere il profilo dell'artigiano. Si compila una volta e poi si aggiorna quando serve; le campagne si creano nella pagina <a href="AdFlow-campagna.html">Campagna</a>.</p>
   </div>
 
   <div class="banner warn">
     <span class="icon">i</span>
-    <span>Schema statico, non interattivo: mostra in sequenza tutte le schermate del percorso con dati di esempio. Non salva né valida nulla — è lo scheletro da cui costruire le pagine reali nel software.</span>
+    <span>Schema statico, non interattivo (v5.0, ADR-47): mostra in sequenza tutte le sezioni della pagina con dati di esempio. Non salva né valida nulla — è lo scheletro da cui costruire la pagina reale nel software.</span>
   </div>
 
   <nav class="toc">
-    <div class="tab">Schermate</div>
+    <div class="tab">Sezioni</div>
     <ol>
-      <li><a href="#gate">Bentornato (ritorno artigiano)</a></li>
       <li><a href="#s01">01 · Identità</a></li>
       <li><a href="#s02">02 · Storia</a></li>
       <li><a href="#s03">03 · Prodotti</a></li>
@@ -139,31 +138,8 @@
       <li><a href="#s07">07 · Foto e contenuti</a></li>
       <li><a href="#s08">08 · Calendario eventi</a></li>
       <li><a href="#s09">09 · Logistica</a></li>
-      <li><a href="#s10">10 · Durata campagna</a></li>
-      <li><a href="#s11">11 · Foto della campagna</a></li>
-      <li><a href="#s12">12 · Riepilogo e invio</a></li>
     </ol>
   </nav>
-
-  <div class="card" id="gate">
-    <div class="tab">Schermata · Bentornato</div>
-    <h2>Bentornato, Mario</h2>
-    <p class="hint">Quando l'artigiano torna con una scheda già salvata, vede questo riepilogo invece del percorso da zero.</p>
-    <div class="banner warn" style="margin-bottom:16px;">
-      <span class="icon">!</span>
-      <span><b>Solo se l'ultima campagna è stata respinta.</b> Il consorzio non ha approvato "Campagna Luglio 2026". <b>Motivo: foto scattate male.</b> Richiesta di modifica: "Le foto del laboratorio sono troppo buie: ricaricale con più luce e aggiungi il tavolo finito." Foto da rifare (segnate dall'operatore, nell'email come miniature): laboratorio-1.jpg, laboratorio-2.jpg. Tienine conto nella nuova campagna: foto e testi vanno inseriti di nuovo (ADR-40).</span>
-    </div>
-    <div class="rev-line"><dt>Bottega</dt><dd>Falegnameria Bianchi</dd></div>
-    <div class="rev-line"><dt>Referente</dt><dd>Mario Bianchi</dd></div>
-    <div class="rev-line"><dt>Tipo di prodotto</dt><dd>Legno e mobili</dd></div>
-    <div class="rev-line"><dt>Obiettivo</dt><dd>Farmi conoscere</dd></div>
-    <div class="rev-line"><dt>Canali</dt><dd>Facebook, Instagram</dd></div>
-    <button type="button" class="link-btn">Vedi tutte le risposte</button>
-    <div class="gate-actions">
-      <button type="button" class="btn primary">Va bene così, vai alla campagna →</button>
-      <button type="button" class="btn">Voglio modificare qualcosa</button>
-    </div>
-  </div>
 
   <div class="card" id="s01">
     <div class="tab">01 · Identità</div>
@@ -406,96 +382,13 @@
     </div>
   </div>
 
-  <div class="card" id="s10">
-    <div class="tab">10 · Durata campagna</div>
-    <h2>Di che campagna si tratta</h2>
-    <p class="hint">Ogni volta che si arriva fin qui si sta preparando un nuovo periodo di pubblicazioni: nome, inizio e fine.</p>
-    <div class="field">
-      <label for="camp_nome">Nome della campagna *</label>
-      <input type="text" id="camp_nome" value="Campagna Ottobre 2026">
-    </div>
-    <div class="row2">
-      <div class="field">
-        <label for="camp_inizio">Inizio *</label>
-        <input type="date" id="camp_inizio" value="2026-10-01" min="2026-10-01">
-      </div>
-      <div class="field">
-        <label for="camp_fine">Fine *</label>
-        <input type="date" id="camp_fine" value="2026-10-31">
-      </div>
-    </div>
-    <div class="desc" style="font-size:12.5px;color:var(--ink-faint);">L'inizio deve cadere almeno 3 giorni dopo oggi: il consorzio deve avere il tempo di approvare i post prima che partano.</div>
-    <div class="chip-row">
-      <span class="chip">2 settimane</span>
-      <span class="chip chosen">1 mese</span>
-      <span class="chip">2 mesi</span>
-    </div>
-    <div class="field" style="margin-top:18px;">
-      <label for="camp_descrizione">Descrizione e commenti della campagna *</label>
-      <textarea id="camp_descrizione">A ottobre voglio spingere i regali su misura per Natale, ho anche il mercatino il weekend del 6-7 dicembre da preparare.</textarea>
-    </div>
-  </div>
-
-  <div class="card" id="s11">
-    <div class="tab">11 · Foto della campagna</div>
-    <h2>Le foto di questo periodo</h2>
-    <p class="hint">Ogni gruppo di foto caricato ha bisogno di una descrizione, anche breve, prima di poter inviare la campagna.</p>
-    <div class="banner info" style="margin-bottom:16px;">
-      <span class="icon">i</span>
-      <span>Per 31 giorni di campagna sono consigliate almeno circa 12 foto. Esempio: 4 caricate in 2 gruppi.</span>
-    </div>
-    <div class="gruppo">
-      <div class="gruppo-head"><span class="tag">Gruppo 1 · 2 foto</span><button type="button" class="rm">Rimuovi gruppo</button></div>
-      <div class="thumbs">
-        <div class="thumb">tavolo-rovere-01.jpg<button type="button" class="rm-x" aria-label="Rimuovi foto">×</button></div>
-        <div class="thumb">tavolo-rovere-02.jpg<button type="button" class="rm-x" aria-label="Rimuovi foto">×</button></div>
-        <div class="add-thumb">+</div>
-      </div>
-      <div class="field">
-        <label>Descrizione o richieste per queste foto *</label>
-        <textarea>Tavolo in rovere appena finito, luce naturale, per un post di presentazione prodotto.</textarea>
-      </div>
-    </div>
-    <button type="button" class="add-btn">+ Aggiungi foto</button>
-    <div class="stat-row">
-      <span class="stat"><b>1</b> gruppo</span>
-      <span class="stat"><b>2</b> foto in totale</span>
-    </div>
-  </div>
-
-  <div class="card" id="s12">
-    <div class="tab">12 · Riepilogo</div>
-    <h2>Rivedi prima di inviare</h2>
-    <p class="hint">Ultimo controllo prima dell'invio. Da qui si torna a qualsiasi sezione.</p>
-
-    <div class="rev-group">
-      <h3>Identità</h3>
-      <div class="rev-line"><dt>Bottega</dt><dd>Falegnameria Bianchi</dd></div>
-      <div class="rev-line"><dt>Referente</dt><dd>Mario Bianchi</dd></div>
-      <div class="rev-line"><dt>Città</dt><dd>Bra (CN)</dd></div>
-    </div>
-    <div class="rev-group">
-      <h3>Prodotti e pubblico</h3>
-      <div class="rev-line"><dt>Tipo di prodotto</dt><dd>Legno e mobili</dd></div>
-      <div class="rev-line"><dt>Obiettivo</dt><dd>Farmi conoscere</dd></div>
-    </div>
-    <div class="rev-group">
-      <h3>Logistica</h3>
-      <div class="rev-line"><dt>Canali</dt><dd>Facebook, Instagram</dd></div>
-      <div class="rev-line"><dt>Frequenza</dt><dd>3-4 a settimana</dd></div>
-    </div>
-    <div class="rev-group">
-      <h3>Durata campagna</h3>
-      <div class="rev-line"><dt>Nome campagna</dt><dd>Campagna Ottobre 2026</dd></div>
-      <div class="rev-line"><dt>Periodo</dt><dd>2026-10-01 → 2026-10-31</dd></div>
-    </div>
-    <div class="rev-group">
-      <h3>Foto della campagna</h3>
-      <div class="rev-line"><dt>Gruppi</dt><dd>2 foto in 1 gruppo</dd></div>
-    </div>
-
-    <div class="final-actions" style="margin-top:22px;">
-      <button type="button" class="btn primary">Invia all'operatore</button>
+  <div class="card" id="salva">
+    <div class="tab">Fine del profilo</div>
+    <h2>Salva il profilo</h2>
+    <p class="hint">Il profilo si salva uscendo dalla sezione 9. Se manca un campo obbligatorio (*) la pagina lo evidenzia e non salva. Le modifiche valgono dalla prossima campagna inviata: quelle già inviate usano la fotografia del profilo fatta all'invio.</p>
+    <div class="gate-actions">
+      <a class="btn primary" href="AdFlow-campagna.html">Salva e vai alla campagna →</a>
+      <button type="button" class="btn">Salva</button>
     </div>
   </div>
 

@@ -1,6 +1,6 @@
 """Aggiorna i pulsanti "Scarica PNG" di AdFlow-diagrammi.html con i file attuali di diagrammi/.
 
-Uso (da docs/architettura):  python strumenti/incorpora-png.py
+Uso (da docs/appunti/architettura):  python strumenti/incorpora-png.py
 """
 import base64
 import re

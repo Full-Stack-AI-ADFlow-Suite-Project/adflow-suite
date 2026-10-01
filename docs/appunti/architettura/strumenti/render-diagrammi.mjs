@@ -1,5 +1,5 @@
 // Rigenera i PNG dei diagrammi da AdFlow-diagrammi.html, a 2x come gli originali.
-// Uso (da docs/architettura):  node strumenti/render-diagrammi.mjs [d01,d09,...]
+// Uso (da docs/appunti/architettura):  node strumenti/render-diagrammi.mjs [d01,d09,...]
 // Senza argomenti rende tutti i diagrammi. Chrome: percorso standard di Windows, oppure variabile CHROME.
 import { spawn } from "node:child_process";
 import { writeFileSync, mkdtempSync, rmSync } from "node:fs";
