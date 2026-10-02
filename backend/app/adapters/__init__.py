@@ -1,0 +1,1 @@
+# Adattatori per servizi esterni
