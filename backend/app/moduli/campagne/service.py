@@ -134,7 +134,8 @@ def registra_decisione(
         esito: ``"approvata"``, ``"rimandata"`` o ``"respinta"``.
         motivo: obbligatorio se ``esito`` è ``"respinta"`` (``"foto"`` o
                 ``"altro"``), ``None`` altrimenti.
-        nota: testo libero facoltativo dell'operatore.
+        nota: testo libero dell'operatore; obbligatoria se ``esito`` è
+              ``"respinta"``, facoltativa altrimenti.
         foto_segnate: lista di id delle foto segnalate come problematiche,
                       vuota se non applicabile.
 
