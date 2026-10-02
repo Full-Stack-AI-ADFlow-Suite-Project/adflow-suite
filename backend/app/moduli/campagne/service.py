@@ -1,17 +1,16 @@
 """Logica del modulo campagne: l'unica parte che gli altri moduli possono importare."""
 
-from typing import Annotated, Any
+from typing import Any
 
-from fastapi import Depends
 from sqlalchemy.orm import Session
 
-from app.core.db import get_db
+from .models import Campagna, Foto
 
 
 def campagna(
-    db: Annotated[Session, Depends(get_db)],
+    db: Session,
     id: int,
-) -> Any:
+) -> Campagna:
     """Restituisce la campagna con l'id indicato.
 
     Usata da ``contenuti``, ``revisione`` e ``pubblicazione``.
@@ -33,9 +32,9 @@ def campagna(
 
 
 def foto_della_campagna(
-    db: Annotated[Session, Depends(get_db)],
+    db: Session,
     id: int,
-) -> list[Any]:
+) -> list[Foto]:
     """Restituisce tutte le foto associate alla campagna indicata.
 
     Usata da ``contenuti`` (analisi AI), ``revisione`` e ``pubblicazione``.
@@ -56,9 +55,9 @@ def foto_della_campagna(
 
 
 def campagne_in_stato(
-    db: Annotated[Session, Depends(get_db)],
+    db: Session,
     stati: list[str],
-) -> list[Any]:
+) -> list[Campagna]:
     """Restituisce tutte le campagne che si trovano in uno degli stati indicati.
 
     Usata da ``contenuti``, ``revisione`` e ``pubblicazione`` per ottenere
@@ -81,8 +80,8 @@ def campagne_in_stato(
 
 
 def cambia_stato(
-    db: Annotated[Session, Depends(get_db)],
-    campagna: Any,
+    db: Session,
+    campagna: Campagna,
     nuovo: str,
 ) -> None:
     """Aggiorna lo stato della campagna verificando che la transizione sia ammessa.
@@ -106,8 +105,8 @@ def cambia_stato(
 
 
 def registra_decisione(
-    db: Annotated[Session, Depends(get_db)],
-    campagna: Any,
+    db: Session,
+    campagna: Campagna,
     utente_id: int,
     esito: str,
     motivo: str | None,
@@ -138,9 +137,9 @@ def registra_decisione(
 
 
 def aggiorna_foto(
-    db: Annotated[Session, Depends(get_db)],
+    db: Session,
     foto_id: int,
-    analisi_ai: str | None,
+    analisi_ai: dict[str, Any] | None,
     n_utilizzi: int,
 ) -> None:
     """Aggiorna il risultato dell'analisi AI e il contatore utilizzi di una foto.
@@ -152,8 +151,9 @@ def aggiorna_foto(
     Args:
         db: sessione del database (aperta e chiusa dal chiamante).
         foto_id: chiave primaria della foto da aggiornare.
-        analisi_ai: testo descrittivo prodotto dall'AI, o ``None`` se
-                    l'analisi non ha prodotto risultati.
+        analisi_ai: risultato strutturato dell'analisi AI (JSON, come la
+                    colonna ``foto.analisi_ai``), o ``None`` se l'analisi
+                    non ha prodotto risultati.
         n_utilizzi: numero totale di volte che la foto è stata usata
                     in versioni di post.
 

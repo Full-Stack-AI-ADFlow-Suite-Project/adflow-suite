@@ -1,21 +1,26 @@
 """Logica del modulo accesso: l'unica parte che gli altri moduli possono importare."""
 
 from collections.abc import Callable
-from typing import Annotated, Any
+from typing import Annotated
 
 from fastapi import Depends
 from sqlalchemy.orm import Session
 
-from app.core.db import get_db
+from app.core.errori import NonPermesso
+
+from .models import Utente
 
 
-def utente_corrente() -> Any:
+def utente_corrente() -> Utente:
     """Dipendenza FastAPI: restituisce l'utente autenticato dalla sessione.
 
     Si usa nei router con ``Depends``::
 
-        def mio_endpoint(utente: Annotated[Any, Depends(utente_corrente)]):
+        def mio_endpoint(utente: Annotated[Utente, Depends(utente_corrente)]):
             ...
+
+    Fino a T1-12 i test la sostituiscono con la fixture ``utente_di_prova``
+    (T1-06).
 
     Returns:
         Il record utente corrispondente al cookie ``adflow_sessione``.
@@ -27,38 +32,44 @@ def utente_corrente() -> Any:
     raise NotImplementedError  # T1-12
 
 
-def richiede_ruolo(*ruoli: str) -> Callable[..., Any]:
+def richiede_ruolo(*ruoli: str) -> Callable[..., Utente]:
     """Dipendenza FastAPI: verifica che l'utente abbia uno dei ruoli ammessi.
 
-    Factory che restituisce una dipendenza. Si usa nei router::
+    Factory che restituisce una dipendenza costruita su ``utente_corrente``.
+    Si usa nei router::
 
         @router.get("/riservato")
         def endpoint(
-            utente: Annotated[Any, Depends(richiede_ruolo("operatore", "admin"))]
+            utente: Annotated[Utente, Depends(richiede_ruolo("operatore", "admin"))]
         ):
             ...
 
+    La factory funziona già: chi sostituisce ``utente_corrente`` (fixture
+    ``utente_di_prova``) ottiene anche il controllo del ruolo.
+
     Args:
         *ruoli: uno o più ruoli ammessi (es. ``"operatore"``, ``"admin"``).
-                Almeno un ruolo deve essere passato.
 
     Returns:
-        Funzione dipendenza che restituisce l'utente se il ruolo è ammesso.
-
-    Raises:
-        NonPermesso: se l'utente autenticato non ha nessuno dei ruoli richiesti.
-        NotImplementedError: stub — implementazione in T1-12.
+        Funzione dipendenza che restituisce l'utente se il ruolo è ammesso
+        e solleva ``NonPermesso`` (403) altrimenti.
     """
-    raise NotImplementedError  # T1-12
+
+    def controlla(utente: Annotated[Utente, Depends(utente_corrente)]) -> Utente:
+        if utente.ruolo not in ruoli:
+            raise NonPermesso("Non hai i permessi per questa operazione.")
+        return utente
+
+    return controlla
 
 
 def crea_utente(
-    db: Annotated[Session, Depends(get_db)],
+    db: Session,
     email: str,
     password: str,
     nome: str,
     ruolo: str,
-) -> Any:
+) -> Utente:
     """Crea un nuovo utente con password cifrata con scrypt.
 
     Usata da ``cli.py`` per il comando ``crea-utente`` e dal seed.

@@ -1,16 +1,12 @@
 """Logica del modulo pubblicazione: l'unica parte che gli altri moduli possono importare."""
 
 from datetime import datetime
-from typing import Annotated
 
-from fastapi import Depends
 from sqlalchemy.orm import Session
-
-from app.core.db import get_db
 
 
 def pubblica_dovuti(
-    db: Annotated[Session, Depends(get_db)],
+    db: Session,
     adesso: datetime,
 ) -> None:
     """Pubblica sui social tutti i post approvati con data raggiunta.
