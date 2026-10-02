@@ -147,13 +147,11 @@ def test_comando_crea_utente_mostra_l_errore_del_service(
     assert "Email già registrata." in capsys.readouterr().err
 
 
-def test_comando_crea_utente_rifiuta_un_ruolo_sconosciuto(
+def test_comando_crea_utente_vuole_tutti_gli_argomenti(
     cli_sul_db_di_test: None,
 ) -> None:
     with pytest.raises(SystemExit):
-        cli.main(
-            ["crea-utente", "--email", "x@example.com", "--nome", "X", "--ruolo", "re"]
-        )
+        cli.main(["crea-utente", "--email", "x@example.com", "--nome", "X"])
 
 
 def test_password_non_confermata(monkeypatch: pytest.MonkeyPatch) -> None:

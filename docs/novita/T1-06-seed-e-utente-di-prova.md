@@ -11,7 +11,7 @@ C'è il seed (artigiano con profilo, operatore, admin), `core/security.py` con s
   - `python -m app.cli seed`: crea `artigiano@example.com` (con il profilo completo di una bottega di ceramica), `operatore@example.com`, `admin@example.com`. Si può rilanciare: non duplica e non cambia ciò che esiste.
   - `python -m app.cli crea-utente --email … --nome … --ruolo …`: chiama `accesso.service.crea_utente()`.
 - **Fixture `utente_di_prova`** in `tests/conftest.py`.
-- **Test**: 275, tutti verdi (28 nuovi).
+- **Test**: 281, tutti verdi (34 nuovi).
 
 ## Cosa cambia per chi lavora
 1. **Nei test delle API l'utente si crea così:**
@@ -28,7 +28,7 @@ C'è il seed (artigiano con profilo, operatore, admin), `core/security.py` con s
 ## Scelte da rivedere insieme
 - **La password del seed si chiede a terminale** (due volte), come quella di `crea-utente`: niente password nel codice, negli argomenti o in una variabile nuova di `.env` (constitution §3). Se serve un seed non interattivo (E2E, demo) si aggiunge una variabile con un task della corsia 0.
 - **Il seed scrive gli utenti direttamente**, senza `crea_utente()`: quella funzione è uno stub fino a T1-13 e il seed deve funzionare già ora. La docstring di `crea_utente()` dice ancora "e dal seed": si può far passare il seed dal service quando T1-13 è su `main`.
-- **`crea-utente` funziona da T1-13**: fino ad allora il service solleva `NotImplementedError`. Qui è provato con un service finto.
+- **`crea-utente` funziona da T1-13**: fino ad allora il service solleva `NotImplementedError`. Qui è provato con un service finto. Il comando non controlla il ruolo: lo fa `crea_utente()`, così i ruoli ammessi non hanno copie (constitution §2.4).
 - **`profilo_bottega.orari` resta vuoto nel seed**: plan §2 non ne fissa la forma.
 - **Email del seed su `example.com`**: i domini `.test` vengono rifiutati da alcuni validatori di email.
 

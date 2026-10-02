@@ -45,6 +45,12 @@ def test_stessa_password_hash_diversi(hash_di_esempio: str) -> None:
         "scrypt$3$8$1$00$00",
         "scrypt$1073741824$8$1$00$00",
         "scrypt$16384$8$1$00",
+        "scrypt$16384$8$1$00$",
+        "scrypt$-2$8$1$00$00",
+        "scrypt$16384$8$-1$00$00",
+        "scrypt$16384$0$1$00$00",
+        "scrypt$16384$99999$1$00$00",
+        "scrypt$16384$" + "9" * 40 + "$1$00$00",
     ],
 )
 def test_verifica_password_rifiuta_un_hash_malformato(malformato: str) -> None:

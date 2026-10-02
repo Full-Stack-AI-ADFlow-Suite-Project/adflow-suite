@@ -108,15 +108,18 @@ def _chiedi_password(etichetta: str) -> str:
 
 
 def _parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(prog="python -m app.cli", description=__doc__)
+    parser = argparse.ArgumentParser(
+        prog="python -m app.cli",
+        description=__doc__,
+        formatter_class=argparse.RawDescriptionHelpFormatter,
+    )
     comandi = parser.add_subparsers(dest="comando", required=True)
     comandi.add_parser("seed", help="artigiano con profilo, operatore e admin")
     nuovo = comandi.add_parser("crea-utente", help="crea un utente")
     nuovo.add_argument("--email", required=True)
     nuovo.add_argument("--nome", required=True)
-    nuovo.add_argument(
-        "--ruolo", required=True, choices=("artigiano", "operatore", "admin")
-    )
+    # I ruoli ammessi li controlla accesso.service.crea_utente(): qui nessuna copia.
+    nuovo.add_argument("--ruolo", required=True)
     return parser
 
 

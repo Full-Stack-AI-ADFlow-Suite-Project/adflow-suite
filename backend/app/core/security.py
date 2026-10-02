@@ -36,10 +36,13 @@ def verifica_password(password: str, password_hash: str) -> bool:
         if schema != "scrypt" or int(n) > _N_MASSIMO:
             return False
         atteso = bytes.fromhex(digest)
+        if not atteso:
+            return False
         calcolato = _scrypt(
             password, bytes.fromhex(salt), int(n), int(r), int(p), len(atteso)
         )
-    except ValueError:
+    except (ValueError, TypeError, OverflowError):
+        # hashlib rifiuta così i parametri fuori misura o negativi.
         return False
     return hmac.compare_digest(calcolato, atteso)
 
