@@ -1,7 +1,15 @@
 """Tabelle dello sprint 1 (plan §2)."""
 from datetime import datetime
 
-from sqlalchemy import DateTime, ForeignKey, Integer, Text, Index, text
+from sqlalchemy import (
+    DateTime,
+    ForeignKey,
+    Index,
+    Integer,
+    Text,
+    UniqueConstraint,
+    text,
+)
 from sqlalchemy.orm import Mapped, mapped_column
 from app.core.db import Base
 
@@ -9,6 +17,7 @@ from app.core.db import Base
 class Pubblicazione(Base):
     __tablename__ = "pubblicazione"
     __table_args__ = (
+        UniqueConstraint("post_id", "n_tentativo", name="uq_pubblicazione_tentativo"),
         Index(
             "uq_pubblicazione_ok_post",
             "post_id",

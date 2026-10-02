@@ -1,7 +1,6 @@
 """006: tabelle pubblicazione dello sprint 1."""
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
 
 revision = "006"
 down_revision = "005"
@@ -34,6 +33,9 @@ def upgrade() -> None:
             ["versione_post.id"],
         ),
         sa.PrimaryKeyConstraint("id"),
+        sa.UniqueConstraint(
+            "post_id", "n_tentativo", name="uq_pubblicazione_tentativo"
+        ),
     )
     op.create_index(
         "uq_pubblicazione_ok_post",

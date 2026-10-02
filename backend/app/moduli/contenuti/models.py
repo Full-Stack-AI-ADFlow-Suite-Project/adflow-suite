@@ -6,6 +6,7 @@ from sqlalchemy import (
     Boolean,
     DateTime,
     ForeignKey,
+    Index,
     Integer,
     Text,
     UniqueConstraint,
@@ -18,9 +19,10 @@ from app.core.db import Base
 
 class Post(Base):
     __tablename__ = "post"
+    __table_args__ = (Index("ix_post_stato_data_ora", "stato", "data_ora"),)
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     campagna_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("campagna.id"), nullable=False
+        Integer, ForeignKey("campagna.id"), nullable=False, index=True
     )
     canale: Mapped[str] = mapped_column(Text, nullable=False)
     data_ora: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
@@ -49,9 +51,10 @@ class VersionePost(Base):
     tipo_intervento: Mapped[str] = mapped_column(Text, nullable=False)
     testo_proposto: Mapped[str | None] = mapped_column(Text, nullable=True)
     nota: Mapped[str | None] = mapped_column(Text, nullable=True)
-    provider_ai: Mapped[str] = mapped_column(Text, nullable=False)
-    modello_ai: Mapped[str] = mapped_column(Text, nullable=False)
-    versione_prompt: Mapped[str] = mapped_column(Text, nullable=False)
+    # Vuoti negli interventi senza AI (es. scelta_foto, sprint 3).
+    provider_ai: Mapped[str | None] = mapped_column(Text, nullable=True)
+    modello_ai: Mapped[str | None] = mapped_column(Text, nullable=True)
+    versione_prompt: Mapped[str | None] = mapped_column(Text, nullable=True)
     errori_validazione: Mapped[dict[str, Any] | list[Any] | None] = mapped_column(
         JSONB, nullable=True
     )
