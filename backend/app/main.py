@@ -1,24 +1,38 @@
-from fastapi import FastAPI
+"""API: monta i router dei moduli sotto /api."""
 
-app = FastAPI(title="AdFlow Suite API")
+from fastapi import FastAPI, Request
+from fastapi.responses import JSONResponse
 
-# Router dei moduli (vuoti per ora, verranno implementati nei task delle corsie)
-# from app.moduli.accesso.router import router as accesso_router
-# from app.moduli.artigiani.router import router as artigiani_router
-# from app.moduli.campagne.router import router as campagne_router
-# from app.moduli.contenuti.router import router as contenuti_router
-# from app.moduli.revisione.router import router as revisione_router
-# from app.moduli.pubblicazione.router import router as pubblicazione_router
-# from app.moduli.notifiche.router import router as notifiche_router
+from app.core.errori import ErroreDominio
+from app.moduli.accesso.router import router as accesso
+from app.moduli.artigiani.router import router as artigiani
+from app.moduli.campagne.router import router as campagne
+from app.moduli.contenuti.router import router as contenuti
+from app.moduli.notifiche.router import router as notifiche
+from app.moduli.pubblicazione.router import router as pubblicazione
+from app.moduli.revisione.router import router as revisione
 
-# app.include_router(accesso_router, prefix="/auth", tags=["auth"])
-# app.include_router(artigiani_router, prefix="/artigiani", tags=["artigiani"])
-# app.include_router(campagne_router, prefix="/campagne", tags=["campagne"])
-# app.include_router(contenuti_router, prefix="/contenuti", tags=["contenuti"])
-# app.include_router(revisione_router, prefix="/revisione", tags=["revisione"])
-# app.include_router(pubblicazione_router, prefix="/pubblicazione", tags=["pubblicazione"])
-# app.include_router(notifiche_router, prefix="/notifiche", tags=["notifiche"])
+app = FastAPI(title="AdFlow Suite")
+
+for _router in (
+    accesso,
+    notifiche,
+    artigiani,
+    campagne,
+    contenuti,
+    revisione,
+    pubblicazione,
+):
+    app.include_router(_router, prefix="/api")
+
+
+@app.exception_handler(ErroreDominio)
+def errore_dominio(request: Request, errore: ErroreDominio) -> JSONResponse:
+    return JSONResponse(
+        status_code=errore.status_code, content={"detail": errore.messaggio}
+    )
+
 
 @app.get("/api/health")
-def health_check():
-    return {"stato": "ok", "ambiente": "sviluppo"}
+def health() -> dict[str, str]:
+    return {"stato": "ok"}

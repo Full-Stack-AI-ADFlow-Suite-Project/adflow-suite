@@ -2,17 +2,35 @@
 Test per il worker (worker.py).
 """
 
+from contextlib import nullcontext
+from datetime import datetime, timezone
+from unittest.mock import Mock
+
 import pytest
-from app.worker import tick_pubblicazione
+
+import app.worker as worker
+
+
+def test_tick_pubblicazione_registrato_ogni_minuto_senza_sovrapposizioni():
+    periodic_task = worker.app.periodic_registry.periodic_tasks[
+        ("tick_pubblicazione", "")
+    ]
+
+    assert periodic_task.cron == "* * * * *"
+    assert periodic_task.configure_kwargs["lock"] == "tick_pubblicazione"
+    assert periodic_task.configure_kwargs["queueing_lock"] == "tick_pubblicazione"
 
 
 @pytest.mark.asyncio
-async def test_tick_pubblicazione_stub_vuoto():
-    """
-    Test che il job tick_pubblicazione esista e sia eseguibile.
-    Per ora è uno stub vuoto, quindi deve solo non fallire.
-    Quando T1-43 sarà completato, questo test dovrà essere aggiornato
-    per verificare che chiami pubblicazione.pubblica_dovuti().
-    """
-    await tick_pubblicazione()
-    # Se arriva qui senza eccezioni, il test passa
+async def test_tick_pubblicazione_invoca_pubblica_dovuti(monkeypatch):
+    db = object()
+    istante = datetime(2026, 10, 2, tzinfo=timezone.utc)
+    pubblica_dovuti = Mock()
+
+    monkeypatch.setattr(worker, "transazione", lambda: nullcontext(db))
+    monkeypatch.setattr(worker, "adesso", lambda: istante)
+    monkeypatch.setattr(worker, "pubblica_dovuti", pubblica_dovuti)
+
+    await worker.tick_pubblicazione()
+
+    pubblica_dovuti.assert_called_once_with(db, istante)

@@ -6,7 +6,12 @@ Monorepo: `backend/` (FastAPI + worker Procrastinate, PostgreSQL), `frontend/` (
 1. `docs/agenti/constitution.md`: sempre, prima di tutto.
 2. La riga del tuo task in `docs/agenti/tasks.md`, con la sua corsia.
 3. **Solo** le sezioni di `docs/agenti/spec.md` e `docs/agenti/plan.md` citate dal task.
-4. Prima della PR: `docs/agenti/converge.md`.
+4. Se scrivi codice del backend: `docs/agenti/plan.md` §7 (cosa offre già `core/` e come si usano le fixture dei test).
+5. Prima della PR: `docs/agenti/converge.md`.
+
+## Comandi
+Dalla radice, una volta: `python3.11 -m venv .venv`, `source .venv/bin/activate`, `pip install -r backend/requirements.txt`, poi copia `backend/.env.example` in `backend/.env`.
+Da `backend/`: `uvicorn app.main:app --reload` avvia l'API; `alembic upgrade head && pytest && black --check .` è il controllo prima della PR.
 
 **Non leggere `docs/appunti/`** (diagrammi, pagine HTML, note delle persone) se il prompt non te lo chiede con un percorso preciso. Per i task ampi la persona che ti assegna il lavoro ti dà un **brief**: le parti degli appunti che servono, nel prompt o come file da leggere.
 

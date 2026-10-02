@@ -12,11 +12,11 @@ def test_accoda_job_valido():
     with patch("app.core.coda.app") as mock_app:
         mock_job = MagicMock()
         mock_job.defer.return_value = MagicMock(id=123)
-        mock_app.configure_job.return_value = mock_job
+        mock_app.configure_task.return_value = mock_job
 
         job_id = accoda(JOB_GENERA_CAMPAGNA, campagna_id=123)
         assert job_id == 123
-        mock_app.configure_job.assert_called_once_with(name=JOB_GENERA_CAMPAGNA)
+        mock_app.configure_task.assert_called_once_with(JOB_GENERA_CAMPAGNA)
         mock_job.defer.assert_called_once_with(campagna_id=123)
 
 
@@ -25,7 +25,7 @@ def test_accoda_job_con_più_argomenti():
     with patch("app.core.coda.app") as mock_app:
         mock_job = MagicMock()
         mock_job.defer.return_value = MagicMock(id=456)
-        mock_app.configure_job.return_value = mock_job
+        mock_app.configure_task.return_value = mock_job
 
         job_id = accoda(JOB_GENERA_CAMPAGNA, campagna_id=456, extra="test")
         assert job_id == 456

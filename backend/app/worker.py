@@ -1,109 +1,80 @@
-"""
-Worker Procrastinate per l'esecuzione dei job in background.
-"""
+"""Worker Procrastinate: registra i job e pubblica i post dovuti."""
 
-import procrastinate
-from app.core.coda import app
-from app.core.db import get_db_job
+from app.core.coda import (
+    GENERA_CAMPAGNA,
+    INVIA_NOTIFICA,
+    PROMEMORIA,
+    RACCOGLI_METRICHE,
+    REPORT_SETTIMANALE,
+    RIGENERA_POST,
+    RITOCCA_FOTO,
+    TICK_PUBBLICAZIONE,
+    app,
+)
+from app.core.db import transazione
+from app.core.orologio import adesso
+from app.moduli.pubblicazione.service import pubblica_dovuti
+from app.moduli.accesso import jobs as accesso
+from app.moduli.artigiani import jobs as artigiani
+from app.moduli.campagne import jobs as campagne
+from app.moduli.contenuti import jobs as contenuti
+from app.moduli.notifiche import jobs as notifiche
+from app.moduli.pubblicazione import jobs as pubblicazione
+from app.moduli.revisione import jobs as revisione
 
-# Job tick_pubblicazione (plan §4)
-@app.task(name="tick_pubblicazione")
-async def tick_pubblicazione():
-    """
-    Tick eseguito ogni minuto per la pubblicazione dei post dovuti.
-    Chiama pubblicazione.pubblica_dovuti().
-
-    Questo job viene schedulato esternamente (es. cron) ogni minuto.
-    """
-    # TODO: Implementare quando il modulo pubblicazione sarà disponibile (T1-43)
-    # from app.moduli.pubblicazione.service import pubblica_dovuti
-    # db = next(get_db_job())
-    # try:
-    #     from app.core.orologio import adesso
-    #     pubblica_dovuti(db, adesso())
-    # finally:
-    #     db.close()
-    pass
-
-
-# Job genera_campagna (plan §4)
-@app.task(name="genera_campagna")
-async def genera_campagna(campagna_id: int):
-    """
-    Genera i post di una campagna.
-    """
-    # TODO: Implementare nel modulo contenuti (T1-34)
-    pass
+JOB_DEI_MODULI = (
+    accesso,
+    notifiche,
+    artigiani,
+    campagne,
+    contenuti,
+    revisione,
+    pubblicazione,
+)
 
 
-# Job rigenera_post (plan §4, sprint 2b)
-@app.task(name="rigenera_post")
-async def rigenera_post(post_id: int):
-    """
-    Rigenera il testo di un post.
-    """
-    # TODO: Implementare nel modulo contenuti (sprint 2b)
-    pass
+@app.task(name=GENERA_CAMPAGNA)
+async def genera_campagna(campagna_id: int) -> None:
+    """Stub registrato fino all'implementazione del job T1-34."""
 
 
-# Job invia_notifica (plan §4, sprint 2b)
-@app.task(name="invia_notifica")
-async def invia_notifica(notifica_id: int):
-    """
-    Invia una notifica via email.
-    """
-    # TODO: Implementare nel modulo notifiche (sprint 2b)
-    pass
+@app.periodic(
+    cron="* * * * *",
+    lock=TICK_PUBBLICAZIONE,
+    queueing_lock=TICK_PUBBLICAZIONE,
+)
+@app.task(name=TICK_PUBBLICAZIONE)
+async def tick_pubblicazione() -> None:
+    """Esegue la pubblicazione dovuta ogni minuto, senza tick sovrapposti."""
+    with transazione() as db:
+        pubblica_dovuti(db, adesso())
 
 
-# Job ritocca_foto (plan §4, sprint 3)
-@app.task(name="ritocca_foto")
-async def ritocca_foto(post_id: int):
-    """
-    Ritocca la foto di un post.
-    """
-    # TODO: Implementare nel modulo contenuti (sprint 3)
-    pass
+@app.task(name=RIGENERA_POST)
+async def rigenera_post(post_id: int) -> None:
+    """Stub registrato fino all'implementazione del job di rigenerazione."""
 
 
-# Job promemoria (plan §4, sprint 3)
-@app.task(name="promemoria")
-async def promemoria():
-    """
-    Invia promemoria all'operatore per campagne in avvio.
-    """
-    # TODO: Implementare nel modulo revisione (sprint 3)
-    pass
+@app.task(name=INVIA_NOTIFICA)
+async def invia_notifica(notifica_id: int) -> None:
+    """Stub registrato fino all'implementazione del job di notifica."""
 
 
-# Job raccogli_metriche (plan §4, sprint 4)
-@app.task(name="raccogli_metriche")
-async def raccogli_metriche():
-    """
-    Raccoglie le metriche dei post pubblicati.
-    """
-    # TODO: Implementare nel modulo pubblicazione (sprint 4)
-    pass
+@app.task(name=RITOCCA_FOTO)
+async def ritocca_foto(post_id: int) -> None:
+    """Stub registrato fino all'implementazione del job di ritocco."""
 
 
-# Job report_settimanale (plan §4, sprint 4)
-@app.task(name="report_settimanale")
-async def report_settimanale():
-    """
-    Invia report settimanale via email.
-    """
-    # TODO: Implementare nel modulo pubblicazione (sprint 4)
-    pass
+@app.task(name=PROMEMORIA)
+async def promemoria() -> None:
+    """Stub registrato fino all'implementazione del job di promemoria."""
 
 
-def main():
-    """Avvia il worker Procrastinate."""
-    import asyncio
-    from procrastinate.cli import cli
-    import sys
-
-    asyncio.run(cli(sys.argv[1:]))
+@app.task(name=RACCOGLI_METRICHE)
+async def raccogli_metriche() -> None:
+    """Stub registrato fino all'implementazione del job metriche."""
 
 
-if __name__ == "__main__":
-    main()
+@app.task(name=REPORT_SETTIMANALE)
+async def report_settimanale() -> None:
+    """Stub registrato fino all'implementazione del job report."""

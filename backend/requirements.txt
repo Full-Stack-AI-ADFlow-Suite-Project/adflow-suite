@@ -1,28 +1,18 @@
-# Core
-fastapi>=0.104.0
-uvicorn[standard]>=0.24.0
-pydantic>=2.5.0
-pydantic-settings>=2.1.0
-click>=8.1.0
+# API
+fastapi==0.142.2
+uvicorn[standard]==0.54.0
+pydantic-settings==2.15.0
 
 # Database
-sqlalchemy>=2.0.23
-alembic>=1.13.0
-psycopg2-binary>=2.9.9
-psycopg[binary]>=3.2.0
+SQLAlchemy==2.1.2
+psycopg[binary]==3.3.6
+alembic==1.20.0
 
 # Coda e job
-procrastinate>=2.6.0,<3.0.0
-psycopg2-binary>=2.9.9
+procrastinate==3.10.0
 
-# AI (finto per sviluppo, LiteLLM per produzione)
-litellm>=1.20.0
-
-# Test
-pytest>=7.4.3
-pytest-asyncio>=0.21.1
-httpx>=0.25.2
-
-# Sicurezza
-python-jose[cryptography]>=3.3.0
-passlib[bcrypt]>=1.7.4
+# Test e formattazione
+pytest==9.1.1
+httpx2==2.13.1
+black==23.3.0
+pre-commit==4.6.2

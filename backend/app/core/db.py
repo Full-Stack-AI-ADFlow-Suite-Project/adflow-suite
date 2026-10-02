@@ -1,27 +1,32 @@
-from sqlalchemy import create_engine
-from sqlalchemy.orm import declarative_base, sessionmaker
-from app.core.config import settings
+"""Base dei modelli e sessioni del database."""
 
-engine = create_engine(settings.DATABASE_URL, echo=False)
-SessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=engine)
-Base = declarative_base()
+from collections.abc import Iterator
+from contextlib import contextmanager
+from functools import lru_cache
 
-def get_db():
-    db = SessionLocal()
-    try:
+from sqlalchemy import Engine, create_engine
+from sqlalchemy.orm import DeclarativeBase, Session
+
+from app.core.config import leggi_impostazioni
+
+
+class Base(DeclarativeBase):
+    pass
+
+
+@lru_cache
+def motore() -> Engine:
+    return create_engine(leggi_impostazioni().database_url)
+
+
+@contextmanager
+def transazione() -> Iterator[Session]:
+    """Sessione per i job: commit alla fine, rollback se c'è un errore."""
+    with Session(motore()) as db, db.begin():
         yield db
-    finally:
-        db.close()
 
-# Sessione per i job (autocommit)
-def get_db_job():
-    """Sessione database per i job con autocommit."""
-    db = SessionLocal()
-    try:
+
+def get_db() -> Iterator[Session]:
+    """Sessione per i router: una transazione per richiesta."""
+    with transazione() as db:
         yield db
-        db.commit()
-    except Exception:
-        db.rollback()
-        raise
-    finally:
-        db.close()

@@ -1,27 +1,29 @@
-"""
-Errori comuni dell'applicazione.
-"""
+"""Errori dei service: main.py li trasforma in {"detail": "messaggio"}."""
 
 
-class AdFlowError(Exception):
-    """Base exception per gli errori di AdFlow."""
+class ErroreDominio(Exception):
+    status_code: int = 500
+
+    def __init__(self, messaggio: str) -> None:
+        super().__init__(messaggio)
+        self.messaggio = messaggio
 
 
-class TransizioneNonValida(AdFlowError):
-    """Eccezione quando una transizione di stato non è valida."""
+class NonAutenticato(ErroreDominio):
+    status_code = 401
 
 
-class RisorsaNonTrovata(AdFlowError):
-    """Eccezione quando una risorsa non viene trovata."""
+class NonPermesso(ErroreDominio):
+    status_code = 403
 
 
-class PermessoNegato(AdFlowError):
-    """Eccezione quando un utente non ha i permessi necessari."""
+class NonTrovato(ErroreDominio):
+    status_code = 404
 
 
-class DatoNonValido(AdFlowError):
-    """Eccezione quando i dati forniti non sono validi."""
+class StatoNonValido(ErroreDominio):
+    status_code = 409
 
 
-class Conflitto(AdFlowError):
-    """Eccezione quando c'è un conflitto (es. stato non valido, risorsa già esistente)."""
+class DatiNonValidi(ErroreDominio):
+    status_code = 422

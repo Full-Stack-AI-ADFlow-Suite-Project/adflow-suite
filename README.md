@@ -1,50 +1,69 @@
-﻿# AdFlow Suite
+# AdFlow Suite
 
 Repository ufficiale per il progetto di fine tirocinio Full Stack AI.
 
 ## 📁 Struttura del Progetto
-
 Il repository riparte dai soli documenti (ADR-51): il codice nasce con i task dello sprint 1.
-
-- docs/: documentazione del progetto (vedi sotto)
-- ackend/: API FastAPI e Worker Procrastinate (Python) · nasce con il task T1-01 (struttura modulare)
-- rontend/: Interfaccia utente (React + TypeScript + Mantine) · nasce con il task T1-51
+- `docs/`: documentazione del progetto (vedi sotto)
+- `backend/`: API FastAPI e Worker Procrastinate (Python) · nasce con il task T1-01
+- `frontend/`: Interfaccia utente (React + TypeScript + Mantine) · nasce con il task T1-51
 
 ## 📚 Documentazione
 
 La documentazione ha **due canali** (ADR-46):
+- **Appunti** · [`docs/appunti/`](docs/appunti/LEGGIMI.md): diagrammi e pagine statiche (`architettura/`), note sul flusso e sull'architettura, lavori aperti, decisioni (ADR). Materiale in continua rimodulazione, mantenuto dall'amministratore dei documenti; è la fonte di verità. Si parte da [`LEGGIMI.md`](docs/appunti/LEGGIMI.md).
+- **Canale agenti** · [`AGENTS.md`](AGENTS.md) + [`docs/agenti/`](docs/agenti/): regole (`constitution.md`), cosa (`spec.md`), come (`plan.md`), task (`tasks.md`), verifica (`converge.md`). Breve, derivato dagli appunti. Anche le persone ci trovano i task da prendere.
+- **Novità** · [`docs/novita/`](docs/novita/): una nota per ogni PR che cambia il modo di lavorare (cosa c'è di nuovo, cosa cambia per il team).
 
-- **Appunti** · docs/appunti/: diagrammi e pagine statiche (rchitettura/), note sul flusso e sull'architettura, lavori aperti, decisioni (ADR). Materiale in continua rimodulazione, mantenuto dall'amministratore dei documenti; è la fonte di verità. Si parte da LEGGIMI.md.
-- **Canale agenti** · AGENTS.md + docs/agenti/: regole (constitution.md), cosa (spec.md), come (plan.md), task (	asks.md), verifica (converge.md). Breve, derivato dagli appunti. Anche le persone ci trovano i task da prendere.
+## 🚀 Setup (Fase 1 - Locale)
 
-## 🚀 Setup Iniziale (Fase 1 - Locale)
+Servono Python 3.11+, Node 22+ e PostgreSQL 16 con i database `adflow` e `adflow_test`. Le istruzioni del frontend si scrivono nel task T1-51.
 
-### 1. Backend & Worker
+### Backend
 
-1. Entra nella cartella: cd backend
-2. Crea l'ambiente virtuale: python -m venv venv
-3. Attivalo:
-   - Windows: .\venv\Scripts\activate
-   - Mac/Linux: source venv/bin/activate
-4. Installa le dipendenze: pip install -r requirements.txt
-5. **Importante**: Installa i pre-commit hook (una volta sola): pre-commit install
-6. Copia .env.example in .env e inserisci le tue credenziali locali.
-7. Assicurati che PostgreSQL sia in esecuzione e crea i DB dflow e dflow_test.
-8. **Applica le migrazioni del database**: lembic upgrade head
-9. Avvia il server: uvicorn app.main:app --reload
+Installazione, una volta sola, dalla radice del repository:
 
-### 2. Frontend
+```bash
+python3.11 -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+pip install -r backend/requirements.txt
+pre-commit install
+cp backend/.env.example backend/.env
+```
 
-1. Entra nella cartella: cd frontend
-2. Installa le dipendenze: 
-pm install
-3. Copia .env.example in .env.
-4. Avvia il server di sviluppo: 
-pm run dev
+Poi apri `backend/.env` e metti utente e password del tuo PostgreSQL in `DATABASE_URL` e `DATABASE_URL_TEST`.
+
+Avvio, da `backend/` con l'ambiente virtuale attivo:
+
+```bash
+alembic upgrade head               # porta il database all'ultima migrazione
+uvicorn app.main:app --reload      # API su http://localhost:8000
+```
+
+Controllo: `http://localhost:8000/api/health` risponde `{"stato":"ok"}`; la documentazione delle API è su `http://localhost:8000/docs`.
+
+Prima di ogni PR, sempre da `backend/`:
+
+```bash
+alembic upgrade head && pytest && black --check .
+```
+
+I test usano `adflow_test` e lo svuotano a ogni esecuzione: non metterci dati da conservare.
+
+Per avviare il worker Procrastinate (il tick periodico è registrato nell'app), da
+`backend/`:
+
+```bash
+python -m procrastinate -a app.worker.app worker --concurrency 1
+```
 
 ## 🔧 Regole di Git (Leggere attentamente!)
+1. **NON** lavorare mai direttamente sul branch `main`.
+2. Prima di iniziare un task, crea un branch: `git checkout -b feature/<id>-<breve>` (es. `feature/T1-22-api-bozza`)
+3. Dopo il primo setup del backend lancia `pre-commit install` (una volta sola): formatterà automaticamente il tuo codice a ogni `git commit`.
+4. Quando hai finito, pusha il branch e apri una **Pull Request** su GitHub. Revisione: corsia 0 approvata da tutto il team, corsie 1–5 riviste in gruppo (vedi `docs/agenti/tasks.md`); il merge lo fa l'admin.
 
-1. **NON** lavorare mai direttamente sul branch main.
-2. Prima di iniziare un task, crea un branch: git checkout -b feature/<id>-<breve> (es. eature/T1-01-struttura-modulare)
-3. Dopo il primo setup del backend lancia pre-commit install (una volta sola): formatterà automaticamente il tuo codice a ogni git commit.
-4. Quando hai finito, pusha il branch e apri una **Pull Request** su GitHub. Revisione: corsia 0 approvata da tutto il team, corsie 1–5 riviste in gruppo; il merge lo fa l'admin.
+## Tabelle dello sprint 1 (T1-03)
+
+Le migrazioni 001–006 si applicano da `backend/` con `python -m alembic upgrade head`.
+Prove e scelte dello schema: [T1-03 · Tabelle](docs/novita/T1-03-tabelle.md).

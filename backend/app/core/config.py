@@ -1,30 +1,30 @@
-from pydantic_settings import BaseSettings
-from pydantic import ConfigDict
+"""Configurazione letta da backend/.env (variabili di plan §1)."""
 
-class Settings(BaseSettings):
-    DATABASE_URL: str = "postgresql://postgres:postgres123@localhost:5432/adflow"
-    TEST_DATABASE_URL: str = "postgresql://postgres:postgres123@localhost:5432/adflow_test"
-    SECRET_KEY: str = "chiave_segreta_sviluppo"
-    ALGORITHM: str = "HS256"
+from functools import lru_cache
+from typing import Literal
 
-    # Archivio foto
-    ARCHIVIO_FOTO_DIR: str = "./archivio_foto"
+from pydantic_settings import BaseSettings, SettingsConfigDict
 
-    # AI
-    AI_PROVIDER: str = "finto"
-    AI_MODELLO_VISIONE: str = "gpt-4-vision-preview"
-    AI_MODELLO_TESTO: str = "gpt-4"
-    OPENAI_API_KEY: str = ""
 
-    # Configurazione campagne
-    ANTICIPO_MINIMO_GIORNI: int = 3
-    MARGINE_SLOT_MINUTI: int = 15
+class Impostazioni(BaseSettings):
+    model_config = SettingsConfigDict(env_file=".env", extra="ignore")
 
-    # Email
-    SMTP_HOST: str = "localhost"
-    SMTP_PORT: int = 1025
+    database_url: str
+    database_url_test: str
+    archivio_foto_dir: str = "./archivio_foto"
 
-    # Questa riga dice a Pydantic di ignorare le altre variabili nel .env
-    model_config = ConfigDict(extra="ignore", env_file=".env")
+    ai_provider: Literal["finto", "litellm"] = "finto"
+    ai_modello_visione: str = ""
+    ai_modello_testo: str = ""
+    openai_api_key: str = ""
 
-settings = Settings()
+    anticipo_minimo_giorni: int = 3
+    margine_slot_minuti: int = 15
+
+    smtp_host: str = "localhost"
+    smtp_port: int = 1025
+
+
+@lru_cache
+def leggi_impostazioni() -> Impostazioni:
+    return Impostazioni()

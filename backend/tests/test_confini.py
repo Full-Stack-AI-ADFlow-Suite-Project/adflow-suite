@@ -1,46 +1,110 @@
-"""
-Test dei confini tra moduli.
-
-Verifica che i moduli non importino ciò che non devono importare
-secondo constitution §2:
-- Un modulo importa da un altro modulo solo service (e gli schemi che restituisce)
-- Mai models, router, jobs altrui
-- Solo se l'altro lo precede nell'ordine
-"""
+"""Regole di import di constitution §2: questo test deve restare verde."""
 
 import ast
-import importlib.util
 from pathlib import Path
 
+import pytest
 
-def get_imports_from_file(filepath: Path) -> list[str]:
-    """Estrae gli import da un file Python."""
-    with open(filepath, "r", encoding="utf-8") as f:
-        tree = ast.parse(f.read())
-
-    imports = []
-    for node in ast.walk(tree):
-        if isinstance(node, ast.Import):
-            for alias in node.names:
-                imports.append(alias.name)
-        elif isinstance(node, ast.ImportFrom):
-            module = node.module or ""
-            for alias in node.names:
-                imports.append(f"{module}.{alias.name}")
-    return imports
+APP = Path(__file__).resolve().parents[1] / "app"
+ORDINE = (
+    "accesso",
+    "notifiche",
+    "artigiani",
+    "campagne",
+    "contenuti",
+    "revisione",
+    "pubblicazione",
+)
+IMPORTABILI = {"service", "schemas"}
 
 
-def test_confini_moduli():
-    """
-    Test che verifica i confini tra moduli.
+def _importati(nome: str, sorgente: str, pacchetto: bool) -> set[str]:
+    """Nomi completi importati da un file, con gli import relativi risolti."""
+    base = nome.split(".") if pacchetto else nome.split(".")[:-1]
+    trovati: set[str] = set()
+    for nodo in ast.walk(ast.parse(sorgente)):
+        if isinstance(nodo, ast.Import):
+            trovati.update(alias.name for alias in nodo.names)
+        elif isinstance(nodo, ast.ImportFrom):
+            parti = base[: len(base) - (nodo.level - 1)] if nodo.level else []
+            if nodo.module:
+                parti = parti + nodo.module.split(".")
+            trovati.update(".".join(parti + [alias.name]) for alias in nodo.names)
+    return trovati
 
-    TODO: Implementare completamente quando i moduli avranno codice.
-    Per ora questo test è un placeholder.
-    """
-    # Ordine dei moduli: accesso, notifiche, artigiani, campagne, contenuti, revisione, pubblicazione
-    # Questa funzione verrà implementata per verificare che:
-    # - Un modulo non importi models, router, jobs di un altro modulo
-    # - Un modulo importi solo service di moduli che lo precedono
 
-    # Placeholder: il test passa per ora
-    assert True
+def violazioni(nome: str, sorgente: str, pacchetto: bool = False) -> list[str]:
+    """Import vietati nel file `nome` (es. app.moduli.campagne.service)."""
+    origine = nome.split(".")
+    zona = origine[1] if len(origine) > 1 else ""
+    proprio = origine[2] if zona == "moduli" and len(origine) > 2 else None
+    if zona not in ("moduli", "core", "adapters"):
+        return []  # composizione: può conoscere tutti i moduli
+
+    errori = []
+    for importato in sorted(_importati(nome, sorgente, pacchetto)):
+        parti = importato.split(".")
+        if parti[:2] != ["app", "moduli"] or len(parti) < 3:
+            continue
+        altro = parti[2]
+        if altro not in ORDINE or altro == proprio:
+            continue
+        if proprio is None:
+            errori.append(f"{nome}: {zona} non importa dai moduli ({importato})")
+        elif len(parti) < 4 or parti[3] not in IMPORTABILI:
+            errori.append(
+                f"{nome}: di {altro} si importa solo service o schemas ({importato})"
+            )
+        elif ORDINE.index(altro) > ORDINE.index(proprio):
+            errori.append(f"{nome}: {altro} viene dopo {proprio} ({importato})")
+    return errori
+
+
+def test_confini_del_codice() -> None:
+    errori = []
+    for file in sorted(APP.rglob("*.py")):
+        relativo = file.relative_to(APP.parent).with_suffix("")
+        pacchetto = relativo.name == "__init__"
+        parti = relativo.parts[:-1] if pacchetto else relativo.parts
+        errori += violazioni(".".join(parti), file.read_text("utf-8"), pacchetto)
+    assert errori == []
+
+
+def test_i_moduli_sono_quelli_previsti() -> None:
+    presenti = {p.name for p in (APP / "moduli").iterdir() if p.is_dir()}
+    assert presenti - {"__pycache__"} == set(ORDINE)
+
+
+@pytest.mark.parametrize(
+    ("nome", "sorgente"),
+    [
+        ("app.moduli.campagne.service", "from app.moduli.accesso import service"),
+        ("app.moduli.campagne.service", "from app.moduli.accesso.schemas import X"),
+        ("app.moduli.campagne.service", "from . import models"),
+        ("app.moduli.campagne.router", "from .service import crea"),
+        ("app.moduli.campagne.service", "from app.core.db import Base"),
+        ("app.main", "from app.moduli.pubblicazione import router"),
+        ("app.tabelle", "import app.moduli.campagne.models"),
+    ],
+)
+def test_import_ammessi(nome: str, sorgente: str) -> None:
+    assert violazioni(nome, sorgente) == []
+
+
+@pytest.mark.parametrize(
+    ("nome", "sorgente"),
+    [
+        ("app.moduli.campagne.service", "from app.moduli.accesso import models"),
+        ("app.moduli.campagne.service", "from app.moduli.accesso.models import Utente"),
+        ("app.moduli.campagne.service", "import app.moduli.accesso.router"),
+        ("app.moduli.campagne.service", "from app.moduli.accesso import jobs"),
+        ("app.moduli.campagne.service", "from app.moduli import accesso"),
+        ("app.moduli.campagne.service", "from ..accesso import models"),
+        ("app.moduli.campagne.service", "from app.moduli.contenuti import service"),
+        ("app.moduli.campagne.router", "from ..contenuti.service import genera"),
+        ("app.core.db", "from app.moduli.accesso import service"),
+        ("app.adapters.ai.finto", "from app.moduli.contenuti import service"),
+    ],
+)
+def test_import_vietati(nome: str, sorgente: str) -> None:
+    assert len(violazioni(nome, sorgente)) == 1

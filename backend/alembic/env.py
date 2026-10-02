@@ -1,38 +1,32 @@
 from logging.config import fileConfig
-from sqlalchemy import engine_from_config, pool
+
 from alembic import context
-import sys
-import os
+from sqlalchemy import create_engine, pool
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(__file__)))
-
-from app.core.config import settings
-from app.core.db import Base
-from app.modules.auth import models
+from app.core.config import leggi_impostazioni
+from app.tabelle import metadata
 
 config = context.config
 if config.config_file_name is not None:
-    fileConfig(config.config_file_name)
+    fileConfig(config.config_file_name, disable_existing_loggers=False)
 
-config.set_main_option("sqlalchemy.url", settings.DATABASE_URL)
-target_metadata = Base.metadata
+# I test passano l'indirizzo di adflow_test in config.attributes["url"].
+url = config.attributes.get("url") or leggi_impostazioni().database_url
+
 
 def run_migrations_offline() -> None:
-    url = config.get_main_option("sqlalchemy.url")
-    context.configure(url=url, target_metadata=target_metadata, literal_binds=True, dialect_opts={"paramstyle": "named"})
+    context.configure(url=url, target_metadata=metadata, literal_binds=True)
     with context.begin_transaction():
         context.run_migrations()
 
+
 def run_migrations_online() -> None:
-    connectable = engine_from_config(
-        config.get_section(config.config_ini_section, {}),
-        prefix="sqlalchemy.",
-        poolclass=pool.NullPool,
-    )
-    with connectable.connect() as connection:
-        context.configure(connection=connection, target_metadata=target_metadata)
+    motore = create_engine(url, poolclass=pool.NullPool)
+    with motore.connect() as connessione:
+        context.configure(connection=connessione, target_metadata=metadata)
         with context.begin_transaction():
             context.run_migrations()
+
 
 if context.is_offline_mode():
     run_migrations_offline()
