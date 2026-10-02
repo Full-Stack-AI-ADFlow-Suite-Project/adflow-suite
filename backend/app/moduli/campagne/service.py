@@ -2,9 +2,14 @@
 
 from typing import Any
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from .models import Campagna, Foto
+from app.core.errori import DatiNonValidi, NonTrovato
+from app.core.transizioni import verifica_transizione
+
+from .domain import ESITI_DECISIONE, ESITO_RESPINTA, MOTIVI_DECISIONE, TRANSIZIONI
+from .models import Campagna, DecisioneCampagna, Foto
 
 
 def campagna(
@@ -26,9 +31,11 @@ def campagna(
 
     Raises:
         NonTrovato: se non esiste nessuna campagna con quell'id.
-        NotImplementedError: stub — implementazione in T1-04.
     """
-    raise NotImplementedError  # T1-04
+    trovata = db.get(Campagna, id)
+    if trovata is None:
+        raise NonTrovato("Campagna non trovata.")
+    return trovata
 
 
 def foto_della_campagna(
@@ -47,11 +54,10 @@ def foto_della_campagna(
 
     Returns:
         Lista di record ``Foto``, vuota se la campagna non ne ha.
-
-    Raises:
-        NotImplementedError: stub — implementazione in T1-04.
     """
-    raise NotImplementedError  # T1-04
+    return list(
+        db.scalars(select(Foto).where(Foto.campagna_id == id).order_by(Foto.id))
+    )
 
 
 def campagne_in_stato(
@@ -72,11 +78,12 @@ def campagne_in_stato(
 
     Returns:
         Lista di record ``Campagna``, vuota se nessuna corrisponde.
-
-    Raises:
-        NotImplementedError: stub — implementazione in T1-04.
     """
-    raise NotImplementedError  # T1-04
+    return list(
+        db.scalars(
+            select(Campagna).where(Campagna.stato.in_(stati)).order_by(Campagna.id)
+        )
+    )
 
 
 def cambia_stato(
@@ -99,9 +106,10 @@ def cambia_stato(
     Raises:
         StatoNonValido: se la transizione da stato attuale a ``nuovo`` non è
             ammessa dal diagramma di ``campagne/domain.py``.
-        NotImplementedError: stub — implementazione in T1-04.
     """
-    raise NotImplementedError  # T1-04
+    verifica_transizione(TRANSIZIONI, campagna.stato, nuovo)
+    campagna.stato = nuovo
+    db.flush()
 
 
 def registra_decisione(
@@ -131,9 +139,26 @@ def registra_decisione(
                       vuota se non applicabile.
 
     Raises:
-        NotImplementedError: stub — implementazione in T1-04.
+        DatiNonValidi: esito o motivo fuori dai valori di ``campagne/domain.py``,
+            oppure ``respinta`` senza motivo o senza nota (R-18).
     """
-    raise NotImplementedError  # T1-04
+    if esito not in ESITI_DECISIONE:
+        raise DatiNonValidi("Esito della decisione non valido.")
+    if motivo is not None and motivo not in MOTIVI_DECISIONE:
+        raise DatiNonValidi("Motivo della decisione non valido.")
+    if esito == ESITO_RESPINTA and (motivo is None or not (nota or "").strip()):
+        raise DatiNonValidi("Per respingere servono il motivo e la nota.")
+    db.add(
+        DecisioneCampagna(
+            campagna_id=campagna.id,
+            utente_id=utente_id,
+            esito=esito,
+            motivo=motivo,
+            nota=nota,
+            foto_segnate=foto_segnate,
+        )
+    )
+    db.flush()
 
 
 def aggiorna_foto(
@@ -159,6 +184,10 @@ def aggiorna_foto(
 
     Raises:
         NonTrovato: se non esiste nessuna foto con quell'id.
-        NotImplementedError: stub — implementazione in T1-04.
     """
-    raise NotImplementedError  # T1-04
+    foto = db.get(Foto, foto_id)
+    if foto is None:
+        raise NonTrovato("Foto non trovata.")
+    foto.analisi_ai = analisi_ai
+    foto.n_utilizzi = n_utilizzi
+    db.flush()

@@ -1,5 +1,6 @@
 """Logica del modulo artigiani: l'unica parte che gli altri moduli possono importare."""
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .models import ProfiloBottega
@@ -22,8 +23,7 @@ def profilo_di(
 
     Returns:
         Il record ``ProfiloBottega`` se esiste, altrimenti ``None``.
-
-    Raises:
-        NotImplementedError: stub — implementazione in T1-04.
     """
-    raise NotImplementedError  # T1-04
+    return db.scalar(
+        select(ProfiloBottega).where(ProfiloBottega.utente_id == utente_id)
+    )

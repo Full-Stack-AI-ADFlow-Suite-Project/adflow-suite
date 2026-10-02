@@ -1,8 +1,15 @@
 """Logica del modulo contenuti: l'unica parte che gli altri moduli possono importare."""
 
 from datetime import datetime
-from sqlalchemy.orm import Session
 
+from sqlalchemy import select
+from sqlalchemy.orm import Session, selectinload
+
+from app.core.errori import DatiNonValidi
+from app.core.transizioni import verifica_transizione
+from app.moduli.campagne import service as campagne
+
+from .domain import APPROVATO, ESITI_PUBBLICAZIONE, FALLITO, PUBBLICATO, TRANSIZIONI
 from .models import Post, VersionePost
 
 
@@ -21,13 +28,19 @@ def post_della_campagna(
         campagna_id: chiave primaria della campagna.
 
     Returns:
-        Lista di post, ognuno con la versione corrente e l'elenco
-        completo delle versioni. Lista vuota se la campagna non ha post.
-
-    Raises:
-        NotImplementedError: stub — implementazione in T1-04.
+        Lista di ``Post`` in ordine di data: ``post.versione_corrente`` è
+        la versione corrente, ``post.versioni`` lo storico completo.
+        Lista vuota se la campagna non ha post.
     """
-    raise NotImplementedError  # T1-04
+    return list(
+        db.scalars(
+            select(Post)
+            .where(Post.campagna_id == campagna_id)
+            .options(selectinload(Post.versioni))
+            .order_by(Post.data_ora, Post.id)
+            .execution_options(populate_existing=True)
+        )
+    )
 
 
 def ha_blocchi(
@@ -49,11 +62,15 @@ def ha_blocchi(
     Returns:
         ``True`` se almeno un post ha ``da_rivedere = True``,
         ``False`` altrimenti.
-
-    Raises:
-        NotImplementedError: stub — implementazione in T1-04.
     """
-    raise NotImplementedError  # T1-04
+    return (
+        db.scalar(
+            select(Post.id)
+            .where(Post.campagna_id == campagna_id, Post.da_rivedere.is_(True))
+            .limit(1)
+        )
+        is not None
+    )
 
 
 def approva_post(
@@ -76,9 +93,14 @@ def approva_post(
 
     Raises:
         StatoNonValido: se uno dei post non è in stato ``da_approvare``.
-        NotImplementedError: stub — implementazione in T1-04.
     """
-    raise NotImplementedError  # T1-04
+    post = post_della_campagna(db, campagna_id)
+    for uno in post:
+        verifica_transizione(TRANSIZIONI, uno.stato, APPROVATO)
+    for uno in post:
+        uno.stato = APPROVATO
+    db.flush()
+    return [uno.versione_corrente for uno in post if uno.versione_corrente]
 
 
 def post_dovuti(
@@ -102,11 +124,22 @@ def post_dovuti(
     Returns:
         Lista di post ``approvati`` con ``data_ora <= adesso`` e campagna
         ``attiva``. Lista vuota se non ce ne sono.
-
-    Raises:
-        NotImplementedError: stub — implementazione in T1-04.
     """
-    raise NotImplementedError  # T1-04
+    # Lo stato della campagna si legge dal service di campagne, che ne è proprietario.
+    attive = [c.id for c in campagne.campagne_in_stato(db, ["attiva"])]
+    if not attive:
+        return []
+    return list(
+        db.scalars(
+            select(Post)
+            .where(
+                Post.stato == APPROVATO,
+                Post.data_ora <= adesso,
+                Post.campagna_id.in_(attive),
+            )
+            .order_by(Post.data_ora, Post.id)
+        )
+    )
 
 
 def segna_esito(
@@ -128,10 +161,14 @@ def segna_esito(
                ``"fallito"`` dopo l'esaurimento dei tentativi.
 
     Raises:
+        DatiNonValidi: se ``esito`` non è ``pubblicato`` né ``fallito``.
         StatoNonValido: se la transizione non è ammessa dal domain.
-        NotImplementedError: stub — implementazione in T1-04.
     """
-    raise NotImplementedError  # T1-04
+    if esito not in ESITI_PUBBLICAZIONE:
+        raise DatiNonValidi("Esito della pubblicazione non valido.")
+    verifica_transizione(TRANSIZIONI, post.stato, esito)
+    post.stato = esito
+    db.flush()
 
 
 def tutti_chiusi(
@@ -150,8 +187,15 @@ def tutti_chiusi(
     Returns:
         ``True`` se ogni post è ``pubblicato`` o ``fallito``, ``False`` se
         almeno uno è in un altro stato (es. ``approvato``, in attesa).
-
-    Raises:
-        NotImplementedError: stub — implementazione in T1-04.
     """
-    raise NotImplementedError  # T1-04
+    return (
+        db.scalar(
+            select(Post.id)
+            .where(
+                Post.campagna_id == campagna_id,
+                Post.stato.not_in((PUBBLICATO, FALLITO)),
+            )
+            .limit(1)
+        )
+        is None
+    )

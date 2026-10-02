@@ -13,7 +13,7 @@ from sqlalchemy import (
     text,
 )
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.db import Base
 
 
@@ -33,6 +33,15 @@ class Post(Base):
     n_rigenerazioni_testo: Mapped[int] = mapped_column(
         Integer, nullable=False, server_default=text("0")
     )
+    # Storico delle versioni, dalla prima all'ultima.
+    versioni: Mapped[list["VersionePost"]] = relationship(
+        order_by="VersionePost.numero", back_populates="post"
+    )
+
+    @property
+    def versione_corrente(self) -> "VersionePost | None":
+        """La versione corrente è l'ultima (plan §2)."""
+        return self.versioni[-1] if self.versioni else None
 
 
 class VersionePost(Base):
@@ -63,3 +72,4 @@ class VersionePost(Base):
         nullable=False,
         server_default=text("CURRENT_TIMESTAMP"),
     )
+    post: Mapped[Post] = relationship(back_populates="versioni")
