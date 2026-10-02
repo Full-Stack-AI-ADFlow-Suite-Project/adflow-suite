@@ -17,15 +17,15 @@ ANTICIPO_MINIMO_GIORNI=3 · MARGINE_SLOT_MINUTI=15 · SMTP_HOST · SMTP_PORT
 |---|---|---|---|
 | utente | accesso | email (unica), password_hash, nome, ruolo (artigiano / operatore / admin), attivo | 1 |
 | sessione | accesso | token_hash (sha256), utente_id, scade_il | 1 |
-| profilo_bottega | artigiani | utente_id (1:1), nome, referente, citta, anni_attivita, sito, storia, origine, valori[], tipo_prodotto, gamma, fascia_prezzo, stagionalita, clienti_ideali, obiettivo, zona, tono[], cortesia, vincoli, canali[], frequenza, orari, social_esistenti (JSON `{canali[], profili, cosa_funziona}`), foto_policy (JSON `{quantita_mese, chi_scatta, persone}`), eventi_ricorrenti (JSON `[{nome, quando, tipo}]`), chiusure, aggiornato_il · obbligatori: nome, referente, citta, tipo_prodotto, clienti_ideali, obiettivo, canali | 1 (seed; schermate 2a) |
+| profilo_bottega | artigiani | utente_id (1:1), nome, referente, citta, anni_attivita, sito, storia, origine, valori[], tipo_prodotto, gamma, fascia_prezzo, stagionalita, clienti_ideali, obiettivo, zona, tono[], cortesia, vincoli, canali[], frequenza, orari (JSON), social_esistenti (JSON `{canali[], profili, cosa_funziona}`), foto_policy (JSON `{quantita_mese, chi_scatta, persone}`), eventi_ricorrenti (JSON `[{nome, quando, tipo}]`), chiusure, aggiornato_il · obbligatori: nome, referente, citta, tipo_prodotto, clienti_ideali, obiettivo, canali | 1 (seed; schermate 2a) |
 | campagna | campagne | profilo_id, titolo, inizio, fine, descrizione, crea_immagini_ai (bool, default false), stato, canali[], frequenza, obiettivo, profilo_snapshot (JSON), rimandata (bool), inviata_il | 1 |
-| foto | campagne | profilo_id, campagna_id, gruppo_id (uuid), origine (default `caricata`), file, mime, larghezza, altezza, descrizione, analisi_ai, n_utilizzi | 1 |
+| foto | campagne | profilo_id, campagna_id, gruppo_id (uuid), origine (default `caricata`), file, mime, larghezza, altezza, descrizione, analisi_ai (JSON), n_utilizzi | 1 |
 | decisione_campagna | campagne | campagna_id, utente_id, esito, motivo, nota, foto_segnate[], creata_il | 1 (solo `approvata`), 2b |
 | post | contenuti | campagna_id, canale, data_ora, stato, da_rivedere (bool), n_rigenerazioni_testo · n_ritocchi_foto (3) | 1 |
 | versione_post | contenuti | post_id, numero, testo, hashtag[], foto_id, tipo_intervento, testo_proposto, nota, provider_ai, modello_ai, versione_prompt, errori_validazione, creata_il · versione_foto_id (3) | 1 |
 | versione_foto | contenuti | foto_id, numero (0 = originale), file, origine (originale / ritocco_ai), nota, provider_ai, modello_ai, versione_prompt, creata_il | 3 |
 | approvazione | revisione | versione_id, utente_id, ruolo, esito, creata_il | 1 |
-| pubblicazione | pubblicazione | post_id, versione_id, n_tentativo, stato (in_corso / ok / errore), id_esterno, errore, creata_il · indice unico parziale su `ok` per post | 1 |
+| pubblicazione | pubblicazione | post_id, versione_id, n_tentativo, stato (in_corso / ok / errore), id_esterno, errore, creata_il · indice unico parziale su `ok` per post · unico su (post_id, n_tentativo) | 1 |
 | metrica | pubblicazione | pubblicazione_id, data_rilevazione, like, commenti, copertura, salvataggi | 4 |
 | notifica | notifiche | utente_id, campagna_id, tipo (`campagna_respinta`, `campagna_scaduta`, …), canale, stato_invio, creata_il, inviata_il | 2b |
 | anagrafica_artigiano | artigiani | utente_id (1:1), codice (unico, es. ART-0042), codice_consorzio, nome_bottega, referente, citta, telefono, stato_iscrizione, iscritto_il | 3 |
@@ -114,14 +114,14 @@ Le sole funzioni di `moduli/<modulo>/service.py` che un altro modulo può chiama
 
 | Modulo | Funzione | Usata da | Scritta in |
 |---|---|---|---|
-| accesso | `utente_corrente` (dipendenza FastAPI → utente) · `richiede_ruolo(*ruoli)` | tutti i router | T1-12 (fino ad allora: utente di prova, T1-06) |
+| accesso | `utente_corrente` (dipendenza FastAPI → utente) · `richiede_ruolo(*ruoli)` | tutti i router | T1-12 (fino ad allora: utente di prova, T1-06; `richiede_ruolo` funziona già da T1-04) |
 | accesso | `crea_utente(email, password, nome, ruolo)` | `cli.py` | T1-13 |
 | artigiani | `profilo_di(utente_id)` → profilo o `None` | campagne, revisione | T1-04 |
 | campagne | `campagna(id)` · `foto_della_campagna(id)` · `campagne_in_stato(stati)` | contenuti, revisione, pubblicazione | T1-04 |
 | campagne | `cambia_stato(campagna, nuovo)` | contenuti, revisione, pubblicazione | T1-04 |
 | campagne | `registra_decisione(campagna, utente_id, esito, motivo, nota, foto_segnate)` | revisione | T1-04 |
 | campagne | `aggiorna_foto(foto_id, analisi_ai, n_utilizzi)` | contenuti | T1-04 |
-| contenuti | `post_della_campagna(campagna_id)` (versione corrente e storico) · `ha_blocchi(campagna_id)` · `approva_post(campagna_id)` → versioni approvate | revisione | T1-04 |
+| contenuti | `post_della_campagna(campagna_id)` (post con `versione_corrente` e `versioni`) · `ha_blocchi(campagna_id)` · `approva_post(campagna_id)` → versioni approvate | revisione | T1-04 |
 | contenuti | `post_dovuti(adesso)` (approvati, data raggiunta, campagna attiva) · `segna_esito(post, esito)` · `tutti_chiusi(campagna_id)` | pubblicazione | T1-04 |
 | pubblicazione | `pubblica_dovuti(adesso)` | `tick_pubblicazione` | T1-43 |
 
@@ -136,7 +136,7 @@ Ciò che ogni modulo trova già pronto. È della corsia 0: si usa, non si cambia
 | Dove | Cosa | Come si usa |
 |---|---|---|
 | `core/config.py` | `leggi_impostazioni()` | `leggi_impostazioni().archivio_foto_dir`; mai `os.environ` |
-| `core/db.py` | `Base` · `get_db` · `transazione()` | i modelli ereditano da `Base`; nei router `db: Session = Depends(get_db)`; nei job `with transazione() as db:`. Commit alla fine, rollback se c'è un errore: router, job e service non chiamano `commit` |
+| `core/db.py` | `Base` · `get_db` · `transazione()` | i modelli ereditano da `Base`; la connessione è in UTC; nei router `db: Session = Depends(get_db)`; nei job `with transazione() as db:`. Commit alla fine, rollback se c'è un errore: router, job e service non chiamano `commit` |
 | `core/errori.py` | `NonAutenticato` 401 · `NonPermesso` 403 · `NonTrovato` 404 · `StatoNonValido` 409 · `DatiNonValidi` 422 | il service fa `raise NonTrovato("Campagna non trovata.")`; `main.py` risponde `{"detail": …}`. Niente `HTTPException` nei service |
 | `core/orologio.py` | `adesso()` (UTC) · `ROMA` | nei router `ora: datetime = Depends(adesso)`, poi passata al service; nei test si passa un'ora fissa |
 | `core/transizioni.py` | `verifica_transizione(transizioni, da, a)` | `transizioni` è il dizionario stato → stati ammessi del `domain.py` del modulo; se il passaggio non è ammesso solleva `StatoNonValido` |

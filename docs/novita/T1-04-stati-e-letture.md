@@ -11,7 +11,7 @@ Le funzioni di plan §6 segnate T1-04 non sono più stub: stati, transizioni e l
 - **campagne**: `campagna()`, `foto_della_campagna()`, `campagne_in_stato()`, `cambia_stato()`, `registra_decisione()`, `aggiorna_foto()`.
 - **contenuti**: `post_della_campagna()`, `ha_blocchi()`, `approva_post()`, `post_dovuti()`, `segna_esito()`, `tutti_chiusi()`.
 - **Fabbriche complete**: le campagne dall'invio in poi hanno canali, frequenza e obiettivo copiati dal profilo, la fotografia del profilo e una foto valida con descrizione; ogni post ha la sua foto.
-- **Test**: 241, tutti verdi. Ogni transizione ammessa e vietata di campagna e post, e almeno un test per funzione.
+- **Test**: 247, tutti verdi (con quelli di T1-05). Ogni transizione ammessa e vietata di campagna e post, e almeno un test per funzione.
 
 ## Cosa cambia per chi lavora
 1. **Ricrea il database locale.** Le migrazioni 001–006 sono state corrette sul posto: da `backend/`, `alembic downgrade base && alembic upgrade head`. Il database dei test si ricrea da solo.
@@ -44,7 +44,14 @@ Le funzioni di plan §6 segnate T1-04 non sono più stub: stati, transizioni e l
 - **Relazione `Post.versioni`**: è interna al modulo contenuti (constitution §2.3) e non cambia lo schema.
 
 ## Documenti aggiornati
-- `docs/agenti/tasks.md`: casella di T1-04 spuntata. La casella di T1-02 è ancora vuota su `main`: va spuntata a parte.
+Poche righe, per restare allineati al codice:
+- `docs/agenti/tasks.md`: caselle di T1-02 e T1-04 spuntate.
+- `docs/agenti/plan.md`: §2 `orari` e `analisi_ai` sono JSON, unico su `(post_id, n_tentativo)`; §6 `richiede_ruolo` già funzionante e forma di `post_della_campagna`; §7 connessione in UTC.
+- `docs/agenti/spec.md`: CA-22, l'intervento in corso vale dalla 2b.
+- `AGENTS.md`, `constitution.md`, `converge.md`: nessuna modifica.
+
+## Dopo l'unione di T1-05
+Il branch include `main` con T1-05. Un test di T1-05 (`test_tick_pubblicazione_invoca_pubblica_dovuti`) falliva su `main`: usava `pytest.mark.asyncio` senza il plugin. Ora chiama il tick con `asyncio.run`, senza librerie nuove. I segnaposto delle fabbriche di notifiche, revisione e pubblicazione non rimandano più a T1-04: plan §6 non prevede fabbriche per quei moduli.
 
 ## Come si prova
 Da `backend/`, con `.venv` attivo e `.env` compilato:
