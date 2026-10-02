@@ -4,11 +4,11 @@ import pytest
 from alembic import command
 from alembic.config import Config
 from fastapi.testclient import TestClient
-from sqlalchemy import Engine, create_engine, make_url, text
+from sqlalchemy import Engine, make_url, text
 from sqlalchemy.orm import Session
 
 from app.core.config import leggi_impostazioni
-from app.core.db import get_db
+from app.core.db import crea_motore, get_db
 from app.main import app
 
 
@@ -19,7 +19,7 @@ def motore_test() -> Iterator[Engine]:
     nome = make_url(url).database or ""
     assert nome.endswith("_test"), f"DATABASE_URL_TEST punta a '{nome}': rifiuto."
 
-    motore = create_engine(url)
+    motore = crea_motore(url)
     with motore.begin() as connessione:
         connessione.execute(text("DROP SCHEMA public CASCADE"))
         connessione.execute(text("CREATE SCHEMA public"))
