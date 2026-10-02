@@ -3,9 +3,9 @@
 Ogni tabella nasce già nella forma definitiva, nello sprint indicato. Cartelle e regole dei moduli: `constitution.md` §2. Vincoli: regole R-xx di `spec.md` §5.
 
 ## 1. Stack e configurazione
-Python 3.11+ · FastAPI · Pydantic · SQLAlchemy 2 + Alembic · PostgreSQL 16 · Procrastinate (coda e job in PostgreSQL) · LiteLLM (AI; primo provider OpenAI; provider `finto` per sviluppo e test) · React + Vite + TypeScript + Mantine · pytest. Social simulato; email verso un catcher locale (Mailpit). Sessione con cookie httpOnly.
+Python 3.11+ · FastAPI · Pydantic · SQLAlchemy 2 + Alembic · PostgreSQL 16 · Procrastinate (coda e job in PostgreSQL) · LiteLLM (AI; primo provider OpenAI; provider `finto` per sviluppo e test) · React + Vite + TypeScript + Mantine · pytest. Social simulato; email verso un catcher locale (Mailpit). Sessione con cookie httpOnly. Driver psycopg 3: gli indirizzi iniziano con `postgresql+psycopg://`. Le versioni stanno in `backend/requirements.txt`; l'ambiente virtuale è `.venv` nella radice. Cosa offre già il codice comune: §7.
 
-`backend/.env`:
+`backend/.env` (ogni variabile è un campo di `core/config.py`, in minuscolo):
 ```
 DATABASE_URL · DATABASE_URL_TEST · ARCHIVIO_FOTO_DIR
 AI_PROVIDER=finto|litellm · AI_MODELLO_VISIONE · AI_MODELLO_TESTO · OPENAI_API_KEY
@@ -129,3 +129,20 @@ Le sole funzioni di `moduli/<modulo>/service.py` che un altro modulo può chiama
 - Job accodati per nome: `genera_campagna` da campagne (/invia, /riprova); `rigenera_post` (2b) e `ritocca_foto` (3) da revisione.
 - **Fabbriche di test** in `tests/moduli/<modulo>/fabbrica.py`, della corsia 0: `utente(ruolo)`, `profilo()`, `campagna_in_bozza()`, `campagna_inviata()`, `campagna_in_revisione()`, `campagna_attiva()`, `post_da_approvare()`, `post_approvato()`. Fixture `utente_di_prova(ruolo)` (T1-06) al posto di `utente_corrente` nei test delle API.
 - Una firma o una fabbrica si cambia solo con un task della corsia 0.
+
+## 7. Base comune (T1-01)
+Ciò che ogni modulo trova già pronto. È della corsia 0: si usa, non si cambia.
+
+| Dove | Cosa | Come si usa |
+|---|---|---|
+| `core/config.py` | `leggi_impostazioni()` | `leggi_impostazioni().archivio_foto_dir`; mai `os.environ` |
+| `core/db.py` | `Base` · `get_db` · `transazione()` | i modelli ereditano da `Base`; nei router `db: Session = Depends(get_db)`; nei job `with transazione() as db:`. Commit alla fine, rollback se c'è un errore: router, job e service non chiamano `commit` |
+| `core/errori.py` | `NonAutenticato` 401 · `NonPermesso` 403 · `NonTrovato` 404 · `StatoNonValido` 409 · `DatiNonValidi` 422 | il service fa `raise NonTrovato("Campagna non trovata.")`; `main.py` risponde `{"detail": …}`. Niente `HTTPException` nei service |
+| `core/orologio.py` | `adesso()` (UTC) · `ROMA` | nei router `ora: datetime = Depends(adesso)`, poi passata al service; nei test si passa un'ora fissa |
+| `core/transizioni.py` | `verifica_transizione(transizioni, da, a)` | `transizioni` è il dizionario stato → stati ammessi del `domain.py` del modulo; se il passaggio non è ammesso solleva `StatoNonValido` |
+| `tabelle.py` | importa i `models.py` dei moduli | un `models.py` nuovo viene visto da Alembic senza toccare altro |
+| `main.py` | router di ogni modulo montato sotto `/api` | gli endpoint di plan §3 si scrivono nel `router.py` del modulo, senza `/api` |
+| `worker.py` | importa il `jobs.py` di ogni modulo | la coda e l'avvio arrivano con T1-05 |
+| `tests/conftest.py` | fixture `db` · `client` | `db`: sessione su `adflow_test`, annullata a fine test anche dopo un commit; `client`: `TestClient` che usa la stessa sessione |
+
+A ogni esecuzione di `pytest` il database `adflow_test` viene svuotato e portato all'ultima migrazione con Alembic: le migrazioni sono provate da ogni test.

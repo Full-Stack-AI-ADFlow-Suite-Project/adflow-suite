@@ -21,7 +21,8 @@ backend/app/core/  config.py · db.py · coda.py · security.py · transizioni.p
 backend/app/adapters/  ai/ · social/ · email/ · archivio/
 backend/app/moduli/<modulo>/  router.py · service.py · models.py · schemas.py · domain.py · jobs.py   (solo quelli che servono)
 backend/alembic/
-backend/tests/  moduli/<modulo>/ (con fabbrica.py) · adapters/ · percorsi/ · test_confini.py
+backend/  requirements.txt · .env.example · alembic.ini · pytest.ini
+backend/tests/  conftest.py · moduli/<modulo>/ (con fabbrica.py) · adapters/ · percorsi/ · test_confini.py
 frontend/src/  api/<modulo>.ts · api/esempi/ · auth.tsx · pages/{artigiano,operatore}/ · components/
 ```
 
