@@ -1,8 +1,8 @@
 """Dati di prova del modulo accesso; nessun commit."""
 from functools import lru_cache
-from hashlib import scrypt
 from uuid import uuid4
 from sqlalchemy.orm import Session
+from app.core.security import hash_password
 from app.moduli.accesso.models import Utente
 
 PASSWORD_DI_PROVA = "PasswordSoloTest!2026"
@@ -10,13 +10,8 @@ PASSWORD_DI_PROVA = "PasswordSoloTest!2026"
 
 @lru_cache
 def _hash_di_prova() -> str:
-    # Solo fabbrica di test: il formato definitivo del servizio arriva con T1-06.
     # Calcolato una volta per esecuzione: scrypt è lento apposta.
-    salt = "00" * 16
-    digest = scrypt(
-        PASSWORD_DI_PROVA.encode(), salt=bytes.fromhex(salt), n=16384, r=8, p=1
-    ).hex()
-    return f"scrypt$16384$8$1${salt}${digest}"
+    return hash_password(PASSWORD_DI_PROVA)
 
 
 def utente(db: Session, ruolo: str = "artigiano", **campi) -> Utente:

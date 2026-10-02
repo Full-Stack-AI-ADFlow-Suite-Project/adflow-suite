@@ -40,6 +40,14 @@ alembic upgrade head               # porta il database all'ultima migrazione
 uvicorn app.main:app --reload      # API su http://localhost:8000
 ```
 
+Dati di partenza, una volta sola (si può rilanciare: ciò che esiste già resta com'è):
+
+```bash
+python -m app.cli seed             # artigiano con profilo, operatore e admin
+```
+
+Il comando chiede a terminale la password dei tre utenti (`artigiano@example.com`, `operatore@example.com`, `admin@example.com`): non è scritta nel codice. Un altro utente si crea con `python -m app.cli crea-utente --email … --nome … --ruolo artigiano|operatore|admin` (funziona da T1-13).
+
 Controllo: `http://localhost:8000/api/health` risponde `{"stato":"ok"}`; la documentazione delle API è su `http://localhost:8000/docs`.
 
 Prima di ogni PR, sempre da `backend/`:
