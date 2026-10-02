@@ -2,7 +2,7 @@
 
 ## 1. Prima della PR
 ```bash
-# backend/ (venv attivo, PostgreSQL acceso)
+# backend/ (.venv della radice attivo, PostgreSQL acceso, backend/.env compilato)
 alembic upgrade head && pytest && black --check .
 # frontend/
 npm run lint && npm run build
@@ -21,7 +21,7 @@ npm run lint && npm run build
 - `tests/percorsi/`: più moduli insieme (corsia 0).
 - `tests/test_confini.py`: regole di import di constitution §2.
 
-Database pulito a ogni test; ora iniettata. Copertura dei CA: `grep -r "test_ca" backend/tests`.
+Database pulito a ogni test con le fixture `db` e `client` di `tests/conftest.py` (plan §7); ora iniettata. `pytest` svuota `adflow_test` a ogni esecuzione. Copertura dei CA: `grep -r "test_ca" backend/tests`.
 
 ## 3. Chiusura dello sprint 1 (T1-07)
 Su `main` pulito, da database vuoto: comandi del §1 verdi, tutti i CA con S = 1 coperti, frontend sulle API vere, poi a mano:
