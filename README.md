@@ -13,10 +13,42 @@ Il repository riparte dai soli documenti (ADR-51): il codice nasce con i task de
 La documentazione ha **due canali** (ADR-46):
 - **Appunti** · [`docs/appunti/`](docs/appunti/LEGGIMI.md): diagrammi e pagine statiche (`architettura/`), note sul flusso e sull'architettura, lavori aperti, decisioni (ADR). Materiale in continua rimodulazione, mantenuto dall'amministratore dei documenti; è la fonte di verità. Si parte da [`LEGGIMI.md`](docs/appunti/LEGGIMI.md).
 - **Canale agenti** · [`AGENTS.md`](AGENTS.md) + [`docs/agenti/`](docs/agenti/): regole (`constitution.md`), cosa (`spec.md`), come (`plan.md`), task (`tasks.md`), verifica (`converge.md`). Breve, derivato dagli appunti. Anche le persone ci trovano i task da prendere.
+- **Novità** · [`docs/novita/`](docs/novita/): una nota per ogni PR che cambia il modo di lavorare (cosa c'è di nuovo, cosa cambia per il team).
 
 ## 🚀 Setup (Fase 1 - Locale)
 
-Le istruzioni di installazione e avvio si scrivono insieme al codice: quelle del backend e del worker nel task T1-01, quelle del frontend nel task T1-51. Servono comunque Python 3.11+, Node 22+ e PostgreSQL 16 con i database `adflow` e `adflow_test`.
+Servono Python 3.11+, Node 22+ e PostgreSQL 16 con i database `adflow` e `adflow_test`. Le istruzioni del frontend si scrivono nel task T1-51.
+
+### Backend
+
+Installazione, una volta sola, dalla radice del repository:
+
+```bash
+python3.11 -m venv .venv
+source .venv/bin/activate          # Windows: .venv\Scripts\activate
+pip install -r backend/requirements.txt
+pre-commit install
+cp backend/.env.example backend/.env
+```
+
+Poi apri `backend/.env` e metti utente e password del tuo PostgreSQL in `DATABASE_URL` e `DATABASE_URL_TEST`.
+
+Avvio, da `backend/` con l'ambiente virtuale attivo:
+
+```bash
+alembic upgrade head               # porta il database all'ultima migrazione
+uvicorn app.main:app --reload      # API su http://localhost:8000
+```
+
+Controllo: `http://localhost:8000/api/health` risponde `{"stato":"ok"}`; la documentazione delle API è su `http://localhost:8000/docs`.
+
+Prima di ogni PR, sempre da `backend/`:
+
+```bash
+alembic upgrade head && pytest && black --check .
+```
+
+I test usano `adflow_test` e lo svuotano a ogni esecuzione: non metterci dati da conservare. Il worker si avvia dal task T1-05.
 
 ## 🔧 Regole di Git (Leggere attentamente!)
 1. **NON** lavorare mai direttamente sul branch `main`.
