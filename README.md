@@ -48,7 +48,14 @@ Prima di ogni PR, sempre da `backend/`:
 alembic upgrade head && pytest && black --check .
 ```
 
-I test usano `adflow_test` e lo svuotano a ogni esecuzione: non metterci dati da conservare. Il worker si avvia dal task T1-05.
+I test usano `adflow_test` e lo svuotano a ogni esecuzione: non metterci dati da conservare.
+
+Per avviare il worker Procrastinate (il tick periodico è registrato nell'app), da
+`backend/`:
+
+```bash
+python -m procrastinate -a app.worker.app worker --concurrency 1
+```
 
 ## 🔧 Regole di Git (Leggere attentamente!)
 1. **NON** lavorare mai direttamente sul branch `main`.
