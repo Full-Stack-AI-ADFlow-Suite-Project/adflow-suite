@@ -1,18 +1,21 @@
-"""Post e versione iniziale con dati fittizi, senza commit."""
+"""Post di prova con la versione iniziale e la sua foto, senza commit."""
 from datetime import datetime, timezone
 from sqlalchemy.orm import Session
+from app.moduli.campagne import service as campagne
 from app.moduli.contenuti.models import Post, VersionePost
 from tests.moduli.campagne.fabbrica import campagna_in_revisione, campagna_attiva, foto
 
 
 def post_da_approvare(db: Session, *, campagna_id: int | None = None, **campi) -> Post:
     if campagna_id is None:
-        campagna = campagna_in_revisione(db)
-        immagine = foto(db, campagna=campagna)
-        campagna_id = campagna.id
-        foto_id = immagine.id
+        campagna_id = campagna_in_revisione(db).id
+    # Usa la foto della campagna meno usata; se non ce ne sono ne crea una.
+    disponibili = campagne.foto_della_campagna(db, campagna_id)
+    if disponibili:
+        immagine = min(disponibili, key=lambda f: (f.n_utilizzi, f.id))
     else:
-        foto_id = None
+        immagine = foto(db, campagna=campagne.campagna(db, campagna_id))
+    immagine.n_utilizzi += 1
     dati = dict(
         campagna_id=campagna_id,
         canale="instagram",
@@ -29,7 +32,7 @@ def post_da_approvare(db: Session, *, campagna_id: int | None = None, **campi) -
             numero=1,
             testo="Testo di prova",
             hashtag=["artigianato"],
-            foto_id=foto_id,
+            foto_id=immagine.id,
             tipo_intervento="generazione",
             provider_ai="finto",
             modello_ai="finto",
