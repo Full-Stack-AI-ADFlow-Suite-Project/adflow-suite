@@ -40,6 +40,14 @@ alembic upgrade head               # porta il database all'ultima migrazione
 uvicorn app.main:app --reload      # API su http://localhost:8000
 ```
 
+Dati di partenza, una volta sola (si può rilanciare: ciò che esiste già resta com'è):
+
+```bash
+python -m app.cli seed             # artigiano con profilo, operatore e admin
+```
+
+Il comando chiede a terminale la password dei tre utenti (`artigiano@example.com`, `operatore@example.com`, `admin@example.com`): non è scritta nel codice. Un altro utente si crea con `python -m app.cli crea-utente --email … --nome … --ruolo artigiano|operatore|admin` (funziona da T1-13).
+
 Controllo: `http://localhost:8000/api/health` risponde `{"stato":"ok"}`; la documentazione delle API è su `http://localhost:8000/docs`.
 
 Prima di ogni PR, sempre da `backend/`:
@@ -56,6 +64,8 @@ Per avviare il worker Procrastinate (il tick periodico è registrato nell'app), 
 ```bash
 python -m procrastinate -a app.worker.app worker --concurrency 1
 ```
+
+Le tabelle della coda le crea `alembic upgrade head` (migrazione 007). Finché non c'è T1-43 il tick finisce in errore a ogni minuto (`NotImplementedError`): è atteso.
 
 ## 🔧 Regole di Git (Leggere attentamente!)
 1. **NON** lavorare mai direttamente sul branch `main`.

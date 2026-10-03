@@ -20,3 +20,8 @@ for _modulo in MODULI:
         import_module(f"app.moduli.{_modulo}.models")
 
 metadata = Base.metadata
+
+
+def del_modello(nome: str | None, tipo: str, genitori: dict) -> bool:
+    """Filtro `include_name` di Alembic: le tabelle della coda non sono del modello."""
+    return not (tipo == "table" and (nome or "").startswith("procrastinate_"))

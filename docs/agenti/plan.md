@@ -142,7 +142,8 @@ Ciò che ogni modulo trova già pronto. È della corsia 0: si usa, non si cambia
 | `core/transizioni.py` | `verifica_transizione(transizioni, da, a)` | `transizioni` è il dizionario stato → stati ammessi del `domain.py` del modulo; se il passaggio non è ammesso solleva `StatoNonValido` |
 | `tabelle.py` | importa i `models.py` dei moduli | un `models.py` nuovo viene visto da Alembic senza toccare altro |
 | `main.py` | router di ogni modulo montato sotto `/api` | gli endpoint di plan §3 si scrivono nel `router.py` del modulo, senza `/api` |
-| `worker.py` | importa il `jobs.py` di ogni modulo | la coda e l'avvio arrivano con T1-05 |
-| `tests/conftest.py` | fixture `db` · `client` | `db`: sessione su `adflow_test`, annullata a fine test anche dopo un commit; `client`: `TestClient` che usa la stessa sessione |
+| `core/coda.py` | `accoda(nome, …)` · nomi dei job · `app` | `accoda(GENERA_CAMPAGNA, campagna_id=…)` restituisce l'id del job e scrive subito nella coda, fuori dalla transazione di chi chiama: si chiama per ultima |
+| `worker.py` | importa il `jobs.py` di ogni modulo · `tick_pubblicazione` | un job si scrive nel `jobs.py` del suo modulo: `@app.task(name=GENERA_CAMPAGNA)` su una `def` normale (non `async`), con `app` e il nome presi da `core/coda.py`; dentro, `with transazione() as db:`. Avvio del worker: README |
+| `tests/conftest.py` | fixture `db` · `client` · `coda` | `db`: sessione su `adflow_test`, annullata a fine test anche dopo un commit; `client`: `TestClient` che usa la stessa sessione; `coda`: coda in memoria attiva in ogni test, i job accodati si leggono in `coda.jobs` |
 
 A ogni esecuzione di `pytest` il database `adflow_test` viene svuotato e portato all'ultima migrazione con Alembic: le migrazioni sono provate da ogni test.
