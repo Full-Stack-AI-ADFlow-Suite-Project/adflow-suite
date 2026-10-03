@@ -65,6 +65,8 @@ Per avviare il worker Procrastinate (il tick periodico è registrato nell'app), 
 python -m procrastinate -a app.worker.app worker --concurrency 1
 ```
 
+Le tabelle della coda le crea `alembic upgrade head` (migrazione 007). Finché non c'è T1-43 il tick finisce in errore a ogni minuto (`NotImplementedError`): è atteso.
+
 ## 🔧 Regole di Git (Leggere attentamente!)
 1. **NON** lavorare mai direttamente sul branch `main`.
 2. Prima di iniziare un task, crea un branch: `git checkout -b feature/<id>-<breve>` (es. `feature/T1-22-api-bozza`)
