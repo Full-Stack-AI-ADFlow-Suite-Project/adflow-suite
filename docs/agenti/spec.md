@@ -80,7 +80,7 @@ Dato / Quando / Allora in forma breve. `S` = sprint in cui diventa verde. Il tes
 | CA-19 | 1 | errore AI a ogni esecuzione → 3 esecuzioni → `generazione_fallita`; Riprova → inviata e riparte |
 | CA-20 | 1 | generazione riuscita → post `da_approvare`, campagna `in_revisione` |
 | CA-21 | 1 | in revisione senza post da rivedere → approva → post approvati, campagna attiva, riga approvazione per post |
-| CA-22 | 1 | post `da_rivedere` o intervento in corso → approva → 409 |
+| CA-22 | 1 | post `da_rivedere` o intervento in corso (dalla 2b) → approva → 409 |
 | CA-23 | 2b | in revisione → rimanda con nota → stato invariato, etichetta, nessuna email |
 | CA-24 | 2b | in revisione → respingi senza motivo o nota → 422 |
 | CA-25 | 2b | in revisione → respingi `foto` con 2 foto segnate → respinta, post scartati, email con motivo, nota, 2 miniature |

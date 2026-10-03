@@ -1,17 +1,21 @@
 """Logica del modulo campagne: l'unica parte che gli altri moduli possono importare."""
 
-from typing import Annotated, Any
+from typing import Any
 
-from fastapi import Depends
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.core.db import get_db
+from app.core.errori import DatiNonValidi, NonTrovato
+from app.core.transizioni import verifica_transizione
+
+from .domain import ESITI_DECISIONE, ESITO_RESPINTA, MOTIVI_DECISIONE, TRANSIZIONI
+from .models import Campagna, DecisioneCampagna, Foto
 
 
 def campagna(
-    db: Annotated[Session, Depends(get_db)],
+    db: Session,
     id: int,
-) -> Any:
+) -> Campagna:
     """Restituisce la campagna con l'id indicato.
 
     Usata da ``contenuti``, ``revisione`` e ``pubblicazione``.
@@ -27,15 +31,17 @@ def campagna(
 
     Raises:
         NonTrovato: se non esiste nessuna campagna con quell'id.
-        NotImplementedError: stub — implementazione in T1-04.
     """
-    raise NotImplementedError  # T1-04
+    trovata = db.get(Campagna, id)
+    if trovata is None:
+        raise NonTrovato("Campagna non trovata.")
+    return trovata
 
 
 def foto_della_campagna(
-    db: Annotated[Session, Depends(get_db)],
+    db: Session,
     id: int,
-) -> list[Any]:
+) -> list[Foto]:
     """Restituisce tutte le foto associate alla campagna indicata.
 
     Usata da ``contenuti`` (analisi AI), ``revisione`` e ``pubblicazione``.
@@ -48,17 +54,16 @@ def foto_della_campagna(
 
     Returns:
         Lista di record ``Foto``, vuota se la campagna non ne ha.
-
-    Raises:
-        NotImplementedError: stub — implementazione in T1-04.
     """
-    raise NotImplementedError  # T1-04
+    return list(
+        db.scalars(select(Foto).where(Foto.campagna_id == id).order_by(Foto.id))
+    )
 
 
 def campagne_in_stato(
-    db: Annotated[Session, Depends(get_db)],
+    db: Session,
     stati: list[str],
-) -> list[Any]:
+) -> list[Campagna]:
     """Restituisce tutte le campagne che si trovano in uno degli stati indicati.
 
     Usata da ``contenuti``, ``revisione`` e ``pubblicazione`` per ottenere
@@ -73,16 +78,17 @@ def campagne_in_stato(
 
     Returns:
         Lista di record ``Campagna``, vuota se nessuna corrisponde.
-
-    Raises:
-        NotImplementedError: stub — implementazione in T1-04.
     """
-    raise NotImplementedError  # T1-04
+    return list(
+        db.scalars(
+            select(Campagna).where(Campagna.stato.in_(stati)).order_by(Campagna.id)
+        )
+    )
 
 
 def cambia_stato(
-    db: Annotated[Session, Depends(get_db)],
-    campagna: Any,
+    db: Session,
+    campagna: Campagna,
     nuovo: str,
 ) -> None:
     """Aggiorna lo stato della campagna verificando che la transizione sia ammessa.
@@ -100,14 +106,15 @@ def cambia_stato(
     Raises:
         StatoNonValido: se la transizione da stato attuale a ``nuovo`` non è
             ammessa dal diagramma di ``campagne/domain.py``.
-        NotImplementedError: stub — implementazione in T1-04.
     """
-    raise NotImplementedError  # T1-04
+    verifica_transizione(TRANSIZIONI, campagna.stato, nuovo)
+    campagna.stato = nuovo
+    db.flush()
 
 
 def registra_decisione(
-    db: Annotated[Session, Depends(get_db)],
-    campagna: Any,
+    db: Session,
+    campagna: Campagna,
     utente_id: int,
     esito: str,
     motivo: str | None,
@@ -127,20 +134,38 @@ def registra_decisione(
         esito: ``"approvata"``, ``"rimandata"`` o ``"respinta"``.
         motivo: obbligatorio se ``esito`` è ``"respinta"`` (``"foto"`` o
                 ``"altro"``), ``None`` altrimenti.
-        nota: testo libero facoltativo dell'operatore.
+        nota: testo libero dell'operatore; obbligatoria se ``esito`` è
+              ``"respinta"``, facoltativa altrimenti.
         foto_segnate: lista di id delle foto segnalate come problematiche,
                       vuota se non applicabile.
 
     Raises:
-        NotImplementedError: stub — implementazione in T1-04.
+        DatiNonValidi: esito o motivo fuori dai valori di ``campagne/domain.py``,
+            oppure ``respinta`` senza motivo o senza nota (R-18).
     """
-    raise NotImplementedError  # T1-04
+    if esito not in ESITI_DECISIONE:
+        raise DatiNonValidi("Esito della decisione non valido.")
+    if motivo is not None and motivo not in MOTIVI_DECISIONE:
+        raise DatiNonValidi("Motivo della decisione non valido.")
+    if esito == ESITO_RESPINTA and (motivo is None or not (nota or "").strip()):
+        raise DatiNonValidi("Per respingere servono il motivo e la nota.")
+    db.add(
+        DecisioneCampagna(
+            campagna_id=campagna.id,
+            utente_id=utente_id,
+            esito=esito,
+            motivo=motivo,
+            nota=nota,
+            foto_segnate=foto_segnate,
+        )
+    )
+    db.flush()
 
 
 def aggiorna_foto(
-    db: Annotated[Session, Depends(get_db)],
+    db: Session,
     foto_id: int,
-    analisi_ai: str | None,
+    analisi_ai: dict[str, Any] | None,
     n_utilizzi: int,
 ) -> None:
     """Aggiorna il risultato dell'analisi AI e il contatore utilizzi di una foto.
@@ -152,13 +177,18 @@ def aggiorna_foto(
     Args:
         db: sessione del database (aperta e chiusa dal chiamante).
         foto_id: chiave primaria della foto da aggiornare.
-        analisi_ai: testo descrittivo prodotto dall'AI, o ``None`` se
-                    l'analisi non ha prodotto risultati.
+        analisi_ai: risultato strutturato dell'analisi AI (JSON, come la
+                    colonna ``foto.analisi_ai``), o ``None`` se l'analisi
+                    non ha prodotto risultati.
         n_utilizzi: numero totale di volte che la foto è stata usata
                     in versioni di post.
 
     Raises:
         NonTrovato: se non esiste nessuna foto con quell'id.
-        NotImplementedError: stub — implementazione in T1-04.
     """
-    raise NotImplementedError  # T1-04
+    foto = db.get(Foto, foto_id)
+    if foto is None:
+        raise NonTrovato("Foto non trovata.")
+    foto.analisi_ai = analisi_ai
+    foto.n_utilizzi = n_utilizzi
+    db.flush()

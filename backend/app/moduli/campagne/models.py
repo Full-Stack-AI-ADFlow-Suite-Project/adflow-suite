@@ -13,7 +13,7 @@ class Campagna(Base):
     __tablename__ = "campagna"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     profilo_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("profilo_bottega.id"), nullable=False
+        Integer, ForeignKey("profilo_bottega.id"), nullable=False, index=True
     )
     titolo: Mapped[str] = mapped_column(Text, nullable=False)
     inizio: Mapped[date] = mapped_column(Date, nullable=False)
@@ -22,7 +22,7 @@ class Campagna(Base):
     crea_immagini_ai: Mapped[bool] = mapped_column(
         Boolean, nullable=False, server_default=text("false")
     )
-    stato: Mapped[str] = mapped_column(Text, nullable=False)
+    stato: Mapped[str] = mapped_column(Text, nullable=False, index=True)
     canali: Mapped[list[str] | None] = mapped_column(ARRAY(Text), nullable=True)
     frequenza: Mapped[str | None] = mapped_column(Text, nullable=True)
     obiettivo: Mapped[str | None] = mapped_column(Text, nullable=True)
@@ -44,7 +44,7 @@ class Foto(Base):
         Integer, ForeignKey("profilo_bottega.id"), nullable=False
     )
     campagna_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("campagna.id"), nullable=False
+        Integer, ForeignKey("campagna.id"), nullable=False, index=True
     )
     gruppo_id: Mapped[UUID] = mapped_column(PGUUID(as_uuid=True), nullable=False)
     origine: Mapped[str] = mapped_column(
@@ -67,7 +67,7 @@ class DecisioneCampagna(Base):
     __tablename__ = "decisione_campagna"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     campagna_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("campagna.id"), nullable=False
+        Integer, ForeignKey("campagna.id"), nullable=False, index=True
     )
     utente_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("utente.id"), nullable=False

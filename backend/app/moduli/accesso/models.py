@@ -23,6 +23,6 @@ class Sessione(Base):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
     token_hash: Mapped[str] = mapped_column(String(64), nullable=False, unique=True)
     utente_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("utente.id"), nullable=False
+        Integer, ForeignKey("utente.id"), nullable=False, index=True
     )
     scade_il: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)

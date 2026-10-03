@@ -1,7 +1,6 @@
 """001: tabelle accesso dello sprint 1."""
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
 
 revision = "001"
 down_revision = None
@@ -36,6 +35,7 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
         sa.UniqueConstraint("token_hash"),
     )
+    op.create_index(op.f("ix_sessione_utente_id"), "sessione", ["utente_id"])
 
 
 def downgrade() -> None:

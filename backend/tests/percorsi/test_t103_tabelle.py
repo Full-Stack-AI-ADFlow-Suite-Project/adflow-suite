@@ -168,6 +168,41 @@ def test_secondo_ok_stesso_post_rifiutato_ma_errori_ammessi(db):
     db.flush()
 
 
+def test_stesso_numero_di_tentativo_rifiutato(db):
+    post = post_approvato(db)
+    versione = db.scalar(select(VersionePost).where(VersionePost.post_id == post.id))
+    db.add(
+        Pubblicazione(
+            post_id=post.id, versione_id=versione.id, n_tentativo=1, stato="in_corso"
+        )
+    )
+    db.flush()
+    with pytest.raises(IntegrityError), db.begin_nested():
+        db.add(
+            Pubblicazione(
+                post_id=post.id,
+                versione_id=versione.id,
+                n_tentativo=1,
+                stato="in_corso",
+            )
+        )
+        db.flush()
+
+
+def test_versione_senza_dati_ai_ammessa(db):
+    post = post_da_approvare(db)
+    db.add(
+        VersionePost(
+            post_id=post.id,
+            numero=2,
+            testo="Stesso testo, altra foto",
+            hashtag=[],
+            tipo_intervento="scelta_foto",
+        )
+    )
+    db.flush()
+
+
 def test_aggiornamento_a_secondo_ok_rifiutato(db):
     post = post_approvato(db)
     versione = db.scalar(select(VersionePost).where(VersionePost.post_id == post.id))

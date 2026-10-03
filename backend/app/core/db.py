@@ -14,9 +14,14 @@ class Base(DeclarativeBase):
     pass
 
 
+def crea_motore(url: str) -> Engine:
+    """Motore con la sessione PostgreSQL in UTC: le date tornano in UTC su ogni macchina."""
+    return create_engine(url, connect_args={"options": "-c timezone=UTC"})
+
+
 @lru_cache
 def motore() -> Engine:
-    return create_engine(leggi_impostazioni().database_url)
+    return crea_motore(leggi_impostazioni().database_url)
 
 
 @contextmanager

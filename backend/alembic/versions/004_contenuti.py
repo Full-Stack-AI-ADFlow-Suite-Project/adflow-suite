@@ -32,6 +32,8 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id"),
     )
+    op.create_index(op.f("ix_post_campagna_id"), "post", ["campagna_id"])
+    op.create_index("ix_post_stato_data_ora", "post", ["stato", "data_ora"])
     op.create_table(
         "versione_post",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -43,9 +45,9 @@ def upgrade() -> None:
         sa.Column("tipo_intervento", sa.Text(), nullable=False),
         sa.Column("testo_proposto", sa.Text(), nullable=True),
         sa.Column("nota", sa.Text(), nullable=True),
-        sa.Column("provider_ai", sa.Text(), nullable=False),
-        sa.Column("modello_ai", sa.Text(), nullable=False),
-        sa.Column("versione_prompt", sa.Text(), nullable=False),
+        sa.Column("provider_ai", sa.Text(), nullable=True),
+        sa.Column("modello_ai", sa.Text(), nullable=True),
+        sa.Column("versione_prompt", sa.Text(), nullable=True),
         sa.Column(
             "errori_validazione", postgresql.JSONB(astext_type=sa.Text()), nullable=True
         ),

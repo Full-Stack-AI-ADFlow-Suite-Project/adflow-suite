@@ -1,17 +1,15 @@
 """Logica del modulo artigiani: l'unica parte che gli altri moduli possono importare."""
 
-from typing import Annotated, Any
-
-from fastapi import Depends
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from app.core.db import get_db
+from .models import ProfiloBottega
 
 
 def profilo_di(
-    db: Annotated[Session, Depends(get_db)],
+    db: Session,
     utente_id: int,
-) -> Any | None:
+) -> ProfiloBottega | None:
     """Restituisce il profilo della bottega dell'utente, o None se assente.
 
     Usata da ``campagne`` (verifica prima dell'invio) e da ``revisione``
@@ -25,8 +23,7 @@ def profilo_di(
 
     Returns:
         Il record ``ProfiloBottega`` se esiste, altrimenti ``None``.
-
-    Raises:
-        NotImplementedError: stub — implementazione in T1-04.
     """
-    raise NotImplementedError  # T1-04
+    return db.scalar(
+        select(ProfiloBottega).where(ProfiloBottega.utente_id == utente_id)
+    )

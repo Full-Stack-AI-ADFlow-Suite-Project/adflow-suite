@@ -1,18 +1,22 @@
 """Logica del modulo contenuti: l'unica parte che gli altri moduli possono importare."""
 
 from datetime import datetime
-from typing import Annotated, Any
 
-from fastapi import Depends
-from sqlalchemy.orm import Session
+from sqlalchemy import select
+from sqlalchemy.orm import Session, selectinload
 
-from app.core.db import get_db
+from app.core.errori import DatiNonValidi
+from app.core.transizioni import verifica_transizione
+from app.moduli.campagne import service as campagne
+
+from .domain import APPROVATO, ESITI_PUBBLICAZIONE, FALLITO, PUBBLICATO, TRANSIZIONI
+from .models import Post, VersionePost
 
 
 def post_della_campagna(
-    db: Annotated[Session, Depends(get_db)],
+    db: Session,
     campagna_id: int,
-) -> list[Any]:
+) -> list[Post]:
     """Restituisce i post della campagna con versione corrente e storico.
 
     La versione corrente è l'ultima (plan §2). Usata da ``revisione``
@@ -24,17 +28,23 @@ def post_della_campagna(
         campagna_id: chiave primaria della campagna.
 
     Returns:
-        Lista di post, ognuno con la versione corrente e l'elenco
-        completo delle versioni. Lista vuota se la campagna non ha post.
-
-    Raises:
-        NotImplementedError: stub — implementazione in T1-04.
+        Lista di ``Post`` in ordine di data: ``post.versione_corrente`` è
+        la versione corrente, ``post.versioni`` lo storico completo.
+        Lista vuota se la campagna non ha post.
     """
-    raise NotImplementedError  # T1-04
+    return list(
+        db.scalars(
+            select(Post)
+            .where(Post.campagna_id == campagna_id)
+            .options(selectinload(Post.versioni))
+            .order_by(Post.data_ora, Post.id)
+            .execution_options(populate_existing=True)
+        )
+    )
 
 
 def ha_blocchi(
-    db: Annotated[Session, Depends(get_db)],
+    db: Session,
     campagna_id: int,
 ) -> bool:
     """Indica se la campagna ha post con il segnale ``da_rivedere`` attivo.
@@ -42,6 +52,8 @@ def ha_blocchi(
     Usata da ``revisione`` prima di approvare: se restituisce ``True``
     l'operatore deve prima gestire i post segnalati dall'AI.
     ``da_rivedere`` è un campo bool del post, non uno stato (plan §2).
+    L'«intervento in corso» di R-14 nasce con la rigenerazione (sprint 2b):
+    quando arriva, si aggiunge qui.
 
     Args:
         db: sessione del database (aperta e chiusa dal chiamante).
@@ -50,23 +62,27 @@ def ha_blocchi(
     Returns:
         ``True`` se almeno un post ha ``da_rivedere = True``,
         ``False`` altrimenti.
-
-    Raises:
-        NotImplementedError: stub — implementazione in T1-04.
     """
-    raise NotImplementedError  # T1-04
+    return (
+        db.scalar(
+            select(Post.id)
+            .where(Post.campagna_id == campagna_id, Post.da_rivedere.is_(True))
+            .limit(1)
+        )
+        is not None
+    )
 
 
 def approva_post(
-    db: Annotated[Session, Depends(get_db)],
+    db: Session,
     campagna_id: int,
-) -> list[Any]:
+) -> list[VersionePost]:
     """Porta tutti i post della campagna allo stato ``approvato``.
 
     L'approvazione è sempre in blocco sull'intera campagna: non esiste
     l'approvazione del singolo post (constitution §1.1). Restituisce le
-    versioni approvate perché ``pubblicazione`` ne ha bisogno per preparare
-    i tentativi di pubblicazione.
+    versioni approvate perché ``revisione`` scrive una riga di
+    ``approvazione`` per ognuna (plan §6).
 
     Args:
         db: sessione del database (aperta e chiusa dal chiamante).
@@ -77,15 +93,20 @@ def approva_post(
 
     Raises:
         StatoNonValido: se uno dei post non è in stato ``da_approvare``.
-        NotImplementedError: stub — implementazione in T1-04.
     """
-    raise NotImplementedError  # T1-04
+    post = post_della_campagna(db, campagna_id)
+    for uno in post:
+        verifica_transizione(TRANSIZIONI, uno.stato, APPROVATO)
+    for uno in post:
+        uno.stato = APPROVATO
+    db.flush()
+    return [uno.versione_corrente for uno in post if uno.versione_corrente]
 
 
 def post_dovuti(
-    db: Annotated[Session, Depends(get_db)],
+    db: Session,
     adesso: datetime,
-) -> list[Any]:
+) -> list[Post]:
     """Restituisce i post pronti per la pubblicazione al momento indicato.
 
     Un post è «dovuto» se: stato ``approvato``, ``data_ora`` raggiunta,
@@ -103,16 +124,27 @@ def post_dovuti(
     Returns:
         Lista di post ``approvati`` con ``data_ora <= adesso`` e campagna
         ``attiva``. Lista vuota se non ce ne sono.
-
-    Raises:
-        NotImplementedError: stub — implementazione in T1-04.
     """
-    raise NotImplementedError  # T1-04
+    # Lo stato della campagna si legge dal service di campagne, che ne è proprietario.
+    attive = [c.id for c in campagne.campagne_in_stato(db, ["attiva"])]
+    if not attive:
+        return []
+    return list(
+        db.scalars(
+            select(Post)
+            .where(
+                Post.stato == APPROVATO,
+                Post.data_ora <= adesso,
+                Post.campagna_id.in_(attive),
+            )
+            .order_by(Post.data_ora, Post.id)
+        )
+    )
 
 
 def segna_esito(
-    db: Annotated[Session, Depends(get_db)],
-    post: Any,
+    db: Session,
+    post: Post,
     esito: str,
 ) -> None:
     """Aggiorna lo stato del post dopo un tentativo di pubblicazione.
@@ -129,31 +161,41 @@ def segna_esito(
                ``"fallito"`` dopo l'esaurimento dei tentativi.
 
     Raises:
+        DatiNonValidi: se ``esito`` non è ``pubblicato`` né ``fallito``.
         StatoNonValido: se la transizione non è ammessa dal domain.
-        NotImplementedError: stub — implementazione in T1-04.
     """
-    raise NotImplementedError  # T1-04
+    if esito not in ESITI_PUBBLICAZIONE:
+        raise DatiNonValidi("Esito della pubblicazione non valido.")
+    verifica_transizione(TRANSIZIONI, post.stato, esito)
+    post.stato = esito
+    db.flush()
 
 
 def tutti_chiusi(
-    db: Annotated[Session, Depends(get_db)],
+    db: Session,
     campagna_id: int,
 ) -> bool:
-    """Indica se tutti i post della campagna sono in uno stato finale.
+    """Indica se tutti i post della campagna sono pubblicati o falliti.
 
-    Gli stati finali di un post sono ``pubblicato``, ``fallito`` e
-    ``scaduto`` (plan §2). Usata da ``pubblicazione`` per sapere quando
-    portare la campagna allo stato ``conclusa``.
+    È la condizione di spec §2.4 e CA-39. Usata da ``pubblicazione`` per
+    sapere quando portare la campagna allo stato ``conclusa``.
 
     Args:
         db: sessione del database (aperta e chiusa dal chiamante).
         campagna_id: chiave primaria della campagna da controllare.
 
     Returns:
-        ``True`` se tutti i post sono in stato finale, ``False`` se
-        almeno uno è ancora ``approvato`` (in attesa di pubblicazione).
-
-    Raises:
-        NotImplementedError: stub — implementazione in T1-04.
+        ``True`` se ogni post è ``pubblicato`` o ``fallito``, ``False`` se
+        almeno uno è in un altro stato (es. ``approvato``, in attesa).
     """
-    raise NotImplementedError  # T1-04
+    return (
+        db.scalar(
+            select(Post.id)
+            .where(
+                Post.campagna_id == campagna_id,
+                Post.stato.not_in((PUBBLICATO, FALLITO)),
+            )
+            .limit(1)
+        )
+        is None
+    )

@@ -1,7 +1,12 @@
-"""Fabbriche di base; stati e letture comuni arrivano con T1-04."""
+"""Campagne e foto di prova, senza commit.
+
+Le campagne dall'invio in poi sono complete: canali, frequenza e obiettivo
+copiati dal profilo, fotografia del profilo e una foto con descrizione.
+"""
 from datetime import date, datetime, timezone
 from uuid import uuid4
 from sqlalchemy.orm import Session
+from app.moduli.artigiani.models import ProfiloBottega
 from app.moduli.campagne.models import Campagna, Foto
 from tests.moduli.artigiani.fabbrica import profilo
 
@@ -25,22 +30,30 @@ def campagna_in_bozza(
     return record
 
 
-def _inviata(db: Session, stato: str, **campi) -> Campagna:
+def _fotografia(bottega: ProfiloBottega) -> dict:
+    return {
+        colonna.name: getattr(bottega, colonna.name)
+        for colonna in ProfiloBottega.__table__.columns
+        if colonna.name not in ("id", "aggiornato_il")
+    }
+
+
+def _inviata(
+    db: Session, stato: str, *, profilo_id: int | None = None, **campi
+) -> Campagna:
+    bottega = profilo(db) if profilo_id is None else db.get(ProfiloBottega, profilo_id)
     dati = dict(
         stato=stato,
-        canali=["instagram"],
-        frequenza="f1_2",
-        obiettivo="notorieta",
-        profilo_snapshot={
-            "nome": "Bottega di prova",
-            "canali": ["instagram"],
-            "frequenza": "f1_2",
-            "obiettivo": "notorieta",
-        },
-        inviata_il=datetime(2030, 1, 1, tzinfo=timezone.utc),
+        canali=list(bottega.canali),
+        frequenza=bottega.frequenza,
+        obiettivo=bottega.obiettivo,
+        profilo_snapshot=_fotografia(bottega),
+        inviata_il=datetime(2029, 12, 1, tzinfo=timezone.utc),
     )
     dati.update(campi)
-    return campagna_in_bozza(db, **dati)
+    record = campagna_in_bozza(db, profilo_id=bottega.id, **dati)
+    foto(db, campagna=record)
+    return record
 
 
 def campagna_inviata(db: Session, **campi) -> Campagna:
@@ -63,8 +76,9 @@ def foto(db: Session, *, campagna: Campagna | None = None, **campi) -> Foto:
         gruppo_id=uuid4(),
         file=f"{uuid4().hex}.jpg",
         mime="image/jpeg",
-        larghezza=800,
-        altezza=600,
+        larghezza=1080,
+        altezza=1350,
+        descrizione="Gruppo di prova",
     )
     dati.update(campi)
     record = Foto(**dati)

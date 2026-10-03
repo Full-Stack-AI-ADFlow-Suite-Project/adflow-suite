@@ -41,6 +41,8 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id"),
     )
+    op.create_index(op.f("ix_campagna_profilo_id"), "campagna", ["profilo_id"])
+    op.create_index(op.f("ix_campagna_stato"), "campagna", ["stato"])
     op.create_table(
         "foto",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -69,6 +71,7 @@ def upgrade() -> None:
         ),
         sa.PrimaryKeyConstraint("id"),
     )
+    op.create_index(op.f("ix_foto_campagna_id"), "foto", ["campagna_id"])
     op.create_table(
         "decisione_campagna",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -93,6 +96,9 @@ def upgrade() -> None:
             ["utente.id"],
         ),
         sa.PrimaryKeyConstraint("id"),
+    )
+    op.create_index(
+        op.f("ix_decisione_campagna_campagna_id"), "decisione_campagna", ["campagna_id"]
     )
 
 
