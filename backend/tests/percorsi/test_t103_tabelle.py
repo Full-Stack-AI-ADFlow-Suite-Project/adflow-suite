@@ -11,7 +11,7 @@ from sqlalchemy import inspect, select, text
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
-from app.tabelle import metadata
+from app.tabelle import del_modello, metadata
 from app.moduli.accesso.models import Sessione
 from app.moduli.campagne.models import DecisioneCampagna
 from app.moduli.contenuti.models import VersionePost
@@ -40,6 +40,12 @@ TABELLE = {
     "approvazione",
     "pubblicazione",
 }
+TABELLE_CODA = {
+    "procrastinate_jobs",
+    "procrastinate_events",
+    "procrastinate_periodic_defers",
+    "procrastinate_workers",
+}
 
 
 def test_upgrade_downgrade_completo_e_ultimo_passaggio(motore_test):
@@ -48,15 +54,29 @@ def test_upgrade_downgrade_completo_e_ultimo_passaggio(motore_test):
     command.downgrade(config, "base")
     with motore_test.connect() as conn:
         assert set(inspect(conn).get_table_names()) - {"alembic_version"} == set()
+        assert not conn.scalar(
+            text(
+                "select count(*) from (select proname from pg_proc union all"
+                " select typname from pg_type) nomi(nome)"
+                " where nome like 'procrastinate%'"
+            )
+        )
     command.upgrade(config, "head")
+    command.downgrade(config, "-1")
+    with motore_test.connect() as conn:
+        assert not TABELLE_CODA & set(inspect(conn).get_table_names())
     command.downgrade(config, "-1")
     with motore_test.connect() as conn:
         assert "pubblicazione" not in inspect(conn).get_table_names()
     command.upgrade(config, "head")
     with motore_test.connect() as conn:
-        assert set(inspect(conn).get_table_names()) - {"alembic_version"} == TABELLE
-        assert conn.scalar(text("select version_num from alembic_version")) == "006"
-        assert compare_metadata(MigrationContext.configure(conn), metadata) == []
+        assert (
+            set(inspect(conn).get_table_names()) - {"alembic_version"}
+            == TABELLE | TABELLE_CODA
+        )
+        assert conn.scalar(text("select version_num from alembic_version")) == "007"
+        contesto = MigrationContext.configure(conn, opts={"include_name": del_modello})
+        assert compare_metadata(contesto, metadata) == []
 
 
 def test_email_unica(db):

@@ -4,7 +4,7 @@ from alembic import context
 from sqlalchemy import create_engine, pool
 
 from app.core.config import leggi_impostazioni
-from app.tabelle import metadata
+from app.tabelle import del_modello, metadata
 
 config = context.config
 if config.config_file_name is not None:
@@ -23,7 +23,11 @@ def run_migrations_offline() -> None:
 def run_migrations_online() -> None:
     motore = create_engine(url, poolclass=pool.NullPool)
     with motore.connect() as connessione:
-        context.configure(connection=connessione, target_metadata=metadata)
+        context.configure(
+            connection=connessione,
+            target_metadata=metadata,
+            include_name=del_modello,
+        )
         with context.begin_transaction():
             context.run_migrations()
 

@@ -4,9 +4,11 @@ import pytest
 from alembic import command
 from alembic.config import Config
 from fastapi.testclient import TestClient
+from procrastinate.testing import InMemoryConnector
 from sqlalchemy import Engine, make_url, text
 from sqlalchemy.orm import Session
 
+from app.core import coda as modulo_coda
 from app.core.config import leggi_impostazioni
 from app.core.db import crea_motore, get_db
 from app.main import app
@@ -43,6 +45,17 @@ def db(motore_test: Engine) -> Iterator[Session]:
         with Session(connessione, join_transaction_mode="create_savepoint") as sessione:
             yield sessione
         esterna.rollback()
+
+
+@pytest.fixture(autouse=True)
+def coda() -> Iterator[InMemoryConnector]:
+    """Coda in memoria in ogni test: `accoda()` non tocca nessun database.
+
+    I job accodati si leggono in `coda.jobs` (id → nome, argomenti, stato).
+    """
+    connettore = InMemoryConnector()
+    with modulo_coda.app.replace_connector(connettore):
+        yield connettore
 
 
 @pytest.fixture
