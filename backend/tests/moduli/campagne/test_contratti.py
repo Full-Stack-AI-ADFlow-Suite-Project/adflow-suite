@@ -6,7 +6,7 @@ from sqlalchemy import select
 
 from app.core.errori import DatiNonValidi, NonTrovato, StatoNonValido
 from app.moduli.campagne import domain
-from app.moduli.campagne.models import DecisioneCampagna
+from app.moduli.campagne.models import DecisioneCampagna, GruppoFoto
 from app.moduli.campagne.service import (
     aggiorna_foto,
     cambia_stato,
@@ -184,6 +184,9 @@ def test_le_fabbriche_dall_invio_in_poi_sono_complete(db):
     assert record.frequenza == record.profilo_snapshot["frequenza"]
     assert record.obiettivo == record.profilo_snapshot["obiettivo"]
     assert record.profilo_snapshot["nome"] == "Bottega di prova"
-    (immagine,) = foto_della_campagna(db, record.id)
-    assert immagine.descrizione
-    assert min(immagine.larghezza, immagine.altezza) >= 1080
+    mazzo = db.scalar(select(GruppoFoto).where(GruppoFoto.campagna_id == record.id))
+    assert mazzo.descrizione
+    immagini = foto_della_campagna(db, record.id)
+    assert len(immagini) == 4
+    assert all(i.gruppo_id == mazzo.id for i in immagini)
+    assert all(min(i.larghezza, i.altezza) >= 1080 for i in immagini)

@@ -1,13 +1,13 @@
-"""Campagne e foto di prova, senza commit.
+"""Campagne, gruppi e foto di prova, senza commit.
 
 Le campagne dall'invio in poi sono complete: canali, frequenza e obiettivo
-copiati dal profilo, fotografia del profilo e una foto con descrizione.
+copiati dal profilo, fotografia del profilo e un gruppo con 4 foto.
 """
 from datetime import date, datetime, timezone
 from uuid import uuid4
 from sqlalchemy.orm import Session
 from app.moduli.artigiani.models import ProfiloBottega
-from app.moduli.campagne.models import Campagna, Foto
+from app.moduli.campagne.models import Campagna, Foto, GruppoFoto
 from tests.moduli.artigiani.fabbrica import profilo
 
 
@@ -52,7 +52,9 @@ def _inviata(
     )
     dati.update(campi)
     record = campagna_in_bozza(db, profilo_id=bottega.id, **dati)
-    foto(db, campagna=record)
+    mazzo = gruppo(db, record)
+    for _ in range(4):
+        foto(db, gruppo=mazzo)
     return record
 
 
@@ -68,17 +70,48 @@ def campagna_attiva(db: Session, **campi) -> Campagna:
     return _inviata(db, "attiva", **campi)
 
 
-def foto(db: Session, *, campagna: Campagna | None = None, **campi) -> Foto:
-    campagna = campagna if campagna is not None else campagna_in_bozza(db)
+def gruppo(
+    db: Session,
+    campagna: Campagna | None = None,
+    *,
+    origine: str = "caricate",
+    **campi,
+) -> GruppoFoto:
+    if campagna is None:
+        campagna = campagna_in_bozza(db)
     dati = dict(
         profilo_id=campagna.profilo_id,
         campagna_id=campagna.id,
-        gruppo_id=uuid4(),
+        origine=origine,
+        descrizione="Gruppo di prova",
+    )
+    dati.update(campi)
+    record = GruppoFoto(**dati)
+    db.add(record)
+    db.flush()
+    return record
+
+
+_nuovo_gruppo = gruppo
+
+
+def foto(
+    db: Session,
+    *,
+    gruppo: GruppoFoto | None = None,
+    campagna: Campagna | None = None,
+    **campi,
+) -> Foto:
+    if gruppo is None:
+        gruppo = _nuovo_gruppo(db, campagna or campagna_in_bozza(db))
+    dati = dict(
+        profilo_id=gruppo.profilo_id,
+        campagna_id=gruppo.campagna_id,
+        gruppo_id=gruppo.id,
         file=f"{uuid4().hex}.jpg",
         mime="image/jpeg",
         larghezza=1080,
         altezza=1350,
-        descrizione="Gruppo di prova",
     )
     dati.update(campi)
     record = Foto(**dati)

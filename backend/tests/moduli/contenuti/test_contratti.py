@@ -3,12 +3,13 @@ from datetime import datetime, timedelta, timezone
 from itertools import product
 
 import pytest
+from sqlalchemy import select
 
 from app.core.errori import DatiNonValidi, StatoNonValido
 from app.core.transizioni import verifica_transizione
 from app.moduli.campagne.service import cambia_stato, foto_della_campagna
 from app.moduli.contenuti import domain
-from app.moduli.contenuti.models import VersionePost
+from app.moduli.contenuti.models import VersionePost, VersionePostFoto
 from app.moduli.contenuti.service import (
     approva_post,
     ha_blocchi,
@@ -168,7 +169,15 @@ def test_le_fabbriche_dei_post_hanno_sempre_la_foto(db):
     attiva = campagna_attiva(db)
     post_approvato(db, campagna_id=attiva.id)
     post_approvato(db, campagna_id=attiva.id)
-    (immagine,) = foto_della_campagna(db, attiva.id)
+    immagini = {f.id: f for f in foto_della_campagna(db, attiva.id)}
     trovati = post_della_campagna(db, attiva.id)
-    assert [p.versione_corrente.foto_id for p in trovati] == [immagine.id] * 2
-    assert immagine.n_utilizzi == 2
+    assert len(trovati) == 2
+    for post in trovati:
+        legame = db.scalars(
+            select(VersionePostFoto).where(
+                VersionePostFoto.versione_id == post.versione_corrente.id
+            )
+        ).all()
+        assert [l.posizione for l in legame] == [1]
+        assert legame[0].foto_id in immagini
+    assert sum(f.n_utilizzi for f in immagini.values()) == 2
