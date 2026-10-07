@@ -58,4 +58,10 @@
   - `test_debug_descrizione_gruppo_caratteri_non_validi` (422 su NUL e spazi)
   - `test_debug_download_file_non_trovato_su_disco_da_404` (404)
   - `test_debug_upload_multipli_nello_stesso_gruppo` (201, coerenza multi-upload)
-- 218 test totali passati con successo su tutta la suite locale.
+  - `test_debug_webp_vp8_lossy_e_vp8l_lossless` (201, VP8 lossy e VP8L lossless bit-packed)
+  - `test_debug_anti_spoofing_estensione_file` (201, rilevamento magic bytes reali JPEG mascherato da PNG, CWE-434)
+  - `test_debug_upload_file_vuoto_da_422` (422 su file a zero byte)
+  - `test_debug_matrice_stati_non_bozza_vietati` (409 per tutti i 10 stati non-bozza)
+  - `test_debug_dettaglio_campagna_con_struttura_foto_completa` (200, aggregato multi-gruppo verificato)
+  - `test_debug_concorrenza_reale_upload_multi_thread` (201, 4 thread concorrenti su stesso gruppo)
+- 224 test totali passati con successo su tutta la suite locale.

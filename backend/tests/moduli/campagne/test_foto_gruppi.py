@@ -865,7 +865,284 @@ def test_debug_upload_multipli_nello_stesso_gruppo(
         # Verifica totale foto nel gruppo a DB
         totale = (
             db.query(Foto)
-            .filter(Foto.campagna_id == camp.id, Foto.gruppo_id == gruppo_id)
+            .filter(
+                Foto.campagne_id
+                if hasattr(Foto, "campagne_id")
+                else Foto.campagna_id == camp.id,
+                Foto.gruppo_id == gruppo_id,
+            )
             .count()
         )
         assert totale == 5
+
+
+def _crea_webp_vp8(larghezza: int, altezza: int) -> bytes:
+    """Genera un flusso WebP VP8 (lossy standard) valido."""
+    # Header VP8 non compresso (3 byte) + start code 0x9D 0x01 0x2A (3 byte) + width e height a 14-bit (4 byte)
+    vp8_payload = (
+        b"\x00\x00\x00\x9d\x01\x2a"
+        + struct.pack("<H", larghezza & 0x3FFF)
+        + struct.pack("<H", altezza & 0x3FFF)
+    )
+    chunk = b"VP8 " + struct.pack("<I", len(vp8_payload)) + vp8_payload
+    riff_payload = b"WEBP" + chunk
+    return b"RIFF" + struct.pack("<I", len(riff_payload)) + riff_payload
+
+
+def _crea_webp_vp8l(larghezza: int, altezza: int) -> bytes:
+    """Genera un flusso WebP VP8L (lossless bit-packed) valido."""
+    # Firma 0x2F (1 byte) + 32-bit: 14 bit width-1, 14 bit height-1 (4 byte)
+    valore_bit = ((larghezza - 1) & 0x3FFF) | (((altezza - 1) & 0x3FFF) << 14)
+    vp8l_payload = b"\x2f" + struct.pack("<I", valore_bit)
+    chunk = b"VP8L" + struct.pack("<I", len(vp8l_payload)) + vp8l_payload
+    riff_payload = b"WEBP" + chunk
+    return b"RIFF" + struct.pack("<I", len(riff_payload)) + riff_payload
+
+
+def test_debug_webp_vp8_lossy_e_vp8l_lossless(
+    client: TestClient, utente_di_prova, db: Session, tmp_path: Path
+):
+    """Debug: Collaudo specifico dei parser WebP VP8 (lossy) e VP8L (lossless)."""
+    archivio_test = ArchivioDisco(tmp_path)
+    with usa_archivio(archivio_test):
+        art = utente_di_prova("artigiano")
+        prof = profilo(db, utente_id=art.id)
+        camp = campagna_in_bozza(db, profilo_id=prof.id)
+
+        # 1. WebP VP8 Lossy (1200x1200)
+        webp_lossy = _crea_webp_vp8(1200, 1200)
+        res_lossy = client.post(
+            f"/api/campagne/{camp.id}/foto",
+            files={"file": ("lossy.webp", BytesIO(webp_lossy), "image/webp")},
+        )
+        assert res_lossy.status_code == 201
+        assert res_lossy.json()["larghezza"] == 1200
+        assert res_lossy.json()["altezza"] == 1200
+        assert res_lossy.json()["mime"] == "image/webp"
+
+        # 2. WebP VP8L Lossless (1400x1400)
+        webp_lossless = _crea_webp_vp8l(1400, 1400)
+        res_lossless = client.post(
+            f"/api/campagne/{camp.id}/foto",
+            files={"file": ("lossless.webp", BytesIO(webp_lossless), "image/webp")},
+        )
+        assert res_lossless.status_code == 201
+        assert res_lossless.json()["larghezza"] == 1400
+        assert res_lossless.json()["altezza"] == 1400
+        assert res_lossless.json()["mime"] == "image/webp"
+
+
+def test_debug_anti_spoofing_estensione_file(
+    client: TestClient, utente_di_prova, db: Session, tmp_path: Path
+):
+    """Debug: Invio JPEG rinominato in .png -> riconosciuto come JPEG e salvato con .jpg (CWE-434)."""
+    archivio_test = ArchivioDisco(tmp_path)
+    with usa_archivio(archivio_test):
+        art = utente_di_prova("artigiano")
+        prof = profilo(db, utente_id=art.id)
+        camp = campagna_in_bozza(db, profilo_id=prof.id)
+
+        jpeg_reale = _crea_jpeg(1080, 1080)
+        # Client tenta spoofing estensione dichiarando .png e mime image/png
+        res = client.post(
+            f"/api/campagne/{camp.id}/foto",
+            files={"file": ("falso.png", BytesIO(jpeg_reale), "image/png")},
+        )
+        assert res.status_code == 201
+        # Il server rileva i magic bytes reali del JPEG
+        assert res.json()["mime"] == "image/jpeg"
+        assert res.json()["file"].endswith(".jpg")
+        # Il file fisico su disco deve essere salvato con l'estensione reale .jpg
+        assert (tmp_path / res.json()["file"]).is_file()
+
+
+def test_debug_upload_file_vuoto_da_422(
+    client: TestClient, utente_di_prova, db: Session
+):
+    """Debug: Caricamento di un file da 0 byte solleva 422 descrittivo."""
+    art = utente_di_prova("artigiano")
+    prof = profilo(db, utente_id=art.id)
+    camp = campagna_in_bozza(db, profilo_id=prof.id)
+
+    res = client.post(
+        f"/api/campagne/{camp.id}/foto",
+        files={"file": ("vuoto.jpg", BytesIO(b""), "image/jpeg")},
+    )
+    assert res.status_code == 422
+    assert "vuoto" in res.json()["detail"].lower()
+
+
+def test_debug_matrice_stati_non_bozza_vietati(
+    client: TestClient, utente_di_prova, db: Session
+):
+    """Debug: Upload, modifica gruppo ed eliminazione vietati per tutti gli stati non-bozza (409)."""
+    from app.moduli.campagne import domain, service as camp_service
+
+    stati_non_bozza = [
+        domain.INVIATA,
+        domain.IN_GENERAZIONE,
+        domain.GENERAZIONE_FALLITA,
+        domain.IN_REVISIONE,
+        domain.ATTIVA,
+        domain.SOSPESA,
+        domain.RESPINTA,
+        domain.SCADUTA,
+        domain.ANNULLATA,
+        domain.CONCLUSA,
+    ]
+
+    art = utente_di_prova("artigiano")
+    prof = profilo(db, utente_id=art.id)
+
+    for st in stati_non_bozza:
+        # Creiamo una campagna direttamente nello stato target (bypassando la transizione per testare la guardia)
+        camp = campagna_in_bozza(db, profilo_id=prof.id, stato=st)
+        foto_fabbrica = fabbrica_foto(db, campagna=camp)
+
+        # 1. Upload deve dare 409
+        res_up = client.post(
+            f"/api/campagne/{camp.id}/foto",
+            files={"file": ("foto.png", BytesIO(_crea_png(1080, 1080)), "image/png")},
+        )
+        assert res_up.status_code == 409, f"Upload fallito per stato {st}"
+
+        # 2. Aggiornamento gruppo deve dare 409
+        res_put = client.put(
+            f"/api/campagne/{camp.id}/gruppi/{foto_fabbrica.gruppo_id}",
+            json={"descrizione": "Nuova descrizione"},
+        )
+        assert res_put.status_code == 409, f"Put gruppo fallito per stato {st}"
+
+        # 3. Delete foto deve dare 409
+        res_del = client.delete(f"/api/foto/{foto_fabbrica.id}")
+        assert res_del.status_code == 409, f"Delete foto fallito per stato {st}"
+
+
+def test_debug_dettaglio_campagna_con_struttura_foto_completa(
+    client: TestClient, utente_di_prova, db: Session, tmp_path: Path
+):
+    """Debug: GET /api/campagne/{id} restituisce l'aggregato completo di foto e gruppi."""
+    archivio_test = ArchivioDisco(tmp_path)
+    with usa_archivio(archivio_test):
+        art = utente_di_prova("artigiano")
+        prof = profilo(db, utente_id=art.id)
+        camp = campagna_in_bozza(db, profilo_id=prof.id)
+
+        # Carica 2 foto in gruppo 1
+        res1 = client.post(
+            f"/api/campagne/{camp.id}/foto",
+            files={"file": ("foto1.png", BytesIO(_crea_png(1080, 1080)), "image/png")},
+        )
+        g1 = res1.json()["gruppo_id"]
+        client.put(
+            f"/api/campagne/{camp.id}/gruppi/{g1}",
+            json={"descrizione": "Gruppo 1 Ceramiche"},
+        )
+
+        res2 = client.post(
+            f"/api/campagne/{camp.id}/foto",
+            data={"gruppo_id": g1},
+            files={
+                "file": ("foto2.jpg", BytesIO(_crea_jpeg(1200, 1200)), "image/jpeg")
+            },
+        )
+
+        # Carica 1 foto in gruppo 2
+        res3 = client.post(
+            f"/api/campagne/{camp.id}/foto",
+            files={
+                "file": ("foto3.webp", BytesIO(_crea_webp(1300, 1300)), "image/webp")
+            },
+        )
+        g2 = res3.json()["gruppo_id"]
+
+        # Richiede dettaglio campagna
+        res_dett = client.get(f"/api/campagne/{camp.id}")
+        assert res_dett.status_code == 200
+        dati_camp = res_dett.json()
+        assert len(dati_camp["foto"]) == 3
+
+        gruppi_restituiti = {f["gruppo_id"] for f in dati_camp["foto"]}
+        assert gruppi_restituiti == {g1, g2}
+
+        # Foto di gruppo 1 devono avere la descrizione impostata
+        foto_g1 = [f for f in dati_camp["foto"] if f["gruppo_id"] == g1]
+        assert len(foto_g1) == 2
+        for f in foto_g1:
+            assert f["descrizione"] == "Gruppo 1 Ceramiche"
+
+
+def test_debug_concorrenza_reale_upload_multi_thread(motore_test, tmp_path: Path):
+    """Debug: Caricamento simultaneo multi-thread con 4 sessioni DB indipendenti sullo stesso gruppo."""
+    from concurrent.futures import ThreadPoolExecutor
+    from sqlalchemy import text
+    from sqlalchemy.orm import Session as SessionClass
+    from app.moduli.campagne import service as camp_service
+
+    archivio_test = ArchivioDisco(tmp_path)
+    with usa_archivio(archivio_test):
+        # Setup iniziale con sessione dedicata
+        with SessionClass(motore_test) as s, s.begin():
+            p = profilo(s)
+            u_id = p.utente_id
+            prof_id = p.id
+            camp = campagna_in_bozza(s, profilo_id=prof_id)
+            camp_id = camp.id
+
+        try:
+            # Creazione gruppo iniziale
+            with SessionClass(motore_test) as s, s.begin():
+                foto_ini = camp_service.carica_foto(
+                    db=s,
+                    utente_id=u_id,
+                    ruolo="artigiano",
+                    campagna_id=camp_id,
+                    contenuto=_crea_png(1080, 1080),
+                )
+                gruppo_id = foto_ini.gruppo_id
+
+            def carica_singola(indice: int) -> str:
+                file_bytes = _crea_png(1080 + indice, 1080)
+                with SessionClass(motore_test) as sessione:
+                    with sessione.begin():
+                        f = camp_service.carica_foto(
+                            db=sessione,
+                            utente_id=u_id,
+                            ruolo="artigiano",
+                            campagna_id=camp_id,
+                            contenuto=file_bytes,
+                            gruppo_id=gruppo_id,
+                        )
+                        return "ok" if f.id is not None else "errore"
+
+            with ThreadPoolExecutor(max_workers=4) as executor:
+                futures = [executor.submit(carica_singola, i) for i in range(1, 5)]
+                esiti = [f.result() for f in futures]
+
+            # Tutti e 4 i thread devono aver caricato con successo
+            assert esiti == ["ok", "ok", "ok", "ok"]
+
+            # Verifica totale 5 foto nel gruppo (1 iniziale + 4 concorrenti)
+            with SessionClass(motore_test) as s:
+                totale = (
+                    s.query(Foto)
+                    .filter(Foto.campagna_id == camp_id, Foto.gruppo_id == gruppo_id)
+                    .count()
+                )
+                assert totale == 5
+        finally:
+            # Cleanup deterministico DB (Regola 4)
+            with SessionClass(motore_test) as s, s.begin():
+                s.execute(
+                    text("DELETE FROM foto WHERE campagna_id = :cid"),
+                    {"cid": camp_id},
+                )
+                s.execute(
+                    text("DELETE FROM campagna WHERE id = :cid"),
+                    {"cid": camp_id},
+                )
+                s.execute(
+                    text("DELETE FROM profilo_bottega WHERE id = :pid"),
+                    {"pid": prof_id},
+                )
+                s.execute(text("DELETE FROM utente WHERE id = :uid"), {"uid": u_id})
