@@ -14,11 +14,12 @@ from typing import NamedTuple
 
 from app.core.errori import DatiNonValidi
 
-# Limiti dimensionali (Spec R-13 e vincoli di sicurezza)
+# Limiti dimensionali e quantitativi (Spec R-13 e vincoli di sicurezza)
 MIN_LATO_CORTO: int = 1080
 MAX_WIDTH: int = 8192
 MAX_HEIGHT: int = 8192
 MAX_PIXELS: int = 36_000_000
+MAX_FOTO_PER_CAMPAGNA: int = 20
 
 
 class InfoImmagine(NamedTuple):

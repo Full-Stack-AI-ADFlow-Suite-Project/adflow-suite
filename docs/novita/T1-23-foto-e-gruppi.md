@@ -67,10 +67,26 @@
   - `test_upload_con_rollback_rimuove_il_file_orfano` (rollback dopo upload, nessun file residuo)
   - `test_rollback_successivo_non_tocca_i_file_gia_confermati` (nessun effetto su foto già confermate)
   - `test_eliminazione_con_rollback_conserva_file_e_record` (DELETE annullata, tutto intatto)
-- 227 test totali passati con successo su tutta la suite locale.
+  - `test_limite_massimo_20_foto_per_campagna` (422 al 21-esimo upload, nessun file orfano su disco)
+- 228 test totali passati con successo su tutta la suite locale.
 
-## Limiti noti
+## Limiti e Misure di Sicurezza Applicate
 
-- **Peso del body**: FastAPI/Starlette riceve e salva in un file temporaneo l'intero multipart prima che l'endpoint giri, quindi il controllo dei 10 MB non evita il traffico di un upload enorme. La protezione completa richiede un limite sul body a monte (reverse proxy, es. `client_max_body_size`) o un middleware: sono fuori dalla corsia 2 (main.py), da segnalare alla corsia 0.
-- **Dipendenza**: `python-multipart` serve a FastAPI per i campi `File`/`Form` ma non è in `requirements.txt` (corsia 0): da richiedere con una domanda alla corsia 0.
-- **Quantità di foto**: la specifica non fissa un massimo di foto per campagna o per gruppo; oggi non c'è un tetto.
+- **Quantità di foto per campagna**: introdotto un tetto prudenziale di 20 foto per campagna (`MAX_FOTO_PER_CAMPAGNA = 20`), con blocco a livello di servizio (`HTTP 422`) prima della scrittura su disco.
+
+## Domande Formali per la Corsia 0 (Comune)
+
+Secondo la Costituzione del Progetto (§2) e `tasks.md`, i componenti comuni (`requirements.txt`, `main.py`, middleware) possono essere modificati solo attraverso domande e task di Corsia 0. Di seguito il testo pronto per le due segnalazioni:
+
+### Domanda 1: Aggiunta di `python-multipart` a `backend/requirements.txt`
+
+> **Oggetto**: [Corsia 0 · Dipendenze] Inserimento di `python-multipart` in `requirements.txt` > **Contesto**: L'endpoint di caricamento foto `POST /campagne/{id}/foto` (T1-23) utilizza `UploadFile` e parametri `Form` di FastAPI.
+> **Problema**: FastAPI delega il parsing del formato `multipart/form-data` alla libreria `python-multipart`. Sebbene sia presente nell'ambiente virtuale di sviluppo locale, non è dichiarata esplicitamente in `requirements.txt`.
+> **Richiesta per Corsia 0**: Aggiungere `python-multipart>=0.0.9` (o versione compatibile) a `backend/requirements.txt` per garantire l'installazione deterministica negli ambienti di CI e produzione.
+
+### Domanda 2: Protezione anti-DoS sul body HTTP a monte (`main.py` o reverse proxy)
+
+> **Oggetto**: [Corsia 0 · Sicurezza] Limite massimo sulla dimensione del body HTTP in streaming
+> **Contesto**: Il servizio foto (Corsia 2) rifiuta file con dimensione > 10 MB tramite streaming a blocchi (`DIMENSIONE_MAX_BYTE = 10 * 1024 * 1024`).
+> **Problema**: Lo stack Starlette/FastAPI accetta lo stream della richiesta prima che il router applichi i controlli specifici. Un client malevolo potrebbe tentare un DoS saturando la banda o lo storage temporaneo (`tempfile`) con payload di svariati gigabyte prima che scatti il controllo applicativo.
+> **Richiesta per Corsia 0**: Valutare l'introduzione di un middleware in `main.py` che controlli l'header `Content-Length` (o limiti i byte letti dalla request raw), oppure definire la direttiva di reverse proxy (es. `client_max_body_size 15M;` in Nginx / proxy di ingresso) a protezione di tutta l'applicazione.

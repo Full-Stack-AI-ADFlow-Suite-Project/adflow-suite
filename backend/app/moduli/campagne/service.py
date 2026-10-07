@@ -5,7 +5,7 @@ from typing import Any
 import uuid
 from uuid import UUID
 
-from sqlalchemy import event, select, text
+from sqlalchemy import event, func, select, text
 from sqlalchemy.orm import Session
 
 from app.adapters.archivio import ottieni_archivio
@@ -27,7 +27,7 @@ from .domain import (
     STATI,
     TRANSIZIONI,
 )
-from .immagini import analizza_e_valida_immagine
+from .immagini import MAX_FOTO_PER_CAMPAGNA, analizza_e_valida_immagine
 from .models import Campagna, DecisioneCampagna, Foto
 from .schemas import CampagnaCrea, CampagnaDettaglio
 
@@ -463,6 +463,15 @@ def carica_foto(
     if rec.stato != BOZZA:
         raise StatoNonValido(
             "Le foto possono essere caricate solo per campagne in bozza."
+        )
+
+    # Verifica tetto massimo foto per campagna (misura anti-abuso proposta)
+    conteggio_foto = db.scalar(
+        select(func.count(Foto.id)).where(Foto.campagna_id == campagna_id)
+    )
+    if (conteggio_foto or 0) >= MAX_FOTO_PER_CAMPAGNA:
+        raise DatiNonValidi(
+            f"Raggiunto il limite massimo di {MAX_FOTO_PER_CAMPAGNA} foto per campagna."
         )
 
     # Ispezione binaria e vincoli di dimensione/sicurezza

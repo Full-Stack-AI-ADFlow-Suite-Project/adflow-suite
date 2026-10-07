@@ -1231,3 +1231,36 @@ def test_eliminazione_con_rollback_conserva_file_e_record(
 
         assert (tmp_path / nome_file).is_file()
         assert db.get(Foto, foto_id) is not None
+
+
+def test_limite_massimo_20_foto_per_campagna(
+    client: TestClient, utente_di_prova, db: Session, tmp_path: Path
+):
+    """Caricare più di 20 foto per campagna solleva 422 e non salva il file su disco."""
+    with usa_archivio(ArchivioDisco(tmp_path)):
+        art = utente_di_prova("artigiano")
+        prof = profilo(db, utente_id=art.id)
+        camp = campagna_in_bozza(db, profilo_id=prof.id)
+
+        for i in range(20):
+            db.add(
+                Foto(
+                    profilo_id=prof.id,
+                    campagna_id=camp.id,
+                    gruppo_id=uuid4(),
+                    origine="caricata",
+                    file=f"foto_{i}.png",
+                    mime="image/png",
+                    larghezza=1080,
+                    altezza=1080,
+                )
+            )
+        db.commit()
+
+        res = client.post(
+            f"/api/campagne/{camp.id}/foto",
+            files={"file": ("foto21.png", BytesIO(_crea_png(1080, 1080)), "image/png")},
+        )
+        assert res.status_code == 422
+        assert "limite massimo di 20 foto" in res.json()["detail"]
+        assert list(tmp_path.iterdir()) == []
