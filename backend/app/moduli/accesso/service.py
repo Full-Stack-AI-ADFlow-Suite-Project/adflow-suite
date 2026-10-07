@@ -42,9 +42,16 @@ def login(
     Il token in chiaro torna solo al router. Non revoca le altre sessioni
     dell'utente (ad esempio su un altro dispositivo).
     """
-    record = db.scalar(
-        select(Utente).where(func.lower(Utente.email) == email.strip().lower())
+    candidati = list(
+        db.scalars(
+            select(Utente)
+            .where(func.lower(Utente.email) == email.strip().lower())
+            .limit(2)
+        )
     )
+    # Il vincolo storico distingue maiuscole/minuscole: in presenza di due
+    # identità equivalenti non scegliamo arbitrariamente quella con più privilegi.
+    record = candidati[0] if len(candidati) == 1 else None
     password_valida = verifica_password(
         password, record.password_hash if record is not None else _hash_fittizio()
     )
@@ -197,6 +204,9 @@ def crea_utente(
     )
     # Il vincolo DB risolve anche la gara tra due creazioni della stessa email.
     # Il savepoint mantiene utilizzabile la transazione del chiamante.
+    # begin_nested fa flush anche sotto no_autoflush: gli errori dei record
+    # già pendenti devono propagarsi fuori dalla gestione del nuovo utente.
+    db.flush()
     try:
         with db.begin_nested():
             db.add(record)
