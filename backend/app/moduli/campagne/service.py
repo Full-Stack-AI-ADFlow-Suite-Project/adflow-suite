@@ -1,9 +1,12 @@
 from datetime import datetime, timedelta
 from typing import Any
+import uuid
+from uuid import UUID
 
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
+from app.adapters.archivio import ottieni_archivio
 from app.core.config import leggi_impostazioni
 from app.core.errori import DatiNonValidi, NonPermesso, NonTrovato, StatoNonValido
 from app.core.orologio import ROMA
@@ -22,6 +25,7 @@ from .domain import (
     STATI,
     TRANSIZIONI,
 )
+from .immagini import analizza_e_valida_immagine
 from .models import Campagna, DecisioneCampagna, Foto
 from .schemas import CampagnaCrea, CampagnaDettaglio
 
@@ -381,3 +385,261 @@ def dettaglio_campagna(
         profilo_snapshot=snapshot,
         decisioni=decisioni,
     )
+
+
+def carica_foto(
+    db: Session,
+    utente_id: int,
+    ruolo: str,
+    campagna_id: int,
+    contenuto: bytes,
+    gruppo_id: UUID | None = None,
+) -> Foto:
+    """Valida, archivia e registra una foto caricata dall'artigiano per la campagna in bozza.
+
+    Verifiche di sicurezza e conformità:
+    - Solo l'artigiano proprietario della bottega può caricare foto (CA-04).
+    - La campagna deve essere nello stato 'bozza' (altrimenti StatoNonValido).
+    - Ispezione binaria e limiti dimensionali (R-13, CA-13): lato corto >= 1080 px,
+      max 8192x8192, max 36 MPixel, max 10 MB.
+    - Se gruppo_id è fornito e già usato, eredita la descrizione del gruppo;
+      se appartiene a un'altra campagna solleva DatiNonValidi.
+    - Salvataggio con nome univoco generato dal server (UUID).
+    - Compensazione atomica anti-TOCTOU: se il database fallisce o solleva eccezione,
+      il file su disco viene rimosso immediatamente.
+    """
+    if ruolo != "artigiano":
+        raise NonPermesso("Solo un artigiano può caricare foto.")
+
+    rec = db.get(Campagna, campagna_id)
+    if rec is None:
+        raise NonTrovato("Campagna non trovata.")
+
+    profilo = artigiani_service.profilo_di(db, utente_id)
+    if profilo is None or rec.profilo_id != profilo.id:
+        raise NonTrovato("Campagna non trovata.")
+
+    if rec.stato != BOZZA:
+        raise StatoNonValido(
+            "Le foto possono essere caricate solo per campagne in bozza."
+        )
+
+    # Ispezione binaria e vincoli di dimensione/sicurezza
+    info = analizza_e_valida_immagine(contenuto)
+
+    # Determinazione gruppo e descrizione
+    descrizione_gruppo: str | None = None
+    if gruppo_id is None:
+        gruppo_effettivo = uuid.uuid4()
+    else:
+        gruppo_effettivo = gruppo_id
+        # Verifica se il gruppo è già associato a un'altra campagna
+        altro_uso = db.scalar(
+            select(Foto.campagna_id)
+            .where(
+                Foto.gruppo_id == gruppo_effettivo,
+                Foto.campagna_id != campagna_id,
+            )
+            .limit(1)
+        )
+        if altro_uso is not None:
+            raise DatiNonValidi("Il gruppo specificato appartiene a un'altra campagna.")
+
+        # Eredita eventuale descrizione esistente del gruppo nella campagna
+        foto_esistente = db.scalar(
+            select(Foto)
+            .where(
+                Foto.campagna_id == campagna_id,
+                Foto.gruppo_id == gruppo_effettivo,
+            )
+            .limit(1)
+        )
+        if foto_esistente is not None:
+            descrizione_gruppo = foto_esistente.descrizione
+
+    # Salvataggio fisico su archivio
+    archivio = ottieni_archivio()
+    nome_file = archivio.salva(contenuto, info.estensione)
+
+    # Inserimento DB con rollback/compensazione del file fisico in caso di errore
+    try:
+        nuova_foto = Foto(
+            profilo_id=profilo.id,
+            campagna_id=campagna_id,
+            gruppo_id=gruppo_effettivo,
+            origine="caricata",
+            file=nome_file,
+            mime=info.mime,
+            larghezza=info.larghezza,
+            altezza=info.altezza,
+            descrizione=descrizione_gruppo,
+        )
+        db.add(nuova_foto)
+        db.flush()
+        return nuova_foto
+    except Exception:
+        archivio.elimina(nome_file)
+        raise
+
+
+def aggiorna_descrizione_gruppo(
+    db: Session,
+    utente_id: int,
+    ruolo: str,
+    campagna_id: int,
+    gruppo_id: UUID,
+    descrizione: str,
+) -> None:
+    """Aggiorna la descrizione di tutte le foto appartenenti a un gruppo della campagna.
+
+    Consentito solo all'artigiano proprietario per campagne in stato 'bozza'.
+    """
+    if ruolo != "artigiano":
+        raise NonPermesso("Solo l'artigiano proprietario può aggiornare il gruppo.")
+
+    rec = db.get(Campagna, campagna_id)
+    if rec is None:
+        raise NonTrovato("Campagna non trovata.")
+
+    profilo = artigiani_service.profilo_di(db, utente_id)
+    if profilo is None or rec.profilo_id != profilo.id:
+        raise NonTrovato("Campagna non trovata.")
+
+    if rec.stato != BOZZA:
+        raise StatoNonValido(
+            "La descrizione può essere modificata solo per campagne in bozza."
+        )
+
+    foto_gruppo = list(
+        db.scalars(
+            select(Foto).where(
+                Foto.campagna_id == campagna_id,
+                Foto.gruppo_id == gruppo_id,
+            )
+        )
+    )
+    if not foto_gruppo:
+        raise NonTrovato("Gruppo di foto non trovato nella campagna.")
+
+    for f in foto_gruppo:
+        f.descrizione = descrizione
+    db.flush()
+
+
+def elimina_foto(
+    db: Session,
+    utente_id: int,
+    ruolo: str,
+    foto_id: int,
+) -> None:
+    """Elimina una singola foto dalla campagna in bozza e rimuove il file fisico.
+
+    Atomicità e anti-TOCTOU: il record a database viene rimosso prima con flush(),
+    e solo a operazione DB completata con successo viene rimosso il file fisico.
+    """
+    if ruolo != "artigiano":
+        raise NonPermesso("Solo l'artigiano proprietario può eliminare le foto.")
+
+    foto = db.get(Foto, foto_id)
+    if foto is None:
+        raise NonTrovato("Foto non trovata.")
+
+    rec = db.get(Campagna, foto.campagna_id)
+    if rec is None:
+        raise NonTrovato("Foto non trovata.")
+
+    profilo = artigiani_service.profilo_di(db, utente_id)
+    if profilo is None or rec.profilo_id != profilo.id:
+        raise NonTrovato("Foto non trovata.")
+
+    if rec.stato != BOZZA:
+        raise StatoNonValido(
+            "Le foto possono essere eliminate solo per campagne in bozza."
+        )
+
+    nome_file = foto.file
+    db.delete(foto)
+    db.flush()
+
+    archivio = ottieni_archivio()
+    archivio.elimina(nome_file)
+
+
+def elimina_gruppo(
+    db: Session,
+    utente_id: int,
+    ruolo: str,
+    campagna_id: int,
+    gruppo_id: UUID,
+) -> None:
+    """Elimina tutte le foto appartenenti a un gruppo e rimuove i rispettivi file fisici."""
+    if ruolo != "artigiano":
+        raise NonPermesso("Solo l'artigiano proprietario può eliminare i gruppi.")
+
+    rec = db.get(Campagna, campagna_id)
+    if rec is None:
+        raise NonTrovato("Campagna non trovata.")
+
+    profilo = artigiani_service.profilo_di(db, utente_id)
+    if profilo is None or rec.profilo_id != profilo.id:
+        raise NonTrovato("Campagna non trovata.")
+
+    if rec.stato != BOZZA:
+        raise StatoNonValido(
+            "I gruppi possono essere eliminati solo per campagne in bozza."
+        )
+
+    foto_gruppo = list(
+        db.scalars(
+            select(Foto).where(
+                Foto.campagna_id == campagna_id,
+                Foto.gruppo_id == gruppo_id,
+            )
+        )
+    )
+    if not foto_gruppo:
+        raise NonTrovato("Gruppo di foto non trovato nella campagna.")
+
+    nomi_file = [f.file for f in foto_gruppo]
+    for f in foto_gruppo:
+        db.delete(f)
+    db.flush()
+
+    archivio = ottieni_archivio()
+    for nome in nomi_file:
+        archivio.elimina(nome)
+
+
+def leggi_file_foto(
+    db: Session,
+    utente_id: int,
+    ruolo: str,
+    foto_id: int,
+) -> tuple[bytes, str]:
+    """Recupera il contenuto binario e il mime-type del file originale dall'archivio.
+
+    L'accesso è consentito all'artigiano proprietario della campagna,
+    oppure a operatori e amministratori del consorzio.
+    """
+    foto = db.get(Foto, foto_id)
+    if foto is None:
+        raise NonTrovato("Foto non trovata.")
+
+    rec = db.get(Campagna, foto.campagna_id)
+    if rec is None:
+        raise NonTrovato("Foto non trovata.")
+
+    if ruolo == "artigiano":
+        profilo = artigiani_service.profilo_di(db, utente_id)
+        if profilo is None or rec.profilo_id != profilo.id:
+            raise NonTrovato("Foto non trovata.")
+    elif ruolo not in ("operatore", "admin"):
+        raise NonPermesso("Non hai i permessi per accedere al file della foto.")
+
+    archivio = ottieni_archivio()
+    try:
+        contenuto = archivio.leggi(foto.file)
+    except FileNotFoundError:
+        raise NonTrovato("File immagine non trovato nell'archivio.")
+
+    return contenuto, foto.mime

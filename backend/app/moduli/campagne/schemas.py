@@ -110,3 +110,37 @@ class CampagnaElencoItem(BaseModel):
     fine: date
     stato: str
     crea_immagini_ai: bool = False
+
+
+class FotoDettaglio(BaseModel):
+    """Rappresentazione completa di una foto appena caricata o consultata."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    profilo_id: int
+    campagna_id: int
+    gruppo_id: UUID
+    origine: str
+    file: str
+    mime: str
+    larghezza: int
+    altezza: int
+    descrizione: str | None = None
+    n_utilizzi: int = 0
+
+
+class GruppoDescrizioneAggiorna(BaseModel):
+    """Payload per l'aggiornamento della descrizione di un gruppo di foto (PUT /campagne/{id}/gruppi/{gruppo_id})."""
+
+    descrizione: str = Field(min_length=1, max_length=2000)
+
+    @field_validator("descrizione")
+    @classmethod
+    def valida_descrizione(cls, valore: str) -> str:
+        pulito = valore.strip()
+        if not pulito:
+            raise ValueError("La descrizione del gruppo non può essere vuota.")
+        if not testo_valido(pulito):
+            raise ValueError("La descrizione del gruppo contiene caratteri non validi.")
+        return pulito
