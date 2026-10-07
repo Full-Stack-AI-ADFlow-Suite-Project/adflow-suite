@@ -5,11 +5,13 @@ from datetime import datetime, timedelta
 from functools import lru_cache
 from typing import Annotated
 
-from fastapi import Depends
+from fastapi import Depends, Request
 from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
+from app.core.db import get_db
 from app.core.errori import NonAutenticato, NonPermesso
+from app.core.orologio import adesso
 from app.core.security import genera_token, hash_password, hash_token, verifica_password
 
 from .models import Sessione, Utente
@@ -81,7 +83,11 @@ def utente_della_sessione(db: Session, token: str | None, ora: datetime) -> Uten
     return record
 
 
-def utente_corrente() -> Utente:
+def utente_corrente(
+    request: Request,
+    db: Annotated[Session, Depends(get_db)],
+    ora: Annotated[datetime, Depends(adesso)],
+) -> Utente:
     """Dipendenza FastAPI: restituisce l'utente autenticato dalla sessione.
 
     Si usa nei router con ``Depends``::
@@ -89,17 +95,15 @@ def utente_corrente() -> Utente:
         def mio_endpoint(utente: Annotated[Utente, Depends(utente_corrente)]):
             ...
 
-    Fino a T1-12 i test la sostituiscono con la fixture ``utente_di_prova``
-    (T1-06).
+    I test possono sostituirla con la fixture ``utente_di_prova`` (T1-06).
 
     Returns:
         Il record utente corrispondente al cookie ``adflow_sessione``.
 
     Raises:
         NonAutenticato: se il cookie è assente, scaduto o non valido.
-        NotImplementedError: stub — implementazione in T1-12.
     """
-    raise NotImplementedError  # T1-12
+    return utente_della_sessione(db, request.cookies.get(COOKIE_SESSIONE), ora)
 
 
 def richiede_ruolo(*ruoli: str) -> Callable[..., Utente]:

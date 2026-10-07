@@ -54,19 +54,9 @@ def logout(request: Request, db: Annotated[Session, Depends(get_db)]) -> Respons
     return response
 
 
-def _utente_sessione(
-    request: Request,
-    db: Annotated[Session, Depends(get_db)],
-    ora: Annotated[datetime, Depends(adesso)],
-) -> Utente:
-    return service.utente_della_sessione(
-        db, request.cookies.get(service.COOKIE_SESSIONE), ora
-    )
-
-
 @router.get("/auth/me", response_model=UtentePubblico)
 def me(
-    response: Response, utente: Annotated[Utente, Depends(_utente_sessione)]
+    response: Response, utente: Annotated[Utente, Depends(service.utente_corrente)]
 ) -> Utente:
     response.headers["Cache-Control"] = "no-store"
     return utente
