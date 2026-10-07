@@ -64,7 +64,8 @@ class ArchivioDisco(ArchivioAdapter):
 
     def salva(self, contenuto: bytes, estensione: str) -> str:
         """Salva il contenuto su disco con un nome sicuro generato dal server."""
-        nome_file = self.genera_nome_file(estensione)
+        ext_normalizzata = self.valida_payload(contenuto, estensione)
+        nome_file = self.genera_nome_file(ext_normalizzata)
         percorso = self._valida_e_risolvi_percorso(nome_file)
         percorso.write_bytes(contenuto)
         return nome_file
@@ -77,12 +78,15 @@ class ArchivioDisco(ArchivioAdapter):
         return percorso.read_bytes()
 
     def elimina(self, nome_file: str) -> bool:
-        """Elimina il file da disco se esistente."""
+        """Elimina il file da disco in modo atomico, prevenendo race condition TOCTOU."""
         percorso = self._valida_e_risolvi_percorso(nome_file)
-        if percorso.is_file():
-            percorso.unlink()
+        try:
+            percorso.unlink(missing_ok=False)
             return True
-        return False
+        except FileNotFoundError:
+            return False
+        except (IsADirectoryError, PermissionError):
+            return False
 
     def esiste(self, nome_file: str) -> bool:
         """Verifica l'esistenza fisica del file su disco."""

@@ -1,49 +1,100 @@
-"""Test per l'adattatore archivio foto (Corsia 2 · Task T1-21).
+"""Test completi per l'adattatore archivio foto (Corsia 2 · Task T1-21).
 
-Verifica sia l'implementazione finta in memoria (ArchivioFinto) sia l'implementazione
-reale su disco (ArchivioDisco su directory temporanea isolata), inclusi i controlli di sicurezza
-anti-path traversal e la generazione del nome file da parte del server.
+Copre:
+1. Protezione DoS: limite dimensione massima payload (10 MB come da Spec R-13);
+2. Integrità ed estensioni: whitelist formati (JPG, PNG, WEBP) e verifica magic bytes;
+3. Anti-TOCTOU: eliminazione concorrente sicura senza eccezioni non gestite;
+4. Isolamento stato: context manager `usa_archivio` con ripristino deterministico;
+5. Sicurezza Directory Traversal (CWE-22) su nomi e percorsi;
+6. Coerenza completa tra ArchivioDisco e ArchivioFinto.
 """
 
 from pathlib import Path
 import pytest
 
 from app.adapters.archivio import (
+    DIMENSIONE_MAX_BYTE,
+    ESTENSIONI_AMMESSE,
     ArchivioAdapter,
     ArchivioDisco,
     ArchivioFinto,
     imposta_archivio,
     ottieni_archivio,
+    usa_archivio,
 )
+
+# Header di esempio validi per i formati supportati
+PNG_TEST = b"\x89PNG\r\n\x1a\n\x00\x00\x00\rIHDR"
+JPEG_TEST = b"\xff\xd8\xff\xe0\x00\x10JFIF\x00\x01"
+WEBP_TEST = b"RIFF\x14\x00\x00\x00WEBPVP8 \x08\x00\x00\x00"
 
 
 def test_generazione_nome_file_sicuro():
-    """Il server genera sempre un nome univoco e sanitizza l'estensione."""
+    """Il server genera sempre un nome univoco e sanitizza l'estensione consentita."""
     nome1 = ArchivioAdapter.genera_nome_file(".jpg")
     nome2 = ArchivioAdapter.genera_nome_file("png")
     nome3 = ArchivioAdapter.genera_nome_file(".JPEG")
-    nome4 = ArchivioAdapter.genera_nome_file("..exe")
-    nome5 = ArchivioAdapter.genera_nome_file("")
-    nome6 = ArchivioAdapter.genera_nome_file("   ")
+    nome4 = ArchivioAdapter.genera_nome_file("webp")
 
     assert nome1.endswith(".jpg")
     assert nome2.endswith(".png")
     assert nome3.endswith(".jpeg")
-    assert nome4.endswith(".exe")
-    assert nome5.endswith(".bin")
-    assert nome6.endswith(".bin")
-    assert nome1 != nome2
+    assert nome4.endswith(".webp")
     assert len(nome1) > 32  # UUID esadecimale + estensione
+    assert nome1 != nome2
+
+
+def test_estensioni_rifiutate_se_non_in_whitelist():
+    """Estensioni non appartenenti a immagini supportate (JPG, PNG, WEBP) vengono rifiutate."""
+    estensioni_vietate = [".exe", ".sh", ".php", ".py", ".bin", "tar.gz", "", None]
+    for ext in estensioni_vietate:
+        with pytest.raises(ValueError):
+            ArchivioAdapter.genera_nome_file(ext)  # type: ignore[arg-type]
+
+
+def test_valida_dimensione_payload_limite_10mb():
+    """Payload vuoti o oltre il limite di 10 MB (Spec R-13) vengono bloccati (anti-DoS)."""
+    # Payload vuoto
+    with pytest.raises(ValueError, match="non può essere vuoto"):
+        ArchivioAdapter.valida_dimensione_payload(b"")
+
+    # Payload oltre 10 MB
+    payload_eccessivo = b"x" * (DIMENSIONE_MAX_BYTE + 1)
+    with pytest.raises(ValueError, match="supera il limite massimo"):
+        ArchivioAdapter.valida_dimensione_payload(payload_eccessivo)
+
+    # Tipo non binario
+    with pytest.raises(TypeError):
+        ArchivioAdapter.valida_dimensione_payload("stringa")  # type: ignore[arg-type]
+
+
+def test_valida_magic_bytes_integrita():
+    """Viene verificata la coerenza tra estensione dichiarata e magic bytes reali del file."""
+    # JPEG valido
+    ArchivioAdapter.valida_magic_bytes(JPEG_TEST, ".jpg")
+
+    # PNG valido
+    ArchivioAdapter.valida_magic_bytes(PNG_TEST, ".png")
+
+    # WEBP valido
+    ArchivioAdapter.valida_magic_bytes(WEBP_TEST, ".webp")
+
+    # Script di testo mascherato da JPEG -> rifiutato
+    with pytest.raises(ValueError, match="immagine JPEG valida"):
+        ArchivioAdapter.valida_magic_bytes(b"<?php echo 'malware'; ?>", ".jpg")
+
+    # Header PNG etichettato come JPEG -> rifiutato
+    with pytest.raises(ValueError, match="immagine JPEG valida"):
+        ArchivioAdapter.valida_magic_bytes(PNG_TEST, ".jpg")
 
 
 def test_archivio_finto_salva_leggi_elimina():
     """ArchivioFinto memorizza e gestisce i file interamente in memoria senza toccare il disco."""
     archivio = ArchivioFinto()
-    contenuto = b"\xff\xd8\xff\xe0\x00\x10JFIF"  # Header JPEG finto
 
-    nome = archivio.salva(contenuto, "jpg")
+    nome = archivio.salva(JPEG_TEST, "jpg")
     assert archivio.esiste(nome) is True
-    assert archivio.leggi(nome) == contenuto
+    assert archivio.leggi(nome) == JPEG_TEST
     assert nome in archivio.file_salvati
 
     # Eliminazione
@@ -58,8 +109,8 @@ def test_archivio_finto_salva_leggi_elimina():
 def test_archivio_finto_svuota():
     """Il metodo svuota azzera i dati memorizzati."""
     archivio = ArchivioFinto()
-    nome1 = archivio.salva(b"dati1", "png")
-    nome2 = archivio.salva(b"dati2", "webp")
+    nome1 = archivio.salva(PNG_TEST, "png")
+    nome2 = archivio.salva(WEBP_TEST, "webp")
     assert len(archivio.file_salvati) == 2
 
     archivio.svuota()
@@ -71,18 +122,17 @@ def test_archivio_finto_svuota():
 def test_archivio_disco_operazioni_base(tmp_path: Path):
     """ArchivioDisco opera correttamente sulla cartella configurata (tmp_path isolata)."""
     archivio = ArchivioDisco(radice=tmp_path)
-    contenuto = b"dati-immagine-di-prova"
 
-    nome = archivio.salva(contenuto, ".png")
+    nome = archivio.salva(PNG_TEST, ".png")
     assert archivio.esiste(nome) is True
 
     # Verifica presenza fisica del file nella directory temporanea
     file_fisico = tmp_path / nome
     assert file_fisico.is_file()
-    assert file_fisico.read_bytes() == contenuto
+    assert file_fisico.read_bytes() == PNG_TEST
 
     # Lettura tramite adattatore
-    assert archivio.leggi(nome) == contenuto
+    assert archivio.leggi(nome) == PNG_TEST
     assert archivio.percorso_file(nome) == file_fisico
 
     # Eliminazione
@@ -96,6 +146,22 @@ def test_archivio_disco_operazioni_base(tmp_path: Path):
 
     with pytest.raises(FileNotFoundError):
         archivio.percorso_file(nome)
+
+
+def test_archivio_disco_eliminazione_anti_toctou(tmp_path: Path):
+    """Eliminazione concorrente (file rimosso esternamente prima di unlink) gestita senza crash."""
+    archivio = ArchivioDisco(radice=tmp_path)
+    nome = archivio.salva(PNG_TEST, ".png")
+
+    # Rimuoviamo il file prima di chiamare elimina (simulazione race condition)
+    (tmp_path / nome).unlink()
+
+    # Non deve sollevare eccezioni non gestite, ma restituire False con grazia
+    assert archivio.elimina(nome) is False
+
+    # Tentativo di eliminare una sottodirectory non deve sollevare PermissionError
+    (tmp_path / "cartella_prova").mkdir()
+    assert archivio.elimina("cartella_prova") is False
 
 
 def test_archivio_disco_sicurezza_path_traversal(tmp_path: Path):
@@ -123,35 +189,33 @@ def test_archivio_disco_sicurezza_path_traversal(tmp_path: Path):
         assert archivio.esiste(tentativo) is False
 
 
-def test_ottieni_e_imposta_archivio():
-    """La factory globale permette di iniettare l'adattatore finto per i test."""
-    finto = ArchivioFinto()
-    imposta_archivio(finto)
+def test_usa_archivio_context_manager():
+    """Il context manager ripristina deterministicamente l'adattatore evitando test flaky."""
+    originale = ottieni_archivio()
+    finto1 = ArchivioFinto()
+    finto2 = ArchivioFinto()
+
+    with usa_archivio(finto1) as attivo1:
+        assert attivo1 is finto1
+        assert ottieni_archivio() is finto1
+
+        # Annidamento
+        with usa_archivio(finto2) as attivo2:
+            assert attivo2 is finto2
+            assert ottieni_archivio() is finto2
+
+        assert ottieni_archivio() is finto1
+
+    assert ottieni_archivio() is originale
+
+    # Ripristino garantito anche in caso di eccezione
     try:
-        assert ottieni_archivio() is finto
-    finally:
-        imposta_archivio(None)  # Reset allo stato predefinito
+        with usa_archivio(finto1):
+            raise RuntimeError("Errore simulato")
+    except RuntimeError:
+        pass
 
-
-def test_estensione_troppo_lunga_usa_bin(tmp_path: Path):
-    """Un'estensione oltre il limite non produce nomi che il disco non può scrivere."""
-    nome = ArchivioAdapter.genera_nome_file("a" * 300)
-    assert nome.endswith(".bin")
-    assert len(nome) < 255
-
-    # Il nome generato si può davvero salvare su disco
-    archivio = ArchivioDisco(radice=tmp_path)
-    assert archivio.esiste(archivio.salva(b"dati", "a" * 300))
-
-    # Al limite esatto l'estensione è accettata
-    assert ArchivioAdapter.genera_nome_file("a" * 10).endswith("." + "a" * 10)
-
-
-@pytest.mark.parametrize("contenuto", ["testo", 5, None, ["a"]])
-def test_archivio_finto_rifiuta_contenuto_non_bytes(contenuto):
-    """Il finto è severo come il disco: niente conversioni silenziose."""
-    with pytest.raises(TypeError):
-        ArchivioFinto().salva(contenuto, "jpg")
+    assert ottieni_archivio() is originale
 
 
 @pytest.mark.parametrize(
@@ -159,7 +223,7 @@ def test_archivio_finto_rifiuta_contenuto_non_bytes(contenuto):
     ["../x.png", "a/b.png", "x.png:ads", "x*.png", "", None, 123],
 )
 def test_finto_e_disco_rifiutano_gli_stessi_nomi(tmp_path: Path, nome_non_valido):
-    """Finto e disco hanno lo stesso comportamento sui nomi non validi."""
+    """Finto e disco hanno lo stesso identico comportamento sui nomi non validi."""
     for archivio in (ArchivioFinto(), ArchivioDisco(radice=tmp_path)):
         with pytest.raises(ValueError):
             archivio.leggi(nome_non_valido)

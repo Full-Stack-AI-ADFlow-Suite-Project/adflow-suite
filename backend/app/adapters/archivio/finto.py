@@ -14,9 +14,8 @@ class ArchivioFinto(ArchivioAdapter):
 
     def salva(self, contenuto: bytes, estensione: str) -> str:
         """Salva il contenuto in memoria generando un nome univoco."""
-        if not isinstance(contenuto, (bytes, bytearray, memoryview)):
-            raise TypeError("Il contenuto da salvare deve essere di tipo bytes.")
-        nome_file = self.genera_nome_file(estensione)
+        ext_normalizzata = self.valida_payload(contenuto, estensione)
+        nome_file = self.genera_nome_file(ext_normalizzata)
         self._archivio[nome_file] = bytes(contenuto)
         return nome_file
 
