@@ -5,21 +5,21 @@
 ## Funzionalità implementate
 
 - `POST /api/campagne/{id}/foto`: caricamento foto per campagna in bozza (`HTTP 201`).
-  - Streaming protetto anti-DoS: lettura chunked a blocchi di 64 KB con blocco preventivo immediato e rifiuto se il payload supera 10 MB (Spec R-13, CA-13: `HTTP 422`).
+  - Controllo del peso: lettura a blocchi di 64 KB con rifiuto oltre 10 MB (Spec R-13, CA-13: `HTTP 422`). Il limite protegge la memoria e il disco dell'archivio, ma non la banda: vedi "Limiti noti".
   - Parser binario puro (`immagini.py`) senza dipendenze esterne: ispezione nativa con `struct` per formati PNG (chunk IHDR), JPEG (marker SOF0..SOF15 con salto byte padding `0xFF` e RST), e WebP (VP8 lossy, VP8L lossless bit-packed e VP8X extended canvas a 24-bit).
   - Validazione dimensionale R-13 / CA-13: `min(larghezza, altezza) >= 1080 px` (`HTTP 422`).
   - Protezione Defense in Depth anti-DoS:
     - Limite dimensioni estreme `MAX_WIDTH = 8192` e `MAX_HEIGHT = 8192` (`HTTP 422`);
     - Protezione Decompression Bomb / Pixel Flood: `MAX_PIXELS = 36_000_000` (`HTTP 422`).
   - Sanificazione totale del nome file: memorizzazione su archivio con UUIDv4 univoco generato dal server (Constitution §3).
-  - Compensazione atomica anti-TOCTOU: in caso di eccezione a livello database durante la registrazione della foto, il file fisico scritto su disco viene immediatamente rimosso (zero file orfani garantito).
+  - Compensazione transazionale: il file viene scritto prima del record; se il flush fallisce o la transazione termina con un rollback (anche dopo la risposta), il file viene rimosso. Se il processo si interrompe di colpo resta un file orfano, innocuo.
   - Gestione gruppi: generazione automatica di un nuovo UUID per il gruppo o associazione a un gruppo esistente della campagna con ereditarietà automatica della descrizione già impostata.
 - `PUT /api/campagne/{id}/gruppi/{gruppo_id}`: aggiornamento descrizione del gruppo (`HTTP 200`).
   - Copia e sincronizzazione atomica della descrizione su tutte le foto appartenenti al gruppo indicato.
   - Vincolo di stato: consentito solo per campagne in stato `bozza` (`HTTP 409`).
   - Riservatezza CA-04: solo l'artigiano proprietario può aggiornare il gruppo (`HTTP 404` per altri artigiani).
 - `DELETE /api/foto/{id}`: eliminazione singola foto (`HTTP 204`).
-  - Rimozione atomica anti-TOCTOU: cancellazione dal database per prima con `flush()` e rimozione del file fisico dall'archivio solo a successo DB confermato.
+  - Il file fisico viene cancellato solo dopo il commit riuscito (non dopo il `flush()`): se la transazione viene annullata restano record e file. Un errore del disco dopo il commit viene registrato nel log e lascia al massimo un file orfano.
   - Consentito solo per campagne in stato `bozza` (`HTTP 409`) dall'artigiano proprietario (`HTTP 404` ad altri).
 - `DELETE /api/campagne/{id}/gruppi/{gruppo_id}`: eliminazione atomica dell'intero gruppo (`HTTP 204`).
   - Eliminazione di tutte le foto del gruppo da database e rimozione dei rispettivi file fisici dall'archivio.
@@ -64,4 +64,13 @@
   - `test_debug_matrice_stati_non_bozza_vietati` (409 per tutti i 10 stati non-bozza)
   - `test_debug_dettaglio_campagna_con_struttura_foto_completa` (200, aggregato multi-gruppo verificato)
   - `test_debug_concorrenza_reale_upload_multi_thread` (201, 4 thread concorrenti su stesso gruppo)
-- 224 test totali passati con successo su tutta la suite locale.
+  - `test_upload_con_rollback_rimuove_il_file_orfano` (rollback dopo upload, nessun file residuo)
+  - `test_rollback_successivo_non_tocca_i_file_gia_confermati` (nessun effetto su foto già confermate)
+  - `test_eliminazione_con_rollback_conserva_file_e_record` (DELETE annullata, tutto intatto)
+- 227 test totali passati con successo su tutta la suite locale.
+
+## Limiti noti
+
+- **Peso del body**: FastAPI/Starlette riceve e salva in un file temporaneo l'intero multipart prima che l'endpoint giri, quindi il controllo dei 10 MB non evita il traffico di un upload enorme. La protezione completa richiede un limite sul body a monte (reverse proxy, es. `client_max_body_size`) o un middleware: sono fuori dalla corsia 2 (main.py), da segnalare alla corsia 0.
+- **Dipendenza**: `python-multipart` serve a FastAPI per i campi `File`/`Form` ma non è in `requirements.txt` (corsia 0): da richiedere con una domanda alla corsia 0.
+- **Quantità di foto**: la specifica non fissa un massimo di foto per campagna o per gruppo; oggi non c'è un tetto.

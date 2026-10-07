@@ -418,7 +418,11 @@ def test_eliminazione_foto_singola(
         res_del = client.delete(f"/api/foto/{foto_id}")
         assert res_del.status_code == 204
 
-        # Verifica rimozione da DB e da disco
+        # Prima del commit il file deve esistere ancora (nulla è definitivo)
+        assert percorso_file.is_file()
+
+        # Commit di fine richiesta: solo ora il file viene rimosso
+        db.commit()
         assert db.get(Foto, foto_id) is None
         assert not percorso_file.exists()
 
@@ -499,7 +503,11 @@ def test_eliminazione_gruppo_completo(
         res_del = client.delete(f"/api/campagne/{camp.id}/gruppi/{gruppo_id}")
         assert res_del.status_code == 204
 
-        # Entrambe le foto devono essere sparite da DB e disco
+        # Prima del commit i file esistono ancora
+        assert file1.is_file() and file2.is_file()
+
+        # Dopo il commit entrambe le foto sono sparite da DB e disco
+        db.commit()
         assert db.get(Foto, foto1_id) is None
         assert db.get(Foto, foto2_id) is None
         assert not file1.exists()
@@ -1146,3 +1154,80 @@ def test_debug_concorrenza_reale_upload_multi_thread(motore_test, tmp_path: Path
                     {"pid": prof_id},
                 )
                 s.execute(text("DELETE FROM utente WHERE id = :uid"), {"uid": u_id})
+
+
+# ==============================================================================
+# Ordine disco/transazione: nulla di irreversibile prima del commit
+# ==============================================================================
+
+
+def test_upload_con_rollback_rimuove_il_file_orfano(
+    utente_di_prova, db: Session, tmp_path: Path
+):
+    """Se la transazione termina con un rollback dopo l'upload, il file non resta su disco."""
+    from app.moduli.campagne import service as camp_service
+
+    with usa_archivio(ArchivioDisco(tmp_path)):
+        art = utente_di_prova("artigiano")
+        prof = profilo(db, utente_id=art.id)
+        camp = campagna_in_bozza(db, profilo_id=prof.id)
+
+        foto = camp_service.carica_foto(
+            db, art.id, "artigiano", camp.id, _crea_png(1080, 1080)
+        )
+        assert (tmp_path / foto.file).is_file()
+
+        db.rollback()
+
+        assert list(tmp_path.iterdir()) == []
+
+
+def test_rollback_successivo_non_tocca_i_file_gia_confermati(
+    utente_di_prova, db: Session, tmp_path: Path
+):
+    """Un listener di una foto già confermata non deve cancellarla in un rollback futuro."""
+    from app.moduli.campagne import service as camp_service
+
+    with usa_archivio(ArchivioDisco(tmp_path)):
+        art = utente_di_prova("artigiano")
+        prof = profilo(db, utente_id=art.id)
+        camp = campagna_in_bozza(db, profilo_id=prof.id)
+
+        prima = camp_service.carica_foto(
+            db, art.id, "artigiano", camp.id, _crea_png(1080, 1080)
+        )
+        nome_prima = prima.file
+        db.commit()
+
+        seconda = camp_service.carica_foto(
+            db, art.id, "artigiano", camp.id, _crea_png(1200, 1200)
+        )
+        nome_seconda = seconda.file
+        db.rollback()
+
+        assert (tmp_path / nome_prima).is_file()
+        assert not (tmp_path / nome_seconda).exists()
+
+
+def test_eliminazione_con_rollback_conserva_file_e_record(
+    client: TestClient, utente_di_prova, db: Session, tmp_path: Path
+):
+    """Se la transazione di una DELETE viene annullata, record e file restano entrambi."""
+    with usa_archivio(ArchivioDisco(tmp_path)):
+        art = utente_di_prova("artigiano")
+        prof = profilo(db, utente_id=art.id)
+        camp = campagna_in_bozza(db, profilo_id=prof.id)
+
+        res = client.post(
+            f"/api/campagne/{camp.id}/foto",
+            files={"file": ("foto.png", BytesIO(_crea_png(1080, 1080)), "image/png")},
+        )
+        foto_id = res.json()["id"]
+        nome_file = res.json()["file"]
+        db.commit()
+
+        assert client.delete(f"/api/foto/{foto_id}").status_code == 204
+        db.rollback()
+
+        assert (tmp_path / nome_file).is_file()
+        assert db.get(Foto, foto_id) is not None

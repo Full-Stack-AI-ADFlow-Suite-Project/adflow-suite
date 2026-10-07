@@ -1,9 +1,11 @@
+from collections.abc import Callable
 from datetime import datetime, timedelta
+import logging
 from typing import Any
 import uuid
 from uuid import UUID
 
-from sqlalchemy import select, text
+from sqlalchemy import event, select, text
 from sqlalchemy.orm import Session
 
 from app.adapters.archivio import ottieni_archivio
@@ -387,6 +389,45 @@ def dettaglio_campagna(
     )
 
 
+logger = logging.getLogger(__name__)
+
+
+def _al_termine_transazione(
+    db: Session,
+    *,
+    su_commit: Callable[[], object] | None = None,
+    su_rollback: Callable[[], object] | None = None,
+) -> None:
+    """Esegue un'azione sul file system solo a esito reale della transazione.
+
+    ``flush()`` non rende nulla definitivo: il commit avviene dopo la risposta
+    (``get_db``). Le azioni irreversibili sul disco vanno quindi agganciate a
+    commit o rollback. Ogni azione scatta al massimo una volta; un errore del
+    disco viene registrato e non interrompe il commit già avvenuto, perché un
+    file orfano è innocuo mentre un record senza file no.
+    """
+    concluso = {"fatto": False}
+
+    def gestore(azione: Callable[[], object] | None) -> Callable[[Session], None]:
+        def esegui(_sessione: Session) -> None:
+            if concluso["fatto"]:
+                return
+            concluso["fatto"] = True
+            if azione is None:
+                return
+            try:
+                azione()
+            except OSError:
+                logger.warning(
+                    "Operazione sul file system non riuscita.", exc_info=True
+                )
+
+        return esegui
+
+    event.listen(db, "after_commit", gestore(su_commit))
+    event.listen(db, "after_rollback", gestore(su_rollback))
+
+
 def carica_foto(
     db: Session,
     utente_id: int,
@@ -461,7 +502,11 @@ def carica_foto(
     archivio = ottieni_archivio()
     nome_file = archivio.salva(contenuto, info.estensione)
 
-    # Inserimento DB con rollback/compensazione del file fisico in caso di errore
+    # Il file è su disco ma il record non è ancora definitivo: se la transazione
+    # termina con un rollback (anche dopo la risposta) il file viene rimosso.
+    _al_termine_transazione(db, su_rollback=lambda: archivio.elimina(nome_file))
+
+    # Inserimento DB con compensazione immediata se il flush fallisce
     try:
         nuova_foto = Foto(
             profilo_id=profilo.id,
@@ -561,8 +606,9 @@ def elimina_foto(
     db.delete(foto)
     db.flush()
 
+    # Il file si cancella solo dopo il commit riuscito, mai prima.
     archivio = ottieni_archivio()
-    archivio.elimina(nome_file)
+    _al_termine_transazione(db, su_commit=lambda: archivio.elimina(nome_file))
 
 
 def elimina_gruppo(
@@ -605,9 +651,15 @@ def elimina_gruppo(
         db.delete(f)
     db.flush()
 
+    # Un'azione per file: l'errore su uno non impedisce la rimozione degli altri.
     archivio = ottieni_archivio()
     for nome in nomi_file:
-        archivio.elimina(nome)
+        _al_termine_transazione(
+            db,
+            su_commit=lambda nome_da_rimuovere=nome: archivio.elimina(
+                nome_da_rimuovere
+            ),
+        )
 
 
 def leggi_file_foto(

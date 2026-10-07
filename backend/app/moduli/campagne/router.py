@@ -7,6 +7,7 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, File, Form, Query, Response, UploadFile
 from sqlalchemy.orm import Session
 
+from app.adapters.archivio import DIMENSIONE_MAX_BYTE
 from app.core.db import get_db
 from app.core.errori import DatiNonValidi
 from app.core.orologio import adesso
@@ -66,7 +67,7 @@ def carica_foto(
     gruppo_id: Annotated[UUID | None, Form()] = None,
 ) -> FotoDettaglio:
     """Carica una nuova foto nella campagna in bozza con streaming e limiti anti-DoS (CA-13, R-13)."""
-    dimensione_max = 10 * 1024 * 1024
+    dimensione_max = DIMENSIONE_MAX_BYTE
     letti = 0
     blocchi = []
     while True:
@@ -154,4 +155,8 @@ def scarica_file_foto(
     contenuto, mime = service.leggi_file_foto(
         db=db, utente_id=utente.id, ruolo=utente.ruolo, foto_id=id
     )
-    return Response(content=contenuto, media_type=mime)
+    return Response(
+        content=contenuto,
+        media_type=mime,
+        headers={"X-Content-Type-Options": "nosniff"},
+    )
