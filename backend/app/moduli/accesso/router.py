@@ -9,13 +9,27 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.routing import APIRoute
 from sqlalchemy.orm import Session
+from starlette.concurrency import run_in_threadpool
 
 from app.core.db import get_db
 from app.core.orologio import adesso
+from app.core.config import leggi_impostazioni
+from app.core.limite_login import prenota
+from app.core.eventi_sicurezza import registra, id_richiesta
 
 from . import service
 from .models import Utente
 from .schemas import Login, UtentePubblico
+from .email import identita_login
+
+
+def cookie_sicuro(request: Request) -> bool:
+    impostazioni = leggi_impostazioni()
+    if impostazioni.ambiente == "produzione":
+        return True
+    if impostazioni.cookie_secure is not None:
+        return impostazioni.cookie_secure
+    return request.url.scheme == "https"
 
 
 class RottaAccesso(APIRoute):
@@ -25,9 +39,17 @@ class RottaAccesso(APIRoute):
         originale = super().get_route_handler()
 
         async def senza_credenziali(request: Request) -> Response:
+            if request.url.path == "/api/auth/login" and request.method == "POST":
+                await run_in_threadpool(
+                    prenota,
+                    "ip",
+                    request.client.host if request.client else "assente",
+                    adesso(),
+                )
             try:
                 return await originale(request)
             except RequestValidationError:
+                registra("auth_invalid_input", id_richiesta(request))
                 return JSONResponse(
                     status_code=422,
                     content={"detail": "Dati di accesso non validi."},
@@ -45,9 +67,10 @@ def login(
     dati: Login,
     request: Request,
     response: Response,
-    db: Annotated[Session, Depends(get_db)],
+    db: Annotated[Session, Depends(get_db, scope="function")],
     ora: Annotated[datetime, Depends(adesso)],
 ) -> Utente:
+    prenota("account", identita_login(dati.email), ora)
     utente, token = service.login(
         db, dati.email, dati.password, ora, request.cookies.get(service.COOKIE_SESSIONE)
     )
@@ -56,7 +79,7 @@ def login(
         token,
         max_age=int(service.DURATA_SESSIONE.total_seconds()),
         httponly=True,
-        secure=request.url.scheme == "https",
+        secure=cookie_sicuro(request),
         samesite="lax",
         path="/",
     )
@@ -65,14 +88,16 @@ def login(
 
 
 @router.post("/auth/logout", status_code=204)
-def logout(request: Request, db: Annotated[Session, Depends(get_db)]) -> Response:
+def logout(
+    request: Request, db: Annotated[Session, Depends(get_db, scope="function")]
+) -> Response:
     service.logout(db, request.cookies.get(service.COOKIE_SESSIONE))
     response = Response(status_code=204, headers={"Cache-Control": "no-store"})
     response.delete_cookie(
         service.COOKIE_SESSIONE,
         path="/",
         httponly=True,
-        secure=request.url.scheme == "https",
+        secure=cookie_sicuro(request),
         samesite="lax",
     )
     return response

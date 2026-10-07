@@ -79,6 +79,20 @@ Finché un endpoint non è su `main`, la pagina usa dati di esempio con la forma
 
 ## Sprint successivi (si dividono in task quando si arriva)
 Le corsie restano le stesse: ogni novità va alla corsia del suo modulo; tabelle, stati e funzioni condivise alla corsia 0.
+
+## Follow-up sicurezza accesso · issue #16–19
+
+Richiesti da Gianluca dopo la PR #20. Modifiche comuni della corsia 0 e accesso
+della corsia 1 raccolte in una PR dipendente da #20: revisione di tutto il team,
+merge dell'admin. Non si introducono servizi nuovi. Le caselle descrivono la
+preparazione per revisione, non la chiusura formale dopo il merge.
+
+| Issue | Corsia | Task / fatto quando | Preparato |
+|---|---|---|---|
+| #16 | 0/1 | Limite IP/account 5/15 min configurabile su PostgreSQL, condiviso e testato tra processi, 429 con Retry-After | ☑ |
+| #18 | 0 | Eventi JSON distinti senza PII, request ID generato, guasto logger testato, procedure operative documentate | ☑ |
+| #19 | 1/0 | email-validator senza DNS, Unicode/.test/account storici verificati, dipendenza documentata | ☑ |
+| #17 | 0 | Configurazione proxy/cookie documentata e testata localmente con TLS; evidenza nello staging reale da allegare | ☐ |
 - **2a · Pagine Profilo e Campagna**: profilo, PATCH bozza, pagina Profilo (passi 1–9), pagina Campagna (Bentornato, passi 10–12). CA-05…08, CA-16.
 - **2b · Revisione e motivi del No**: rimanda, respingi con motivo, notifiche ed email, scadenza, rigenera (2 modalità), sospendi / riattiva / annulla, visibilità artigiano. CA-23…32.
 - **3 · Ritocco foto e pagine operatore**: `versione_foto`, ritocca / scegli foto, anagrafica, elenco e pagina artigiano, account social e sospensione, calendario, promemoria. CA-33…35, CA-40…43.

@@ -29,6 +29,7 @@ from tests.moduli.campagne.fabbrica import (
 from tests.moduli.contenuti.fabbrica import post_da_approvare, post_approvato
 
 TABELLE = {
+    "limite_login",
     "utente",
     "sessione",
     "profilo_bottega",
@@ -64,6 +65,9 @@ def test_upgrade_downgrade_completo_e_ultimo_passaggio(motore_test):
     command.upgrade(config, "head")
     command.downgrade(config, "-1")
     with motore_test.connect() as conn:
+        assert "limite_login" not in inspect(conn).get_table_names()
+    command.downgrade(config, "-1")
+    with motore_test.connect() as conn:
         assert not TABELLE_CODA & set(inspect(conn).get_table_names())
     command.downgrade(config, "-1")
     with motore_test.connect() as conn:
@@ -74,7 +78,7 @@ def test_upgrade_downgrade_completo_e_ultimo_passaggio(motore_test):
             set(inspect(conn).get_table_names()) - {"alembic_version"}
             == TABELLE | TABELLE_CODA
         )
-        assert conn.scalar(text("select version_num from alembic_version")) == "007"
+        assert conn.scalar(text("select version_num from alembic_version")) == "008"
         contesto = MigrationContext.configure(conn, opts={"include_name": del_modello})
         assert compare_metadata(contesto, metadata) == []
 

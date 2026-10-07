@@ -67,6 +67,24 @@ python -m procrastinate -a app.worker.app worker --concurrency 1
 
 Le tabelle della coda le crea `alembic upgrade head` (migrazione 007). Finché non c'è T1-43 il tick finisce in errore a ogni minuto (`NotImplementedError`): è atteso.
 
+## Protezioni dell'accesso (#16–19)
+
+La migrazione 008 aggiunge i contatori condivisi dei tentativi di login in PostgreSQL.
+Prima dell'avvio aggiornare lo schema. La politica predefinita ammette cinque
+richieste per IP e cinque per account ogni 900 secondi, anche con più worker;
+contano anche gli accessi riusciti. Il blocco risponde 429 con `Retry-After`.
+
+In produzione impostare `AMBIENTE=produzione`, un `LOGIN_LIMITE_SEGRETO` casuale
+di almeno 32 caratteri identico su tutte le istanze e `EMAIL_TEST_ENVIRONMENT=false`.
+I cookie sono sempre Secure in produzione. Per il proxy fidato, i log e le prove
+HTTPS leggere [la procedura di sicurezza](docs/novita/16-19-sicurezza-accesso.md).
+Non usare il segreto finto di `.env.example` in produzione.
+
+La creazione utenti richiede email valide secondo email-validator, senza DNS.
+Il login mantiene la compatibilità con gli indirizzi storici; `.test` è ammesso
+nelle nuove creazioni solo con `EMAIL_TEST_ENVIRONMENT=true` in sviluppo/test.
+La suite comprende prove TLS locali con certificati temporanei generati da cryptography.
+
 ## 🔧 Regole di Git (Leggere attentamente!)
 1. **NON** lavorare mai direttamente sul branch `main`.
 2. Prima di iniziare un task, crea un branch: `git checkout -b feature/<id>-<breve>` (es. `feature/T1-22-api-bozza`)

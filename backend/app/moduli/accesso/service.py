@@ -3,7 +3,6 @@
 from collections.abc import Callable
 from datetime import datetime, timedelta
 from functools import lru_cache
-import re
 from typing import Annotated
 
 from fastapi import Depends, Request
@@ -18,6 +17,7 @@ from app.core.security import genera_token, hash_password, hash_token, verifica_
 
 from .models import Sessione, Utente
 from .schemas import testo_valido
+from .email import identita_login, normalizza_email
 
 DURATA_SESSIONE = timedelta(hours=8)
 COOKIE_SESSIONE = "adflow_sessione"
@@ -45,7 +45,11 @@ def login(
     candidati = list(
         db.scalars(
             select(Utente)
-            .where(func.lower(Utente.email) == email.strip().lower())
+            .where(
+                func.lower(Utente.email).in_(
+                    {email.strip().lower(), identita_login(email)}
+                )
+            )
             .limit(2)
         )
     )
@@ -174,7 +178,7 @@ def crea_utente(
     Raises:
         DatiNonValidi: se l'email è già registrata o il ruolo non è ammesso.
     """
-    email = email.strip().lower()
+    email = normalizza_email(email)
     nome = nome.strip()
     if not testo_valido(email, campo_postgres=True):
         raise DatiNonValidi("Indirizzo email non valido.")
@@ -182,17 +186,18 @@ def crea_utente(
         raise DatiNonValidi("Nome non valido.")
     if not testo_valido(password):
         raise DatiNonValidi("Password non valida.")
-    if len(email) > 320 or re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email) is None:
-        raise DatiNonValidi("Indirizzo email non valido.")
     if ruolo not in RUOLI_AMMESSI:
         raise DatiNonValidi("Ruolo non ammesso.")
     if not nome:
         raise DatiNonValidi("Il nome non può essere vuoto.")
     if not password or len(password) > 1024:
         raise DatiNonValidi("La password deve contenere da 1 a 1024 caratteri.")
-    if (
-        db.scalar(select(Utente.id).where(func.lower(Utente.email) == email))
-        is not None
+    # Anche un indirizzo Unicode storico non normalizzato può coincidere con
+    # quello nuovo. La creazione è rara: confronta le identità esistenti senza
+    # modificarle, impedendo che un nuovo account renda ambiguo quello storico.
+    if any(
+        identita_login(precedente) == email
+        for precedente in db.scalars(select(Utente.email))
     ):
         raise DatiNonValidi("Email già registrata.")
     record = Utente(

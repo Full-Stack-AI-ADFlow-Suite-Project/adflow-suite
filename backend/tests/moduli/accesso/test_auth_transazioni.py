@@ -195,7 +195,14 @@ def test_cli_errore_non_crea_record(reale, monkeypatch):
 
 
 @pytest.mark.parametrize("concorrenti", [2, 4, 8])
-def test_login_paralleli_dispositivi_distinti_token_unici(reale, concorrenti):
+def test_login_paralleli_dispositivi_distinti_token_unici(
+    reale, concorrenti, monkeypatch
+):
+    # Qui si prova la rotazione delle sessioni; il limite predefinito di cinque
+    # è verificato separatamente dai test di sicurezza con richieste concorrenti.
+    from app.core.config import leggi_impostazioni
+
+    monkeypatch.setattr(leggi_impostazioni(), "login_limite_tentativi", 8)
     record_id, email = reale.nuovo()
 
     def dispositivo(_):

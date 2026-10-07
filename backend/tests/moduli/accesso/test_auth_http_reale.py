@@ -148,5 +148,8 @@ uvicorn.run('app.main:app', host='127.0.0.1', port=int(sys.argv[1]),
                 processo.kill()
                 processo.wait(timeout=5)
         with motore_test.begin() as connessione:
+            connessione.execute(
+                text("SELECT id FROM utente WHERE id=:id FOR UPDATE"), {"id": record_id}
+            )
             connessione.execute(delete(Sessione).where(Sessione.utente_id == record_id))
             connessione.execute(delete(Utente).where(Utente.id == record_id))
