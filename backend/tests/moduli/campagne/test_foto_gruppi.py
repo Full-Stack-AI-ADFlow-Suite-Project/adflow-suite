@@ -585,3 +585,287 @@ def test_compensazione_rollback_disco_se_db_fallisce(
         # Verifichiamo che la cartella dell'archivio non contenga file orfani
         file_rimasti = list(tmp_path.iterdir())
         assert file_rimasti == [], f"Trovati file orfani non compensati: {file_rimasti}"
+
+
+# ==============================================================================
+# Sezione Debug Avanzato, Stress Test e Casi Limite
+# ==============================================================================
+
+
+def test_debug_jpeg_malformato_marker_inatteso(
+    client: TestClient, utente_di_prova, db: Session
+):
+    """Debug: Stream JPEG con byte non-0xFF dopo SOI viene respinto con 422."""
+    art = utente_di_prova("artigiano")
+    prof = profilo(db, utente_id=art.id)
+    camp = campagna_in_bozza(db, profilo_id=prof.id)
+
+    app0_dati = b"JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00"
+    app0 = b"\xff\xe0" + struct.pack(">H", len(app0_dati) + 2) + app0_dati
+    # Dopo APP0 invece di 0xFF c'è 0x42 (marker inatteso)
+    jpeg_corrotto = b"\xff\xd8" + app0 + b"\x42\x43\x44\x45"
+    res = client.post(
+        f"/api/campagne/{camp.id}/foto",
+        files={"file": ("corrotto.jpg", BytesIO(jpeg_corrotto), "image/jpeg")},
+    )
+    assert res.status_code == 422
+    assert "File JPEG non valido o corrotto: marker inatteso" in res.json()["detail"]
+
+
+def test_debug_jpeg_malformato_senza_sof(
+    client: TestClient, utente_di_prova, db: Session
+):
+    """Debug: Stream JPEG valido fino ad APP0 ma privo di Start of Frame solleva 422."""
+    art = utente_di_prova("artigiano")
+    prof = profilo(db, utente_id=art.id)
+    camp = campagna_in_bozza(db, profilo_id=prof.id)
+
+    soi = b"\xff\xd8"
+    app0_dati = b"JFIF\x00\x01\x01\x00\x00\x01\x00\x01\x00\x00"
+    app0 = b"\xff\xe0" + struct.pack(">H", len(app0_dati) + 2) + app0_dati
+    eoi = b"\xff\xd9"
+    jpeg_senza_sof = soi + app0 + eoi
+
+    res = client.post(
+        f"/api/campagne/{camp.id}/foto",
+        files={"file": ("senza_sof.jpg", BytesIO(jpeg_senza_sof), "image/jpeg")},
+    )
+    assert res.status_code == 422
+    assert "Impossibile estrarre le dimensioni" in res.json()["detail"]
+
+
+def test_debug_png_troncato_o_senza_ihdr(
+    client: TestClient, utente_di_prova, db: Session
+):
+    """Debug: Stream PNG privo di chunk IHDR iniziale solleva 422."""
+    art = utente_di_prova("artigiano")
+    prof = profilo(db, utente_id=art.id)
+    camp = campagna_in_bozza(db, profilo_id=prof.id)
+
+    # Magic bytes PNG seguiti da un chunk non-IHDR (es. sBIT)
+    png_errato = (
+        b"\x89PNG\r\n\x1a\n"
+        + struct.pack(">I", 4)
+        + b"sBIT"
+        + b"\x08\x08\x08\x08"
+        + b"\x00\x00\x00\x00"
+    )
+
+    res = client.post(
+        f"/api/campagne/{camp.id}/foto",
+        files={"file": ("senza_ihdr.png", BytesIO(png_errato), "image/png")},
+    )
+    assert res.status_code == 422
+    assert "Intestazione IHDR non trovata" in res.json()["detail"]
+
+
+def test_debug_webp_chunk_sconosciuto(client: TestClient, utente_di_prova, db: Session):
+    """Debug: Stream WebP con sottoformato non supportato solleva 422."""
+    art = utente_di_prova("artigiano")
+    prof = profilo(db, utente_id=art.id)
+    camp = campagna_in_bozza(db, profilo_id=prof.id)
+
+    webp_sconosciuto = b"RIFF\x14\x00\x00\x00WEBPVP8Z\x08\x00\x00\x0012345678"
+    res = client.post(
+        f"/api/campagne/{camp.id}/foto",
+        files={"file": ("sconosciuto.webp", BytesIO(webp_sconosciuto), "image/webp")},
+    )
+    assert res.status_code == 422
+    assert "Formato WEBP non supportato" in res.json()["detail"]
+
+
+def test_debug_confini_esatti_1080_e_1079(
+    client: TestClient, utente_di_prova, db: Session, tmp_path: Path
+):
+    """Debug: Confini esatti al pixel per lato minimo, massimo e pixel totali."""
+    archivio_test = ArchivioDisco(tmp_path)
+    with usa_archivio(archivio_test):
+        art = utente_di_prova("artigiano")
+        prof = profilo(db, utente_id=art.id)
+        camp = campagna_in_bozza(db, profilo_id=prof.id)
+
+        # 1. 1080x1080 esatto -> OK (201)
+        res_1080 = client.post(
+            f"/api/campagne/{camp.id}/foto",
+            files={"file": ("1080.png", BytesIO(_crea_png(1080, 1080)), "image/png")},
+        )
+        assert res_1080.status_code == 201
+
+        # 2. 1079x1080 (1 px sotto minimo) -> Rifiutato (422)
+        res_1079 = client.post(
+            f"/api/campagne/{camp.id}/foto",
+            files={"file": ("1079.png", BytesIO(_crea_png(1079, 1080)), "image/png")},
+        )
+        assert res_1079.status_code == 422
+
+        # 3. 8192x1080 esatto -> OK (201)
+        res_8192 = client.post(
+            f"/api/campagne/{camp.id}/foto",
+            files={"file": ("8192.png", BytesIO(_crea_png(8192, 1080)), "image/png")},
+        )
+        assert res_8192.status_code == 201
+
+        # 4. 8193x1080 (1 px sopra massimo) -> Rifiutato (422)
+        res_8193 = client.post(
+            f"/api/campagne/{camp.id}/foto",
+            files={"file": ("8193.png", BytesIO(_crea_png(8193, 1080)), "image/png")},
+        )
+        assert res_8193.status_code == 422
+
+        # 5. 6000x6000 (esattamente 36.000.000 px) -> OK (201)
+        res_36m = client.post(
+            f"/api/campagne/{camp.id}/foto",
+            files={"file": ("36m.png", BytesIO(_crea_png(6000, 6000)), "image/png")},
+        )
+        assert res_36m.status_code == 201
+
+        # 6. 6001x6000 (36.006.000 px > 36M) -> Rifiutato (422)
+        res_36m_plus = client.post(
+            f"/api/campagne/{camp.id}/foto",
+            files={
+                "file": ("36m_plus.png", BytesIO(_crea_png(6001, 6000)), "image/png")
+            },
+        )
+        assert res_36m_plus.status_code == 422
+
+
+def test_debug_gruppo_di_altra_campagna_vietato(
+    client: TestClient, utente_di_prova, db: Session, tmp_path: Path
+):
+    """Debug: Vietato associare una foto a un gruppo appartenente ad un'altra campagna."""
+    archivio_test = ArchivioDisco(tmp_path)
+    with usa_archivio(archivio_test):
+        art = utente_di_prova("artigiano")
+        prof = profilo(db, utente_id=art.id)
+        camp_a = campagna_in_bozza(db, profilo_id=prof.id, titolo="Campagna A")
+
+        # Carica foto su Campagna A (crea gruppo A)
+        res_a = client.post(
+            f"/api/campagne/{camp_a.id}/foto",
+            files={"file": ("foto_a.png", BytesIO(_crea_png(1080, 1080)), "image/png")},
+        )
+        assert res_a.status_code == 201
+        gruppo_a = res_a.json()["gruppo_id"]
+
+        # Chiude Campagna A portandola in inviata per poter creare la Campagna B
+        from app.moduli.campagne import service as camp_service
+
+        camp_service.cambia_stato(db, camp_a, "inviata")
+
+        # Crea Campagna B
+        camp_b = campagna_in_bozza(db, profilo_id=prof.id, titolo="Campagna B")
+
+        # Tenta di caricare foto su Campagna B riutilizzando gruppo_a -> 422
+        res_b = client.post(
+            f"/api/campagne/{camp_b.id}/foto",
+            data={"gruppo_id": gruppo_a},
+            files={"file": ("foto_b.png", BytesIO(_crea_png(1080, 1080)), "image/png")},
+        )
+        assert res_b.status_code == 422
+        assert "appartiene a un'altra campagna" in res_b.json()["detail"]
+
+
+def test_debug_descrizione_gruppo_caratteri_non_validi(
+    client: TestClient, utente_di_prova, db: Session, tmp_path: Path
+):
+    """Debug: Aggiornamento descrizione con spazi vuoti o byte NUL solleva 422."""
+    archivio_test = ArchivioDisco(tmp_path)
+    with usa_archivio(archivio_test):
+        art = utente_di_prova("artigiano")
+        prof = profilo(db, utente_id=art.id)
+        camp = campagna_in_bozza(db, profilo_id=prof.id)
+
+        res_foto = client.post(
+            f"/api/campagne/{camp.id}/foto",
+            files={"file": ("foto.png", BytesIO(_crea_png(1080, 1080)), "image/png")},
+        )
+        gruppo_id = res_foto.json()["gruppo_id"]
+
+        # 1. Solo spazi bianchi -> 422
+        res_spazi = client.put(
+            f"/api/campagne/{camp.id}/gruppi/{gruppo_id}",
+            json={"descrizione": "     "},
+        )
+        assert res_spazi.status_code == 422
+
+        # 2. Byte NUL -> 422
+        res_nul = client.put(
+            f"/api/campagne/{camp.id}/gruppi/{gruppo_id}",
+            json={"descrizione": "Descrizione\x00con NUL"},
+        )
+        assert res_nul.status_code == 422
+
+
+def test_debug_download_file_non_trovato_su_disco_da_404(
+    client: TestClient, utente_di_prova, db: Session, tmp_path: Path
+):
+    """Debug: Se il file fisico viene accidentalmente cancellato da disco, il download restituisce 404."""
+    archivio_test = ArchivioDisco(tmp_path)
+    with usa_archivio(archivio_test):
+        art = utente_di_prova("artigiano")
+        prof = profilo(db, utente_id=art.id)
+        camp = campagna_in_bozza(db, profilo_id=prof.id)
+
+        res = client.post(
+            f"/api/campagne/{camp.id}/foto",
+            files={"file": ("foto.png", BytesIO(_crea_png(1080, 1080)), "image/png")},
+        )
+        foto_id = res.json()["id"]
+        nome_file = res.json()["file"]
+
+        # Rimuoviamo il file fisico da disco per simulare danno accidentale
+        (tmp_path / nome_file).unlink()
+
+        # Download deve restituire 404
+        res_down = client.get(f"/api/foto/{foto_id}/file")
+        assert res_down.status_code == 404
+        assert "non trovato nell'archivio" in res_down.json()["detail"]
+
+
+def test_debug_upload_multipli_nello_stesso_gruppo(
+    client: TestClient, utente_di_prova, db: Session, tmp_path: Path
+):
+    """Debug: Caricamento sequenziale di 5 immagini nello stesso gruppo mantiene coerenza."""
+    archivio_test = ArchivioDisco(tmp_path)
+    with usa_archivio(archivio_test):
+        art = utente_di_prova("artigiano")
+        prof = profilo(db, utente_id=art.id)
+        camp = campagna_in_bozza(db, profilo_id=prof.id)
+
+        # Prima foto: crea gruppo
+        res1 = client.post(
+            f"/api/campagne/{camp.id}/foto",
+            files={"file": ("foto1.png", BytesIO(_crea_png(1080, 1080)), "image/png")},
+        )
+        gruppo_id = res1.json()["gruppo_id"]
+
+        # Imposta descrizione
+        client.put(
+            f"/api/campagne/{camp.id}/gruppi/{gruppo_id}",
+            json={"descrizione": "Set completo sculture in legno"},
+        )
+
+        # Carica altre 4 foto specificando gruppo_id
+        for i in range(2, 6):
+            res_i = client.post(
+                f"/api/campagne/{camp.id}/foto",
+                data={"gruppo_id": gruppo_id},
+                files={
+                    "file": (
+                        f"foto{i}.jpg",
+                        BytesIO(_crea_jpeg(1080, 1080)),
+                        "image/jpeg",
+                    )
+                },
+            )
+            assert res_i.status_code == 201
+            assert res_i.json()["gruppo_id"] == gruppo_id
+            assert res_i.json()["descrizione"] == "Set completo sculture in legno"
+
+        # Verifica totale foto nel gruppo a DB
+        totale = (
+            db.query(Foto)
+            .filter(Foto.campagna_id == camp.id, Foto.gruppo_id == gruppo_id)
+            .count()
+        )
+        assert totale == 5

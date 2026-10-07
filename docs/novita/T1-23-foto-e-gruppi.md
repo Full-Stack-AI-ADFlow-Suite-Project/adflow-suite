@@ -49,4 +49,13 @@
   - `test_eliminazione_gruppo_completo` (204 e pulizia disco)
   - `test_download_file_foto` (200, test proprietario vs operatore vs terzo)
   - `test_compensazione_rollback_disco_se_db_fallisce` (anti-TOCTOU, zero file orfani)
-- 209 test totali passati con successo su tutta la suite locale.
+  - `test_debug_jpeg_malformato_marker_inatteso` (422)
+  - `test_debug_jpeg_malformato_senza_sof` (422)
+  - `test_debug_png_troncato_o_senza_ihdr` (422)
+  - `test_debug_webp_chunk_sconosciuto` (422)
+  - `test_debug_confini_esatti_1080_e_1079` (201/422 al pixel)
+  - `test_debug_gruppo_di_altra_campagna_vietato` (422)
+  - `test_debug_descrizione_gruppo_caratteri_non_validi` (422 su NUL e spazi)
+  - `test_debug_download_file_non_trovato_su_disco_da_404` (404)
+  - `test_debug_upload_multipli_nello_stesso_gruppo` (201, coerenza multi-upload)
+- 218 test totali passati con successo su tutta la suite locale.

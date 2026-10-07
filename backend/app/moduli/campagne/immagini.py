@@ -68,6 +68,10 @@ def _estrai_dimensioni_jpeg(dati: bytes) -> tuple[int, int]:
     }
 
     while offset < lunghezza_totale:
+        # Nel formato JPEG ogni marker deve iniziare con il byte 0xFF
+        if dati[offset] != 0xFF:
+            raise DatiNonValidi("File JPEG non valido o corrotto: marker inatteso.")
+
         # Salta byte di padding 0xFF consecutivi
         while offset < lunghezza_totale and dati[offset] == 0xFF:
             offset += 1
@@ -98,6 +102,8 @@ def _estrai_dimensioni_jpeg(dati: bytes) -> tuple[int, int]:
                 break
             # Struttura SOF: 2B lunghezza, 1B precisione, 2B altezza, 2B larghezza
             altezza, larghezza = struct.unpack(">HH", dati[offset + 3 : offset + 7])
+            if larghezza <= 0 or altezza <= 0:
+                raise DatiNonValidi("Dimensioni JPEG non valide (<= 0 px).")
             return larghezza, altezza
 
         offset += lunghezza_segmento
