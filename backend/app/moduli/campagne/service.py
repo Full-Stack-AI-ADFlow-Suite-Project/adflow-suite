@@ -1,15 +1,29 @@
-"""Logica del modulo campagne: l'unica parte che gli altri moduli possono importare."""
-
+from datetime import datetime, timedelta
 from typing import Any
 
-from sqlalchemy import select
+from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
-from app.core.errori import DatiNonValidi, NonTrovato
+from app.core.config import leggi_impostazioni
+from app.core.errori import DatiNonValidi, NonPermesso, NonTrovato, StatoNonValido
+from app.core.orologio import ROMA
 from app.core.transizioni import verifica_transizione
+from app.moduli.artigiani import service as artigiani_service
 
-from .domain import ESITI_DECISIONE, ESITO_RESPINTA, MOTIVI_DECISIONE, TRANSIZIONI
+from .domain import (
+    ANNULLATA,
+    BOZZA,
+    CONCLUSA,
+    ESITI_DECISIONE,
+    ESITO_RESPINTA,
+    MOTIVI_DECISIONE,
+    RESPINTA,
+    SCADUTA,
+    STATI,
+    TRANSIZIONI,
+)
 from .models import Campagna, DecisioneCampagna, Foto
+from .schemas import CampagnaCrea, CampagnaDettaglio
 
 
 def campagna(
@@ -192,3 +206,178 @@ def aggiorna_foto(
     foto.analisi_ai = analisi_ai
     foto.n_utilizzi = n_utilizzi
     db.flush()
+
+
+def crea_bozza(
+    db: Session,
+    utente_id: int,
+    dati: CampagnaCrea,
+    ora: datetime,
+) -> Campagna:
+    """Crea una nuova campagna nello stato bozza per l'artigiano autenticato.
+
+    Verifica le regole di pianificazione R-08 e i vincoli di unicità R-12:
+    - Anticipo minimo di 3 giorni rispetto a oggi (CA-09).
+    - Data di fine successiva a data di inizio (CA-10).
+    - Durata massima di 92 giorni (CA-10).
+    - Una sola bozza contemporanea per l'artigiano (CA-11).
+    - Periodo non sovrapposto con campagne attive o in corso dello stesso artigiano (CA-12).
+
+    Args:
+        db: sessione del database aperta dal chiamante.
+        utente_id: ID dell'utente artigiano.
+        dati: payload validato con titolo, date, descrizione e flag crea_immagini_ai.
+        ora: data e ora correnti (per calcolo anticipo minimo).
+
+    Returns:
+        Il record Campagna appena creato in stato bozza.
+
+    Raises:
+        DatiNonValidi: se i vincoli temporali (R-08) non sono rispettati o manca il profilo.
+        StatoNonValido: se esiste già una bozza aperta (CA-11) o c'è sovrapposizione (CA-12).
+    """
+    profilo = artigiani_service.profilo_di(db, utente_id)
+    if profilo is None:
+        raise DatiNonValidi("Profilo bottega non trovato.")
+
+    # Concorrenza atomica: lock di transazione sull'artigiano per serializzare richieste concorrenti
+    db.execute(text("SELECT pg_advisory_xact_lock(:chiave)"), {"chiave": profilo.id})
+
+    oggi = ora.astimezone(ROMA).date() if ora.tzinfo else ora.date()
+    impostazioni = leggi_impostazioni()
+    anticipo_minimo = timedelta(days=impostazioni.anticipo_minimo_giorni)
+
+    if dati.inizio < oggi + anticipo_minimo:
+        raise DatiNonValidi("La data di inizio deve essere ad almeno 3 giorni da oggi.")
+
+    if dati.fine <= dati.inizio:
+        raise DatiNonValidi(
+            "La data di fine deve essere successiva alla data di inizio."
+        )
+
+    if (dati.fine - dati.inizio).days > 92:
+        raise DatiNonValidi("La durata della campagna non può superare 92 giorni.")
+
+    # R-12, CA-11: una sola bozza per artigiano
+    bozza_aperta = db.scalar(
+        select(Campagna.id).where(
+            Campagna.profilo_id == profilo.id,
+            Campagna.stato == BOZZA,
+        )
+    )
+    if bozza_aperta is not None:
+        raise StatoNonValido("Esiste già una campagna in bozza per questo artigiano.")
+
+    # R-12, CA-12: campagne non annullata/conclusa/respinta/scaduta non sovrapposte
+    stati_non_bloccanti = [ANNULLATA, CONCLUSA, RESPINTA, SCADUTA]
+    campagna_sovrapposta = db.scalar(
+        select(Campagna.id).where(
+            Campagna.profilo_id == profilo.id,
+            Campagna.stato.not_in(stati_non_bloccanti),
+            Campagna.inizio <= dati.fine,
+            Campagna.fine >= dati.inizio,
+        )
+    )
+    if campagna_sovrapposta is not None:
+        raise StatoNonValido("Il periodo si sovrappone a una campagna già esistente.")
+
+    nuova = Campagna(
+        profilo_id=profilo.id,
+        titolo=dati.titolo,
+        inizio=dati.inizio,
+        fine=dati.fine,
+        descrizione=dati.descrizione,
+        crea_immagini_ai=dati.crea_immagini_ai,
+        stato=BOZZA,
+    )
+    db.add(nuova)
+    db.flush()
+    return nuova
+
+
+def elenca_campagne(
+    db: Session,
+    utente_id: int,
+    ruolo: str,
+    stato: str | None = None,
+) -> list[Campagna]:
+    """Elenca le campagne accessibili all'utente autenticato.
+
+    L'artigiano visualizza solo le proprie campagne (legate alla sua bottega).
+    L'operatore e l'admin visualizzano tutte le campagne del consorzio.
+    Supporta il filtro opzionale per stato.
+    """
+    query = select(Campagna)
+
+    if ruolo == "artigiano":
+        profilo = artigiani_service.profilo_di(db, utente_id)
+        if profilo is None:
+            return []
+        query = query.where(Campagna.profilo_id == profilo.id)
+    elif ruolo not in ("operatore", "admin"):
+        return []
+
+    if stato:
+        if stato not in STATI:
+            raise DatiNonValidi("Stato della campagna non valido.")
+        query = query.where(Campagna.stato == stato)
+
+    query = query.order_by(Campagna.id.desc())
+    return list(db.scalars(query))
+
+
+def dettaglio_campagna(
+    db: Session,
+    utente_id: int,
+    ruolo: str,
+    campagna_id: int,
+) -> CampagnaDettaglio:
+    """Restituisce il dettaglio della campagna con controlli di accesso granulari.
+
+    Se l'utente è un artigiano e la campagna appartiene a un altro artigiano,
+    solleva NonTrovato (404) per evitare fuga di informazioni (CA-04).
+    Per operatori e admin include anche snapshot e decisioni pregresse.
+    """
+    rec = db.get(Campagna, campagna_id)
+    if rec is None:
+        raise NonTrovato("Campagna non trovata.")
+
+    if ruolo == "artigiano":
+        profilo = artigiani_service.profilo_di(db, utente_id)
+        if profilo is None or rec.profilo_id != profilo.id:
+            raise NonTrovato("Campagna non trovata.")
+    elif ruolo not in ("operatore", "admin"):
+        raise NonPermesso("Non hai i permessi per visualizzare le campagne.")
+
+    foto = foto_della_campagna(db, campagna_id)
+
+    decisioni = []
+    snapshot = None
+    if ruolo in ("operatore", "admin"):
+        snapshot = rec.profilo_snapshot
+        decisioni = list(
+            db.scalars(
+                select(DecisioneCampagna)
+                .where(DecisioneCampagna.campagna_id == campagna_id)
+                .order_by(DecisioneCampagna.id)
+            )
+        )
+
+    return CampagnaDettaglio(
+        id=rec.id,
+        profilo_id=rec.profilo_id,
+        titolo=rec.titolo,
+        inizio=rec.inizio,
+        fine=rec.fine,
+        descrizione=rec.descrizione,
+        crea_immagini_ai=rec.crea_immagini_ai,
+        stato=rec.stato,
+        canali=rec.canali,
+        frequenza=rec.frequenza,
+        obiettivo=rec.obiettivo,
+        inviata_il=rec.inviata_il,
+        rimandata=rec.rimandata,
+        foto=foto,
+        profilo_snapshot=snapshot,
+        decisioni=decisioni,
+    )
