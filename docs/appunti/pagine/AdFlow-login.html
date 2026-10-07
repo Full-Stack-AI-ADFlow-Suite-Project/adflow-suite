@@ -1,0 +1,198 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Accesso</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F6F3EC; --paper-raised:#FFFFFF; --ink:#201D17; --ink-soft:#6E6656; --ink-faint:#9C927D;
+    --accent:#2E6B5C; --accent-strong:#1D4A3F; --accent-soft:#DCEAE3; --accent-on-soft:#1D4A3F;
+    --line:#DDD5C2; --danger:#AE3B2C; --danger-soft:#F6E1DC; --danger-on-soft:#7A281C;
+    --warn:#8A6A1F; --warn-soft:#F3E7C9;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#1B1914; --paper-raised:#26231C; --ink:#EFEAE0; --ink-soft:#B7AE9B; --ink-faint:#837A68;
+      --accent:#7EC4AE; --accent-strong:#A9DCC9; --accent-soft:#22392F; --accent-on-soft:#A9DCC9;
+      --line:#3A362B; --danger:#E08776; --danger-soft:#3A2420; --danger-on-soft:#E08776;
+      --warn:#E4C878; --warn-soft:#3A331C;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#1B1914; --paper-raised:#26231C; --ink:#EFEAE0; --ink-soft:#B7AE9B; --ink-faint:#837A68;
+    --accent:#7EC4AE; --accent-strong:#A9DCC9; --accent-soft:#22392F; --accent-on-soft:#A9DCC9;
+    --line:#3A362B; --danger:#E08776; --danger-soft:#3A2420; --danger-on-soft:#E08776;
+    --warn:#E4C878; --warn-soft:#3A331C;
+    color-scheme: dark;
+  }
+
+  *{ box-sizing:border-box; }
+  body{ background:var(--paper); color:var(--ink); font-family:"IBM Plex Sans", system-ui, sans-serif; padding-inline:16px; padding-block:28px; margin:0; }
+  h1,h2,h3{ font-family:"Fraunces", Georgia, serif; font-weight:600; text-wrap:balance; margin:0; }
+  a{ color:var(--accent-strong); }
+  .wrap{ max-width:640px; margin-inline:auto; }
+  .mono{ font-family:"IBM Plex Mono", monospace; }
+
+  .masthead{ margin-bottom:18px; }
+  .eyebrow{ font-family:"IBM Plex Mono", monospace; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); }
+  .masthead h1{ font-size:28px; margin-top:6px; }
+  .masthead p{ color:var(--ink-soft); font-size:14.5px; line-height:1.55; margin:8px 0 0; max-width:60ch; }
+
+  .banner{ border-radius:10px; padding:12px 14px; font-size:13.5px; line-height:1.5; margin-bottom:22px; display:flex; gap:10px; align-items:flex-start; }
+  .banner.info{ background:var(--accent-soft); border:1px solid var(--accent); color:var(--accent-on-soft); }
+  .banner.warn{ background:var(--warn-soft); border:1px solid var(--warn); color:var(--warn); }
+  .banner.danger{ background:var(--danger-soft); border:1px solid var(--danger); color:var(--danger-on-soft); }
+  .banner .icon{ flex:none; font-family:"IBM Plex Mono", monospace; font-weight:500; }
+
+  .toc{ background:var(--paper-raised); border:1px solid var(--line); border-radius:12px; padding:16px 20px; margin-bottom:26px; }
+  .toc .tab{ font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--accent-strong); letter-spacing:.06em; }
+  .toc ol{ margin:10px 0 0; padding-left:20px; }
+  .toc li{ font-size:13px; padding:2px 0; }
+  .toc a{ text-decoration:none; }
+
+  .card{ background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:22px; margin-bottom:18px; scroll-margin-top:16px; }
+  .card .tab{ font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--accent-strong); letter-spacing:.06em; }
+  .card h2{ font-size:21px; margin-top:4px; }
+  .card .hint{ color:var(--ink-soft); font-size:13.5px; line-height:1.5; margin-top:8px; margin-bottom:18px; }
+
+  /* Il modulo di accesso, come apparirà da solo al centro della pagina */
+  .login{ max-width:380px; margin-inline:auto; border:1px solid var(--line); border-radius:12px; padding:22px; background:var(--paper); }
+  .login .brand{ font-family:"Fraunces", Georgia, serif; font-weight:600; font-size:22px; text-align:center; }
+  .login .brand small{ display:block; font-family:"IBM Plex Mono", monospace; font-size:11px; font-weight:400; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); margin-top:4px; }
+  .login form{ margin-top:18px; }
+  .field{ margin-bottom:14px; }
+  .field label{ display:block; font-size:13px; font-weight:500; margin-bottom:6px; }
+  input[type=email], input[type=password]{
+    width:100%; font-family:inherit; font-size:14.5px; color:var(--ink); background:var(--paper-raised);
+    border:1px solid var(--line); border-radius:8px; padding:9px 11px; line-height:1.4;
+  }
+  input:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+  .btn{ font-family:inherit; border-radius:8px; padding:10px 18px; font-size:14px; font-weight:500; border:1px solid var(--line); background:var(--paper-raised); color:var(--ink); display:inline-block; text-decoration:none; }
+  .btn.primary{ background:var(--accent); border-color:var(--accent); color:var(--paper-raised); width:100%; }
+  .login .help{ font-size:12.5px; color:var(--ink-faint); line-height:1.5; text-align:center; margin:14px 0 0; }
+  .login .banner{ margin:14px 0 0; }
+
+  .rev-line{ display:flex; gap:10px; font-size:13.5px; padding:6px 0; border-top:1px solid var(--line); margin:0; }
+  .rev-line dt{ color:var(--ink-soft); flex:0 0 42%; margin:0; }
+  .rev-line dd{ margin:0; flex:1; min-width:0; }
+
+  .open{ margin:0; padding-left:20px; font-size:13.5px; line-height:1.55; }
+  .open li{ margin-bottom:6px; }
+</style>
+<!-- fascia-mappa: stato della pagina statica e ritorno alla mappa. Non fa parte della schermata. -->
+<div style="max-width:640px; margin:0 auto 18px; border:1px solid var(--line); border-radius:10px; padding:8px 14px; background:var(--paper-raised); color:var(--ink-soft); font:12px/1.5 'IBM Plex Mono', ui-monospace, monospace; display:flex; flex-wrap:wrap; gap:2px 16px; justify-content:space-between;">
+  <a href="index.html" style="color:inherit;">← Mappa delle pagine</a>
+  <span>Pagina statica · <strong style="color:var(--ink); font-weight:500;">approvata</strong> · ADR-55 · domande chiuse: ADR-102</span>
+</div>
+<!-- /fascia-mappa -->
+
+<div class="wrap">
+
+  <div class="masthead">
+    <div class="eyebrow">AdFlow Suite · Accesso</div>
+    <h1>Accesso</h1>
+    <p>Una sola pagina per artigiano, operatore e admin: email e password. Dopo l'accesso ognuno arriva alla propria pagina di partenza.</p>
+  </div>
+
+  <div class="banner warn">
+    <span class="icon">i</span>
+    <span><b>Pagina statica, non interattiva.</b> Mostra in sequenza le schermate della pagina di accesso (T1-51; API di T1-11: <span class="mono">POST /auth/login</span>, <span class="mono">POST /auth/logout</span>, <span class="mono">GET /auth/me</span>). Nessun pulsante funziona.</span>
+  </div>
+
+  <nav class="toc">
+    <div class="tab">Schermate</div>
+    <ol>
+      <li><a href="#vuota">Modulo vuoto</a></li>
+      <li><a href="#errore">Credenziali sbagliate (CA-02)</a></li>
+      <li><a href="#scaduta">Sessione scaduta</a></li>
+      <li><a href="#dopo">Dove si arriva dopo l'accesso</a></li>
+    </ol>
+  </nav>
+
+  <div class="card" id="vuota">
+    <div class="tab">Schermata · Modulo vuoto</div>
+    <h2>Entra in AdFlow</h2>
+    <p class="hint">La pagina è solo questo riquadro, al centro. Nessuna registrazione: gli account li crea il consorzio. Il contatto del consorzio (telefono, email) si legge dalla configurazione del server, senza accesso (ADR-102).</p>
+    <div class="login">
+      <div class="brand">AdFlow <small>Consorzio artigiani</small></div>
+      <form>
+        <div class="field">
+          <label for="email1">Email</label>
+          <input type="email" id="email1" placeholder="nome@bottega.it" autocomplete="username">
+        </div>
+        <div class="field">
+          <label for="pw1">Password</label>
+          <input type="password" id="pw1" autocomplete="current-password">
+        </div>
+        <button type="button" class="btn primary">Entra</button>
+      </form>
+      <p class="help">Hai dimenticato la password? Contatta il consorzio: ti ridà l'accesso un operatore. Tel. 0172 000 000 · info@consorzio.example</p>
+    </div>
+  </div>
+
+  <div class="card" id="errore">
+    <div class="tab">Schermata · Credenziali sbagliate</div>
+    <h2>Accesso rifiutato</h2>
+    <p class="hint">Un solo messaggio, uguale per email inesistente, password errata e utente non attivo: non si dice quale dato è sbagliato (CA-02). L'email resta compilata, la password si svuota.</p>
+    <div class="login">
+      <div class="brand">AdFlow <small>Consorzio artigiani</small></div>
+      <form>
+        <div class="field">
+          <label for="email2">Email</label>
+          <input type="email" id="email2" value="mario@falegnameriabianchi.it">
+        </div>
+        <div class="field">
+          <label for="pw2">Password</label>
+          <input type="password" id="pw2">
+        </div>
+        <button type="button" class="btn primary">Entra</button>
+      </form>
+      <div class="banner danger">
+        <span class="icon">!</span>
+        <span>Email o password non corretti.</span>
+      </div>
+      <p class="help">Hai dimenticato la password? Contatta il consorzio: ti ridà l'accesso un operatore. Tel. 0172 000 000 · info@consorzio.example</p>
+    </div>
+  </div>
+
+  <div class="card" id="scaduta">
+    <div class="tab">Schermata · Sessione scaduta</div>
+    <h2>Di nuovo qui dopo la scadenza</h2>
+    <p class="hint">Quando una chiamata risponde 401 su una pagina interna, si torna all'accesso con questo avviso. Dopo l'accesso si riapre la pagina da cui si era partiti. La sessione scade dopo un periodo senza uso: 7 giorni per l'artigiano, 12 ore per operatore e admin; chi sta compilando non viene buttato fuori (ADR-102).</p>
+    <div class="login">
+      <div class="brand">AdFlow <small>Consorzio artigiani</small></div>
+      <div class="banner info" style="margin-top:14px;">
+        <span class="icon">i</span>
+        <span>La sessione è scaduta. Entra di nuovo per continuare.</span>
+      </div>
+      <form>
+        <div class="field">
+          <label for="email3">Email</label>
+          <input type="email" id="email3">
+        </div>
+        <div class="field">
+          <label for="pw3">Password</label>
+          <input type="password" id="pw3">
+        </div>
+        <button type="button" class="btn primary">Entra</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="card" id="dopo">
+    <div class="tab">Regola · Rotte per ruolo</div>
+    <h2>Dove si arriva dopo l'accesso</h2>
+    <p class="hint">Il ruolo arriva da <span class="mono">GET /auth/me</span>. Chi apre una pagina di un altro ruolo torna alla propria pagina di partenza.</p>
+    <dl style="margin:0;">
+      <div class="rev-line"><dt>Artigiano senza profilo</dt><dd><a href="AdFlow-profilo-bottega.html">Profilo bottega</a>, passo 1 (CA-05), dalla 2a. Nello sprint 1 il profilo arriva dal seed: l'artigiano entra sempre nella pagina Campagna</dd></div>
+      <div class="rev-line"><dt>Artigiano con profilo</dt><dd><a href="AdFlow-campagna.html">Campagna</a>: Bentornato, bozza aperta (CA-06, CA-08) oppure la <a href="AdFlow-campagna-stati.html">vista di stato</a> della campagna inviata</dd></div>
+      <div class="rev-line"><dt>Operatore</dt><dd><a href="AdFlow-operatore-ingresso.html">Ingresso</a>, dallo sprint 3; fino ad allora <a href="AdFlow-operatore-da-approvare.html">Campagne da approvare</a></dd></div>
+      <div class="rev-line"><dt>Admin</dt><dd>Nessuna pagina propria: vale come un operatore in ogni controllo di ruolo. Gli utenti si creano da riga di comando; fino allo sprint 3 anche la password si cambia da lì, poi con la password provvisoria della pagina artigiano (ADR-103).</dd></div>
+    </dl>
+  </div>
+
+
+</div>
