@@ -17,6 +17,7 @@ from app.core.orologio import adesso
 from app.core.security import genera_token, hash_password, hash_token, verifica_password
 
 from .models import Sessione, Utente
+from .schemas import testo_valido
 
 DURATA_SESSIONE = timedelta(hours=8)
 COOKIE_SESSIONE = "adflow_sessione"
@@ -168,6 +169,12 @@ def crea_utente(
     """
     email = email.strip().lower()
     nome = nome.strip()
+    if not testo_valido(email, campo_postgres=True):
+        raise DatiNonValidi("Indirizzo email non valido.")
+    if not testo_valido(nome, campo_postgres=True):
+        raise DatiNonValidi("Nome non valido.")
+    if not testo_valido(password):
+        raise DatiNonValidi("Password non valida.")
     if len(email) > 320 or re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email) is None:
         raise DatiNonValidi("Indirizzo email non valido.")
     if ruolo not in RUOLI_AMMESSI:

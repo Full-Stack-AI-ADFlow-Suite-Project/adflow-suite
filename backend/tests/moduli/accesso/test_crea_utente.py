@@ -94,9 +94,10 @@ def test_creazione_non_fa_commit(db):
     assert db.get(Utente, record_id) is None
 
 
-def test_due_creazioni_concorrenti_stessa_email(motore_test, monkeypatch):
+@pytest.mark.parametrize("concorrenti", [2, 4, 8])
+def test_due_creazioni_concorrenti_stessa_email(motore_test, monkeypatch, concorrenti):
     email = f"{uuid4().hex}@example.test"
-    barriera = Barrier(2)
+    barriera = Barrier(concorrenti)
     hash_reale = service.hash_password
 
     def hash_dopo_controllo(password):
@@ -117,9 +118,10 @@ def test_due_creazioni_concorrenti_stessa_email(motore_test, monkeypatch):
                 return errore.messaggio
 
     try:
-        with ThreadPoolExecutor(max_workers=2) as pool:
-            esiti = list(pool.map(lambda _: crea(), range(2)))
-        assert sorted(esiti) == ["Email già registrata.", "creato"]
+        with ThreadPoolExecutor(max_workers=concorrenti) as pool:
+            esiti = list(pool.map(lambda _: crea(), range(concorrenti)))
+        assert esiti.count("creato") == 1
+        assert esiti.count("Email già registrata.") == concorrenti - 1
         with Session(motore_test) as sessione:
             assert (
                 sessione.scalar(
