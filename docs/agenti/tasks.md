@@ -37,9 +37,9 @@ Nei loro moduli le corsie 1–4 possiedono `router.py`, `schemas.py`, `jobs.py`,
 
 | ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
 |---|---|---|---|---|---|
-| T1-11 | Login: `POST /auth/login`, `POST /auth/logout`, `GET /auth/me`; cookie `adflow_sessione` httpOnly; nel database solo l'hash del token; scadenza della sessione | plan §2, §3; constitution §3 | T1-06 | CA-01, CA-02 | ☐ |
-| T1-12 | Permessi: `utente_corrente` e `richiede_ruolo()` veri (401 senza sessione, 403 per ruolo) | plan §6; constitution §3 | T1-11 | CA-03; i test delle altre corsie restano verdi | ☐ |
-| T1-13 | `crea_utente()`: email unica, ruolo ammesso, password con scrypt | plan §2, §6; constitution §3 | T1-06 | utente creato da riga di comando | ☐ |
+| T1-11 | Login: `POST /auth/login`, `POST /auth/logout`, `GET /auth/me`; cookie `adflow_sessione` httpOnly; nel database solo l'hash del token; scadenza della sessione | plan §2, §3; constitution §3 | T1-06 | CA-01, CA-02 | ☑ |
+| T1-12 | Permessi: `utente_corrente` e `richiede_ruolo()` veri (401 senza sessione, 403 per ruolo) | plan §6; constitution §3 | T1-11 | CA-03; i test delle altre corsie restano verdi | ☑ |
+| T1-13 | `crea_utente()`: email unica, ruolo ammesso, password con scrypt | plan §2, §6; constitution §3 | T1-06 | utente creato da riga di comando | ☑ |
 
 ### Corsia 2 · Campagne (Silvia)
 
