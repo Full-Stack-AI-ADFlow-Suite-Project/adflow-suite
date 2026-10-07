@@ -43,7 +43,7 @@ class GruppoFoto(Base):
         Integer, ForeignKey("profilo_bottega.id"), nullable=False, index=True
     )
     campagna_id: Mapped[int | None] = mapped_column(
-        Integer, ForeignKey("campagna.id"), nullable=True
+        Integer, ForeignKey("campagna.id"), nullable=True, index=True
     )
     origine: Mapped[str] = mapped_column(Text, nullable=False)
     descrizione: Mapped[str | None] = mapped_column(Text, nullable=True)

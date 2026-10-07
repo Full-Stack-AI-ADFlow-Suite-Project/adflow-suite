@@ -47,6 +47,7 @@ def upgrade() -> None:
         sa.PrimaryKeyConstraint("id"),
     )
     op.create_index(op.f("ix_gruppo_foto_profilo_id"), "gruppo_foto", ["profilo_id"])
+    op.create_index(op.f("ix_gruppo_foto_campagna_id"), "gruppo_foto", ["campagna_id"])
     op.create_table(
         "account_social",
         sa.Column("id", sa.Integer(), nullable=False),
@@ -325,5 +326,6 @@ def downgrade() -> None:
     op.drop_table("uscita")
     op.drop_table("piano")
     op.drop_table("account_social")
+    op.drop_index(op.f("ix_gruppo_foto_campagna_id"), table_name="gruppo_foto")
     op.drop_index(op.f("ix_gruppo_foto_profilo_id"), table_name="gruppo_foto")
     op.drop_table("gruppo_foto")
