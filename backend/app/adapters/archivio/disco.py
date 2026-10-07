@@ -78,14 +78,18 @@ class ArchivioDisco(ArchivioAdapter):
         return percorso.read_bytes()
 
     def elimina(self, nome_file: str) -> bool:
-        """Elimina il file da disco in modo atomico, prevenendo race condition TOCTOU."""
+        """Elimina il file da disco in modo atomico, prevenendo race condition TOCTOU.
+
+        Se il file non esiste, restituisce False. Eventuali PermissionError vengono
+        lasciati propagare affinché il sistema di monitoraggio possa rilevarli.
+        """
         percorso = self._valida_e_risolvi_percorso(nome_file)
         try:
             percorso.unlink(missing_ok=False)
             return True
         except FileNotFoundError:
             return False
-        except (IsADirectoryError, PermissionError):
+        except IsADirectoryError:
             return False
 
     def esiste(self, nome_file: str) -> bool:

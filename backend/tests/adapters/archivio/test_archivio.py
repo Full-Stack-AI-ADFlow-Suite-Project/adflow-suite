@@ -159,9 +159,18 @@ def test_archivio_disco_eliminazione_anti_toctou(tmp_path: Path):
     # Non deve sollevare eccezioni non gestite, ma restituire False con grazia
     assert archivio.elimina(nome) is False
 
-    # Tentativo di eliminare una sottodirectory non deve sollevare PermissionError
-    (tmp_path / "cartella_prova").mkdir()
-    assert archivio.elimina("cartella_prova") is False
+
+def test_archivio_disco_permission_error_propagato(tmp_path: Path, monkeypatch):
+    """PermissionError (es. permessi OS o antivirus) viene propagato al monitoring."""
+    archivio = ArchivioDisco(radice=tmp_path)
+    nome = archivio.salva(PNG_TEST, ".png")
+
+    def mock_unlink(*args, **kwargs):
+        raise PermissionError("Accesso negato dal sistema operativo o antivirus")
+
+    monkeypatch.setattr(Path, "unlink", mock_unlink)
+    with pytest.raises(PermissionError):
+        archivio.elimina(nome)
 
 
 def test_archivio_disco_sicurezza_path_traversal(tmp_path: Path):
