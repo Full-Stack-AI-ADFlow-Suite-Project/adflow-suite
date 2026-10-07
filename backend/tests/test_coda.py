@@ -4,6 +4,7 @@ Test per la coda dei job (core/coda.py).
 
 import asyncio
 from collections.abc import Iterator
+from contextlib import suppress
 
 import procrastinate
 import pytest
@@ -23,7 +24,10 @@ def coda_su_database(motore_test: Engine) -> Iterator[None]:
     connettore = procrastinate.PsycopgConnector(conninfo=indirizzo_psycopg(url))
     with app.replace_connector(connettore):
         yield
-        app.close()
+        # PsycopgConnector non ha un lato sincrono: il pool async si chiude
+        # da solo all'uscita di open_async().
+        with suppress(NotImplementedError):
+            app.close()
     with motore_test.begin() as connessione:
         connessione.execute(text("TRUNCATE procrastinate_jobs CASCADE"))
 
