@@ -1,0 +1,275 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Operatore · Metriche</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F6F3EC; --paper-raised:#FFFFFF; --ink:#201D17; --ink-soft:#6E6656; --ink-faint:#9C927D;
+    --accent:#2E6B5C; --accent-strong:#1D4A3F; --accent-soft:#DCEAE3; --accent-on-soft:#1D4A3F;
+    --line:#DDD5C2; --danger:#AE3B2C; --danger-soft:#F6E1DC; --danger-on-soft:#7A281C;
+    --warn:#8A6A1F; --warn-soft:#F3E7C9;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#1B1914; --paper-raised:#26231C; --ink:#EFEAE0; --ink-soft:#B7AE9B; --ink-faint:#837A68;
+      --accent:#7EC4AE; --accent-strong:#A9DCC9; --accent-soft:#22392F; --accent-on-soft:#A9DCC9;
+      --line:#3A362B; --danger:#E08776; --danger-soft:#3A2420; --danger-on-soft:#E08776;
+      --warn:#E4C878; --warn-soft:#3A331C;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#1B1914; --paper-raised:#26231C; --ink:#EFEAE0; --ink-soft:#B7AE9B; --ink-faint:#837A68;
+    --accent:#7EC4AE; --accent-strong:#A9DCC9; --accent-soft:#22392F; --accent-on-soft:#A9DCC9;
+    --line:#3A362B; --danger:#E08776; --danger-soft:#3A2420; --danger-on-soft:#E08776;
+    --warn:#E4C878; --warn-soft:#3A331C;
+    color-scheme: dark;
+  }
+
+  *{ box-sizing:border-box; }
+  body{ background:var(--paper); color:var(--ink); font-family:"IBM Plex Sans", system-ui, sans-serif; margin:0; }
+  h1,h2,h3{ font-family:"Fraunces", Georgia, serif; font-weight:600; text-wrap:balance; margin:0; }
+  a{ color:var(--accent-strong); }
+  .wrap{ max-width:1100px; margin-inline:auto; padding-inline:16px; }
+  .mono{ font-family:"IBM Plex Mono", monospace; }
+
+  /* Barra di navigazione comune alle pagine operatore */
+  .topbar{ background:var(--paper-raised); border-bottom:1px solid var(--line); }
+  .topbar .wrap{ display:flex; align-items:center; gap:22px; min-height:54px; flex-wrap:wrap; }
+  .brand{ font-family:"Fraunces", Georgia, serif; font-weight:600; font-size:17px; color:var(--ink); text-decoration:none; }
+  .brand small{ font-family:"IBM Plex Mono", monospace; font-size:11px; font-weight:400; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); margin-left:6px; }
+  .nav{ display:flex; gap:4px; flex:1; }
+  .nav a{ text-decoration:none; font-size:14px; color:var(--ink-soft); padding:7px 12px; border-radius:8px; }
+  .nav a.current{ background:var(--accent-soft); color:var(--accent-on-soft); font-weight:500; }
+  .user{ font-size:13px; color:var(--ink-soft); display:flex; gap:12px; align-items:center; }
+
+  main{ padding-block:24px 48px; }
+
+  .masthead{ display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap; margin-bottom:18px; }
+  .eyebrow{ font-family:"IBM Plex Mono", monospace; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); }
+  .masthead h1{ font-size:30px; margin-top:6px; }
+  .masthead p{ color:var(--ink-soft); font-size:14.5px; margin:6px 0 0; }
+
+  .banner{ border-radius:10px; padding:12px 14px; font-size:13.5px; line-height:1.5; margin-bottom:22px; display:flex; gap:10px; align-items:flex-start; }
+  .banner.info{ background:var(--accent-soft); border:1px solid var(--accent); color:var(--accent-on-soft); }
+  .banner.warn{ background:var(--warn-soft); border:1px solid var(--warn); color:var(--warn); }
+  .banner .icon{ flex:none; font-family:"IBM Plex Mono", monospace; font-weight:500; }
+
+  .card{ background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:20px; }
+  .card .tab{ font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--accent-strong); letter-spacing:.06em; }
+  .card h3{ font-size:18px; margin-top:4px; margin-bottom:12px; }
+  .note{ font-size:12.5px; color:var(--ink-faint); line-height:1.5; margin-top:10px; }
+
+  .badge{ display:inline-block; font-family:"IBM Plex Mono", monospace; font-size:11.5px; border-radius:20px; padding:2px 9px; border:1px solid var(--line); color:var(--ink-soft); background:var(--paper); white-space:nowrap; }
+  .badge.ok{ border-color:var(--accent); background:var(--accent-soft); color:var(--accent-on-soft); }
+  .badge.danger{ border-color:var(--danger); background:var(--danger-soft); color:var(--danger-on-soft); }
+
+  .btn{ font-family:inherit; border-radius:8px; padding:8px 14px; font-size:13.5px; font-weight:500; border:1px solid var(--line); background:var(--paper-raised); color:var(--ink); display:inline-block; text-decoration:none; }
+
+  .section-head{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+  .section-head h2{ font-size:24px; }
+  .section-head p{ margin:0; font-size:13.5px; color:var(--ink-soft); }
+  section{ scroll-margin-top:16px; margin-bottom:34px; }
+
+  .tools{ display:flex; gap:10px; flex-wrap:wrap; align-items:flex-end; margin-bottom:18px; background:var(--paper-raised); border:1px solid var(--line); border-radius:12px; padding:14px 16px; }
+  .tools label{ display:block; font-size:12px; color:var(--ink-soft); margin-bottom:4px; }
+  .tools select, .tools input[type=date]{ font-family:inherit; font-size:14px; color:var(--ink); background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:8px 11px; min-width:170px; }
+
+  .counts{ display:grid; grid-template-columns:repeat(5, 1fr); gap:10px; margin-bottom:18px; }
+  .count{ display:block; background:var(--paper-raised); border:1px solid var(--line); border-radius:10px; padding:12px 14px; color:var(--ink); }
+  .count b{ display:block; font-family:"IBM Plex Mono", monospace; font-weight:500; font-size:24px; }
+  .count span{ font-size:13px; color:var(--ink-soft); }
+  .count small{ display:block; font-size:12px; color:var(--ink-faint); margin-top:2px; }
+  @media (max-width:820px){ .counts{ grid-template-columns:repeat(2, 1fr); } }
+
+  .placeholder{ border:1px dashed var(--line); border-radius:12px; padding:38px 16px; text-align:center; font-size:13.5px; color:var(--ink-faint); background:var(--paper-raised); }
+
+  .table-wrap{ overflow-x:auto; background:var(--paper-raised); border:1px solid var(--line); border-radius:12px; }
+  table{ border-collapse:collapse; width:100%; font-size:13.5px; min-width:780px; }
+  th{ text-align:left; font-family:"IBM Plex Mono", monospace; font-weight:400; font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-faint); padding:10px 14px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  td{ padding:11px 14px; border-top:1px solid var(--line); vertical-align:top; }
+  tbody tr:first-child td{ border-top:none; }
+  td .sub{ display:block; font-size:12px; color:var(--ink-faint); }
+  td a.name{ font-weight:500; text-decoration:none; }
+  th.num, td.num{ font-family:"IBM Plex Mono", monospace; text-align:right; }
+
+  .open{ margin:0; padding-left:20px; font-size:13.5px; line-height:1.55; }
+  .open li{ margin-bottom:6px; }
+
+  /* Domande aperte con la proposta di risposta */
+  .open li{ margin-bottom:14px; }
+  .proposta{ display:block; margin-top:5px; padding:8px 11px; border-left:3px solid var(--accent); background:var(--accent-soft); color:var(--accent-on-soft); border-radius:0 8px 8px 0; }
+</style>
+<!-- fascia-mappa: stato della pagina statica e ritorno alla mappa. Non fa parte della schermata. -->
+<div style="border-bottom:1px solid var(--line); padding:8px 18px; background:var(--paper-raised); color:var(--ink-soft); font:12px/1.5 'IBM Plex Mono', ui-monospace, monospace; display:flex; flex-wrap:wrap; gap:2px 16px; justify-content:space-between;">
+  <a href="index.html" style="color:inherit;">← Mappa delle pagine</a>
+  <span>Pagina statica · <strong style="color:var(--ink); font-weight:500;">approvata</strong> · ADR-55 · domande chiuse: ADR-109</span>
+</div>
+<!-- /fascia-mappa -->
+
+<!-- ============ Barra comune alle pagine operatore ============ -->
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="AdFlow-operatore-ingresso.html">AdFlow <small>Operatore</small></a>
+    <nav class="nav" aria-label="Sezioni operatore">
+      <a href="AdFlow-operatore-da-approvare.html">Da approvare</a>
+      <a href="AdFlow-operatore-elenco.html">Artigiani</a>
+      <a href="AdFlow-operatore-metriche.html" class="current">Metriche</a>
+    </nav>
+    <div class="user"><span>Laura Rossi · operatore</span><a href="AdFlow-login.html">Esci</a></div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="banner warn">
+    <span class="icon">i</span>
+    <span><b>Pagina statica, non interattiva</b> (sprint 4). Metriche dei post pubblicati, lette una volta al giorno dal job <span class="mono">raccogli_metriche</span> e servite da <span class="mono">GET /metriche?artigiano=&amp;campagna=</span>. I quattro numeri sono quelli della tabella <span class="mono">metrica</span>: copertura, like, commenti, salvataggi. Dati di esempio; oggi è il 28/09/2026.</span>
+  </div>
+
+  <div class="masthead">
+    <div>
+      <div class="eyebrow">Operatore · Metriche</div>
+      <h1>Come vanno i post pubblicati</h1>
+      <p>Tutto il consorzio, una bottega o una sola campagna.</p>
+    </div>
+  </div>
+
+  <div class="tools">
+    <div>
+      <label for="f-art">Artigiano</label>
+      <select id="f-art">
+        <option>Tutti gli artigiani</option>
+        <option>Falegnameria Bianchi · ART-0042</option>
+        <option>Ceramiche Olivero · ART-0017</option>
+      </select>
+    </div>
+    <div>
+      <label for="f-camp">Campagna</label>
+      <select id="f-camp">
+        <option>Tutte le campagne</option>
+      </select>
+    </div>
+    <div>
+      <label for="f-dal">Dal</label>
+      <input type="date" id="f-dal" value="2026-09-01">
+    </div>
+    <div>
+      <label for="f-al">Al</label>
+      <input type="date" id="f-al" value="2026-09-28">
+    </div>
+  </div>
+
+  <!-- ============ Vista 1 · tutto il consorzio ============ -->
+  <section id="consorzio">
+    <div class="section-head">
+      <h2>Vista · Tutti gli artigiani</h2>
+      <p>01/09/2026 → 28/09/2026 · ultima lettura 28/09 ore 06:00</p>
+    </div>
+
+    <div class="counts">
+      <div class="count"><b>55</b><span>Post pubblicati</span><small><a href="AdFlow-operatore-campagna.html">4 falliti →</a></small></div>
+      <div class="count"><b>41.300</b><span>Copertura</span></div>
+      <div class="count"><b>2.960</b><span>Like</span></div>
+      <div class="count"><b>312</b><span>Commenti</span></div>
+      <div class="count"><b>187</b><span>Salvataggi</span></div>
+    </div>
+
+    <div class="placeholder" style="margin-bottom:18px;">Grafico · andamento giornaliero della copertura nel periodo (libreria da scegliere)</div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Bottega</th>
+            <th>Campagne nel periodo</th>
+            <th class="num">Pubblicati</th>
+            <th class="num">Falliti</th>
+            <th class="num">Copertura</th>
+            <th class="num">Like</th>
+            <th class="num">Commenti</th>
+            <th class="num">Salvataggi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><a class="name" href="#bottega">Falegnameria Bianchi</a><span class="sub">ART-0042 · Bra (CN)</span></td>
+            <td>Campagna Settembre 2026 <span class="badge ok">attiva</span></td>
+            <td class="num">10</td><td class="num">1</td><td class="num">8.420</td><td class="num">612</td><td class="num">74</td><td class="num">39</td>
+          </tr>
+          <tr>
+            <td><a class="name" href="#">Tessitura Gallo</a><span class="sub">ART-0008 · Saluzzo (CN)</span></td>
+            <td>Fine estate <span class="badge ok">attiva</span></td>
+            <td class="num">14</td><td class="num">0</td><td class="num">11.050</td><td class="num">840</td><td class="num">91</td><td class="num">63</td>
+          </tr>
+          <tr>
+            <td><a class="name" href="#">Liuteria Marengo</a><span class="sub">ART-0003 · Fossano (CN)</span></td>
+            <td>Rientro <span class="badge">conclusa</span></td>
+            <td class="num">12</td><td class="num">2</td><td class="num">9.730</td><td class="num">655</td><td class="num">58</td><td class="num">41</td>
+          </tr>
+          <tr>
+            <td><a class="name" href="#">Ceramiche Olivero</a><span class="sub">ART-0017 · Mondovì (CN)</span></td>
+            <td>Settembre in bottega <span class="badge">conclusa</span></td>
+            <td class="num">19</td><td class="num">1</td><td class="num">12.100</td><td class="num">853</td><td class="num">89</td><td class="num">44</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Il nome della bottega applica il filtro "Artigiano" e mostra la vista sotto.</p>
+  </section>
+
+  <!-- ============ Vista 2 · una bottega / una campagna ============ -->
+  <section id="bottega">
+    <div class="section-head">
+      <h2>Vista · Una bottega, una campagna</h2>
+      <p>Falegnameria Bianchi · Campagna Settembre 2026 · ci si arriva anche dalla pagina artigiano (<span class="mono">?artigiano=ART-0042</span>)</p>
+    </div>
+
+    <div class="counts">
+      <div class="count"><b>10</b><span>Post pubblicati</span><small>su 12 · 1 fallito · 1 in attesa</small></div>
+      <div class="count"><b>8.420</b><span>Copertura</span></div>
+      <div class="count"><b>612</b><span>Like</span></div>
+      <div class="count"><b>74</b><span>Commenti</span></div>
+      <div class="count"><b>39</b><span>Salvataggi</span></div>
+    </div>
+
+    <div class="table-wrap">
+      <table>
+        <thead>
+          <tr>
+            <th>Pubblicato il</th>
+            <th>Canale</th>
+            <th>Post</th>
+            <th class="num">Copertura</th>
+            <th class="num">Like</th>
+            <th class="num">Commenti</th>
+            <th class="num">Salvataggi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td>26/09 ore 18:30</td><td>Facebook</td>
+            <td>"Il tavolo in noce è pronto per la sua nuova casa…"<span class="sub">tavolo-noce-03.jpg</span></td>
+            <td class="num">1.240</td><td class="num">96</td><td class="num">12</td><td class="num">7</td>
+          </tr>
+          <tr>
+            <td>24/09 ore 18:30</td><td>Facebook</td>
+            <td>"Ogni nodo del legno racconta una stagione…"<span class="sub">laboratorio-03.jpg</span></td>
+            <td class="num">980</td><td class="num">71</td><td class="num">9</td><td class="num">4</td>
+          </tr>
+          <tr>
+            <td>19/09 ore 18:30</td><td>Facebook</td>
+            <td>"Dodici anni di bottega, lo stesso banco da lavoro…"<span class="sub">banco-01.jpg</span></td>
+            <td class="num">1.510</td><td class="num">134</td><td class="num">18</td><td class="num">11</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <p class="note">Una riga per post pubblicato, dal più recente, con l'ultima rilevazione. I post falliti e annullati non hanno numeri e restano fuori: il conteggio dei falliti, in alto, porta a Vedi campagna (ADR-109). Ogni riga apre il post in <a href="AdFlow-operatore-campagna.html">Vedi campagna</a>. L'artigiano vede gli stessi quattro numeri, solo per le sue campagne, nella <a href="AdFlow-campagna-stati.html#attiva">vista della campagna attiva o conclusa</a>.</p>
+  </section>
+
+
+</main>
