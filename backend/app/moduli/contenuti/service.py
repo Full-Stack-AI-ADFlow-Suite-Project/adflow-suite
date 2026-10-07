@@ -1,16 +1,26 @@
 """Logica del modulo contenuti: l'unica parte che gli altri moduli possono importare."""
 
-from datetime import datetime
+from datetime import datetime, timedelta
 
-from sqlalchemy import select
+from sqlalchemy import select, or_, and_
 from sqlalchemy.orm import Session, selectinload
 
-from app.core.errori import DatiNonValidi
+from app.core.errori import DatiNonValidi, StatoNonValido
+from app.core.orologio import ROMA
 from app.core.transizioni import verifica_transizione
 from app.moduli.campagne import service as campagne
 
-from .domain import APPROVATO, ESITI_PUBBLICAZIONE, FALLITO, PUBBLICATO, TRANSIZIONI
-from .models import Post, VersionePost
+from .domain import (
+    APPROVATO,
+    DA_APPROVARE,
+    SCADUTO,
+    SCARTATO,
+    ESITI_PUBBLICAZIONE,
+    FALLITO,
+    TRANSIZIONI,
+    STATI_CHIUSI,
+)
+from .models import Post, VersionePost, Piano, Uscita, ErroreGenerazione
 
 
 def post_della_campagna(
@@ -30,77 +40,71 @@ def post_della_campagna(
     Returns:
         Lista di ``Post`` in ordine di data: ``post.versione_corrente`` è
         la versione corrente, ``post.versioni`` lo storico completo.
+        ``versione.foto`` contiene i legami ordinati per posizione, con ``foto_id``.
         Lista vuota se la campagna non ha post.
     """
     return list(
         db.scalars(
             select(Post)
             .where(Post.campagna_id == campagna_id)
-            .options(selectinload(Post.versioni))
+            .options(selectinload(Post.versioni).selectinload(VersionePost.foto))
             .order_by(Post.data_ora, Post.id)
             .execution_options(populate_existing=True)
         )
     )
 
 
-def ha_blocchi(
-    db: Session,
-    campagna_id: int,
-) -> bool:
-    """Indica se la campagna ha post con il segnale ``da_rivedere`` attivo.
+def ha_blocchi(db: Session, campagna_id: int, adesso: datetime) -> bool:
+    """Post da approvare con blocchi o intervento avviato da meno di 10 minuti.
 
-    Usata da ``revisione`` prima di approvare: se restituisce ``True``
-    l'operatore deve prima gestire i post segnalati dall'AI.
-    ``da_rivedere`` è un campo bool del post, non uno stato (plan §2).
-    L'«intervento in corso» di R-14 nasce con la rigenerazione (sprint 2b):
-    quando arriva, si aggiunge qui.
-
-    Args:
-        db: sessione del database (aperta e chiusa dal chiamante).
-        campagna_id: chiave primaria della campagna da controllare.
-
-    Returns:
-        ``True`` se almeno un post ha ``da_rivedere = True``,
-        ``False`` altrimenti.
+    I vecchi interventi non bloccano; non si modifica il loro storico (R-31).
     """
     return (
         db.scalar(
             select(Post.id)
-            .where(Post.campagna_id == campagna_id, Post.da_rivedere.is_(True))
+            .where(
+                Post.campagna_id == campagna_id,
+                Post.stato == DA_APPROVARE,
+                or_(
+                    Post.da_rivedere.is_(True),
+                    and_(
+                        Post.intervento_in_corso.is_not(None),
+                        Post.intervento_dal > adesso - timedelta(minutes=10),
+                    ),
+                ),
+            )
             .limit(1)
         )
         is not None
     )
 
 
-def approva_post(
-    db: Session,
-    campagna_id: int,
-) -> list[VersionePost]:
-    """Porta tutti i post della campagna allo stato ``approvato``.
+def approva_post(db: Session, campagna_id: int, adesso: datetime) -> list[VersionePost]:
+    """Approva i post da approvare non passati, scade i passati (R-14).
 
-    L'approvazione è sempre in blocco sull'intera campagna: non esiste
-    l'approvazione del singolo post (constitution §1.1). Restituisce le
-    versioni approvate perché ``revisione`` scrive una riga di
-    ``approvazione`` per ognuna (plan §6).
-
-    Args:
-        db: sessione del database (aperta e chiusa dal chiamante).
-        campagna_id: chiave primaria della campagna da approvare.
-
-    Returns:
-        Lista delle versioni di post appena approvate.
-
-    Raises:
-        StatoNonValido: se uno dei post non è in stato ``da_approvare``.
+    Mantiene scartati e scaduti. Tutti i controlli precedono le modifiche:
+    senza post approvabili o con blocchi solleva StatoNonValido senza mutazioni.
+    Restituisce le versioni approvate, per le righe di approvazione.
     """
     post = post_della_campagna(db, campagna_id)
+    approvabili = [p for p in post if p.stato == DA_APPROVARE and p.data_ora >= adesso]
+    if not approvabili:
+        raise StatoNonValido("Non ci sono post da approvare.")
+    if ha_blocchi(db, campagna_id, adesso):
+        raise StatoNonValido("Ci sono post da rivedere o interventi in corso.")
     for uno in post:
-        verifica_transizione(TRANSIZIONI, uno.stato, APPROVATO)
+        if uno.stato not in (SCARTATO, SCADUTO):
+            if uno.stato != DA_APPROVARE:
+                raise StatoNonValido(
+                    "La campagna contiene post già usciti dalla revisione."
+                )
+            destinazione = APPROVATO if uno.data_ora >= adesso else SCADUTO
+            verifica_transizione(TRANSIZIONI, uno.stato, destinazione)
     for uno in post:
-        uno.stato = APPROVATO
+        if uno.stato == DA_APPROVARE:
+            uno.stato = APPROVATO if uno.data_ora >= adesso else SCADUTO
     db.flush()
-    return [uno.versione_corrente for uno in post if uno.versione_corrente]
+    return [p.versione_corrente for p in approvabili if p.versione_corrente is not None]
 
 
 def post_dovuti(
@@ -171,31 +175,45 @@ def segna_esito(
     db.flush()
 
 
-def tutti_chiusi(
-    db: Session,
-    campagna_id: int,
-) -> bool:
-    """Indica se tutti i post della campagna sono pubblicati o falliti.
+def tutti_chiusi(db: Session, campagna_id: int, adesso: datetime) -> bool:
+    """Tutti i post chiusi; con falliti attende la fine del periodo (R-34).
 
-    È la condizione di spec §2.4 e CA-39. Usata da ``pubblicazione`` per
-    sapere quando portare la campagna allo stato ``conclusa``.
-
-    Args:
-        db: sessione del database (aperta e chiusa dal chiamante).
-        campagna_id: chiave primaria della campagna da controllare.
-
-    Returns:
-        ``True`` se ogni post è ``pubblicato`` o ``fallito``, ``False`` se
-        almeno uno è in un altro stato (es. ``approvato``, in attesa).
+    La fine è inclusiva, nel fuso Europe/Rome. Nessun commit o cambio di stato.
     """
-    return (
-        db.scalar(
-            select(Post.id)
-            .where(
-                Post.campagna_id == campagna_id,
-                Post.stato.not_in((PUBBLICATO, FALLITO)),
-            )
-            .limit(1)
+    stati = list(db.scalars(select(Post.stato).where(Post.campagna_id == campagna_id)))
+    if any(stato not in STATI_CHIUSI for stato in stati):
+        return False
+    if FALLITO in stati:
+        return adesso.astimezone(ROMA).date() > campagne.campagna(db, campagna_id).fine
+    return True
+
+
+def piano_corrente(db: Session, campagna_id: int) -> Piano | None:
+    """Ultimo piano per numero, senza alterare lo storico."""
+    return db.scalar(
+        select(Piano)
+        .where(Piano.campagna_id == campagna_id)
+        .order_by(Piano.numero.desc())
+        .limit(1)
+    )
+
+
+def uscite_della_campagna(db: Session, campagna_id: int) -> list[Uscita]:
+    """Uscite in ordine di numero, anche prima della generazione dei testi."""
+    return list(
+        db.scalars(
+            select(Uscita)
+            .where(Uscita.campagna_id == campagna_id)
+            .order_by(Uscita.numero)
         )
-        is None
+    )
+
+
+def ultimo_errore(db: Session, campagna_id: int) -> ErroreGenerazione | None:
+    """Ultimo errore per istante e id, per un ordine stabile a parità di ora."""
+    return db.scalar(
+        select(ErroreGenerazione)
+        .where(ErroreGenerazione.campagna_id == campagna_id)
+        .order_by(ErroreGenerazione.creata_il.desc(), ErroreGenerazione.id.desc())
+        .limit(1)
     )

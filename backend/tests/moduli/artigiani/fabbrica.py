@@ -1,4 +1,5 @@
 """Profilo minimo con dati fittizi e account social collegati, senza commit."""
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 from app.moduli.artigiani.models import AccountSocial, ProfiloBottega
 from tests.moduli.accesso.fabbrica import utente
@@ -39,7 +40,18 @@ def account_social(
     **campi,
 ) -> AccountSocial:
     if profilo is None:
-        profilo = _nuovo_profilo(db)
+        profilo = _nuovo_profilo(db, canali=[piattaforma])
+        record = db.scalar(
+            select(AccountSocial).where(
+                AccountSocial.profilo_id == profilo.id,
+                AccountSocial.piattaforma == piattaforma,
+            )
+        )
+        record.stato = stato
+        for campo, valore in campi.items():
+            setattr(record, campo, valore)
+        db.flush()
+        return record
     dati = dict(
         profilo_id=profilo.id,
         piattaforma=piattaforma,

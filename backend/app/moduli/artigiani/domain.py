@@ -49,3 +49,5 @@ OBBLIGATORI = (
     "obiettivo",
     "canali",
 )
+
+STATI_ACCOUNT = ("collegato", "scaduto", "scollegato")

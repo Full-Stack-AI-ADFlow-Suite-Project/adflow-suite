@@ -26,11 +26,20 @@ AMMESSE = {
     ("da_approvare", "approvato"),
     ("approvato", "pubblicato"),
     ("approvato", "fallito"),
+    ("approvato", "annullato"),
     ("fallito", "approvato"),
     ("da_approvare", "scaduto"),
     ("da_approvare", "scartato"),
 }
-STATI = ("da_approvare", "approvato", "pubblicato", "fallito", "scaduto", "scartato")
+STATI = (
+    "da_approvare",
+    "approvato",
+    "pubblicato",
+    "fallito",
+    "scaduto",
+    "scartato",
+    "annullato",
+)
 VIETATE = sorted(set(product(STATI, STATI)) - AMMESSE)
 SCADENZA = datetime(2030, 1, 5, 12, tzinfo=timezone.utc)
 
@@ -87,9 +96,9 @@ def test_ha_blocchi(db):
     campagna = campagna_in_revisione(db)
     post = post_da_approvare(db, campagna_id=campagna.id)
     post_da_approvare(db, da_rivedere=True)  # di un'altra campagna
-    assert ha_blocchi(db, campagna.id) is False
+    assert ha_blocchi(db, campagna.id, SCADENZA) is False
     post.da_rivedere = True
-    assert ha_blocchi(db, campagna.id) is True
+    assert ha_blocchi(db, campagna.id, SCADENZA) is True
 
 
 def test_approva_post_in_blocco(db):
@@ -98,7 +107,7 @@ def test_approva_post_in_blocco(db):
     secondo = post_da_approvare(db, campagna_id=campagna.id)
     altro = post_da_approvare(db)
 
-    versioni = approva_post(db, campagna.id)
+    versioni = approva_post(db, campagna.id, SCADENZA)
 
     assert primo.stato == secondo.stato == "approvato"
     assert altro.stato == "da_approvare"
@@ -109,9 +118,9 @@ def test_approva_post_in_blocco(db):
 def test_approva_post_rifiuta_se_un_post_non_e_da_approvare(db):
     campagna = campagna_in_revisione(db)
     primo = post_da_approvare(db, campagna_id=campagna.id)
-    post_da_approvare(db, campagna_id=campagna.id, stato="scartato")
+    post_da_approvare(db, campagna_id=campagna.id, stato="approvato")
     with pytest.raises(StatoNonValido):
-        approva_post(db, campagna.id)
+        approva_post(db, campagna.id, SCADENZA)
     assert primo.stato == "da_approvare"
 
 
@@ -158,11 +167,11 @@ def test_tutti_chiusi(db):
     attiva = campagna_attiva(db)
     primo = post_approvato(db, campagna_id=attiva.id)
     secondo = post_approvato(db, campagna_id=attiva.id)
-    assert tutti_chiusi(db, attiva.id) is False
+    assert tutti_chiusi(db, attiva.id, SCADENZA + timedelta(days=40)) is False
     segna_esito(db, primo, "pubblicato")
-    assert tutti_chiusi(db, attiva.id) is False
+    assert tutti_chiusi(db, attiva.id, SCADENZA + timedelta(days=40)) is False
     segna_esito(db, secondo, "fallito")
-    assert tutti_chiusi(db, attiva.id) is True
+    assert tutti_chiusi(db, attiva.id, SCADENZA + timedelta(days=40)) is True
 
 
 def test_le_fabbriche_dei_post_hanno_sempre_la_foto(db):

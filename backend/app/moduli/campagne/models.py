@@ -4,7 +4,7 @@ from typing import Any
 
 from sqlalchemy import Boolean, Date, DateTime, ForeignKey, Integer, Text, text
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB
-from sqlalchemy.orm import Mapped, mapped_column
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.core.db import Base
 
 
@@ -49,6 +49,8 @@ class GruppoFoto(Base):
     descrizione: Mapped[str | None] = mapped_column(Text, nullable=True)
     da_usare_il: Mapped[date | None] = mapped_column(Date, nullable=True)
     n_immagini: Mapped[int | None] = mapped_column(Integer, nullable=True)
+
+    foto: Mapped[list["Foto"]] = relationship(order_by="Foto.id")
 
 
 class Foto(Base):

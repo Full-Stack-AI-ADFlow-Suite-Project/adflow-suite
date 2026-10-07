@@ -16,12 +16,14 @@ def campagna_in_bozza(
 ) -> Campagna:
     if profilo_id is None:
         profilo_id = profilo(db).id
+    bottega = db.get(ProfiloBottega, profilo_id)
     dati = dict(
         profilo_id=profilo_id,
         titolo="Campagna di prova",
         inizio=date(2030, 1, 1),
         fine=date(2030, 1, 31),
         stato="bozza",
+        canali=list(bottega.canali),
     )
     dati.update(campi)
     record = Campagna(**dati)
@@ -84,6 +86,7 @@ def gruppo(
         campagna_id=campagna.id,
         origine=origine,
         descrizione="Gruppo di prova",
+        n_immagini=3 if origine == "create_ai" else None,
     )
     dati.update(campi)
     record = GruppoFoto(**dati)
@@ -117,4 +120,13 @@ def foto(
     record = Foto(**dati)
     db.add(record)
     db.flush()
+    return record
+
+
+def campagna_con_piano_da_rivedere(db: Session, **campi) -> Campagna:
+    """Campagna inviata completa, ferma per un piano debole."""
+    from tests.moduli.contenuti.fabbrica import piano
+
+    record = _inviata(db, "piano_da_rivedere", **campi)
+    piano(db, record, debole=True)
     return record

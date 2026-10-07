@@ -28,6 +28,11 @@ from tests.moduli.campagne.fabbrica import (
 # il test fallisce se il domain.py si allontana dal piano.
 AMMESSE = {
     ("bozza", "inviata"),
+    ("inviata", "generazione_fallita"),
+    ("in_generazione", "piano_da_rivedere"),
+    ("piano_da_rivedere", "in_generazione"),
+    ("piano_da_rivedere", "respinta"),
+    ("piano_da_rivedere", "scaduta"),
     ("inviata", "in_generazione"),
     ("in_generazione", "in_revisione"),
     ("in_revisione", "attiva"),
@@ -45,6 +50,7 @@ AMMESSE = {
     ("sospesa", "annullata"),
 }
 STATI = (
+    "piano_da_rivedere",
     "bozza",
     "inviata",
     "in_generazione",
@@ -135,7 +141,7 @@ def test_registra_decisione_non_sostituisce_le_precedenti(db):
     record = campagna_in_revisione(db)
     operatore = utente(db, "operatore")
     immagine = foto_della_campagna(db, record.id)[0]
-    registra_decisione(db, record, operatore.id, "rimandata", None, "Ci torno", [])
+    registra_decisione(db, record, operatore.id, "nota", None, "Ci torno", [])
     registra_decisione(
         db, record, operatore.id, "respinta", "foto", "Foto sfocate", [immagine.id]
     )
@@ -144,7 +150,7 @@ def test_registra_decisione_non_sostituisce_le_precedenti(db):
         .where(DecisioneCampagna.campagna_id == record.id)
         .order_by(DecisioneCampagna.id)
     ).all()
-    assert [d.esito for d in decisioni] == ["rimandata", "respinta"]
+    assert [d.esito for d in decisioni] == ["nota", "respinta"]
     assert decisioni[1].foto_segnate == [immagine.id]
 
 
