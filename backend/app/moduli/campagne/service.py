@@ -1,29 +1,41 @@
+"""Logica del modulo campagne: l'unica parte che gli altri moduli possono importare."""
+
 from datetime import datetime, timedelta
 from typing import Any
 
 from sqlalchemy import select, text
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.core.config import leggi_impostazioni
 from app.core.errori import DatiNonValidi, NonPermesso, NonTrovato, StatoNonValido
+from app.core import orologio
 from app.core.orologio import ROMA
 from app.core.transizioni import verifica_transizione
 from app.moduli.artigiani import service as artigiani_service
 
 from .domain import (
-    ANNULLATA,
     BOZZA,
-    CONCLUSA,
     ESITI_DECISIONE,
     ESITO_RESPINTA,
     MOTIVI_DECISIONE,
-    RESPINTA,
-    SCADUTA,
+    ORIGINI_FOTO,
     STATI,
+    STATI_CHIUSI,
     TRANSIZIONI,
 )
-from .models import Campagna, DecisioneCampagna, Foto
-from .schemas import CampagnaCrea, CampagnaDettaglio
+from .models import Campagna, DecisioneCampagna, Foto, GruppoFoto
+from .schemas import (
+    CampagnaCrea,
+    CampagnaDettaglio,
+    CampagnaElencoItem,
+    DecisioneSintetica,
+    FotoSintetica,
+    GruppoSintetico,
+)
+
+CANALI_AMMESSI = ("facebook", "instagram")
+POST_A_SETTIMANA = {"f1_2": 2, "f3_4": 3, "f5_piu": 5, "decidete_voi": 3}
+LIMITI_POLICY_FOTO = {"meno_5": 4, "da5_a12": 12, "da12_a20": 20}
 
 
 def campagna(
@@ -104,6 +116,8 @@ def cambia_stato(
     db: Session,
     campagna: Campagna,
     nuovo: str,
+    *,
+    ora: datetime | None = None,
 ) -> None:
     """Aggiorna lo stato della campagna verificando che la transizione sia ammessa.
 
@@ -116,6 +130,7 @@ def cambia_stato(
         db: sessione del database (aperta e chiusa dal chiamante).
         campagna: il record ``Campagna`` da aggiornare (già caricato in sessione).
         nuovo: lo stato di destinazione (es. ``"inviata"``).
+        ora: istante di chiusura iniettato; se assente usa ``core.orologio.adesso``.
 
     Raises:
         StatoNonValido: se la transizione da stato attuale a ``nuovo`` non è
@@ -123,6 +138,8 @@ def cambia_stato(
     """
     verifica_transizione(TRANSIZIONI, campagna.stato, nuovo)
     campagna.stato = nuovo
+    if nuovo in STATI_CHIUSI:
+        campagna.chiusa_il = ora if ora is not None else orologio.adesso()
     db.flush()
 
 
@@ -134,10 +151,12 @@ def registra_decisione(
     motivo: str | None,
     nota: str | None,
     foto_segnate: list[int],
+    canale: str | None = None,
+    post_id: int | None = None,
 ) -> None:
     """Scrive una riga nella tabella ``decisione_campagna``.
 
-    Usata da ``revisione`` dopo ogni approvazione, rimanda o respinta.
+    Usata da ``revisione`` dopo ogni approvazione, nota o respinta.
     Le decisioni non si cancellano mai (constitution §1.2): questa funzione
     crea sempre un nuovo record, non aggiorna quelli esistenti.
 
@@ -145,13 +164,15 @@ def registra_decisione(
         db: sessione del database (aperta e chiusa dal chiamante).
         campagna: il record ``Campagna`` a cui appartiene la decisione.
         utente_id: id dell'operatore che ha preso la decisione.
-        esito: ``"approvata"``, ``"rimandata"`` o ``"respinta"``.
+        esito: uno degli esiti di ``domain.ESITI_DECISIONE``.
         motivo: obbligatorio se ``esito`` è ``"respinta"`` (``"foto"`` o
                 ``"altro"``), ``None`` altrimenti.
         nota: testo libero dell'operatore; obbligatoria se ``esito`` è
               ``"respinta"``, facoltativa altrimenti.
         foto_segnate: lista di id delle foto segnalate come problematiche,
                       vuota se non applicabile.
+        canale: canale tolto, facoltativo (decisione ``canale_tolto``).
+        post_id: post riprogrammato, facoltativo (decisione ``riprogrammato``).
 
     Raises:
         DatiNonValidi: esito o motivo fuori dai valori di ``campagne/domain.py``,
@@ -171,6 +192,8 @@ def registra_decisione(
             motivo=motivo,
             nota=nota,
             foto_segnate=foto_segnate,
+            canale=canale,
+            post_id=post_id,
         )
     )
     db.flush()
@@ -208,6 +231,47 @@ def aggiorna_foto(
     db.flush()
 
 
+def gruppi_della_campagna(db: Session, id: int) -> list[GruppoFoto]:
+    """Gruppi della campagna con le foto caricate, senza i gruppi di archivio."""
+    return list(
+        db.scalars(
+            select(GruppoFoto)
+            .where(GruppoFoto.campagna_id == id)
+            .options(selectinload(GruppoFoto.foto))
+            .order_by(GruppoFoto.id)
+            .execution_options(populate_existing=True)
+        )
+    )
+
+
+def aggiungi_foto(
+    db: Session,
+    campagna_id: int,
+    origine: str,
+    file: str,
+    mime: str,
+    larghezza: int,
+    altezza: int,
+) -> Foto:
+    """Crea una foto senza gruppo per le cartoline, senza commit (plan §6)."""
+    proprietaria = campagna(db, campagna_id)
+    if origine not in ORIGINI_FOTO:
+        raise DatiNonValidi("Origine della foto non valida.")
+    record = Foto(
+        profilo_id=proprietaria.profilo_id,
+        campagna_id=campagna_id,
+        gruppo_id=None,
+        origine=origine,
+        file=file,
+        mime=mime,
+        larghezza=larghezza,
+        altezza=altezza,
+    )
+    db.add(record)
+    db.flush()
+    return record
+
+
 def crea_bozza(
     db: Session,
     utente_id: int,
@@ -216,25 +280,8 @@ def crea_bozza(
 ) -> Campagna:
     """Crea una nuova campagna nello stato bozza per l'artigiano autenticato.
 
-    Verifica le regole di pianificazione R-08 e i vincoli di unicità R-12:
-    - Anticipo minimo di 3 giorni rispetto a oggi (CA-09).
-    - Data di fine successiva a data di inizio (CA-10).
-    - Durata massima di 92 giorni (CA-10).
-    - Una sola bozza contemporanea per l'artigiano (CA-11).
-    - Periodo non sovrapposto con campagne attive o in corso dello stesso artigiano (CA-12).
-
-    Args:
-        db: sessione del database aperta dal chiamante.
-        utente_id: ID dell'utente artigiano.
-        dati: payload validato con titolo, date, descrizione e flag crea_immagini_ai.
-        ora: data e ora correnti (per calcolo anticipo minimo).
-
-    Returns:
-        Il record Campagna appena creato in stato bozza.
-
-    Raises:
-        DatiNonValidi: se i vincoli temporali (R-08) non sono rispettati o manca il profilo.
-        StatoNonValido: se esiste già una bozza aperta (CA-11) o c'è sovrapposizione (CA-12).
+    Verifica le regole di pianificazione R-08, i vincoli di unicità R-12 e la presenza
+    dei canali collegati R-22 (CA-09, CA-10, CA-11, CA-12, CA-48).
     """
     profilo = artigiani_service.profilo_di(db, utente_id)
     if profilo is None:
@@ -242,6 +289,21 @@ def crea_bozza(
 
     # Concorrenza atomica: lock di transazione sull'artigiano per serializzare richieste concorrenti
     db.execute(text("SELECT pg_advisory_xact_lock(:chiave)"), {"chiave": profilo.id})
+
+    # R-22, CA-48: verifica canali ammessi e collegati
+    canali_richiesti = dati.canali
+    if not canali_richiesti:
+        raise DatiNonValidi("Selezionare almeno un canale.")
+    for c in canali_richiesti:
+        if c not in CANALI_AMMESSI:
+            raise DatiNonValidi(f"Canale '{c}' non ammesso.")
+
+    collegati = set(artigiani_service.canali_collegati(db, profilo.id))
+    non_collegati = [c for c in canali_richiesti if c not in collegati]
+    if non_collegati:
+        raise DatiNonValidi(
+            f"I seguenti canali non sono collegati: {', '.join(non_collegati)}."
+        )
 
     oggi = ora.astimezone(ROMA).date() if ora.tzinfo else ora.date()
     impostazioni = leggi_impostazioni()
@@ -255,7 +317,10 @@ def crea_bozza(
             "La data di fine deve essere successiva alla data di inizio."
         )
 
-    if (dati.fine - dati.inizio).days > 92:
+    durata = (dati.fine - dati.inizio).days + 1
+    if durata < 7:
+        raise DatiNonValidi("La durata della campagna deve essere di almeno 7 giorni.")
+    if durata > 92:
         raise DatiNonValidi("La durata della campagna non può superare 92 giorni.")
 
     # R-12, CA-11: una sola bozza per artigiano
@@ -268,12 +333,11 @@ def crea_bozza(
     if bozza_aperta is not None:
         raise StatoNonValido("Esiste già una campagna in bozza per questo artigiano.")
 
-    # R-12, CA-12: campagne non annullata/conclusa/respinta/scaduta non sovrapposte
-    stati_non_bloccanti = [ANNULLATA, CONCLUSA, RESPINTA, SCADUTA]
+    # R-12, CA-12: campagne non chiuse non sovrapposte
     campagna_sovrapposta = db.scalar(
         select(Campagna.id).where(
             Campagna.profilo_id == profilo.id,
-            Campagna.stato.not_in(stati_non_bloccanti),
+            Campagna.stato.not_in(STATI_CHIUSI),
             Campagna.inizio <= dati.fine,
             Campagna.fine >= dati.inizio,
         )
@@ -287,7 +351,7 @@ def crea_bozza(
         inizio=dati.inizio,
         fine=dati.fine,
         descrizione=dati.descrizione,
-        crea_immagini_ai=dati.crea_immagini_ai,
+        canali=dati.canali,
         stato=BOZZA,
     )
     db.add(nuova)
@@ -299,14 +363,19 @@ def elenca_campagne(
     db: Session,
     utente_id: int,
     ruolo: str,
-    stato: str | None = None,
-) -> list[Campagna]:
+    stati: list[str] | None = None,
+) -> list[CampagnaElencoItem]:
     """Elenca le campagne accessibili all'utente autenticato.
 
-    L'artigiano visualizza solo le proprie campagne (legate alla sua bottega).
-    L'operatore e l'admin visualizzano tutte le campagne del consorzio.
-    Supporta il filtro opzionale per stato.
+    L'artigiano visualizza solo le proprie campagne.
+    L'operatore e l'admin visualizzano tutte le campagne del consorzio con bottega e città.
+    Supporta il filtro ripetibile per stati (CA-54).
     """
+    if stati:
+        for s in stati:
+            if s not in STATI:
+                raise DatiNonValidi(f"Stato della campagna non valido: {s}.")
+
     query = select(Campagna)
 
     if ruolo == "artigiano":
@@ -317,13 +386,49 @@ def elenca_campagne(
     elif ruolo not in ("operatore", "admin"):
         return []
 
-    if stato:
-        if stato not in STATI:
-            raise DatiNonValidi("Stato della campagna non valido.")
-        query = query.where(Campagna.stato == stato)
+    if stati:
+        query = query.where(Campagna.stato.in_(stati))
 
-    query = query.order_by(Campagna.id.desc())
-    return list(db.scalars(query))
+    campagne = list(db.scalars(query.order_by(Campagna.id.desc())))
+    if not campagne:
+        return []
+
+    if ruolo in ("operatore", "admin"):
+        profilo_ids = list({c.profilo_id for c in campagne})
+        rows = db.execute(
+            text("SELECT id, nome, citta FROM profilo_bottega WHERE id = ANY(:ids)"),
+            {"ids": profilo_ids},
+        ).fetchall()
+        mappa_profili = {r[0]: (r[1], r[2]) for r in rows}
+        return [
+            CampagnaElencoItem(
+                id=c.id,
+                profilo_id=c.profilo_id,
+                titolo=c.titolo,
+                inizio=c.inizio,
+                fine=c.fine,
+                stato=c.stato,
+                canali=c.canali,
+                bottega=mappa_profili.get(c.profilo_id, (None, None))[0],
+                citta=mappa_profili.get(c.profilo_id, (None, None))[1],
+            )
+            for c in campagne
+        ]
+
+    return [
+        CampagnaElencoItem(
+            id=c.id,
+            profilo_id=c.profilo_id,
+            titolo=c.titolo,
+            inizio=c.inizio,
+            fine=c.fine,
+            stato=c.stato,
+            canali=c.canali,
+            bottega=None,
+            citta=None,
+        )
+        for c in campagne
+    ]
 
 
 def dettaglio_campagna(
@@ -332,7 +437,7 @@ def dettaglio_campagna(
     ruolo: str,
     campagna_id: int,
 ) -> CampagnaDettaglio:
-    """Restituisce il dettaglio della campagna con controlli di accesso granulari.
+    """Restituisce il dettaglio della campagna con gruppi, post chiesti e avvisi.
 
     Se l'utente è un artigiano e la campagna appartiene a un altro artigiano,
     solleva NonTrovato (404) per evitare fuga di informazioni (CA-04).
@@ -342,6 +447,7 @@ def dettaglio_campagna(
     if rec is None:
         raise NonTrovato("Campagna non trovata.")
 
+    profilo = None
     if ruolo == "artigiano":
         profilo = artigiani_service.profilo_di(db, utente_id)
         if profilo is None or rec.profilo_id != profilo.id:
@@ -349,19 +455,90 @@ def dettaglio_campagna(
     elif ruolo not in ("operatore", "admin"):
         raise NonPermesso("Non hai i permessi per visualizzare le campagne.")
 
-    foto = foto_della_campagna(db, campagna_id)
+    gruppi_db = gruppi_della_campagna(db, campagna_id)
+    gruppi_out = [
+        GruppoSintetico(
+            id=g.id,
+            origine=g.origine,
+            descrizione=g.descrizione,
+            da_usare_il=g.da_usare_il,
+            n_immagini=g.n_immagini,
+            foto=[
+                FotoSintetica(
+                    id=f.id,
+                    gruppo_id=f.gruppo_id,
+                    file=f.file,
+                    mime=f.mime,
+                    larghezza=f.larghezza,
+                    altezza=f.altezza,
+                    da_usare=f.da_usare,
+                    origine=f.origine,
+                )
+                for f in g.foto
+            ],
+        )
+        for g in gruppi_db
+    ]
 
-    decisioni = []
+    # Calcolo post_chiesti_per_canale secondo spec R-05
+    giorni = (rec.fine - rec.inizio).days + 1
+    frequenza_val = rec.frequenza
+    foto_policy_val = None
+
+    if profilo is not None:
+        if not frequenza_val:
+            frequenza_val = profilo.frequenza
+        foto_policy_val = profilo.foto_policy
+    else:
+        p_row = db.execute(
+            text("SELECT frequenza, foto_policy FROM profilo_bottega WHERE id = :pid"),
+            {"pid": rec.profilo_id},
+        ).fetchone()
+        if p_row:
+            if not frequenza_val:
+                frequenza_val = p_row[0]
+            foto_policy_val = p_row[1]
+
+    freq = frequenza_val or "decidete_voi"
+    post_sett = POST_A_SETTIMANA.get(freq, 3)
+    post_chiesti = (post_sett * giorni) // 7
+
+    canali = rec.canali or []
+    post_chiesti_per_canale = {canale: post_chiesti for canale in canali}
+
+    # Calcolo avvisi informativi (spec R-25, CA-54)
+    n_foto_caricate = sum(len(g.foto) for g in gruppi_db if g.origine == "caricate")
+    avvisi: list[str] = []
+    for _canale in canali:
+        if post_chiesti > 0 and n_foto_caricate < post_chiesti:
+            if "foto_poche" not in avvisi:
+                avvisi.append("foto_poche")
+        if post_chiesti > n_foto_caricate and (post_chiesti - n_foto_caricate) > (
+            n_foto_caricate / 2
+        ):
+            if "riempitivi_molti" not in avvisi:
+                avvisi.append("riempitivi_molti")
+
+    if isinstance(foto_policy_val, dict):
+        q_mese = foto_policy_val.get("quantita_mese")
+        if q_mese in LIMITI_POLICY_FOTO:
+            limite = LIMITI_POLICY_FOTO[q_mese]
+            if (post_sett * 4) > limite:
+                if "frequenza_alta" not in avvisi:
+                    avvisi.append("frequenza_alta")
+
     snapshot = None
+    decisioni = []
     if ruolo in ("operatore", "admin"):
         snapshot = rec.profilo_snapshot
-        decisioni = list(
+        decisioni_db = list(
             db.scalars(
                 select(DecisioneCampagna)
                 .where(DecisioneCampagna.campagna_id == campagna_id)
                 .order_by(DecisioneCampagna.id)
             )
         )
+        decisioni = [DecisioneSintetica.model_validate(d) for d in decisioni_db]
 
     return CampagnaDettaglio(
         id=rec.id,
@@ -370,14 +547,16 @@ def dettaglio_campagna(
         inizio=rec.inizio,
         fine=rec.fine,
         descrizione=rec.descrizione,
-        crea_immagini_ai=rec.crea_immagini_ai,
         stato=rec.stato,
         canali=rec.canali,
+        canali_tolti=rec.canali_tolti,
         frequenza=rec.frequenza,
         obiettivo=rec.obiettivo,
         inviata_il=rec.inviata_il,
-        rimandata=rec.rimandata,
-        foto=foto,
+        chiusa_il=rec.chiusa_il,
+        gruppi=gruppi_out,
+        post_chiesti_per_canale=post_chiesti_per_canale,
+        avvisi=avvisi,
         profilo_snapshot=snapshot,
         decisioni=decisioni,
     )

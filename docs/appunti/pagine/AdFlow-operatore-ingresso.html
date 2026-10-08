@@ -1,0 +1,237 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Operatore · Ingresso</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F6F3EC; --paper-raised:#FFFFFF; --ink:#201D17; --ink-soft:#6E6656; --ink-faint:#9C927D;
+    --accent:#2E6B5C; --accent-strong:#1D4A3F; --accent-soft:#DCEAE3; --accent-on-soft:#1D4A3F;
+    --line:#DDD5C2; --danger:#AE3B2C; --danger-soft:#F6E1DC; --danger-on-soft:#7A281C;
+    --warn:#8A6A1F; --warn-soft:#F3E7C9;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#1B1914; --paper-raised:#26231C; --ink:#EFEAE0; --ink-soft:#B7AE9B; --ink-faint:#837A68;
+      --accent:#7EC4AE; --accent-strong:#A9DCC9; --accent-soft:#22392F; --accent-on-soft:#A9DCC9;
+      --line:#3A362B; --danger:#E08776; --danger-soft:#3A2420; --danger-on-soft:#E08776;
+      --warn:#E4C878; --warn-soft:#3A331C;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#1B1914; --paper-raised:#26231C; --ink:#EFEAE0; --ink-soft:#B7AE9B; --ink-faint:#837A68;
+    --accent:#7EC4AE; --accent-strong:#A9DCC9; --accent-soft:#22392F; --accent-on-soft:#A9DCC9;
+    --line:#3A362B; --danger:#E08776; --danger-soft:#3A2420; --danger-on-soft:#E08776;
+    --warn:#E4C878; --warn-soft:#3A331C;
+    color-scheme: dark;
+  }
+
+  *{ box-sizing:border-box; }
+  body{ background:var(--paper); color:var(--ink); font-family:"IBM Plex Sans", system-ui, sans-serif; margin:0; }
+  h1,h2,h3{ font-family:"Fraunces", Georgia, serif; font-weight:600; text-wrap:balance; margin:0; }
+  a{ color:var(--accent-strong); }
+  .wrap{ max-width:1100px; margin-inline:auto; padding-inline:16px; }
+  .mono{ font-family:"IBM Plex Mono", monospace; }
+
+  /* Barra di navigazione comune alle pagine operatore */
+  .topbar{ background:var(--paper-raised); border-bottom:1px solid var(--line); }
+  .topbar .wrap{ display:flex; align-items:center; gap:22px; min-height:54px; flex-wrap:wrap; }
+  .brand{ font-family:"Fraunces", Georgia, serif; font-weight:600; font-size:17px; color:var(--ink); text-decoration:none; }
+  .brand small{ font-family:"IBM Plex Mono", monospace; font-size:11px; font-weight:400; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); margin-left:6px; }
+  .nav{ display:flex; gap:4px; flex:1; }
+  .nav a{ text-decoration:none; font-size:14px; color:var(--ink-soft); padding:7px 12px; border-radius:8px; }
+  .nav a.current{ background:var(--accent-soft); color:var(--accent-on-soft); font-weight:500; }
+  .user{ font-size:13px; color:var(--ink-soft); display:flex; gap:12px; align-items:center; }
+
+  main{ padding-block:24px 48px; }
+
+  .masthead{ display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap; margin-bottom:18px; }
+  .eyebrow{ font-family:"IBM Plex Mono", monospace; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); }
+  .masthead h1{ font-size:30px; margin-top:6px; }
+  .masthead p{ color:var(--ink-soft); font-size:14.5px; margin:6px 0 0; }
+
+  .banner{ border-radius:10px; padding:12px 14px; font-size:13.5px; line-height:1.5; margin-bottom:22px; display:flex; gap:10px; align-items:flex-start; }
+  .banner.info{ background:var(--accent-soft); border:1px solid var(--accent); color:var(--accent-on-soft); }
+  .banner.warn{ background:var(--warn-soft); border:1px solid var(--warn); color:var(--warn); }
+  .banner .icon{ flex:none; font-family:"IBM Plex Mono", monospace; font-weight:500; }
+
+  .card{ background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:20px; }
+  .card .tab{ font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--accent-strong); letter-spacing:.06em; }
+  .card h3{ font-size:18px; margin-top:4px; margin-bottom:12px; }
+  .card .foot{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:14px; }
+  .note{ font-size:12.5px; color:var(--ink-faint); line-height:1.5; margin-top:10px; }
+
+  .badge{ display:inline-block; font-family:"IBM Plex Mono", monospace; font-size:11.5px; border-radius:20px; padding:2px 9px; border:1px solid var(--line); color:var(--ink-soft); background:var(--paper); white-space:nowrap; }
+  .badge.ok{ border-color:var(--accent); background:var(--accent-soft); color:var(--accent-on-soft); }
+  .badge.warn{ border-color:var(--warn); background:var(--warn-soft); color:var(--warn); }
+  .badge.danger{ border-color:var(--danger); background:var(--danger-soft); color:var(--danger-on-soft); }
+
+  .btn{ font-family:inherit; border-radius:8px; padding:8px 14px; font-size:13.5px; font-weight:500; border:1px solid var(--line); background:var(--paper-raised); color:var(--ink); display:inline-block; text-decoration:none; }
+  .btn.primary{ background:var(--accent); border-color:var(--accent); color:var(--paper-raised); }
+  .btn.quiet{ color:var(--ink-soft); }
+
+  .section-head{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
+  .section-head h2{ font-size:24px; }
+  .section-head p{ margin:0; font-size:13.5px; color:var(--ink-soft); }
+  section{ scroll-margin-top:16px; margin-bottom:36px; }
+
+  .group-empty{ border:1px dashed var(--line); border-radius:12px; padding:14px 16px; font-size:13.5px; color:var(--ink-faint); }
+
+  .camp{ background:var(--paper-raised); border:1px solid var(--line); border-radius:12px; padding:16px 18px; display:grid; grid-template-columns:1fr auto; gap:14px 24px; margin-bottom:10px; }
+  .camp.attn{ border-left:4px solid var(--warn); }
+  .camp.lost{ border-left:4px solid var(--danger); }
+  .camp .who{ font-size:13px; color:var(--ink-soft); }
+  .camp .who a{ text-decoration:none; font-weight:500; }
+  .camp h3{ font-size:17px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:3px; }
+  .camp .meta{ font-size:13px; color:var(--ink-soft); margin-top:5px; display:flex; gap:6px 16px; flex-wrap:wrap; }
+  .posts{ display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
+  .camp .next{ font-size:13px; margin-top:10px; }
+  .camp .actions{ display:flex; flex-direction:column; gap:8px; align-items:stretch; min-width:170px; }
+  @media (max-width:640px){
+    .camp{ grid-template-columns:1fr; }
+    .camp .actions{ flex-direction:row; flex-wrap:wrap; min-width:0; }
+  }
+
+  .tools{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
+  .tools input[type=search], .tools select{ font-family:inherit; font-size:14px; color:var(--ink); background:var(--paper-raised); border:1px solid var(--line); border-radius:8px; padding:8px 11px; }
+  .tools input[type=search]{ flex:1; min-width:200px; }
+  .tools .spacer{ flex:1; }
+
+  .table-wrap{ overflow-x:auto; background:var(--paper-raised); border:1px solid var(--line); border-radius:12px; }
+  table{ border-collapse:collapse; width:100%; font-size:13.5px; min-width:820px; }
+  th{ text-align:left; font-family:"IBM Plex Mono", monospace; font-weight:400; font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-faint); padding:10px 14px; border-bottom:1px solid var(--line); white-space:nowrap; }
+  td{ padding:11px 14px; border-top:1px solid var(--line); vertical-align:top; }
+  tbody tr:first-child td{ border-top:none; }
+  td .sub{ display:block; font-size:12px; color:var(--ink-faint); }
+  td a.name{ font-weight:500; text-decoration:none; }
+  td.num{ font-family:"IBM Plex Mono", monospace; }
+
+  /* Finestra "Nuovo artigiano", mostrata aperta sotto l'elenco */
+  .dialog{ max-width:560px; background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:22px; box-shadow:0 10px 30px rgba(0,0,0,.12); }
+  .dialog h3{ font-size:20px; }
+  .dialog .hint{ color:var(--ink-soft); font-size:13.5px; line-height:1.5; margin:8px 0 18px; }
+  .field{ margin-bottom:14px; }
+  .field label{ display:block; font-size:13px; font-weight:500; margin-bottom:6px; }
+  .field .desc{ font-size:12.5px; color:var(--ink-faint); margin-top:5px; }
+  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
+  @media (max-width:560px){ .row2{ grid-template-columns:1fr; } }
+  .dialog input, .dialog select{ width:100%; font-family:inherit; font-size:14.5px; color:var(--ink); background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:9px 11px; }
+  .dialog .foot{ display:flex; gap:10px; justify-content:flex-end; margin-top:18px; }
+
+  .open{ margin:0; padding-left:20px; font-size:13.5px; line-height:1.55; }
+  .open li{ margin-bottom:6px; }
+
+  .crumb{ font-size:13px; margin-bottom:14px; }
+  .crumb a{ text-decoration:none; }
+
+  /* Domande aperte con la proposta di risposta */
+  .open li{ margin-bottom:14px; }
+  .proposta{ display:block; margin-top:5px; padding:8px 11px; border-left:3px solid var(--accent); background:var(--accent-soft); color:var(--accent-on-soft); border-radius:0 8px 8px 0; }
+
+  /* Pagina di ingresso: le tre porte e gli avvisi */
+  .porte{ display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:14px; margin-bottom:34px; }
+  .porta{ display:flex; flex-direction:column; gap:6px; background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:20px; text-decoration:none; color:var(--ink); }
+  .porta.attn{ border-color:var(--warn); }
+  .porta b{ font-family:"IBM Plex Mono", monospace; font-weight:500; font-size:32px; line-height:1; }
+  .porta h2{ font-size:20px; }
+  .porta p{ margin:0; font-size:13.5px; color:var(--ink-soft); line-height:1.5; }
+  .porta .vai{ margin-top:auto; padding-top:10px; font-size:13.5px; font-weight:500; color:var(--accent-strong); }
+  .avvisi{ list-style:none; margin:0; padding:0; background:var(--paper-raised); border:1px solid var(--line); border-radius:12px; }
+  .avvisi li{ display:flex; gap:10px 16px; align-items:baseline; justify-content:space-between; flex-wrap:wrap; padding:12px 16px; border-top:1px solid var(--line); font-size:13.5px; }
+  .avvisi li:first-child{ border-top:none; }
+  .avvisi .cosa{ flex:1 1 320px; }
+  .avvisi .cosa .sub{ display:block; font-size:12.5px; color:var(--ink-faint); margin-top:2px; }
+  .avvisi a{ text-decoration:none; font-weight:500; white-space:nowrap; }
+
+  /* Nuovo artigiano: modulo e conferma */
+  .dialog{ box-shadow:none; }
+  .due{ display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:18px; align-items:start; margin-bottom:36px; }
+  .segreto{ font-family:"IBM Plex Mono", monospace; font-size:17px; background:var(--paper); border:1px dashed var(--line); border-radius:8px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
+</style>
+<!-- fascia-mappa: stato della pagina statica e ritorno alla mappa. Non fa parte della schermata. -->
+<div style="border-bottom:1px solid var(--line); padding:8px 18px; background:var(--paper-raised); color:var(--ink-soft); font:12px/1.5 'IBM Plex Mono', ui-monospace, monospace; display:flex; flex-wrap:wrap; gap:2px 16px; justify-content:space-between;">
+  <a href="index.html" style="color:inherit;">← Mappa delle pagine</a>
+  <span>Pagina statica · <strong style="color:var(--ink); font-weight:500;">approvata</strong> · ADR-54 · domande chiuse: ADR-105</span>
+</div>
+<!-- /fascia-mappa -->
+
+<!-- ============ Barra comune alle pagine operatore ============ -->
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="AdFlow-operatore-ingresso.html">AdFlow <small>Operatore</small></a>
+    <nav class="nav" aria-label="Sezioni operatore">
+      <a href="AdFlow-operatore-da-approvare.html">Da approvare</a>
+      <a href="AdFlow-operatore-elenco.html">Artigiani</a>
+      <a href="AdFlow-operatore-metriche.html">Metriche</a>
+    </nav>
+    <div class="user"><span>Laura Rossi · operatore</span><a href="AdFlow-login.html">Esci</a></div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="banner warn">
+    <span class="icon">i</span>
+    <span><b>Pagina statica, non interattiva.</b> Pagina di ingresso dell'operatore (ADR-54): dopo l'accesso si arriva qui, e da qui alle tre pagine di lavoro. Nasce nello sprint 3, con il blocco "Da sistemare" (ADR-105); fino ad allora dopo l'accesso si arriva su Campagne da approvare. Oggi è il 28/09/2026.</span>
+  </div>
+
+  <div class="masthead">
+    <div>
+      <div class="eyebrow">Operatore · Ingresso</div>
+      <h1>Buongiorno, Laura</h1>
+      <p>Che cosa aspetta una decisione, le botteghe del consorzio, un artigiano da aggiungere.</p>
+    </div>
+  </div>
+
+  <div class="porte">
+    <a class="porta attn" href="AdFlow-operatore-da-approvare.html">
+      <b>4</b>
+      <h2>Campagne da approvare</h2>
+      <p>Di tutti gli artigiani. La più urgente: Falegnameria Bianchi, primo post da approvare il 01/10 alle 18:30.</p>
+      <span class="vai">Apri le campagne →</span>
+    </a>
+    <a class="porta" href="AdFlow-operatore-elenco.html">
+      <b>6</b>
+      <h2>Artigiani</h2>
+      <p>Le botteghe del consorzio: 5 con iscrizione attiva, 1 sospesa. Da ognuna si arriva allo storico delle sue campagne.</p>
+      <span class="vai">Apri l'elenco →</span>
+    </a>
+    <a class="porta" href="AdFlow-operatore-nuovo-artigiano.html">
+      <b>+</b>
+      <h2>Nuovo artigiano</h2>
+      <p>Crea l'account di accesso e l'anagrafica di una bottega appena iscritta.</p>
+      <span class="vai">Aggiungi un artigiano →</span>
+    </a>
+  </div>
+
+  <section id="da-sistemare">
+    <div class="section-head">
+      <h2>Da sistemare</h2>
+      <p>Ciò che non aspetta un'approvazione ma blocca una pubblicazione</p>
+    </div>
+    <ul class="avvisi">
+      <li>
+        <span class="cosa"><span class="badge danger">generazione_fallita</span> Ceramiche Olivero · Autunno in tavola<span class="sub">Errore temporaneo dell'AI dopo 3 esecuzioni · Riprova in Vedi campagna · senza piano scade il 05/10 alle 00:00</span></span>
+        <a href="AdFlow-operatore-campagna.html">Vedi campagna →</a>
+      </li>
+      <li>
+        <span class="cosa"><span class="badge danger">post fallito</span> Falegnameria Bianchi · Campagna Settembre 2026<span class="sub">1 post non pubblicato il 22/09 su Facebook · si riprogramma in Vedi campagna, dentro il periodo</span></span>
+        <a href="AdFlow-operatore-campagna.html">Vedi campagna →</a>
+      </li>
+      <li>
+        <span class="cosa"><span class="badge danger">permesso scaduto</span> Falegnameria Bianchi · Instagram<span class="sub">Scaduto il 28/09, dopo l'invio: la Campagna Ottobre 2026 esce anche su Instagram e alla prima pubblicazione passerebbe a sospesa (R-07)</span></span>
+        <a href="AdFlow-operatore-artigiano.html">Pagina artigiano →</a>
+      </li>
+      <li>
+        <span class="cosa"><span class="badge warn">permesso in scadenza</span> Tessitura Gallo · Facebook<span class="sub">Scade il 09/10/2026 · 1 campagna in corso</span></span>
+        <a href="#">Pagina artigiano →</a>
+      </li>
+    </ul>
+    <p class="note">Esempio · elenco vuoto: "Niente da sistemare." Le metriche restano nella barra in alto.</p>
+  </section>
+
+
+</main>

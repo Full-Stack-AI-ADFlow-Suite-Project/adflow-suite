@@ -1,3 +1,5 @@
+import asyncio
+import sys
 from collections.abc import Callable, Iterator
 
 import pytest
@@ -15,6 +17,10 @@ from app.main import app
 from app.moduli.accesso.models import Utente
 from app.moduli.accesso.service import utente_corrente
 from tests.moduli.accesso.fabbrica import utente
+
+# Su Windows psycopg in async non può usare il ProactorEventLoop predefinito.
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
 @pytest.fixture(scope="session")

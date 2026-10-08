@@ -1,0 +1,1221 @@
+<title>Operatore · Vedi campagna</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Layout: barra operatore, testata campagna, barra delle decisioni, piano, poi schede (uscite · calendario · foto e profilo). Stessi token delle altre pagine statiche di AdFlow. */
+  :root{
+    --paper:#F6F3EC; --paper-raised:#FFFFFF; --ink:#201D17; --ink-soft:#6E6656; --ink-faint:#9C927D;
+    --accent:#2E6B5C; --accent-strong:#1D4A3F; --accent-soft:#DCEAE3; --accent-on-soft:#1D4A3F;
+    --line:#DDD5C2; --danger:#AE3B2C; --danger-soft:#F6E1DC; --danger-on-soft:#7A281C;
+    --warn:#8A6A1F; --warn-soft:#F3E7C9;
+    --fb:#1B5FC1; --fb-soft:#E3ECFA; --ig:#A82C6A; --ig-soft:#F8E3EE;
+    --social-bg:#FFFFFF; --social-ink:#1C1E21; --social-soft:#65676B; --social-line:#E4E6EB; --social-link:#0A58B8; --social-hole:#EEF0F3;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#1B1914; --paper-raised:#26231C; --ink:#EFEAE0; --ink-soft:#B7AE9B; --ink-faint:#837A68;
+      --accent:#7EC4AE; --accent-strong:#A9DCC9; --accent-soft:#22392F; --accent-on-soft:#A9DCC9;
+      --line:#3A362B; --danger:#E08776; --danger-soft:#3A2420; --danger-on-soft:#E08776;
+      --warn:#E4C878; --warn-soft:#3A331C;
+      --fb:#8DB4F2; --fb-soft:#1E2B40; --ig:#EE94BF; --ig-soft:#3B2130;
+      --social-bg:#242526; --social-ink:#E4E6EB; --social-soft:#B0B3B8; --social-line:#3A3B3C; --social-link:#7FB0F5; --social-hole:#303236;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#1B1914; --paper-raised:#26231C; --ink:#EFEAE0; --ink-soft:#B7AE9B; --ink-faint:#837A68;
+    --accent:#7EC4AE; --accent-strong:#A9DCC9; --accent-soft:#22392F; --accent-on-soft:#A9DCC9;
+    --line:#3A362B; --danger:#E08776; --danger-soft:#3A2420; --danger-on-soft:#E08776;
+    --warn:#E4C878; --warn-soft:#3A331C;
+    --fb:#8DB4F2; --fb-soft:#1E2B40; --ig:#EE94BF; --ig-soft:#3B2130;
+    --social-bg:#242526; --social-ink:#E4E6EB; --social-soft:#B0B3B8; --social-line:#3A3B3C; --social-link:#7FB0F5; --social-hole:#303236;
+    color-scheme: dark;
+  }
+
+  *{ box-sizing:border-box; }
+  body{ background:var(--paper); color:var(--ink); font-family:"IBM Plex Sans", system-ui, sans-serif; margin:0; font-size:14px; line-height:1.5; }
+  h1,h2,h3{ font-family:"Fraunces", Georgia, serif; font-weight:600; text-wrap:balance; margin:0; }
+  a{ color:var(--accent-strong); }
+  p{ margin:0; }
+  .wrap{ max-width:1100px; margin-inline:auto; padding-inline:16px; }
+  .mono{ font-family:"IBM Plex Mono", ui-monospace, monospace; }
+  :focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+  .topbar{ background:var(--paper-raised); border-bottom:1px solid var(--line); }
+  .topbar .wrap{ display:flex; align-items:center; gap:8px 22px; min-height:54px; flex-wrap:wrap; }
+  .brand{ font-family:"Fraunces", Georgia, serif; font-weight:600; font-size:17px; color:var(--ink); text-decoration:none; }
+  .brand small{ font-family:"IBM Plex Mono", monospace; font-size:11px; font-weight:400; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); margin-left:6px; }
+  .nav{ display:flex; gap:4px; flex:1; }
+  .nav a{ text-decoration:none; font-size:14px; color:var(--ink-soft); padding:7px 12px; border-radius:8px; }
+  .nav a.current{ background:var(--accent-soft); color:var(--accent-on-soft); font-weight:500; }
+  .user{ font-size:13px; color:var(--ink-soft); }
+
+  main{ padding-block:24px 56px; display:flex; flex-direction:column; gap:18px; }
+  .crumb{ font-size:13px; color:var(--ink-soft); }
+
+  .banner{ border-radius:10px; padding:12px 14px; font-size:13.5px; display:flex; gap:10px; align-items:flex-start; }
+  .banner > span:last-child{ min-width:0; }
+  .banner.warn{ background:var(--warn-soft); border:1px solid var(--warn); color:var(--warn); }
+  .banner .icon{ flex:none; font-family:"IBM Plex Mono", monospace; font-weight:500; }
+  .banner .demo{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
+
+  .masthead{ display:flex; flex-direction:column; gap:6px; }
+  .eyebrow{ font-family:"IBM Plex Mono", monospace; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); }
+  .masthead h1{ font-size:30px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  .meta{ font-size:13px; color:var(--ink-soft); display:flex; gap:4px 16px; flex-wrap:wrap; }
+
+  .badge{ display:inline-block; font-family:"IBM Plex Mono", monospace; font-size:11.5px; font-weight:400; border-radius:20px; padding:2px 9px; border:1px solid var(--line); color:var(--ink-soft); background:var(--paper); white-space:nowrap; }
+  .badge.ok{ border-color:var(--accent); background:var(--accent-soft); color:var(--accent-on-soft); }
+  .badge.warn{ border-color:var(--warn); background:var(--warn-soft); color:var(--warn); }
+  .badge.danger{ border-color:var(--danger); background:var(--danger-soft); color:var(--danger-on-soft); }
+  .badge.fb{ border-color:var(--fb); background:var(--fb-soft); color:var(--fb); }
+  .badge.ig{ border-color:var(--ig); background:var(--ig-soft); color:var(--ig); }
+
+  .btn{ font-family:inherit; cursor:pointer; border-radius:8px; padding:8px 14px; font-size:13.5px; font-weight:500; border:1px solid var(--line); background:var(--paper-raised); color:var(--ink); }
+  .btn:hover:not(:disabled){ border-color:var(--ink-faint); }
+  .btn.primary{ background:var(--accent); border-color:var(--accent); color:var(--paper-raised); }
+  .btn.danger{ color:var(--danger); border-color:var(--danger); }
+  .btn.on{ background:var(--accent-soft); border-color:var(--accent); color:var(--accent-on-soft); }
+  .btn.small{ padding:5px 10px; font-size:12.5px; }
+  .btn:disabled{ opacity:.45; cursor:not-allowed; }
+  .link-btn{ font:inherit; cursor:pointer; background:none; border:none; color:var(--accent-strong); padding:0; text-decoration:underline; }
+
+  /* Barra delle decisioni sulla campagna */
+  .decidi{ background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:18px 20px; display:flex; flex-direction:column; gap:14px; scroll-margin-top:12px; }
+  .decidi-top{ display:flex; justify-content:space-between; gap:14px 24px; flex-wrap:wrap; align-items:flex-start; }
+  .decidi h2{ font-size:19px; }
+  .decidi .sub{ font-size:13px; color:var(--ink-soft); }
+  .conti{ display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
+  .decidi-btns{ display:flex; gap:8px; flex-wrap:wrap; }
+  .blocchi{ font-size:13px; color:var(--ink-soft); display:flex; flex-direction:column; gap:3px; }
+  .blocchi:empty{ display:none; }
+  .blocchi b{ color:var(--danger); font-weight:500; }
+  .form{ border-top:1px solid var(--line); padding-top:14px; display:flex; flex-direction:column; gap:10px; }
+  .form h3{ font-family:"IBM Plex Sans", sans-serif; font-size:14px; font-weight:600; }
+  .form label, .panel label{ font-size:13px; font-weight:500; display:block; margin-bottom:4px; }
+  .form .hint{ font-size:12.5px; color:var(--ink-soft); }
+  textarea, input[type=text]{ width:100%; font-family:inherit; font-size:14px; color:var(--ink); background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:8px 10px; line-height:1.45; }
+  textarea{ min-height:68px; resize:vertical; }
+  textarea:focus, input[type=text]:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
+  select{ font-family:inherit; font-size:13.5px; color:var(--ink); background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:6px 8px; max-width:100%; }
+  .choice-grid{ display:flex; flex-wrap:wrap; gap:8px; }
+  .choice{ border:1px solid var(--line); border-radius:20px; padding:6px 12px; font-size:13px; background:var(--paper); display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-weight:400 !important; margin:0 !important; }
+  .choice input{ accent-color:var(--accent); margin:0; }
+  .errore{ color:var(--danger); font-size:12.5px; }
+  .row{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .email{ border:1px solid var(--line); border-radius:10px; background:var(--paper); padding:12px 14px; font-size:13px; display:flex; flex-direction:column; gap:4px; }
+  .email .mono{ font-size:12px; color:var(--ink-soft); }
+  details.email summary{ cursor:pointer; color:var(--accent-strong); }
+  details.email > span, details.email > b{ display:block; margin-top:4px; }
+  .arretrato{ display:flex; gap:8px 12px; flex-wrap:wrap; align-items:center; font-size:13px; padding:6px 0; border-top:1px solid var(--line); }
+  .arretrato span{ flex:1 1 220px; min-width:0; }
+
+  /* Schede */
+  .tabs{ display:flex; gap:4px; flex-wrap:wrap; border-bottom:1px solid var(--line); }
+  .tabs button{ font:inherit; font-size:14px; cursor:pointer; background:none; border:none; border-bottom:2px solid transparent; padding:9px 12px; color:var(--ink-soft); margin-bottom:-1px; }
+  .tabs button[aria-selected="true"]{ color:var(--ink); border-bottom-color:var(--accent); font-weight:500; }
+  .tabs .n{ font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--ink-faint); margin-left:4px; }
+  .pane{ display:flex; flex-direction:column; gap:16px; }
+  [hidden]{ display:none !important; }
+  .intro{ font-size:13.5px; color:var(--ink-soft); max-width:75ch; }
+
+  .legenda{ border:1px dashed var(--line); border-radius:12px; padding:12px 14px; font-size:13px; color:var(--ink-soft); display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap:8px 20px; }
+  .legenda b{ color:var(--ink); font-weight:600; }
+
+  /* Griglia dei post */
+  .posts{ display:grid; grid-template-columns:repeat(auto-fill, minmax(min(100%, 400px), 1fr)); gap:16px; align-items:start; }
+  .post{ background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:14px; display:flex; flex-direction:column; gap:10px; min-width:0; scroll-margin-top:12px; }
+  .post.blocca{ border-color:var(--danger); }
+  .post.vista{ border-color:var(--accent); }
+  .post.tolto{ border-style:dashed; }
+  .post.tolto .social{ opacity:.45; }
+  .post.flash{ box-shadow:0 0 0 3px var(--accent-soft); }
+  .post-head{ display:flex; gap:6px 8px; flex-wrap:wrap; align-items:center; }
+  .post-head .num{ font-size:12px; color:var(--accent-strong); letter-spacing:.06em; }
+  .post-head .when{ font-size:13px; font-weight:500; margin-right:auto; }
+  .post-meta{ font-size:11.5px; color:var(--ink-faint); display:flex; gap:2px 12px; flex-wrap:wrap; }
+  .post-meta .pieno{ color:var(--danger); }
+  .avviso{ border-radius:8px; padding:8px 10px; font-size:12.5px; }
+  .avviso.danger{ background:var(--danger-soft); color:var(--danger-on-soft); }
+  .avviso.warn{ background:var(--warn-soft); color:var(--warn); }
+  .avviso.quiet{ background:var(--paper); border:1px dashed var(--line); color:var(--ink-soft); }
+  .avviso ul{ margin:4px 0 0; padding-left:18px; }
+  .post-actions{ display:flex; gap:8px; flex-wrap:wrap; }
+  .post-actions .btn{ flex:1 1 auto; text-align:center; }
+  .panel{ border:1px solid var(--line); border-radius:10px; background:var(--paper); padding:12px; display:flex; flex-direction:column; gap:12px; }
+  .motivo{ display:flex; flex-direction:column; gap:6px; padding-bottom:12px; border-bottom:1px solid var(--line); }
+  .motivo h4{ margin:0; font-size:13.5px; font-weight:600; }
+  .motivo p, .panel > p{ font-size:12.5px; color:var(--ink-soft); }
+  .panel textarea{ min-height:44px; font-size:13px; }
+  details.storico{ font-size:12.5px; }
+  details.storico summary{ cursor:pointer; color:var(--accent-strong); }
+  .vers{ border-top:1px solid var(--line); padding:8px 0; display:flex; flex-direction:column; gap:3px; }
+  .vers .t{ color:var(--ink-soft); }
+  .vers.cur .t{ color:var(--ink); }
+  .attesa{ display:flex; gap:8px; align-items:center; font-size:13px; color:var(--warn); }
+  .giro{ width:14px; height:14px; border-radius:50%; border:2px solid var(--warn); border-top-color:transparent; animation:giro 0.9s linear infinite; flex:none; }
+  @keyframes giro{ to{ transform:rotate(360deg); } }
+  @media (prefers-reduced-motion: reduce){ .giro{ animation:none; } }
+
+  /* Anteprime social */
+  .social{ background:var(--social-bg); color:var(--social-ink); border:1px solid var(--social-line); border-radius:10px; overflow:hidden; font-family:system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size:14px; line-height:1.4; }
+  .s-head{ display:flex; gap:10px; align-items:center; padding:10px 12px; }
+  .avatar{ width:38px; height:38px; border-radius:50%; background:var(--accent); color:var(--social-bg); display:flex; align-items:center; justify-content:center; font-weight:600; font-size:14px; flex:none; }
+  .s-name{ font-weight:600; font-size:14px; }
+  .s-sub{ font-size:12px; color:var(--social-soft); }
+  .s-text{ padding:0 12px 10px; overflow-wrap:anywhere; }
+  .s-text .tag{ color:var(--social-link); }
+  .shot{ position:relative; width:100%; max-width:100%; background:var(--social-hole); display:flex; align-items:center; justify-content:center; overflow:hidden; }
+  .shot img{ width:100%; height:100%; object-fit:cover; display:block; }
+  .shot .ph{ text-align:center; padding:14px; font-family:"IBM Plex Mono", monospace; font-size:11.5px; color:var(--social-soft); border:1.5px dashed var(--social-soft); border-radius:8px; margin:14px; max-width:260px; }
+  .shot .ph b{ display:block; color:var(--social-ink); font-weight:500; margin-bottom:4px; overflow-wrap:anywhere; }
+  .shot-tag{ position:absolute; left:8px; bottom:8px; font-family:"IBM Plex Mono", monospace; font-size:10.5px; background:var(--social-bg); color:var(--social-soft); border:1px solid var(--social-line); border-radius:4px; padding:1px 6px; }
+  .fb-bar{ display:flex; border-top:1px solid var(--social-line); margin:0 12px; padding:6px 0; color:var(--social-soft); font-size:13px; font-weight:600; }
+  .fb-bar span{ flex:1; text-align:center; }
+  .ig .avatar{ width:32px; height:32px; font-size:12px; box-shadow:0 0 0 2px var(--social-bg), 0 0 0 3.5px var(--ig); }
+  .ig-icons{ display:flex; gap:14px; padding:10px 12px 6px; color:var(--social-ink); }
+  .ig-icons svg{ width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
+  .ig-icons .last{ margin-left:auto; }
+  .ig .s-text b{ font-weight:600; }
+  .ig-date{ padding:0 12px 12px; font-size:11px; color:var(--social-soft); text-transform:uppercase; letter-spacing:.02em; }
+
+  /* Calendario */
+  .cal-scroll{ overflow-x:auto; }
+  .cal{ display:grid; grid-template-columns:repeat(7, minmax(92px, 1fr)); gap:6px; min-width:680px; }
+  .cal .dow{ font-family:"IBM Plex Mono", monospace; font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-faint); padding:0 4px; }
+  .cal .day{ background:var(--paper-raised); border:1px solid var(--line); border-radius:8px; min-height:84px; padding:6px; display:flex; flex-direction:column; gap:4px; }
+  .cal .day.oggi{ border-color:var(--accent); }
+  .cal .day .d{ font-family:"IBM Plex Mono", monospace; font-size:11.5px; color:var(--ink-faint); font-variant-numeric:tabular-nums; }
+  .cal .slot{ font:inherit; font-size:11.5px; text-align:left; cursor:pointer; border-radius:6px; padding:3px 6px; border:1px solid var(--line); background:var(--paper); color:var(--ink); }
+  .cal .slot.fb{ border-color:var(--fb); background:var(--fb-soft); color:var(--fb); }
+  .cal .slot.ig{ border-color:var(--ig); background:var(--ig-soft); color:var(--ig); }
+  .cal .slot.blocca{ outline:2px solid var(--danger); outline-offset:-1px; }
+  .cal .slot.tolto{ text-decoration:line-through; opacity:.55; }
+
+  /* Materiali */
+  .cols{ display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap:16px; align-items:start; }
+  .card{ background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:16px 18px; min-width:0; }
+  .card .tab{ font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--accent-strong); letter-spacing:.06em; }
+  .card h3{ font-size:17px; margin:4px 0 10px; }
+  .rev-line{ display:flex; gap:10px; font-size:13.5px; padding:5px 0; border-top:1px solid var(--line); margin:0; }
+  .rev-line dt{ color:var(--ink-soft); flex:0 0 38%; margin:0; }
+  .rev-line dd{ margin:0; flex:1; min-width:0; overflow-wrap:anywhere; }
+  .foto-riga{ display:grid; grid-template-columns:84px 1fr; gap:12px; padding:10px 0; border-top:1px solid var(--line); font-size:13px; }
+  .foto-riga .mini{ width:84px; height:84px; border-radius:8px; overflow:hidden; border:1px dashed var(--ink-faint); background:var(--paper); display:flex; align-items:center; justify-content:center; font-family:"IBM Plex Mono", monospace; font-size:10px; color:var(--ink-faint); text-align:center; }
+  .foto-riga .mini img{ width:100%; height:100%; object-fit:cover; }
+  .foto-riga .info{ min-width:0; display:flex; flex-direction:column; gap:4px; align-items:flex-start; }
+  .foto-riga .nome{ font-family:"IBM Plex Mono", monospace; font-size:12.5px; overflow-wrap:anywhere; }
+  .foto-riga input[type=file]{ font-size:12px; max-width:100%; }
+  .note{ font-size:12.5px; color:var(--ink-faint); margin-top:10px; }
+
+  /* Uscite: un tema, con i post dei canali affiancati */
+  .uscite{ display:flex; flex-direction:column; gap:16px; }
+  .uscita{ background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:14px; display:flex; flex-direction:column; gap:12px; min-width:0; scroll-margin-top:12px; }
+  .uscita-head{ display:flex; gap:6px 10px; flex-wrap:wrap; align-items:baseline; }
+  .uscita-head .num{ font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--accent-strong); letter-spacing:.06em; }
+  .uscita-head h3{ font-size:18px; flex:1 1 260px; min-width:0; }
+  .uscita-head .da{ font-size:12.5px; color:var(--ink-soft); }
+  .varianti{ display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap:14px; align-items:start; }
+  .uscita .post{ background:var(--paper); border-radius:10px; padding:12px; }
+
+  /* Cartolina: il riempitivo composto dal sistema */
+  .shot.cartolina{ background:var(--accent-strong); color:var(--paper-raised); flex-direction:column; gap:10px; padding:28px; text-align:center; }
+  .cartolina .bottega{ font-family:"Fraunces", Georgia, serif; font-size:22px; font-weight:600; }
+  .cartolina .tema{ font-size:15px; max-width:26ch; line-height:1.35; }
+
+  /* Piano, prove ed extra */
+  #piano summary, details.sprint summary{ cursor:pointer; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
+  #piano summary .tab{ font-size:13px; }
+  #piano h3{ margin-top:12px; }
+  details.sprint summary{ font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--accent-strong); letter-spacing:.06em; }
+  details.prova{ margin-top:8px; font-size:13px; }
+  details.prova summary{ cursor:pointer; font-weight:500; }
+  details.prova ul{ margin:6px 0 0; padding-left:18px; }
+  details.prova li{ margin-bottom:3px; }
+  .banner .demo{ align-items:center; }
+  .decidi dl{ font-size:13.5px; }
+  input[type=datetime-local]{ font-family:inherit; font-size:13.5px; color:var(--ink); background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:5px 8px; max-width:100%; }
+</style>
+<!-- fascia-mappa: stato della pagina statica e ritorno alla mappa. Non fa parte della schermata. -->
+<div style="border-bottom:1px solid var(--line); padding:8px 18px; background:var(--paper-raised); color:var(--ink-soft); font:12px/1.5 'IBM Plex Mono', ui-monospace, monospace; display:flex; flex-wrap:wrap; gap:2px 16px; justify-content:space-between;">
+  <a href="index.html" style="color:inherit;">← Mappa delle pagine</a>
+  <span>Pagina statica · <strong style="color:var(--ink); font-weight:500;">approvata</strong> · ADR-101, ADR-111 · decisioni ADR-89…100</span>
+</div>
+<!-- /fascia-mappa -->
+
+<header class="topbar">
+  <div class="wrap">
+    <a class="brand" href="AdFlow-operatore-ingresso.html">AdFlow <small>Operatore</small></a>
+    <nav class="nav" aria-label="Sezioni operatore">
+      <a href="AdFlow-operatore-da-approvare.html" class="current">Da approvare</a>
+      <a href="AdFlow-operatore-elenco.html">Artigiani</a>
+      <a href="AdFlow-operatore-metriche.html">Metriche</a>
+    </nav>
+    <div class="user">Laura Rossi · operatore</div>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <div class="banner warn">
+    <span class="icon">i</span>
+    <span>
+      <b>Pagina statica interattiva.</b> Dati di esempio, AI simulata, niente si salva. Segue il modello a uscite e le decisioni del 07/10/2026 (ADR-89…101): un post non si toglie, si sistema; gli avvisi del controllo non bloccano; la scadenza è morbida. Nell'esempio oggi è <b id="oggi"></b>.
+      <span class="demo">
+        <label for="scenario" style="font-weight:500;">La campagna arriva in</label>
+        <select id="scenario" data-scen aria-label="Stato di partenza dell'esempio">
+          <option value="in_revisione">in_revisione</option>
+          <option value="piano_da_rivedere">piano_da_rivedere (piano debole)</option>
+          <option value="generazione_fallita">generazione_fallita (errore su Instagram)</option>
+          <option value="in_generazione">in_generazione (senza piano)</option>
+        </select>
+        <button type="button" class="btn small" data-act="reset">Ricomincia da capo</button>
+        <button type="button" class="btn small" data-act="avanza" id="btn-avanza"></button>
+      </span>
+      <details class="prova"><summary>Da provare</summary>
+        <ul>
+          <li>Uscita 5, Facebook: la data è sbagliata (sabato 22 invece di 21). Correggila con <b>Modifica</b>: non consuma cicli.</li>
+          <li>Uscita 3, Instagram: il controllo ha trovato un <b>blocco</b> (un prezzo). Finché resta, la campagna non si approva.</li>
+          <li>Uscita 2, Instagram: troppi hashtag. È un <b>avviso</b>: si vede e non blocca.</li>
+          <li>Uscita 4, Instagram: i 3 cicli AI sono finiti. Resta la modifica a mano.</li>
+          <li>Avanza il tempo senza approvare: scadono i singoli post, poi la campagna quando ne restano meno della metà.</li>
+          <li>Approva, poi avanza il tempo: un post fallisce e si può <b>riprogrammare</b>. Sospendi, avanza, Riattiva: scegli che cosa fare degli arretrati.</li>
+        </ul>
+      </details>
+    </span>
+  </div>
+
+  <div class="crumb">← <a href="AdFlow-operatore-da-approvare.html">Campagne da approvare</a> · <a href="AdFlow-operatore-artigiano.html">Falegnameria Bianchi (ART-0042)</a></div>
+
+  <div class="masthead">
+    <div class="eyebrow">Vedi campagna · Falegnameria Bianchi</div>
+    <h1>Natale su misura <span id="stato-camp"></span></h1>
+    <div class="meta" id="meta"></div>
+  </div>
+
+  <section class="decidi" id="decidi" aria-label="Decisione sulla campagna"></section>
+
+  <section class="card" id="piano" aria-label="Piano editoriale"></section>
+
+  <div class="tabs" role="tablist">
+    <button type="button" role="tab" data-tab="uscite" aria-selected="true">Uscite <span class="n" id="n-uscite"></span></button>
+    <button type="button" role="tab" data-tab="calendario" aria-selected="false">Calendario</button>
+    <button type="button" role="tab" data-tab="materiali" aria-selected="false">Foto e profilo</button>
+  </div>
+
+  <section class="pane" id="tab-uscite">
+    <div class="legenda">
+      <span><b>Va bene</b>: spunta sul post, con chi l'ha messa. Non lo approva: si approva la campagna. Si azzera a ogni nuova versione.</span>
+      <span><b>Modifica</b>: scrivi tu testo e hashtag. Nasce una versione a tuo nome, ripassa il controllo, non consuma cicli AI.</span>
+      <span><b>Fai riscrivere all'AI</b>: da zero o da un testo proposto, con le stesse foto. 3 cicli per post.</span>
+      <span><b>Foto e data</b>: ritocca, cambia la foto con un'altra del gruppo, sposta il post. Dallo sprint 3.</span>
+    </div>
+    <div class="uscite" id="uscite"></div>
+    <p><a href="#decidi">↑ Torna alla decisione sulla campagna</a></p>
+  </section>
+
+  <section class="pane" id="tab-calendario" hidden>
+    <p class="intro">Due settimane, 6 post chiesti per canale. Ogni tema esce su Facebook la sera e su Instagram la mattina dopo: lo sfasamento lo ha scelto il piano. Tocca un post per aprirlo nell'elenco. I post scartati, scaduti o annullati restano visibili, barrati.</p>
+    <div class="cal-scroll"><div class="cal" id="cal"></div></div>
+  </section>
+
+  <section class="pane" id="tab-materiali" hidden>
+    <div class="cols" id="materiali"></div>
+  </section>
+
+  <details class="card sprint">
+    <summary>Che cosa arriva in quale sprint</summary>
+    <dl style="margin:10px 0 0">
+      <div class="rev-line"><dt>Sprint 1 (T1-53)</dt><dd>Il piano, l'elenco per uscite con i post dei canali affiancati e l'etichetta dei riempitivi, la scheda Foto e profilo, Approva, Prosegui, Riprova.</dd></div>
+      <div class="rev-line"><dt>Sprint 2b</dt><dd>Modifica a mano, riscrittura dell'AI con i suoi cicli, spunta "va bene", blocchi e avvisi del controllo, intervento in corso, nota interna, Togli il canale, Respingi, scadenza morbida, Sospendi, Riattiva con gli arretrati, Annulla, Riprogramma un post fallito, motivo dell'errore accanto a Riprova.</dd></div>
+      <div class="rev-line"><dt>Sprint 3</dt><dd>Ritocco della foto e scelta della versione, Cambia foto, Sposta, calendario, ritaglio unico per anteprima e pubblicazione.</dd></div>
+      <div class="rev-line"><dt>Non esiste</dt><dd>Togliere un post o un'uscita, fermare un singolo post dopo l'approvazione, una soglia minima di post per approvare (ADR-90).</dd></div>
+    </dl>
+  </details>
+
+</main>
+
+<script>
+(function(){
+'use strict';
+
+const MAX = 3, PER_CANALE = 6;
+const INIZIO = '2026-11-09', FINE = '2026-11-22';
+/* I momenti dell'esempio: oggi, la mattina del primo giorno, due date a campagna iniziata, il giorno dopo la fine. */
+const TEMPI = ['2026-11-05T10:00', '2026-11-09T09:00', '2026-11-13T09:00', '2026-11-18T09:00', '2026-11-23T09:00'];
+/* Numeri di prova (R-21, A-06): quelli editoriali danno un avviso, quelli della piattaforma un blocco (ADR-91). */
+const LIMITI = {
+  facebook:{ hashtag:3, caratteri:500, maxHashtag:30, maxCaratteri:5000, ratio:'4 / 3' },
+  instagram:{ hashtag:5, caratteri:600, maxHashtag:30, maxCaratteri:2200, ratio:'4 / 5' }
+};
+const CANALI = ['facebook', 'instagram'];
+const NOME = { facebook:'Facebook', instagram:'Instagram' };
+const SIGLA = { facebook:'FB', instagram:'IG' };
+const GG = ['dom','lun','mar','mer','gio','ven','sab'];
+const GGL = ['domenica','lunedì','martedì','mercoledì','giovedì','venerdì','sabato'];
+const MESI = ['gennaio','febbraio','marzo','aprile','maggio','giugno','luglio','agosto','settembre','ottobre','novembre','dicembre'];
+const IO = 'L. Rossi';
+const FALLISCE = 3; /* il post che nell'esempio il social rifiuta: uscita 2, Facebook */
+
+const $ = s => document.querySelector(s);
+const el = id => document.getElementById(id);
+const val = id => { const e = el(id); return e ? e.value.trim() : ''; };
+const esc = s => String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const p2 = n => String(n).padStart(2, '0');
+const D = iso => new Date(iso.length === 10 ? iso + 'T00:00' : iso);
+const iso = x => `${x.getFullYear()}-${p2(x.getMonth()+1)}-${p2(x.getDate())}T${p2(x.getHours())}:${p2(x.getMinutes())}`;
+const giorno = s => { const x = D(s); return `${GG[x.getDay()]} ${p2(x.getDate())}/${p2(x.getMonth()+1)}`; };
+const ora = s => { const x = D(s); return `${p2(x.getHours())}:${p2(x.getMinutes())}`; };
+const breve = s => `${giorno(s)} · ${ora(s)}`;
+const lunga = s => { const x = D(s); return `${x.getDate()} ${MESI[x.getMonth()]} alle ore ${ora(s)}`; };
+const piu15 = s => { const x = D(s); x.setMinutes(x.getMinutes() + 15); return iso(x); };
+const righe = t => esc(t).replace(/\n/g, '<br>');
+
+/* ---------- Controllo a regole (simulato): blocchi e avvisi ---------- */
+function controlla(testo, tag, canale){
+  const L = LIMITI[canale], err = [];
+  if (/\d+\s*(€|euro)|€\s*\d+/i.test(testo)) err.push({ liv:'blocco', msg:'Prezzo che non è nei dati della bottega' });
+  if (/scont|gratis|omaggio|in palio|vinci/i.test(testo)) err.push({ liv:'blocco', msg:'Sconti e premi non autorizzati dal consorzio' });
+  if (testo.length > L.maxCaratteri) err.push({ liv:'blocco', msg:`${testo.length} caratteri: ${NOME[canale]} ne accetta al massimo ${L.maxCaratteri}` });
+  if (tag.length > L.maxHashtag) err.push({ liv:'blocco', msg:`${tag.length} hashtag: ${NOME[canale]} ne accetta al massimo ${L.maxHashtag}` });
+  if (testo.length > L.caratteri && testo.length <= L.maxCaratteri) err.push({ liv:'avviso', msg:`${testo.length} caratteri: su ${NOME[canale]} conviene restare entro ${L.caratteri}` });
+  if (tag.length > L.hashtag && tag.length <= L.maxHashtag) err.push({ liv:'avviso', msg:`${tag.length} hashtag: su ${NOME[canale]} conviene restare entro ${L.hashtag}` });
+  return err;
+}
+
+/* ---------- Dati di esempio ---------- */
+const GRUPPI = {
+  1:{ descr:'Tavolo in rovere appena finito, luce naturale, per presentare il prodotto.', il:null },
+  2:{ descr:'Taglieri da regalo, io al lavoro in laboratorio e la bottega: sabato 21 novembre teniamo le porte aperte.', il:'2026-11-21' }
+};
+const FOTO0 = {
+  f1:{ file:'tavolo-rovere-01.jpg', gruppo:1, stella:true, cosa:'Tavolo in rovere finito, intero, luce naturale da sinistra', idonea:true, punteggio:9, motivo:'Soggetto chiaro, buona luce.' },
+  f2:{ file:'tavolo-rovere-02.jpg', gruppo:1, cosa:'Dettaglio del piano: venature e incastro della gamba', idonea:true, punteggio:8, motivo:'Dettaglio nitido, sfondo pulito.' },
+  f3:{ file:'tavolo-rovere-03.jpg', gruppo:1, cosa:'Tavolo in rovere, stessa inquadratura un passo più indietro', idonea:true, simileA:'f1', punteggio:7, motivo:'Quasi uguale a tavolo-rovere-01.jpg, che ha la stella: il doppione è questa.' },
+  f4:{ file:'taglieri-01.jpg', gruppo:2, cosa:'Quattro taglieri in noce e ciliegio su sfondo chiaro', idonea:true, punteggio:8, motivo:'Composizione ordinata, buona luce.' },
+  f5:{ file:'laboratorio-mani-01.jpg', gruppo:2, cosa:'Mani al lavoro con la sgorbia sul banco', idonea:true, punteggio:6, motivo:'Luce un po’ scarsa, ma il gesto si legge bene.' },
+  f6:{ file:'laboratorio-mani-02.jpg', gruppo:2, cosa:'Mani al lavoro, scatto in movimento', idonea:false, punteggio:2, motivo:'Mossa: il soggetto non si legge.' },
+  f7:{ file:'bottega-esterno-01.jpg', gruppo:2, cosa:'La vetrina della bottega con la porta aperta', idonea:true, punteggio:7, motivo:'Luce morbida, insegna leggibile.' }
+};
+const USCITE0 = [
+  { n:1, tema:'Il tavolo in rovere, appena uscito dal laboratorio', gruppo:1, foto:'f1' },
+  { n:2, tema:'Da vicino: venature e incastri', gruppo:1, foto:'f2' },
+  { n:3, tema:'Taglieri da regalo', gruppo:2, foto:'f4' },
+  { n:4, tema:'Mani al lavoro', gruppo:2, foto:'f5' },
+  { n:5, tema:'Porte aperte in bottega, sabato 21 novembre', gruppo:2, foto:'f7' },
+  { n:6, tema:'Ordini su misura per Natale: c’è tempo fino al 30 novembre', gruppo:null, foto:null }
+];
+/* Nel piano debole tre foto non sono idonee: le loro uscite diventano cartoline. */
+const POVERO = {
+  foto:{ f2:'Sfocata: le venature non si leggono.', f5:'Troppo buia.', f7:'Controluce: l’insegna non si legge.' },
+  temi:{ 2:'Il rovere: un legno che dura generazioni', 4:'Perché su misura', 5:'Porte aperte in bottega, sabato 21 novembre' }
+};
+const QUANDO = {
+  facebook:['09','11','13','16','18','20'].map(g => `2026-11-${g}T18:30`),
+  instagram:['10','12','14','17','19','21'].map(g => `2026-11-${g}T10:00`)
+};
+const T = (tipo, testo, tag, extra) => Object.assign({ tipo, testo, tag }, extra || {});
+const TESTI = {
+  1:{ facebook:{ v:[ T('generazione', "Il tavolo in rovere che vedi qui è uscito dal laboratorio la settimana scorsa. Massello, piano da 4 cm, gambe a incastro senza una vite a vista.\n\nÈ nato da un disegno fatto insieme a chi lo userà ogni giorno: lavoriamo così, un pezzo alla volta. Se pensi a un tavolo su misura per Natale, scrivici: il momento giusto per iniziare è adesso.", ['#falegnameria','#sumisura','#rovere']) ],
+        alt:[ "Quattro centimetri di rovere massello e nessuna vite a vista: questo tavolo è appena uscito dal laboratorio. Lo abbiamo disegnato con chi ci mangerà intorno ogni giorno. Se ne vuoi uno pensato per casa tua, scrivici adesso: per Natale c'è ancora tempo.",
+              "Appena finito: rovere massello, piano da 4 cm, incastri fatti a mano. Ogni tavolo nasce da un disegno condiviso. Scrivici se vuoi iniziare il tuo." ] },
+      instagram:{ v:[ T('generazione', "Quattro centimetri di rovere massello, nessuna vite a vista. Appena uscito dal laboratorio, disegnato con chi ci mangerà intorno ogni giorno.\n\nPer il tuo, scrivici.", ['#rovere','#legnomassello','#fattoamano','#falegnameria','#sumisura']) ],
+        alt:[ "Rovere massello, incastri a mano, un disegno fatto insieme. Il tavolo è pronto: il prossimo può essere il tuo." ] } },
+  2:{ facebook:{ v:[ T('generazione', "Un tavolo si riconosce dagli incastri. In questo le gambe entrano nel piano senza viti, e le venature girano tutte nello stesso verso: abbiamo provato le tavole una per una prima di incollarle.", ['#rovere','#incastri','#falegnameria']) ],
+        alt:[ "Prima di incollare un piano proviamo le tavole in tutti i versi. Finché le venature non si parlano, non si va avanti." ] },
+      instagram:{ v:[ T('generazione', "Le venature non si scelgono: si trovano. Abbiamo girato le tavole finché il disegno del legno non ha preso il verso giusto.", ['#rovere','#venature','#legnomassello','#fattoamano','#falegnameria','#sumisura','#artigianato','#bra','#madeinitaly']) ],
+        alt:[ "Da vicino il rovere racconta tutto: le venature, l'incastro, la mano che lo ha rifinito." ] } },
+  3:{ facebook:{ nRig:1, v:[
+          T('generazione', "Scopri i nostri fantastici taglieri! Perfetti per ogni occasione, sono il regalo ideale per tutti. Non perdere questa opportunità unica!", ['#taglieri','#regalo','#natale']),
+          T('rigenera_totale', "Taglieri in noce e ciliegio, ricavati dagli stessi tronchi dei nostri tavoli. Ognuno ha la sua forma, perché segue quella del legno. Li prepariamo adesso per chi vuole un regalo di Natale fatto a mano, con il nome inciso se ti va.", ['#regalidinatale','#fattoamano','#falegnameria'], { nota:'Troppo generico, sembra una pubblicità.' }) ],
+        alt:[ "Noce e ciliegio, quattro forme diverse: ogni tagliere segue il legno da cui viene. Un regalo di Natale che si usa ogni giorno. Se vuoi, incidiamo un nome." ] },
+      instagram:{ v:[ T('generazione', "Taglieri in noce e ciliegio, pronti per Natale. A partire da 39 €, con il nome inciso se ti va.", ['#taglieri','#regalidinatale','#noce','#fattoamano','#falegnameria']) ],
+        alt:[ "Taglieri in noce e ciliegio, pronti per Natale. Ognuno ha la sua forma, e se ti va incidiamo un nome." ] } },
+  4:{ facebook:{ v:[ T('generazione', "Dodici anni di bottega, e il momento più bello resta questo: quando il legno comincia a prendere forma sotto le mani. Ho imparato da mio padre, e ogni giorno ci aggiungo qualcosa di mio.", ['#falegnameria','#tradizione','#bra']) ],
+        alt:[ "Ho imparato il mestiere da mio padre. Dodici anni dopo, la parte che preferisco è ancora la stessa: le mani sul legno." ] },
+      instagram:{ nRig:3, v:[
+          T('generazione', "Mani, sgorbia e pazienza! Scopri la qualità dei nostri prodotti artigianali.", ['#laboratorio','#artigianato','#qualita']),
+          T('rigenera_totale', "Qualità, tradizione e passione: gli ingredienti di ogni nostro lavoro.", ['#tradizione','#passione','#artigianato'], { nota:'Troppo pubblicitario, non dice niente della foto.' }),
+          T('rigenera_da_proposta', "La sgorbia sul banco ti aspetta: vieni a scoprire la qualità dei nostri lavori.", ['#laboratorio','#sgorbia','#artigianato'], { nota:'Parla del gesto, non della qualità.', proposto:'La sgorbia entra nel legno un colpo alla volta: è così che un tagliere prende la sua forma.' }),
+          T('rigenera_totale', "Passione e tradizione in ogni dettaglio. Contattaci!", ['#passione','#tradizione','#falegnameria'], { nota:'Ancora generico.' }) ],
+        alt:[] } },
+  5:{ facebook:{ v:[ T('generazione', "Sabato 22 novembre la bottega è aperta a tutti: vieni a vedere come nasce un tavolo, dalle 10 alle 18. Ci trovi in via Vittorio Emanuele a Bra, con il banco acceso e il caffè pronto.", ['#porteaperte','#bra','#falegnameria']) ],
+        alt:[ "Sabato 21 novembre porte aperte in bottega, dalle 10 alle 18: vieni a vedere come nasce un tavolo. Siamo in via Vittorio Emanuele a Bra." ] },
+      instagram:{ v:[ T('generazione', "Sabato 21 porte aperte in bottega, dalle 10 alle 18.\n\nVieni a toccare il legno con le mani: è il modo migliore per scegliere un regalo.", ['#porteaperte','#bra','#falegnameria','#fattoamano','#artigianato']) ],
+        alt:[ "Sabato 21, dalle 10 alle 18, la porta è aperta. Il resto lo vedi quando arrivi." ] } },
+  6:{ facebook:{ v:[ T('generazione', "Per un pezzo su misura sotto l'albero c'è tempo fino al 30 novembre. Passa in bottega a Bra o scrivici: partiamo dal disegno.", ['#sumisura','#natale','#falegnameria']) ],
+        alt:[ "Un tavolo, una mensola, un tagliere con un nome: per averli a Natale gli ordini chiudono il 30 novembre. Scrivici." ] },
+      instagram:{ v:[ T('generazione', "Ordini su misura per Natale: fino al 30 novembre. Scrivici, partiamo dal disegno.", ['#sumisura','#natale','#falegnameria','#bra']) ],
+        alt:[ "Su misura per Natale: gli ordini chiudono il 30 novembre." ] } }
+};
+
+function iniziale(scen){
+  const povero = scen === 'piano_da_rivedere';
+  const S0 = { scen, tempo:0, ora:TEMPI[0],
+    camp:{ stato:scen, canali:CANALI.slice(), tolti:[], decisioni:[], note:[], riepilogo:null, errore:null, lavora:false, senzaPiano:scen === 'in_generazione', debole:null },
+    foto:JSON.parse(JSON.stringify(FOTO0)), uscite:[], post:[] };
+  Object.keys(S0.foto).forEach(k => { S0.foto[k].segnata = false; });
+  if (povero){
+    Object.keys(POVERO.foto).forEach(k => Object.assign(S0.foto[k], { idonea:false, punteggio:2, motivo:POVERO.foto[k] }));
+    S0.camp.debole = 'Su ogni canale 2 foto disponibili su 6 post chiesti: meno della metà (R-20). I riempitivi sono 4 per canale, più di uno ogni due foto nuove.';
+  }
+  if (scen === 'generazione_fallita'){
+    S0.camp.errore = { tipo:'temporaneo', tappa:'testi dei post', canale:'instagram', esecuzioni:3,
+      messaggio:'Il servizio AI non ha risposto in tempo.', serve:true };
+  }
+  USCITE0.forEach(u0 => {
+    const u = Object.assign({}, u0);
+    if (povero && POVERO.temi[u.n]) Object.assign(u, { tema:POVERO.temi[u.n], gruppo:null, foto:null });
+    if (!u.foto){
+      u.riempitivo = 'cartolina'; u.foto = 'c' + u.n;
+      S0.foto[u.foto] = { file:`cartolina-${p2(u.n)}.png`, cartolina:true, tema:u.tema };
+    }
+    S0.uscite.push(u);
+    CANALI.forEach((canale, k) => {
+      const p = { id:u.n * 2 - 1 + k, uscita:u.n, canale, quando:QUANDO[canale][u.n - 1], foto:u.foto, riempitivo:u.riempitivo || null,
+        stato:'da_approvare', versioni:[], nRig:0, nRit:0, maxVf:0, inCorso:null, visto:null, erroreAI:'', motivo:'', alt:[], fallitoUnaVolta:false };
+      S0.post.push(p);
+    });
+  });
+  S = S0;
+  if (scen === 'in_revisione') S.post.forEach(scrivi);
+  if (scen === 'generazione_fallita') S.post.filter(p => p.canale === 'facebook').forEach(scrivi);
+  return S0;
+}
+
+/* ---------- Stato ---------- */
+let S;
+const ui = { pannello:{}, form:null, motivo:'', notaResp:'', notaInt:'', notaCanale:'', errore:'' };
+const cur = p => p.versioni[p.versioni.length - 1];
+const post = id => S.post.find(p => p.id === Number(id));
+const uscita = n => S.uscite.find(u => u.n === n);
+const stato = () => S.camp.stato;
+const inRevisione = () => stato() === 'in_revisione';
+const blocchi = p => (cur(p) ? cur(p).err.filter(e => e.liv === 'blocco') : []);
+const avvisi = p => (cur(p) ? cur(p).err.filter(e => e.liv === 'avviso') : []);
+const daApprovare = () => S.post.filter(p => p.stato === 'da_approvare');
+const daRivedere = () => daApprovare().filter(p => blocchi(p).length);
+const chiesti = () => PER_CANALE * S.camp.canali.length;
+const modificabile = p => inRevisione() && p.stato === 'da_approvare' && !p.inCorso && !!cur(p);
+const arretrati = () => S.post.filter(p => p.stato === 'approvato' && p.quando <= S.ora);
+const finito = () => S.ora.slice(0, 10) > FINE;
+const adesso = () => `${p2(D(S.ora).getDate())}/${p2(D(S.ora).getMonth()+1)} ${ora(S.ora)}`;
+
+function aggiungi(p, dati){
+  const prima = cur(p);
+  const v = Object.assign({ n:p.versioni.length + 1, tipo:'generazione', autore:'AI', foto:p.foto, vf:prima ? prima.vf : 0, nota:'', proposto:'' }, dati);
+  v.err = controlla(v.testo, v.tag, p.canale);
+  p.versioni.push(v); p.foto = v.foto; p.visto = null; p.erroreAI = '';
+  return v;
+}
+/* Il testo della generazione: quello preparato per l'esempio, oppure uno di servizio se il tema è cambiato. */
+function scrivi(p){
+  if (cur(p)) return;
+  const u = uscita(p.uscita), t = TESTI[u.n][p.canale];
+  if (u.tema === USCITE0[u.n - 1].tema){
+    t.v.forEach(x => aggiungi(p, x)); p.nRig = t.nRig || 0; p.alt = t.alt.slice();
+  } else {
+    aggiungi(p, T('generazione', `${u.tema}. Testo di esempio: qui l'AI scrive il post per ${NOME[p.canale]} partendo dal tema dell'uscita e dal profilo della bottega.`, ['#falegnameria','#fattoamano','#bra']));
+  }
+}
+function decisione(esito, dati){ S.camp.decisioni.push(Object.assign({ quando:adesso(), esito }, dati || {})); }
+
+/* ---------- Scadenza morbida, pubblicazione, conclusione ---------- */
+function scadi(perche){
+  S.camp.stato = 'scaduta'; S.camp.perche = perche; S.camp.lavora = false;
+  S.post.forEach(p => { p.inCorso = null; if (p.stato === 'da_approvare'){ p.stato = 'scaduto'; p.motivo = 'Scaduto con la campagna.'; } });
+}
+function applicaScadenze(){
+  if (!['in_generazione','generazione_fallita','piano_da_rivedere','in_revisione'].includes(stato())) return;
+  if (S.camp.senzaPiano){
+    if (S.ora.slice(0, 10) >= INIZIO) scadi('Il piano non c’era ancora alle 00:00 del giorno di inizio.');
+    return;
+  }
+  S.post.forEach(p => { if (p.stato === 'da_approvare' && p.quando <= S.ora){ p.stato = 'scaduto'; p.inCorso = null; p.motivo = 'La data è passata prima dell\u2019approvazione.'; } });
+  if (daApprovare().length < chiesti() / 2)
+    scadi(`Erano rimasti ${daApprovare().length} post ancora approvabili: meno della metà dei ${chiesti()} chiesti.`);
+}
+function pubblicaDovuti(){
+  S.post.forEach(p => {
+    if (p.stato !== 'approvato' || p.quando > S.ora) return;
+    if (p.id === FALLISCE && !p.fallitoUnaVolta){ p.stato = 'fallito'; p.fallitoUnaVolta = true; p.motivo = 'Il social ha rifiutato la pubblicazione per 3 volte.'; }
+    else p.stato = 'pubblicato';
+  });
+  chiudiSeFinita();
+}
+function chiudiSeFinita(){
+  if (stato() !== 'attiva') return;
+  const chiusi = S.post.every(p => ['pubblicato','fallito','annullato','scartato','scaduto'].includes(p.stato));
+  const falliti = S.post.some(p => p.stato === 'fallito');
+  if (chiusi && (!falliti || finito())) S.camp.stato = 'conclusa';
+}
+
+/* ---------- Anteprime ---------- */
+function shot(p, v){
+  const f = S.foto[v ? v.foto : p.foto], L = LIMITI[p.canale];
+  if (f.cartolina) return `<div class="shot cartolina" style="aspect-ratio:1 / 1"><span class="bottega">Falegnameria Bianchi</span><span class="tema">${esc(f.tema)}</span><span class="shot-tag">cartolina · 1080 × 1080</span></div>`;
+  const dentro = f.src
+    ? `<img src="${f.src}" alt="${esc(f.cosa)}">`
+    : `<span class="ph"><b>${esc(f.file)}</b>${esc(f.cosa)}<br><br>Per vedere l'anteprima carica la foto dalla scheda Foto e profilo</span>`;
+  const vf = v ? v.vf : 0;
+  return `<div class="shot" style="aspect-ratio:${L.ratio}">${dentro}<span class="shot-tag">${vf === 0 ? 'originale' : 'ritocco AI v' + vf}</span></div>`;
+}
+function anteprima(p){
+  const v = cur(p);
+  if (!v) return `<div class="avviso quiet"><b>Testo non ancora scritto.</b> ${stato() === 'piano_da_rivedere' ? 'Il piano è fermo prima dei testi: arrivano con Prosegui.' : 'La generazione si è fermata prima di questo post.'}</div>${shot(p, null)}`;
+  const tags = v.tag.map(h => `<span class="tag">${esc(h)}</span>`).join(' ');
+  if (p.canale === 'facebook'){
+    return `<div class="social fb" aria-label="Anteprima Facebook">
+      <div class="s-head"><span class="avatar">B</span><div><div class="s-name">Falegnameria Bianchi</div><div class="s-sub">${lunga(p.quando)} · Pubblico</div></div></div>
+      <div class="s-text">${righe(v.testo)}<br><br>${tags}</div>
+      ${shot(p, v)}
+      <div class="fb-bar"><span>Mi piace</span><span>Commenta</span><span>Condividi</span></div>
+    </div>`;
+  }
+  const x = D(p.quando);
+  return `<div class="social ig" aria-label="Anteprima Instagram">
+    <div class="s-head"><span class="avatar">B</span><div><div class="s-name">falegnameriabianchi</div><div class="s-sub">Bra</div></div></div>
+    ${shot(p, v)}
+    <div class="s-text" style="padding-top:10px"><b>falegnameriabianchi</b> ${righe(v.testo)}<br><br>${tags}</div>
+    <div class="ig-date">${x.getDate()} ${MESI[x.getMonth()]}</div>
+  </div>`;
+}
+
+/* ---------- Pannelli di un post ---------- */
+function pannelloModifica(p){
+  const v = cur(p), L = LIMITI[p.canale];
+  return `<div class="panel">
+    <p>Scrivi tu il testo e gli hashtag. Salvando nasce una nuova versione a tuo nome, che ripassa il controllo a regole: con un blocco non si salva. Non consuma cicli AI.</p>
+    <div><label for="mod-testo-${p.id}">Testo (su ${NOME[p.canale]} conviene restare entro ${L.caratteri} caratteri)</label>
+    <textarea id="mod-testo-${p.id}" style="min-height:130px;">${esc(v.testo)}</textarea></div>
+    <div><label for="mod-tag-${p.id}">Hashtag, separati da uno spazio (meglio non più di ${L.hashtag})</label>
+    <input type="text" id="mod-tag-${p.id}" value="${esc(v.tag.join(' '))}"></div>
+    <div class="errore" id="err-mod-${p.id}" hidden></div>
+    <div class="row"><button type="button" class="btn small primary" data-act="salva-modifica" data-id="${p.id}">Salva la nuova versione</button>
+    <button type="button" class="btn small" data-act="chiudi" data-id="${p.id}">Annulla</button></div>
+  </div>`;
+}
+function pannelloAI(p){
+  if (p.nRig >= MAX) return `<div class="panel"><p><b>Cicli AI finiti (${MAX} di ${MAX}).</b> L'AI non può più riscrivere questo post: resta la modifica a mano.</p>
+    <div class="row"><button type="button" class="btn small primary" data-act="apri" data-pan="modifica" data-id="${p.id}">Modifica a mano</button>
+    <button type="button" class="btn small" data-act="chiudi" data-id="${p.id}">Chiudi</button></div></div>`;
+  return `<div class="panel">
+    <p>L'AI riscrive il testo con le stesse foto. Cicli usati: ${p.nRig} di ${MAX}; il ciclo si conta quando nasce la versione. Le versioni rifiutate le riceve come "cosa non rifare".</p>
+    <textarea id="nota-ai-${p.id}" placeholder="Nota per l'AI (facoltativa): cosa non va"></textarea>
+    <textarea id="proposto-${p.id}" placeholder="Testo da cui partire (facoltativo): se lo scrivi, l'AI riscrive questo"></textarea>
+    <label class="choice" style="align-self:flex-start"><input type="checkbox" id="guasto-${p.id}">Nell'esempio: simula un errore tecnico dell'AI</label>
+    <div class="row"><button type="button" class="btn small primary" data-act="rigenera" data-id="${p.id}">Fai riscrivere all'AI</button>
+    <button type="button" class="btn small" data-act="chiudi" data-id="${p.id}">Annulla</button></div>
+  </div>`;
+}
+/* Le foto con cui si può cambiare quella del post: idonee, dello stesso gruppo, non in un altro post dello stesso canale. */
+function alternative(p){
+  const f = S.foto[p.foto];
+  if (f.cartolina) return [];
+  return Object.keys(S.foto).filter(k => { const x = S.foto[k];
+    return k !== p.foto && !x.cartolina && x.gruppo === f.gruppo && x.idonea
+      && !S.post.some(q => q.id !== p.id && q.canale === p.canale && q.foto === k && q.stato !== 'scartato'); });
+}
+function pannelloFoto(p){
+  const v = cur(p), f = S.foto[p.foto], alt = alternative(p);
+  const opz = [];
+  for (let i = 0; i <= p.maxVf; i++) if (i !== v.vf) opz.push(`<option value="${i}">${i === 0 ? 'Foto originale' : 'Ritocco AI v' + i}</option>`);
+  const sposta = `<div class="motivo" style="border-bottom:none;padding-bottom:0">
+      <h4>Sposta il post</h4>
+      <p>Nuova data e ora dentro il periodo (${giorno(INIZIO)} – ${giorno(FINE)}), mai nel passato. Il testo resta: rileggilo, è stato scritto per il ${giorno(p.quando)}.</p>
+      <div class="row"><input type="datetime-local" id="sposta-${p.id}" value="${p.quando}" min="${piu15(S.ora)}" max="${FINE}T23:59">
+      <button type="button" class="btn small" data-act="sposta" data-id="${p.id}">Sposta</button></div>
+      <div class="errore" id="err-sposta-${p.id}" hidden></div>
+    </div>`;
+  if (f.cartolina) return `<div class="panel"><p><span class="badge">sprint 3</span> La cartolina la compone il sistema con il nome della bottega e il tema dell'uscita: non si ritocca e non si cambia.</p>${sposta}
+    <div class="row"><button type="button" class="btn small" data-act="chiudi" data-id="${p.id}">Chiudi</button></div></div>`;
+  return `<div class="panel">
+    <p><span class="badge">sprint 3</span> Nessuna di queste azioni fa partire l'AI sul testo: decidi tu se riscriverlo.</p>
+    <div class="motivo">
+      <h4>Foto ritoccata male dall'AI</h4>
+      ${p.nRit >= MAX
+        ? `<p><b>Ritocchi finiti (${MAX} di ${MAX}).</b> Puoi scegliere la foto originale o una versione precedente.</p>`
+        : `<p>Nuovo ritocco solo per questo post. Usati ${p.nRit} di ${MAX}.</p>
+           <textarea id="nota-ritocco-${p.id}" placeholder="Nota per l'AI (facoltativa): es. meno contrasto"></textarea>
+           <div class="row"><button type="button" class="btn small" data-act="ritocca" data-id="${p.id}">Ritocca</button></div>`}
+      ${opz.length ? `<div class="row"><select id="scelta-foto-${p.id}" aria-label="Versione della foto">${opz.join('')}</select>
+        <button type="button" class="btn small" data-act="scegli-foto" data-id="${p.id}">Usa questa versione</button><span class="mono" style="font-size:11.5px;color:var(--ink-faint)">non consuma cicli</span></div>` : ''}
+    </div>
+    <div class="motivo">
+      <h4>Foto sbagliata per questo post</h4>
+      ${alt.length
+        ? `<p>Cambiala con un'altra foto idonea dello stesso gruppo, non ancora uscita su ${NOME[p.canale]}. Il testo resta: rileggilo.</p>
+           <div class="row"><select id="cambia-${p.id}" aria-label="Foto del gruppo">${alt.map(k => `<option value="${k}">${esc(S.foto[k].file)} · ${S.foto[k].punteggio}/10</option>`).join('')}</select>
+           <button type="button" class="btn small" data-act="cambia-foto" data-id="${p.id}">Cambia foto</button><span class="mono" style="font-size:11.5px;color:var(--ink-faint)">non consuma cicli</span></div>`
+        : `<p>Nel gruppo ${f.gruppo} non c'è un'altra foto idonea ancora libera su ${NOME[p.canale]}. Se le foto buone sono poche, la strada è Respingi con motivo "foto".</p>`}
+    </div>
+    ${sposta}
+    <div class="row"><button type="button" class="btn small" data-act="chiudi" data-id="${p.id}">Chiudi</button></div>
+  </div>`;
+}
+function pannelloRiprogramma(p){
+  return `<div class="panel">
+    <p>Nuova data e ora dentro il periodo della campagna (fino a ${giorno(FINE)}). Il contenuto non cambia.</p>
+    <div class="row"><input type="datetime-local" id="ripr-${p.id}" value="${piu15(S.ora)}" min="${piu15(S.ora)}" max="${FINE}T23:59">
+    <button type="button" class="btn small primary" data-act="riprogramma" data-id="${p.id}">Riprogramma</button>
+    <button type="button" class="btn small" data-act="chiudi" data-id="${p.id}">Annulla</button></div>
+    <div class="errore" id="err-ripr-${p.id}" hidden></div>
+  </div>`;
+}
+function storico(p){
+  if (!p.versioni.length) return '';
+  const righeV = p.versioni.slice().reverse().map(v => `<div class="vers ${v === cur(p) ? 'cur' : ''}">
+      <span class="mono">v${v.n} · ${v.tipo} · ${esc(v.autore)}${v === cur(p) ? ' · corrente' : ''} · ${esc(S.foto[v.foto].file)}${S.foto[v.foto].cartolina ? '' : v.vf === 0 ? ' originale' : ' ritocco v' + v.vf}</span>
+      ${v.nota ? `<span>Nota dell'operatore: ${esc(v.nota)}</span>` : ''}
+      ${v.proposto ? `<span>Testo proposto: ${esc(v.proposto)}</span>` : ''}
+      <span class="t">${righe(v.testo)} ${esc(v.tag.join(' '))}</span>
+      ${v.err.length ? `<span class="errore">Controllo a regole: ${esc(v.err.map(e => e.liv + ' · ' + e.msg).join('; '))}</span>` : ''}
+    </div>`).join('');
+  return `<details class="storico"><summary>Storico versioni (${p.versioni.length})</summary>${righeV}</details>`;
+}
+function badgeStato(p){
+  const cls = { approvato:'ok', pubblicato:'ok', scartato:'danger', scaduto:'danger', fallito:'danger', annullato:'danger' }[p.stato] || 'warn';
+  return `<span class="badge ${cls}">${p.stato}</span>`;
+}
+
+/* ---------- Scheda di un post ---------- */
+function scheda(p){
+  const v = cur(p), f = S.foto[p.foto], L = LIMITI[p.canale];
+  const fuori = ['scartato','scaduto','annullato'].includes(p.stato);
+  const blk = p.stato === 'da_approvare' ? blocchi(p) : [], avv = p.stato === 'da_approvare' ? avvisi(p) : [];
+  const pan = ui.pannello[p.id];
+  let azioni = '', pannello = '';
+
+  if (p.inCorso){
+    azioni = `<div class="attesa"><span class="giro"></span>Intervento in corso (${p.inCorso}): l'AI sta lavorando. Finché non finisce la campagna non si approva.</div>`;
+  } else if (modificabile(p)){
+    azioni = `<div class="post-actions">
+      <button type="button" class="btn ${p.visto ? 'on' : ''}" data-act="vabene" data-id="${p.id}" ${blk.length ? 'disabled title="Prima va tolto il blocco"' : ''} aria-pressed="${!!p.visto}">${p.visto ? '✓ Va bene' : 'Va bene'}</button>
+      <button type="button" class="btn ${pan === 'modifica' ? 'on' : ''}" data-act="apri" data-pan="modifica" data-id="${p.id}">Modifica</button>
+      <button type="button" class="btn ${pan === 'ai' ? 'on' : ''}" data-act="apri" data-pan="ai" data-id="${p.id}">Fai riscrivere all'AI</button>
+      <button type="button" class="btn ${pan === 'foto' ? 'on' : ''}" data-act="apri" data-pan="foto" data-id="${p.id}">Foto e data</button>
+    </div>`;
+    pannello = pan === 'modifica' ? pannelloModifica(p) : pan === 'ai' ? pannelloAI(p) : pan === 'foto' ? pannelloFoto(p) : '';
+  } else if (p.stato === 'fallito' && ['attiva','sospesa'].includes(stato())){
+    azioni = finito()
+      ? `<div class="avviso quiet">Il periodo della campagna è finito: il post non si può più riprogrammare.</div>`
+      : `<div class="post-actions"><button type="button" class="btn ${pan === 'riprogramma' ? 'on' : ''}" data-act="apri" data-pan="riprogramma" data-id="${p.id}">Riprogramma</button></div>`;
+    pannello = pan === 'riprogramma' && !finito() ? pannelloRiprogramma(p) : '';
+  }
+
+  const arretrato = stato() === 'sospesa' && p.stato === 'approvato' && p.quando <= S.ora;
+  const classe = fuori ? 'tolto' : blk.length ? 'blocca' : p.visto && p.stato === 'da_approvare' ? 'vista' : '';
+  const chiusura = { scartato:'Scartato', scaduto:'Scaduto', annullato:'Annullato' }[p.stato];
+  return `<article class="post ${classe}" id="post-${p.id}">
+    <header class="post-head">
+      <span class="badge ${p.canale === 'facebook' ? 'fb' : 'ig'}">${NOME[p.canale]}</span>
+      <span class="when">${breve(p.quando)}</span>
+      ${badgeStato(p)}
+      ${p.riempitivo ? `<span class="badge">${p.riempitivo}</span>` : ''}
+      ${blk.length ? '<span class="badge danger">da rivedere</span>' : ''}
+      ${avv.length ? `<span class="badge warn">${avv.length} ${avv.length === 1 ? 'avviso' : 'avvisi'}</span>` : ''}
+      ${p.inCorso ? '<span class="badge warn">in corso</span>' : ''}
+      ${arretrato ? '<span class="badge warn">in arretrato</span>' : ''}
+    </header>
+    ${anteprima(p)}
+    ${v ? `<div class="post-meta mono">
+      <span>v${v.n} · ${v.tipo} · ${esc(v.autore)}</span>
+      <span class="${v.testo.length > L.caratteri ? 'pieno' : ''}">${v.testo.length}/${L.caratteri} caratteri</span>
+      <span class="${v.tag.length > L.hashtag ? 'pieno' : ''}">${v.tag.length}/${L.hashtag} hashtag</span>
+      <span class="${p.nRig >= MAX ? 'pieno' : ''}">cicli testo ${p.nRig}/${MAX}</span>
+      ${f.cartolina ? '' : `<span class="${p.nRit >= MAX ? 'pieno' : ''}">cicli foto ${p.nRit}/${MAX}</span>`}
+      <span>${esc(f.file)}${f.cartolina ? '' : ` · ${f.punteggio}/10${f.stella ? ' · ★' : ''}`}</span>
+    </div>` : ''}
+    ${p.visto && p.stato === 'da_approvare' ? `<div class="post-meta mono"><span>✓ controllato da ${esc(p.visto.chi)} · ${esc(p.visto.quando)}</span></div>` : ''}
+    ${fuori ? `<div class="avviso quiet"><b>${chiusura}.</b> ${esc(p.motivo)}</div>` : ''}
+    ${p.stato === 'fallito' ? `<div class="avviso danger"><b>Fallito.</b> ${esc(p.motivo)}</div>` : ''}
+    ${blk.length ? `<div class="avviso danger"><b>Da rivedere: il controllo a regole ha trovato un blocco.</b> Correggi con Modifica o fai riscrivere all'AI: finché resta, la campagna non si approva.
+        <ul>${blk.map(e => `<li>${esc(e.msg)}</li>`).join('')}</ul></div>` : ''}
+    ${avv.length ? `<div class="avviso warn"><b>Avvisi del controllo: non bloccano.</b> Decidi tu se correggere.
+        <ul>${avv.map(e => `<li>${esc(e.msg)}</li>`).join('')}</ul></div>` : ''}
+    ${p.erroreAI ? `<div class="avviso warn"><b>L'AI non ha risposto.</b> ${esc(p.erroreAI)}</div>` : ''}
+    ${azioni}
+    ${pannello}
+    ${storico(p)}
+  </article>`;
+}
+function renderPost(id){ const e = el('post-' + id); if (e) e.outerHTML = scheda(post(id)); }
+function renderUscite(){
+  el('n-uscite').textContent = S.camp.senzaPiano ? '' : S.uscite.length;
+  if (S.camp.senzaPiano){
+    $('#uscite').innerHTML = `<p class="intro">Il piano non c'è ancora: le uscite compaiono quando la generazione arriva al piano. Nel frattempo la scheda Foto e profilo mostra ciò che ha inviato l'artigiano.</p>`;
+    return;
+  }
+  $('#uscite').innerHTML = S.uscite.map(u => {
+    const g = u.gruppo ? GRUPPI[u.gruppo] : null;
+    return `<article class="uscita" id="uscita-${u.n}">
+      <header class="uscita-head">
+        <span class="num">USCITA ${u.n}</span>
+        <h3>${esc(u.tema)}</h3>
+        <span class="da">${g ? `gruppo ${u.gruppo}${g.il ? ' · da usare verso ' + giorno(g.il) : ''}` : 'senza gruppo'}</span>
+        ${u.riempitivo ? `<span class="badge warn">riempitivo · ${u.riempitivo}</span>` : ''}
+      </header>
+      <div class="varianti">${S.post.filter(p => p.uscita === u.n).map(scheda).join('')}</div>
+    </article>`; }).join('');
+}
+
+/* ---------- Testata, piano e barra della campagna ---------- */
+function renderTestata(){
+  const c = S.camp;
+  const cls = { in_revisione:'warn', piano_da_rivedere:'warn', in_generazione:'', generazione_fallita:'danger', attiva:'ok', conclusa:'ok', sospesa:'warn', respinta:'danger', scaduta:'danger', annullata:'danger' }[c.stato] || '';
+  el('stato-camp').innerHTML = `<span class="badge ${cls}">${c.stato}</span>`;
+  const x = D(S.ora);
+  el('oggi').textContent = `${GGL[x.getDay()]} ${p2(x.getDate())}/${p2(x.getMonth()+1)}/2026, ore ${ora(S.ora)}`;
+  const b = el('btn-avanza'), prossimo = TEMPI[S.tempo + 1];
+  b.disabled = !prossimo; b.textContent = prossimo ? `Avanza il tempo a ${breve(prossimo)}` : 'Il tempo dell’esempio è finito';
+  el('scenario').value = S.scen;
+  el('meta').innerHTML = `
+    <span>09/11/2026 → 22/11/2026 · 14 giorni</span>
+    <span>${c.canali.map(k => NOME[k]).join(', ')}${c.tolti.length ? ' · tolto: ' + c.tolti.map(t => NOME[t.canale]).join(', ') : ''}</span>
+    <span>3 post a settimana per canale · ${PER_CANALE} post chiesti per canale</span>
+    <span>7 foto in 2 gruppi</span>
+    <span>Inviata il 03/11/2026</span>`;
+}
+function renderPiano(){
+  const c = S.camp, box = el('piano');
+  if (c.senzaPiano){ box.hidden = true; return; }
+  box.hidden = false;
+  const perCanale = k => S.post.filter(p => p.canale === k);
+  const righeCanale = CANALI.map(k => { const tolto = c.tolti.find(t => t.canale === k), pp = perCanale(k), riemp = pp.filter(p => p.riempitivo).length;
+    return `<div class="rev-line"><dt>${NOME[k]}</dt><dd>${tolto
+      ? `<span class="badge danger">canale tolto</span> "${esc(tolto.nota)}"`
+      : `${pp.length} post su ${PER_CANALE} chiesti · ${pp.length - riemp} con una foto nuova · ${riemp} ${riemp === 1 ? 'riempitivo' : 'riempitivi'} (cartolina)${riemp > (pp.length - riemp) / 2 ? ' · <span class="badge warn">riempitivi oltre uno ogni due foto nuove</span>' : ''} · nessun carosello`}</dd></div>`; }).join('');
+  box.innerHTML = `<details ${c.stato === 'piano_da_rivedere' || c.stato === 'in_revisione' ? 'open' : ''}>
+    <summary><span class="tab">Piano editoriale · n. 1</span> ${c.debole ? '<span class="badge danger">piano debole</span>' : '<span class="badge ok">controllo passato</span>'}</summary>
+    <h3>La strategia</h3>
+    <p style="font-size:13.5px;color:var(--ink-soft);max-width:80ch">${c.debole
+      ? 'Due sole foto si possono usare: il tavolo finito e i taglieri. Il piano le mette nella prima settimana e copre gli altri post con cartoline: il rovere, il su misura, le porte aperte del 21 e gli ordini di Natale. Ogni tema esce su Facebook la sera e su Instagram la mattina dopo.'
+      : 'Sei temi in due settimane: prima il tavolo in rovere, intero e da vicino, poi i taglieri da regalo e il lavoro al banco; nella seconda settimana le porte aperte di sabato 21 e, per chiudere, una cartolina sugli ordini di Natale. Ogni tema esce su Facebook la sera, con un testo che racconta, e su Instagram la mattina dopo, con la foto in primo piano.'}</p>
+    <dl style="margin:10px 0 0">
+      ${righeCanale}
+      <div class="rev-line"><dt>Controllo del piano</dt><dd>Post per canale uguali a quelli chiesti · riempitivi solo dove le foto non bastano · nessuna foto due volte sullo stesso canale · la foto con la stella c'è · date dentro il periodo</dd></div>
+      ${c.debole ? `<div class="rev-line"><dt>Perché è debole</dt><dd>${esc(c.debole)}</dd></div>` : ''}
+    </dl>
+  </details>`;
+}
+function notaUltima(){
+  const n = S.camp.note;
+  return n.length ? `<div class="blocchi">${n.map(x => `<span>Nota interna (${esc(x.quando)}, ${IO}): ${esc(x.testo)}</span>`).join('')}</div>` : '';
+}
+function formNota(){
+  return `<div class="form"><h3>Nota interna</h3>
+    <p class="hint">Resta sulla campagna e la leggono solo gli operatori. Lo stato non cambia, la scadenza resta, non parte nessuna email. Se ne possono scrivere più di una.</p>
+    <div><label for="nota-interna">Nota *</label><textarea id="nota-interna" data-bozza="notaInt" placeholder="Es. aspetto conferma delle date delle porte aperte">${esc(ui.notaInt)}</textarea></div>
+    ${ui.errore ? `<div class="errore">${esc(ui.errore)}</div>` : ''}
+    <div class="row"><button type="button" class="btn primary" data-act="nota">Salva la nota</button><button type="button" class="btn" data-act="form" data-form="">Annulla</button></div></div>`;
+}
+function formCanale(){
+  const c = S.camp, predef = c.errore && c.canali.includes(c.errore.canale) ? c.errore.canale : c.canali[c.canali.length - 1];
+  return `<div class="form"><h3>Togli un canale</h3>
+    <p class="hint">Tutti i post di quel canale diventano scartati e la campagna prosegue con l'altro. È definitivo. La nota la legge anche l'artigiano, nella sua pagina Campagna.</p>
+    <div><label for="canale-tolto">Canale *</label><select id="canale-tolto">${c.canali.map(k => `<option value="${k}" ${k === predef ? 'selected' : ''}>${NOME[k]}</option>`).join('')}</select></div>
+    <div><label for="nota-canale">Nota per l'artigiano *</label><textarea id="nota-canale" data-bozza="notaCanale" placeholder="Es. su Instagram le foto di questo mese rendono poco: usciamo solo su Facebook.">${esc(ui.notaCanale)}</textarea></div>
+    ${ui.errore ? `<div class="errore">${esc(ui.errore)}</div>` : ''}
+    <div class="row"><button type="button" class="btn danger" data-act="togli-canale">Togli il canale</button><button type="button" class="btn" data-act="form" data-form="">Annulla</button></div></div>`;
+}
+function formRespingi(){
+  const caricate = Object.keys(S.foto).filter(k => !S.foto[k].cartolina);
+  return `<div class="form"><h3>Respingi la campagna</h3>
+    <p class="hint">Per i problemi di tutta la campagna: foto buone troppo poche, descrizione o periodo sbagliati. La campagna si chiude, i post vengono scartati e l'artigiano riceve un'email. Un post che non va, invece, si sistema.</p>
+    <div><label>Motivo *</label><div class="choice-grid">
+      <label class="choice"><input type="radio" name="motivo" value="foto" ${ui.motivo === 'foto' ? 'checked' : ''}>Foto scattate male</label>
+      <label class="choice"><input type="radio" name="motivo" value="altro" ${ui.motivo === 'altro' ? 'checked' : ''}>Altro</label>
+    </div></div>
+    ${ui.motivo === 'foto' ? `<div><label>Foto da rifare</label><div class="choice-grid">${caricate.map(k => `<label class="choice"><input type="checkbox" data-segna="${k}" ${S.foto[k].segnata ? 'checked' : ''}>${esc(S.foto[k].file)}</label>`).join('')}</div></div>` : ''}
+    <div><label for="nota-respingi">Richiesta di modifica per l'artigiano *</label><textarea id="nota-respingi" data-bozza="notaResp" placeholder="Es. Le foto del laboratorio sono troppo buie: rifalle vicino alla finestra.">${esc(ui.notaResp)}</textarea></div>
+    ${ui.errore ? `<div class="errore">${esc(ui.errore)}</div>` : ''}
+    <div class="row"><button type="button" class="btn danger" data-act="respingi">Respingi e avvisa l'artigiano</button><button type="button" class="btn" data-act="form" data-form="">Annulla</button></div></div>`;
+}
+function emailRiepilogo(){
+  const r = S.camp.riepilogo;
+  if (!r) return '';
+  return `<details class="email"><summary>Email di riepilogo inviata all'artigiano</summary>
+    <span class="mono">A: mario@falegnameriabianchi.it</span>
+    <b>La campagna "Natale su misura" è stata approvata</b>
+    <span>${r.approvati} post usciranno da soli alle date del calendario, che trovi nella tua pagina Campagna.</span>
+    ${r.scaduti ? `<span>${r.scaduti} post non sono usciti perché la campagna è stata approvata dopo l'inizio.</span>` : ''}
+    ${r.tolti.map(t => `<span>Su ${NOME[t.canale]} questa campagna non esce: "${esc(t.nota)}"</span>`).join('')}
+  </details>`;
+}
+function conti(){
+  const n = st => S.post.filter(p => p.stato === st).length;
+  const da = daApprovare(), visti = da.filter(p => p.visto).length, corso = S.post.filter(p => p.inCorso).length;
+  const conAvvisi = da.filter(p => avvisi(p).length && !blocchi(p).length).length;
+  return `<div class="conti">
+    ${da.length ? `<span class="badge">${da.length} da approvare</span>` : ''}
+    ${inRevisione() ? `<span class="badge ${da.length && visti === da.length ? 'ok' : ''}">${visti} di ${da.length} controllati</span>` : ''}
+    ${inRevisione() && daRivedere().length ? `<span class="badge danger">${daRivedere().length} da rivedere</span>` : ''}
+    ${inRevisione() && conAvvisi ? `<span class="badge warn">${conAvvisi} con avvisi</span>` : ''}
+    ${corso ? `<span class="badge warn">${corso} in corso</span>` : ''}
+    ${n('approvato') ? `<span class="badge">${n('approvato')} in programma</span>` : ''}
+    ${n('pubblicato') ? `<span class="badge ok">${n('pubblicato')} pubblicati</span>` : ''}
+    ${n('fallito') ? `<span class="badge danger">${n('fallito')} falliti</span>` : ''}
+    ${n('scaduto') ? `<span class="badge danger">${n('scaduto')} scaduti</span>` : ''}
+    ${n('scartato') ? `<span class="badge">${n('scartato')} scartati</span>` : ''}
+    ${n('annullato') ? `<span class="badge danger">${n('annullato')} annullati</span>` : ''}
+  </div>`;
+}
+function entroQuando(){
+  const da = daApprovare().map(p => p.quando).sort(), soglia = chiesti() / 2;
+  if (!da.length) return '';
+  return `<p class="sub"><b style="color:var(--ink)">Entro quando: il primo post da approvare è ${breve(da[0])}.</b> Ogni post scade quando passa la sua data; la campagna scade se ne restano meno di ${soglia} su ${chiesti()} chiesti. Promemoria 48 ore prima dell'inizio (${giorno('2026-11-07')}).</p>`;
+}
+function renderBarra(){
+  const c = S.camp, da = daApprovare(), riv = daRivedere(), corso = S.post.filter(p => p.inCorso);
+  const ultimoCanale = c.canali.length < 2;
+  const btnNota = '<button type="button" class="btn" data-act="form" data-form="nota">Nota interna</button>';
+  const btnCanale = `<button type="button" class="btn" data-act="form" data-form="canale" ${ultimoCanale ? 'disabled title="Deve restare almeno un canale"' : ''}>Togli un canale</button>`;
+  const btnRespingi = '<button type="button" class="btn danger" data-act="form" data-form="respingi">Respingi</button>';
+  const forms = () => ui.form === 'nota' ? formNota() : ui.form === 'canale' && !ultimoCanale ? formCanale() : ui.form === 'respingi' ? formRespingi() : '';
+  let h = '';
+
+  if (c.stato === 'in_generazione'){
+    h = `<div class="decidi-top"><div><h2>Generazione in corso</h2>
+        <p class="sub">${c.senzaPiano ? 'Analisi delle foto e piano editoriale. Finché il piano non c’è, la campagna scade alle 00:00 del giorno di inizio (' + giorno(INIZIO) + ').' : 'Il piano e ciò che era già salvato non si rifanno: la generazione riparte dai testi che mancano.'} Se resta ferma per 30 minuti passa a generazione fallita.</p>
+        <div class="attesa" style="margin-top:8px"><span class="giro"></span>L'AI sta lavorando.</div></div>
+      <div class="decidi-btns">${c.senzaPiano ? '<button type="button" class="btn" data-act="finisci">Nell’esempio: fai finire la generazione</button>' : ''}${btnNota}</div></div>${notaUltima()}${ui.form === 'nota' ? formNota() : ''}`;
+  } else if (c.stato === 'generazione_fallita'){
+    const e = c.errore;
+    h = `<div class="decidi-top"><div><h2>Generazione fallita</h2>
+        <p class="sub">Si è fermata dopo ${e.esecuzioni} esecuzioni. Riprova riparte da dove si era fermata: ciò che è salvato non si rifà.</p>
+        <dl style="margin:10px 0 0;max-width:70ch">
+          <div class="rev-line"><dt>Tipo di errore</dt><dd><span class="badge danger">${e.tipo}</span> ${e.serve ? 'Riprovare serve.' : 'Riprovare non serve finché qualcuno non interviene.'}</dd></div>
+          <div class="rev-line"><dt>Messaggio</dt><dd>${esc(e.messaggio)}</dd></div>
+          <div class="rev-line"><dt>Dove</dt><dd>Tappa: ${esc(e.tappa)} · canale: ${NOME[e.canale]}</dd></div>
+        </dl>${conti()}</div>
+      <div class="decidi-btns"><button type="button" class="btn primary" data-act="riprova">Riprova</button>${btnCanale}${btnNota}</div></div>
+      <div class="blocchi"><span>Se il problema è solo su ${NOME[e.canale]}, puoi togliere quel canale e proseguire con l'altro.</span></div>${notaUltima()}${ui.form === 'nota' ? formNota() : ui.form === 'canale' && !ultimoCanale ? formCanale() : ''}`;
+  } else if (c.stato === 'piano_da_rivedere'){
+    h = `<div class="decidi-top"><div><h2>Piano da rivedere</h2>
+        <p class="sub">Il piano è debole e la generazione si è fermata prima dei testi: guarda il piano e le foto, poi decidi. I post sono comunque tutti presenti, con i riempitivi.</p>
+        ${entroQuando()}${conti()}</div>
+      <div class="decidi-btns"><button type="button" class="btn primary" data-act="prosegui">Prosegui: scrivi i testi</button>${btnCanale}${btnNota}${btnRespingi}</div></div>${notaUltima()}${forms()}`;
+  } else if (c.stato === 'in_revisione'){
+    const blocca = riv.length > 0 || corso.length > 0 || da.length === 0;
+    const senzaSpunta = da.filter(p => !p.visto).length, conAvvisi = da.filter(p => avvisi(p).length).length;
+    h = `<div class="decidi-top"><div><h2>Decisione sulla campagna</h2>${entroQuando()}${conti()}</div>
+      <div class="decidi-btns">
+        <button type="button" class="btn primary" data-act="form" data-form="approva" ${blocca ? 'disabled' : ''}>Approva ${da.length} post</button>
+        ${btnCanale}${btnNota}${btnRespingi}
+      </div></div>
+      <div class="blocchi">${[
+        riv.length ? `<span><b>Non si può approvare:</b> ${riv.map(p => `<a href="#post-${p.id}" data-vai="${p.id}">uscita ${p.uscita} · ${NOME[p.canale]}</a>`).join(', ')} da rivedere. Togli il blocco con Modifica o con l'AI.</span>` : '',
+        corso.length ? `<span><b>Non si può approvare:</b> intervento in corso su ${corso.map(p => `uscita ${p.uscita} · ${NOME[p.canale]}`).join(', ')}.</span>` : ''
+      ].join('')}</div>${notaUltima()}`;
+    if (ui.form === 'approva' && !blocca){
+      h += `<div class="form"><h3>Approvi ${da.length} post?</h3>
+        <p class="hint">La campagna diventa attiva e i post escono da soli alle date stabilite. Dopo, il contenuto non si modifica più e non si interviene sul singolo post: si sospende o si annulla la campagna.</p>
+        ${senzaSpunta ? `<p class="hint" style="color:var(--warn)">${senzaSpunta} post non hanno la spunta "Va bene": vengono approvati lo stesso.</p>` : ''}
+        ${conAvvisi ? `<p class="hint" style="color:var(--warn)">${conAvvisi} post hanno avvisi del controllo: escono così come sono.</p>` : ''}
+        <div class="row"><button type="button" class="btn primary" data-act="approva">Conferma: approva ${da.length} post</button><button type="button" class="btn" data-act="form" data-form="">Annulla</button></div></div>`;
+    } else h += forms();
+  } else if (c.stato === 'attiva' || c.stato === 'sospesa'){
+    const prossimo = S.post.filter(p => p.stato === 'approvato' && p.quando > S.ora).sort((a, b) => a.quando < b.quando ? -1 : 1)[0];
+    const arr = arretrati(), falliti = S.post.filter(p => p.stato === 'fallito');
+    h = `<div class="decidi-top"><div><h2>${c.stato === 'attiva' ? 'Campagna attiva' : 'Campagna sospesa'}</h2>
+        <p class="sub">${c.stato === 'attiva'
+          ? (prossimo ? `Prossima pubblicazione: ${breve(prossimo.quando)} · ${NOME[prossimo.canale]}.` : 'Nessun post in attesa.')
+          : 'Nessun post esce finché non la riattivi.'} Il contenuto non si modifica più e non si interviene sul singolo post: si sospende o si annulla la campagna.</p>${conti()}</div>
+      <div class="decidi-btns">
+        ${c.stato === 'attiva' ? '<button type="button" class="btn" data-act="sospendi">Sospendi</button>' : '<button type="button" class="btn primary" data-act="riattiva">Riattiva</button>'}
+        ${btnNota}
+        <button type="button" class="btn danger" data-act="form" data-form="annulla">Annulla campagna</button>
+      </div></div>
+      <div class="blocchi">${[
+        falliti.length ? `<span><b>${falliti.length} post ${falliti.length === 1 ? 'fallito' : 'falliti'}:</b> ${falliti.map(p => `<a href="#post-${p.id}" data-vai="${p.id}">uscita ${p.uscita} · ${NOME[p.canale]}</a>`).join(', ')}. ${finito() ? 'Il periodo è finito.' : `Si può riprogrammare fino a ${giorno(FINE)}; finché c'è un post fallito la campagna non si conclude prima della fine del periodo.`}</span>` : '',
+        c.stato === 'sospesa' && arr.length ? `<span>${arr.length} post hanno la data già passata: alla riattivazione scegli se pubblicarli o saltarli.</span>` : ''
+      ].join('')}</div>${notaUltima()}`;
+    if (ui.form === 'riattiva' && c.stato === 'sospesa'){
+      h += `<div class="form"><h3>Riattiva: che cosa fare dei post in arretrato</h3>
+        <p class="hint">Dovevano uscire durante la sospensione. Senza una scelta uscirebbero tutti insieme al primo controllo. Quelli saltati passano allo stato annullato.</p>
+        ${arr.map(p => `<div class="arretrato"><span><b>Uscita ${p.uscita} · ${NOME[p.canale]}</b> · doveva uscire ${breve(p.quando)}</span>
+          <select id="arr-${p.id}" aria-label="Scelta per il post"><option value="salta">Salta: non esce</option><option value="ora">Pubblica adesso</option></select></div>`).join('')}
+        <div class="row"><button type="button" class="btn primary" data-act="conferma-riattiva">Riattiva la campagna</button><button type="button" class="btn" data-act="form" data-form="">Annulla</button></div></div>`;
+    } else if (ui.form === 'annulla'){
+      h += `<div class="form"><h3>Annulli la campagna?</h3>
+        <p class="hint">I post non ancora usciti passano allo stato annullato e non escono più. Quelli già pubblicati restano sul social. Non si torna indietro.</p>
+        <div class="row"><button type="button" class="btn danger" data-act="annulla-campagna">Conferma: annulla la campagna</button><button type="button" class="btn" data-act="form" data-form="">Indietro</button></div></div>`;
+    } else if (ui.form === 'nota') h += formNota();
+    h += emailRiepilogo();
+  } else if (c.stato === 'respinta'){
+    const d = c.decisioni.filter(x => x.esito === 'respinta').pop();
+    h = `<div class="decidi-top"><div><h2>Campagna respinta</h2><p class="sub">Chiusa: resta nello storico, il periodo torna libero, l'artigiano ne crea una nuova (R-15).</p>${conti()}</div></div>
+      <div class="email"><span class="mono">Email all'artigiano · mario@falegnameriabianchi.it</span>
+      <b>La campagna "Natale su misura" non è stata approvata</b>
+      <span>Motivo: ${d.motivo === 'foto' ? 'foto scattate male' : 'altro'}</span>
+      <span>Richiesta di modifica: "${esc(d.nota)}"</span>
+      ${d.foto.length ? `<span>Foto da rifare (in miniatura): ${d.foto.map(k => esc(S.foto[k].file)).join(', ')}</span>` : ''}
+      <span style="color:var(--ink-soft)">Le stesse informazioni compaiono nel Bentornato della pagina Campagna.</span></div>${notaUltima()}`;
+  } else if (c.stato === 'scaduta'){
+    h = `<div class="decidi-top"><div><h2>Campagna scaduta</h2><p class="sub">${esc(c.perche)} I post rimasti sono scaduti e l'artigiano ha ricevuto l'email "La campagna non è stata approvata in tempo".</p>${conti()}</div></div>${notaUltima()}`;
+  } else if (c.stato === 'conclusa'){
+    h = `<div class="decidi-top"><div><h2>Campagna conclusa</h2><p class="sub">Ogni post è chiuso: pubblicato, fallito, scaduto o scartato.</p>${conti()}</div></div>${notaUltima()}${emailRiepilogo()}`;
+  } else {
+    h = `<div class="decidi-top"><div><h2>Campagna annullata</h2><p class="sub">Non esce più niente. I post non usciti sono nello stato annullato; quelli già pubblicati restano sul social.</p>${conti()}</div></div>${notaUltima()}${emailRiepilogo()}`;
+  }
+  el('decidi').innerHTML = h;
+}
+
+/* ---------- Calendario ---------- */
+function renderCal(){
+  let h = ['lun','mar','mer','gio','ven','sab','dom'].map(g => `<div class="dow">${g}</div>`).join('');
+  const inizio = D(INIZIO);
+  for (let i = 0; i < 14; i++){
+    const g = new Date(inizio); g.setDate(inizio.getDate() + i);
+    const key = iso(g).slice(0, 10);
+    const qui = S.camp.senzaPiano ? [] : S.post.filter(p => p.quando.slice(0, 10) === key).sort((a, b) => a.quando < b.quando ? -1 : 1);
+    h += `<div class="day ${S.ora.slice(0, 10) === key ? 'oggi' : ''}"><span class="d">${p2(g.getDate())}/${p2(g.getMonth()+1)}</span>${qui.map(p =>
+      `<button type="button" class="slot ${p.canale === 'facebook' ? 'fb' : 'ig'} ${['scartato','annullato','scaduto'].includes(p.stato) ? 'tolto' : p.stato === 'fallito' || (p.stato === 'da_approvare' && blocchi(p).length) ? 'blocca' : ''}" data-vai="${p.id}" title="${p.stato}">${ora(p.quando)} · ${SIGLA[p.canale]} · U${p.uscita}${p.riempitivo ? ' · cart.' : ''}${p.stato === 'pubblicato' ? ' ●' : p.stato === 'fallito' ? ' ✕' : p.visto && p.stato === 'da_approvare' ? ' ✓' : ''}</button>`).join('')}</div>`;
+  }
+  el('cal').innerHTML = h;
+}
+
+/* ---------- Foto e profilo ---------- */
+function usi(k){ return S.camp.senzaPiano ? [] : S.post.filter(p => p.foto === k && p.stato !== 'scartato').map(p => `U${p.uscita} ${SIGLA[p.canale]}`); }
+function renderMateriali(){
+  const c = S.camp;
+  const gruppi = Object.keys(GRUPPI).map(n => { const g = GRUPPI[n];
+    const foto = Object.keys(S.foto).filter(k => String(S.foto[k].gruppo) === n).map(k => { const f = S.foto[k], u = usi(k);
+      const esito = c.senzaPiano ? '<span class="badge">analisi in corso</span>'
+        : !f.idonea ? '<span class="badge danger">non idonea: resta fuori</span>'
+        : u.length ? `<span class="badge ok">usata</span> ${u.join(', ')}`
+        : f.simileA ? `<span class="badge warn">doppione: resta fuori</span>` : '<span class="badge">non usata: resta in archivio</span>';
+      return `<div class="foto-riga">
+        <div class="mini">${f.src ? `<img src="${f.src}" alt="">` : 'foto di esempio'}</div>
+        <div class="info"><span class="nome">${f.stella ? '★ ' : ''}${esc(f.file)}</span>
+          <span>${esc(f.cosa)}</span>
+          <span>${esito}</span>
+          ${c.senzaPiano ? '' : `<span style="color:var(--ink-soft)">Analisi AI: ${f.punteggio}/10 · ${esc(f.motivo)}</span>`}
+          <label for="up-${k}" style="font-size:12px;color:var(--ink-soft)">Carica una foto per l'anteprima:</label>
+          <input type="file" id="up-${k}" accept="image/*" data-up="${k}">
+        </div></div>`; }).join('');
+    return `<div class="card"><div class="tab">Gruppo ${n} · foto caricate · sola lettura</div>
+      <h3>"${esc(g.descr)}"</h3>
+      ${g.il ? `<p style="font-size:13px;color:var(--ink-soft)">Da usare verso ${giorno(g.il)}: è un'indicazione per il piano, il controllo non la verifica.</p>` : ''}
+      ${foto}</div>`; }).join('');
+  const cartoline = Object.keys(S.foto).filter(k => S.foto[k].cartolina);
+  const dec = c.decisioni.length
+    ? c.decisioni.map(d => `<div class="rev-line"><dt>${esc(d.quando)}</dt><dd><b>${esc(d.esito)}</b>${d.motivo ? ' · motivo: ' + esc(d.motivo) : ''}${d.canale ? ' · ' + NOME[d.canale] : ''}${d.nota ? ' · "' + esc(d.nota) + '"' : ''}${d.foto && d.foto.length ? ' · foto: ' + d.foto.map(k => esc(S.foto[k].file)).join(', ') : ''} · ${IO}</dd></div>`).join('')
+    : '<p style="font-size:13px;color:var(--ink-faint)">Nessuna decisione e nessuna nota finora.</p>';
+  el('materiali').innerHTML = `
+    <div style="display:flex;flex-direction:column;gap:16px;min-width:0">${gruppi}
+      ${c.senzaPiano ? '' : `<div class="card"><div class="tab">Riempitivi</div><h3>${cartoline.length} ${cartoline.length === 1 ? 'cartolina' : 'cartoline'} composte dal sistema</h3>
+        <p style="font-size:13px;color:var(--ink-soft)">Coprono i post chiesti che le foto disponibili non coprono. Immagine quadrata con il nome della bottega e il tema dell'uscita, senza AI; ognuna ha il suo testo.</p>
+        ${cartoline.map(k => `<div class="rev-line"><dt>${esc(S.foto[k].file)}</dt><dd>${esc(S.foto[k].tema)} · ${usi(k).join(', ')}</dd></div>`).join('')}</div>`}
+      <p class="note">Le foto caricate qui restano solo nel tuo browser e servono a riempire le anteprime. Il ritaglio dell'anteprima è quello che esce: una sola funzione per canale (ADR-100), dallo sprint 3.</p>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
+      <div class="card"><div class="tab">Campagna</div><h3>Che cosa ha chiesto l'artigiano</h3>
+        <p style="font-size:13.5px;font-style:italic;color:var(--ink-soft)">"A novembre voglio spingere i regali su misura per Natale. Sabato 21 teniamo le porte aperte in bottega: vorrei che se ne parlasse nella seconda settimana."</p>
+        <dl style="margin:10px 0 0">
+          <div class="rev-line"><dt>Canali dichiarati</dt><dd>Facebook, Instagram</dd></div>
+          <div class="rev-line"><dt>Frequenza</dt><dd>3 a settimana per canale: ${PER_CANALE} post per canale in 14 giorni</dd></div>
+          <div class="rev-line"><dt>Immagini da creare</dt><dd>Nessun gruppo</dd></div>
+        </dl></div>
+      <div class="card"><div class="tab">Profilo bottega · fotografia del 03/11/2026</div><h3>Ciò che ha ricevuto l'AI</h3>
+        <dl style="margin:0">
+          <div class="rev-line"><dt>Bottega</dt><dd>Falegnameria Bianchi · Mario Bianchi · Bra (CN)</dd></div>
+          <div class="rev-line"><dt>Tipo di prodotto</dt><dd>Legno e mobili</dd></div>
+          <div class="rev-line"><dt>Obiettivo</dt><dd>Farmi conoscere</dd></div>
+          <div class="rev-line"><dt>Clienti ideali</dt><dd>Coppie che stanno arredando casa, 30-50 anni, zona Cuneo e Torino.</dd></div>
+          <div class="rev-line"><dt>Tono · cortesia</dt><dd>Caldo e familiare · do sempre del tu</dd></div>
+          <div class="rev-line"><dt>Cose da non dire mai</dt><dd>Niente prezzi dei concorrenti, niente sconti non autorizzati dal consorzio.</dd></div>
+          <div class="rev-line"><dt>Orari</dt><dd>La sera e nel weekend</dd></div>
+          <div class="rev-line"><dt>Eventi</dt><dd>Porte aperte in bottega · 21 novembre 2026</dd></div>
+        </dl>
+        <p class="note">È il profilo com'era all'invio, non quello di oggi (R-11).</p></div>
+      <div class="card"><div class="tab">Storico</div><h3>Decisioni e note interne</h3>${dec}</div>
+    </div>`;
+}
+
+function renderTutto(){ renderTestata(); renderBarra(); renderPiano(); renderUscite(); renderCal(); renderMateriali(); }
+
+/* ---------- Schede ---------- */
+const TAB = ['uscite','calendario','materiali'];
+function mostra(tab){
+  TAB.forEach(t => { el('tab-' + t).hidden = t !== tab; });
+  document.querySelectorAll('.tabs button').forEach(b => b.setAttribute('aria-selected', String(b.dataset.tab === tab)));
+}
+function vaiAlPost(id){
+  mostra('uscite');
+  const e = el('post-' + id);
+  if (!e) return;
+  e.scrollIntoView({ behavior:'smooth', block:'start' });
+  e.classList.add('flash'); setTimeout(() => { const x = el('post-' + id); if (x) x.classList.remove('flash'); }, 1600);
+}
+
+/* ---------- Azioni ---------- */
+function mostraErrore(id, testo){ const e = el(id); if (e){ if (testo) e.textContent = testo; e.hidden = false; } }
+/* Intervento dell'AI su un post, simulato. Il ciclo si conta quando nasce la versione (ADR-93). */
+function lancia(p, job, contatore, crea, guasto){
+  ui.pannello[p.id] = null; p.inCorso = job; p.erroreAI = '';
+  renderPost(p.id); renderBarra(); renderCal();
+  setTimeout(() => {
+    if (post(p.id) !== p || p.inCorso !== job) return;
+    p.inCorso = null;
+    if (inRevisione() && p.stato === 'da_approvare'){
+      if (guasto) p.erroreAI = 'Tre esecuzioni fallite. Il post resta com’era e il ciclo non è stato contato: puoi riprovare.';
+      else { p[contatore]++; aggiungi(p, crea()); }
+    }
+    renderPost(p.id); renderBarra(); renderCal(); renderMateriali();
+  }, 2200);
+}
+/* La generazione che riparte (Riprova, Prosegui), simulata: scrive solo i testi che mancano. */
+function riparte(){
+  const io = S;
+  S.camp.stato = 'in_generazione'; S.camp.lavora = true; S.camp.errore = null; ui.form = null;
+  renderTutto();
+  setTimeout(() => { if (S === io && stato() === 'in_generazione') finisciGenerazione(); }, 2200);
+}
+function finisciGenerazione(){
+  S.camp.senzaPiano = false; S.camp.lavora = false;
+  S.post.filter(p => p.stato === 'da_approvare').forEach(scrivi);
+  S.camp.stato = 'in_revisione';
+  applicaScadenze();
+  renderTutto();
+}
+function carica(scen){
+  const src = {};
+  if (S) Object.keys(S.foto).forEach(k => { if (S.foto[k].src) src[k] = S.foto[k].src; });
+  iniziale(scen);
+  Object.keys(src).forEach(k => { if (S.foto[k]) S.foto[k].src = src[k]; });
+  Object.assign(ui, { pannello:{}, form:null, motivo:'', notaResp:'', notaInt:'', notaCanale:'', errore:'' });
+  renderTutto();
+}
+
+const AZIONI = {
+  reset(){ carica(S.scen); },
+  avanza(){
+    if (!TEMPI[S.tempo + 1]) return;
+    S.tempo++; S.ora = TEMPI[S.tempo]; ui.form = null; ui.pannello = {};
+    if (stato() === 'attiva') pubblicaDovuti(); else applicaScadenze();
+    renderTutto(); el('decidi').scrollIntoView({ behavior:'smooth' });
+  },
+  finisci(){ if (stato() === 'in_generazione') finisciGenerazione(); },
+  riprova(){ if (stato() === 'generazione_fallita') riparte(); },
+  prosegui(){ if (stato() !== 'piano_da_rivedere') return; decisione('proseguita'); riparte(); },
+
+  vabene(b){ const p = post(b.dataset.id); p.visto = p.visto ? null : { chi:IO, quando:adesso() }; renderPost(p.id); renderBarra(); renderCal(); },
+  apri(b){ const id = b.dataset.id; ui.pannello[id] = ui.pannello[id] === b.dataset.pan ? null : b.dataset.pan; renderPost(id); },
+  chiudi(b){ ui.pannello[b.dataset.id] = null; renderPost(b.dataset.id); },
+
+  'salva-modifica'(b){ const p = post(b.dataset.id), base = cur(p);
+    const testo = val('mod-testo-' + p.id);
+    const tag = val('mod-tag-' + p.id).split(/[\s,]+/).filter(Boolean).map(t => t.startsWith('#') ? t : '#' + t);
+    if (!testo){ mostraErrore('err-mod-' + p.id, '422 · Il testo non può essere vuoto.'); return; }
+    if (testo === base.testo && tag.join(' ') === base.tag.join(' ')){ mostraErrore('err-mod-' + p.id, 'Non hai cambiato niente.'); return; }
+    const blk = controlla(testo, tag, p.canale).filter(e => e.liv === 'blocco');
+    if (blk.length){ mostraErrore('err-mod-' + p.id, '422 · Non salvato. ' + blk.map(e => e.msg).join('; ') + '.'); return; }
+    aggiungi(p, { tipo:'modifica_operatore', autore:IO, testo, tag });
+    ui.pannello[p.id] = null; renderPost(p.id); renderBarra(); renderCal(); },
+
+  rigenera(b){ const p = post(b.dataset.id); if (p.nRig >= MAX) return;
+    const nota = val('nota-ai-' + p.id), proposto = val('proposto-' + p.id), base = cur(p);
+    const g = el('guasto-' + p.id), guasto = !!(g && g.checked);
+    const tipo = proposto ? 'rigenera_da_proposta' : 'rigenera_totale';
+    const tag = base.tag.slice(0, LIMITI[p.canale].hashtag);
+    lancia(p, tipo, 'nRig', () => ({ tipo, tag, nota, proposto,
+      testo: proposto || p.alt.shift() || `Nuova stesura di esempio n. ${p.versioni.length + 1}: qui l'AI scriverebbe un testo diverso, con le stesse foto.` }), guasto); },
+  ritocca(b){ const p = post(b.dataset.id); if (p.nRit >= MAX) return;
+    const nota = val('nota-ritocco-' + p.id), base = cur(p), nuova = p.maxVf + 1;
+    lancia(p, 'ritocco_foto', 'nRit', () => { p.maxVf = nuova; return { tipo:'ritocco_foto', testo:base.testo, tag:base.tag.slice(), vf:nuova, nota }; }, false); },
+  'scegli-foto'(b){ const p = post(b.dataset.id), base = cur(p), sel = el('scelta-foto-' + p.id);
+    if (!sel || sel.value === '') return;
+    aggiungi(p, { tipo:'scelta_foto', autore:IO, testo:base.testo, tag:base.tag.slice(), vf:Number(sel.value) });
+    ui.pannello[p.id] = null; renderPost(p.id); renderBarra(); },
+  'cambia-foto'(b){ const p = post(b.dataset.id), base = cur(p), sel = el('cambia-' + p.id);
+    if (!sel || !sel.value) return;
+    p.maxVf = 0;
+    aggiungi(p, { tipo:'cambio_foto', autore:IO, testo:base.testo, tag:base.tag.slice(), foto:sel.value, vf:0, nota:'Foto cambiata: rileggere il testo.' });
+    ui.pannello[p.id] = null; renderTutto(); },
+  sposta(b){ const p = post(b.dataset.id), q = val('sposta-' + p.id);
+    if (!q || q < piu15(S.ora) || q.slice(0, 10) < INIZIO || q.slice(0, 10) > FINE){ mostraErrore('err-sposta-' + p.id, '422 · La data deve stare dentro il periodo e non nel passato (almeno 15 minuti da adesso).'); return; }
+    p.quando = q; p.visto = null; ui.pannello[p.id] = null; renderTutto(); },
+  riprogramma(b){ const p = post(b.dataset.id), q = val('ripr-' + p.id);
+    if (p.stato !== 'fallito') return;
+    if (!q || q < piu15(S.ora) || q.slice(0, 10) > FINE){ mostraErrore('err-ripr-' + p.id, '422 · La data deve stare dentro il periodo e non nel passato (almeno 15 minuti da adesso).'); return; }
+    p.quando = q; p.stato = 'approvato'; p.motivo = ''; ui.pannello[p.id] = null;
+    decisione('post riprogrammato', { nota:`uscita ${p.uscita} · ${NOME[p.canale]} · ${breve(q)}` });
+    renderTutto(); },
+
+  form(b){ ui.form = b.dataset.form || null; ui.errore = ''; renderBarra();
+    if (ui.form) el('decidi').scrollIntoView({ behavior:'smooth' }); },
+  approva(){ const da = daApprovare();
+    if (!inRevisione() || !da.length || daRivedere().length || S.post.some(p => p.inCorso)) return;
+    da.forEach(p => { p.stato = 'approvato'; });
+    S.camp.stato = 'attiva';
+    S.camp.riepilogo = { approvati:da.length, scaduti:S.post.filter(p => p.stato === 'scaduto').length, tolti:S.camp.tolti.slice() };
+    decisione('approvata', { nota:da.length + ' post approvati' });
+    ui.form = null; ui.pannello = {}; renderTutto(); },
+  nota(){ if (!ui.notaInt.trim()){ ui.errore = 'Scrivi la nota.'; renderBarra(); return; }
+    S.camp.note.push({ quando:adesso(), testo:ui.notaInt.trim() }); decisione('nota interna', { nota:ui.notaInt.trim() });
+    ui.form = null; ui.notaInt = ''; ui.errore = ''; renderBarra(); renderMateriali(); },
+  'togli-canale'(){ const c = S.camp, sel = el('canale-tolto'), k = sel ? sel.value : '';
+    if (c.canali.length < 2){ ui.errore = '409 · Deve restare almeno un canale.'; renderBarra(); return; }
+    if (!ui.notaCanale.trim()){ ui.errore = '422 · Scrivi la nota: la legge anche l’artigiano.'; renderBarra(); return; }
+    c.canali = c.canali.filter(x => x !== k); c.tolti.push({ canale:k, nota:ui.notaCanale.trim() });
+    S.post.filter(p => p.canale === k && p.stato === 'da_approvare').forEach(p => { p.stato = 'scartato'; p.inCorso = null; p.visto = null; p.motivo = `Canale tolto: ${NOME[k]}.`; ui.pannello[p.id] = null; });
+    decisione('canale_tolto', { canale:k, nota:ui.notaCanale.trim() });
+    ui.form = null; ui.notaCanale = ''; ui.errore = '';
+    if (stato() === 'generazione_fallita' && c.errore && c.errore.canale === k){ riparte(); return; }
+    applicaScadenze(); renderTutto(); },
+  respingi(){ const segnate = Object.keys(S.foto).filter(k => S.foto[k].segnata);
+    if (!ui.motivo){ ui.errore = '422 · Scegli il motivo: foto o altro.'; renderBarra(); return; }
+    if (!ui.notaResp.trim()){ ui.errore = '422 · Scrivi la richiesta di modifica per l’artigiano.'; renderBarra(); return; }
+    if (ui.motivo === 'foto' && !segnate.length){ ui.errore = '422 · Segna almeno una foto da rifare.'; renderBarra(); return; }
+    S.camp.stato = 'respinta';
+    S.post.forEach(p => { p.inCorso = null; if (p.stato === 'da_approvare'){ p.stato = 'scartato'; p.motivo = 'Campagna respinta.'; } });
+    decisione('respinta', { motivo:ui.motivo, nota:ui.notaResp.trim(), foto:ui.motivo === 'foto' ? segnate : [] });
+    ui.form = null; ui.errore = ''; ui.pannello = {}; renderTutto(); },
+
+  sospendi(){ S.camp.stato = 'sospesa'; ui.form = null; decisione('sospesa'); renderTutto(); },
+  riattiva(){ if (arretrati().length){ ui.form = 'riattiva'; renderBarra(); return; }
+    S.camp.stato = 'attiva'; ui.form = null; decisione('riattivata'); chiudiSeFinita(); renderTutto(); },
+  'conferma-riattiva'(){ let usciti = 0, saltati = 0;
+    arretrati().forEach(p => { const sel = el('arr-' + p.id);
+      if (sel && sel.value === 'ora'){ p.stato = 'pubblicato'; usciti++; }
+      else { p.stato = 'annullato'; p.motivo = 'Saltato alla riattivazione: la data era passata durante la sospensione.'; saltati++; } });
+    S.camp.stato = 'attiva'; ui.form = null; decisione('riattivata', { nota:`${usciti} pubblicati adesso, ${saltati} saltati` });
+    chiudiSeFinita(); renderTutto(); },
+  'annulla-campagna'(){ S.post.filter(p => p.stato === 'approvato').forEach(p => { p.stato = 'annullato'; p.motivo = 'Campagna annullata.'; });
+    S.camp.stato = 'annullata'; ui.form = null; ui.pannello = {}; decisione('annullata'); renderTutto(); }
+};
+
+/* ---------- Eventi ---------- */
+document.addEventListener('click', e => {
+  const vai = e.target.closest('[data-vai]');
+  if (vai){ e.preventDefault(); vaiAlPost(vai.dataset.vai); return; }
+  const tab = e.target.closest('[data-tab]');
+  if (tab){ mostra(tab.dataset.tab); return; }
+  const b = e.target.closest('[data-act]');
+  if (b && !b.disabled && AZIONI[b.dataset.act]) AZIONI[b.dataset.act](b);
+});
+document.addEventListener('input', e => {
+  const t = e.target;
+  if (t.dataset && t.dataset.bozza) ui[t.dataset.bozza] = t.value;
+});
+document.addEventListener('change', e => {
+  const t = e.target;
+  if (!t.dataset) return;
+  if ('scen' in t.dataset){ carica(t.value); }
+  else if (t.name === 'motivo'){ ui.motivo = t.value; ui.errore = ''; renderBarra(); }
+  else if (t.dataset.segna){ S.foto[t.dataset.segna].segnata = t.checked; }
+  else if (t.dataset.up && t.files && t.files[0]){
+    const k = t.dataset.up, r = new FileReader();
+    r.onload = () => { S.foto[k].src = r.result; renderUscite(); renderMateriali(); };
+    r.readAsDataURL(t.files[0]);
+  }
+});
+
+carica('in_revisione');
+const h = location.hash.replace('#', '');
+if (TAB.includes(h)) mostra(h);
+})();
+</script>

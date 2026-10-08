@@ -23,7 +23,7 @@ def crea_campagna(
     utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
     ora: Annotated[datetime, Depends(adesso)],
 ) -> CampagnaDettaglio:
-    """Crea una nuova campagna in bozza per l'artigiano autenticato (CA-09, CA-10, CA-11, CA-12, CA-46)."""
+    """Crea una nuova campagna in bozza per l'artigiano autenticato (CA-09, CA-10, CA-11, CA-12, CA-48)."""
     campagna = service.crea_bozza(db, utente.id, dati, ora)
     return service.dettaglio_campagna(db, utente.id, utente.ruolo, campagna.id)
 
@@ -32,11 +32,10 @@ def crea_campagna(
 def elenca_campagne(
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[Any, Depends(utente_corrente)],
-    stato: Annotated[str | None, Query()] = None,
+    stato: Annotated[list[str] | None, Query()] = None,
 ) -> list[CampagnaElencoItem]:
-    """Elenca le campagne accessibili all'utente (l'artigiano vede solo le sue)."""
-    campagne = service.elenca_campagne(db, utente.id, utente.ruolo, stato)
-    return [CampagnaElencoItem.model_validate(c) for c in campagne]
+    """Elenca le campagne accessibili all'utente (supporta stati multipli e include bottega/città per l'operatore)."""
+    return service.elenca_campagne(db, utente.id, utente.ruolo, stato)
 
 
 @router.get("/campagne/{id}", response_model=CampagnaDettaglio)

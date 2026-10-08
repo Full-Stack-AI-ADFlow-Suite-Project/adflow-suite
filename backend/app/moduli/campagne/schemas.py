@@ -2,7 +2,6 @@
 
 from datetime import date, datetime
 from typing import Any
-from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -25,7 +24,7 @@ class CampagnaCrea(BaseModel):
     inizio: date
     fine: date
     descrizione: str | None = Field(default=None, max_length=2000)
-    crea_immagini_ai: bool = Field(default=False)
+    canali: list[str] = Field(min_length=1)
 
     @field_validator("titolo")
     @classmethod
@@ -49,6 +48,22 @@ class CampagnaCrea(BaseModel):
             raise ValueError("La descrizione contiene caratteri non validi.")
         return pulito
 
+    @field_validator("canali")
+    @classmethod
+    def valida_canali(cls, canali: list[str]) -> list[str]:
+        if not canali:
+            raise ValueError("Selezionare almeno un canale.")
+        ammessi = {"facebook", "instagram"}
+        visti = []
+        for c in canali:
+            if c not in ammessi:
+                raise ValueError(
+                    f"Canale '{c}' non valido. Ammessi: facebook, instagram."
+                )
+            if c not in visti:
+                visti.append(c)
+        return visti
+
 
 class FotoSintetica(BaseModel):
     """Rappresentazione essenziale di una foto nel dettaglio della campagna."""
@@ -56,12 +71,26 @@ class FotoSintetica(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
     id: int
-    gruppo_id: UUID
+    gruppo_id: int | None = None
     file: str
     mime: str
     larghezza: int
     altezza: int
+    da_usare: bool = False
+    origine: str = "caricata"
+
+
+class GruppoSintetico(BaseModel):
+    """Rappresentazione sintetica di un gruppo di foto nel dettaglio della campagna."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    origine: str
     descrizione: str | None = None
+    da_usare_il: date | None = None
+    n_immagini: int | None = None
+    foto: list[FotoSintetica] = []
 
 
 class DecisioneSintetica(BaseModel):
@@ -71,6 +100,8 @@ class DecisioneSintetica(BaseModel):
 
     id: int
     esito: str
+    canale: str | None = None
+    post_id: int | None = None
     motivo: str | None = None
     nota: str | None = None
 
@@ -86,15 +117,17 @@ class CampagnaDettaglio(BaseModel):
     inizio: date
     fine: date
     descrizione: str | None = None
-    crea_immagini_ai: bool = False
     stato: str
     canali: list[str] | None = None
+    canali_tolti: list[str] | None = None
     frequenza: str | None = None
     obiettivo: str | None = None
     inviata_il: datetime | None = None
-    rimandata: bool = False
-    foto: list[FotoSintetica] = []
-    profilo_snapshot: dict[str, Any] | None = None
+    chiusa_il: datetime | None = None
+    gruppi: list[GruppoSintetico] = []
+    post_chiesti_per_canale: dict[str, int] = {}
+    avvisi: list[str] = []
+    profilo_snapshot: dict[str, Any] | list[Any] | None = None
     decisioni: list[DecisioneSintetica] = []
 
 
@@ -109,4 +142,6 @@ class CampagnaElencoItem(BaseModel):
     inizio: date
     fine: date
     stato: str
-    crea_immagini_ai: bool = False
+    canali: list[str] | None = None
+    bottega: str | None = None
+    citta: str | None = None

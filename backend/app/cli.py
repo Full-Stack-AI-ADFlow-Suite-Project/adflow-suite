@@ -4,6 +4,7 @@ Da ``backend/``::
 
     python -m app.cli seed
     python -m app.cli crea-utente --email E --nome N --ruolo artigiano|operatore|admin
+    python -m app.cli cambia-password --email E
 
 La password si chiede a terminale: non passa dagli argomenti né finisce in git.
 """
@@ -20,8 +21,8 @@ from app.core.db import transazione
 from app.core.errori import ErroreDominio
 from app.core.security import hash_password
 from app.moduli.accesso.models import Utente
-from app.moduli.accesso.service import crea_utente
-from app.moduli.artigiani.models import ProfiloBottega
+from app.moduli.accesso.service import crea_utente, cambia_password
+from app.moduli.artigiani.models import ProfiloBottega, AccountSocial
 
 UTENTI_SEED = (
     ("artigiano@example.com", "Marta Bianchi", "artigiano"),
@@ -93,8 +94,26 @@ def esegui_seed(db: Session, password: str) -> list[str]:
                 select(ProfiloBottega).where(ProfiloBottega.utente_id == utente.id)
             )
             if profilo is None:
-                db.add(ProfiloBottega(utente_id=utente.id, **PROFILO_SEED))
+                profilo = ProfiloBottega(utente_id=utente.id, **PROFILO_SEED)
+                db.add(profilo)
                 db.flush()
+            for piattaforma in ("facebook", "instagram"):
+                account = db.scalar(
+                    select(AccountSocial).where(
+                        AccountSocial.profilo_id == profilo.id,
+                        AccountSocial.piattaforma == piattaforma,
+                    )
+                )
+                if account is None:
+                    db.add(
+                        AccountSocial(
+                            profilo_id=profilo.id,
+                            piattaforma=piattaforma,
+                            id_pagina=f"{piattaforma}-pagina-seed-finta",
+                            stato="collegato",
+                        )
+                    )
+            db.flush()
     return creati
 
 
@@ -120,6 +139,10 @@ def _parser() -> argparse.ArgumentParser:
     nuovo.add_argument("--nome", required=True)
     # I ruoli ammessi li controlla accesso.service.crea_utente(): qui nessuna copia.
     nuovo.add_argument("--ruolo", required=True)
+    cambio = comandi.add_parser(
+        "cambia-password", help="cambia la password di un utente"
+    )
+    cambio.add_argument("--email", required=True)
     return parser
 
 
@@ -133,6 +156,11 @@ def main(argv: Sequence[str] | None = None) -> int:
             for email, _, ruolo in UTENTI_SEED:
                 esito = "creato" if email in creati else "già presente"
                 print(f"{ruolo}: {email} ({esito})")
+        elif argomenti.comando == "cambia-password":
+            password = _chiedi_password("Nuova password")
+            with transazione() as db:
+                cambia_password(db, argomenti.email, password)
+            print("Password cambiata.")
         else:
             password = _chiedi_password("Password del nuovo utente")
             with transazione() as db:
