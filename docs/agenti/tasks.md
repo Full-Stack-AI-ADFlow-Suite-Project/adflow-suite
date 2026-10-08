@@ -45,7 +45,7 @@ Nei loro moduli le corsie 1–4 possiedono `router.py`, `schemas.py`, `jobs.py`,
 
 | ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
 |---|---|---|---|---|---|
-| T1-21 | Adattatore archivio: salva, legge, elimina sotto `ARCHIVIO_FOTO_DIR`; nome del file generato dal server; implementazione finta | plan §5; constitution §3 | T1-01 | test senza toccare l'archivio reale | ☐ |
+| T1-21 | Adattatore archivio: salva, legge, elimina sotto `ARCHIVIO_FOTO_DIR`; nome del file generato dal server; implementazione finta | plan §5; constitution §3 | T1-01 | test senza toccare l'archivio reale | ☑ |
 | T1-22 | API bozza: `POST /campagne` (con `crea_immagini_ai`), `GET /campagne`, `GET /campagne/{id}`; vincoli su date, una sola bozza, periodi non sovrapposti; l'artigiano vede solo le sue | plan §2, §3, §6; spec R-08, R-12, R-19 | T1-04, T1-06 | CA-04, CA-09 (creazione), CA-10…12, CA-46 | ☐ |
 | T1-23 | Foto e gruppi: caricamento con controllo di tipo reale, peso e dimensioni; descrizione di gruppo; eliminazione di foto e gruppo; file della foto; solo in bozza | plan §3, §5; spec R-13; constitution §3 | T1-21, T1-22 | CA-13 | ☐ |
 | T1-24 | Invio e Riprova: controlli all'invio, copia di canali, frequenza e obiettivo dal profilo, `profilo_snapshot`, stato `inviata`, `accoda("genera_campagna")`; Riprova da `generazione_fallita` | plan §3, §6; spec §2.1, R-08, R-11, R-13 | T1-23, T1-05 | CA-09 (invio), CA-14, CA-15; Riprova → `inviata` e job accodato | ☐ |
