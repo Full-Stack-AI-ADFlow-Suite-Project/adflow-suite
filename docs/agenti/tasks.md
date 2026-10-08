@@ -91,3 +91,18 @@ Le corsie restano le stesse: ogni novità va alla corsia del suo modulo; tabelle
 - **4 · Monitoraggio e demo**: metriche con il filtro per periodo (pagina dell'operatore; per l'artigiano nella pagina Campagna), report settimanale agli operatori, riepilogo di fine campagna all'artigiano, E2E, dati demo, prova con OpenAI. CA-44, CA-45, CA-75.
 - **Da pianificare · Immagini create dall'AI** (spec R-19): per i gruppi `create_ai`, ① creazione delle immagini dentro la generazione, dopo il piano e solo per quelle che servono; ② ritocco e rigenerazione con un prompt dell'operatore, dopo il ritocco foto dello sprint 3. Nessun task finché non è chiusa l'analisi.
 - **Presenza costante a tappe** (spec R-27, R-28): cartoline nello sprint 1 (T1-35); archivio della bottega, logo e foto d'archivio nel piano nella 2a; immagini AI come riempitivo insieme alle immagini create, quando avranno un task. Le tabelle sono già pronte da T1-08.
+
+## Follow-up sicurezza accesso · issue #16–19
+
+Richiesti da Gianluca per le issue #16–19. Modifiche comuni della corsia 0 e accesso
+della corsia 1 raccolte nella PR #36 su `main` (sostituisce la #21 chiusa senza merge), dopo il merge della #30 che include
+T1-12 e T1-13: revisione di tutto il team,
+merge dell'admin. Non si introducono servizi nuovi. Le caselle descrivono la
+preparazione per revisione, non la chiusura formale dopo il merge.
+
+| Issue | Corsia | Task / fatto quando | Preparato |
+|---|---|---|---|
+| #16 | 0/1 | Limite IP/account 5/15 min configurabile su PostgreSQL, condiviso e testato tra processi, 429 con Retry-After | ☑ |
+| #18 | 0 | Eventi JSON distinti senza PII, request ID generato, guasto logger testato, procedure operative documentate | ☑ |
+| #19 | 1/0 | email-validator senza DNS, Unicode/.test/account storici verificati, dipendenza documentata | ☑ |
+| #17 | 0 | Configurazione proxy/cookie documentata e testata localmente con TLS; evidenza nello staging reale da allegare | ☐ |

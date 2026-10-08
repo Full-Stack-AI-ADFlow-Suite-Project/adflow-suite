@@ -18,9 +18,20 @@ from app.core.errori import DatiNonValidi, NonAutenticato, NonPermesso, NonTrova
 from app.core.security import genera_token, hash_password, hash_token, verifica_password
 
 from .models import Sessione, Utente
+from .email import candidati_login, identita_login, normalizza_email
 
 
 COOKIE_SESSIONE = "adflow_sessione"
+
+
+def cookie_sicuro(request: Request) -> bool:
+    """Unica politica per login, logout e rinnovo; Secure obbligatorio in produzione."""
+    impostazioni = leggi_impostazioni()
+    if impostazioni.ambiente == "produzione":
+        return True
+    if impostazioni.cookie_secure is not None:
+        return impostazioni.cookie_secure
+    return request.url.scheme == "https"
 
 
 def durata_sessione(ruolo: str) -> timedelta:
@@ -54,7 +65,8 @@ def login(
     candidati = list(
         db.scalars(
             select(Utente)
-            .where(func.lower(Utente.email) == email.strip().lower())
+            .where(func.lower(Utente.email).in_(candidati_login(email)))
+            .order_by(Utente.id)
             .limit(2)
             .with_for_update()
         )
@@ -136,7 +148,7 @@ def utente_della_sessione(db: Session, token: str | None, ora: datetime) -> Uten
 def utente_corrente(
     request: Request,
     response: Response,
-    db: Annotated[Session, Depends(get_db)],
+    db: Annotated[Session, Depends(get_db, scope="function")],
     ora: Annotated[datetime, Depends(adesso)],
 ) -> Utente:
     """Dipendenza reale: valida la sessione e rinnova anche il cookie browser."""
@@ -147,7 +159,7 @@ def utente_corrente(
         token,
         max_age=int(durata_sessione(record.ruolo).total_seconds()),
         httponly=True,
-        secure=request.url.scheme == "https",
+        secure=cookie_sicuro(request),
         samesite="lax",
         path="/",
     )
@@ -209,7 +221,7 @@ def _normalizza_email(email: str) -> str:
         or re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email) is None
     ):
         raise DatiNonValidi("Indirizzo email non valido.")
-    return email
+    return identita_login(email)
 
 
 def _valida_password(password: str) -> None:
@@ -243,7 +255,7 @@ def crea_utente(
     Raises:
         DatiNonValidi: se l'email è già registrata o il ruolo non è ammesso.
     """
-    email = _normalizza_email(email)
+    email = normalizza_email(email)
     nome = nome.strip()
     if not _testo_valido(email, campo_postgres=True):
         raise DatiNonValidi("Indirizzo email non valido.")
@@ -257,9 +269,9 @@ def crea_utente(
         raise DatiNonValidi("Il nome non può essere vuoto.")
     if not password or len(password) > 1024:
         raise DatiNonValidi("La password deve contenere da 1 a 1024 caratteri.")
-    if (
-        db.scalar(select(Utente.id).where(func.lower(Utente.email) == email))
-        is not None
+    if any(
+        identita_login(precedente) == email
+        for precedente in db.scalars(select(Utente.email))
     ):
         raise DatiNonValidi("Email già registrata.")
     record = Utente(
@@ -295,13 +307,15 @@ def cambia_password(db: Session, email: str, password: str) -> None:
     Il blocco sull'utente coordina questa operazione con il login di T1-11.
     Un'identità legacy ambigua non viene selezionata arbitrariamente.
     """
+    candidati_email = candidati_login(email)
     email = _normalizza_email(email)
     _valida_password(password)
     nuovo_hash = hash_password(password)
     candidati = list(
         db.scalars(
             select(Utente)
-            .where(func.lower(Utente.email) == email)
+            .where(func.lower(Utente.email).in_(candidati_email))
+            .order_by(Utente.id)
             .limit(2)
             .with_for_update()
         )

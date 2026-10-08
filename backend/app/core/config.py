@@ -3,7 +3,7 @@
 from functools import lru_cache
 from typing import Literal
 
-from pydantic import Field
+from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -14,6 +14,29 @@ class Impostazioni(BaseSettings):
 
     database_url: str
     database_url_test: str
+    ambiente: Literal["sviluppo", "test", "produzione"] = "sviluppo"
+    login_limite_tentativi: int = Field(default=5, ge=1, le=1000)
+    login_finestra_secondi: int = Field(default=900, ge=1, le=86400)
+    login_limite_segreto: str = "solo-sviluppo-cambiare-in-produzione"
+    email_test_environment: bool = False
+    cookie_secure: bool | None = None
+
+    @model_validator(mode="after")
+    def sicurezza_produzione(self) -> "Impostazioni":
+        if self.ambiente == "produzione":
+            if (
+                len(self.login_limite_segreto) < 32
+                or self.login_limite_segreto == "solo-sviluppo-cambiare-in-produzione"
+            ):
+                raise ValueError(
+                    "Configurare un segreto per il limite login in produzione."
+                )
+            if self.email_test_environment or self.cookie_secure is False:
+                raise ValueError(
+                    "Configurazione di sicurezza non valida in produzione."
+                )
+        return self
+
     archivio_foto_dir: str = "./archivio_foto"
 
     ai_provider: Literal["finto", "litellm"] = "finto"

@@ -77,3 +77,21 @@ Le tabelle della coda le crea `alembic upgrade head` (migrazione 007). Finché n
 2. Prima di iniziare un task, crea un branch: `git checkout -b feature/<id>-<breve>` (es. `feature/T1-22-api-bozza`)
 3. Dopo il primo setup del backend lancia `pre-commit install` (una volta sola): formatterà automaticamente il tuo codice a ogni `git commit`.
 4. Quando hai finito, pusha il branch e apri una **Pull Request** su GitHub. Revisione: corsia 0 approvata da tutto il team, corsie 1–5 riviste in gruppo (vedi `docs/agenti/tasks.md`); il merge lo fa l'admin.
+
+## Protezioni dell'accesso (#16–19)
+
+La migrazione 009 aggiunge i contatori condivisi dei tentativi di login in PostgreSQL.
+Prima dell'avvio aggiornare lo schema. La politica predefinita ammette cinque
+richieste per IP e cinque per account ogni 900 secondi, anche con più worker;
+contano anche gli accessi riusciti. Il blocco risponde 429 con `Retry-After`.
+
+In produzione impostare `AMBIENTE=produzione`, un `LOGIN_LIMITE_SEGRETO` casuale
+di almeno 32 caratteri identico su tutte le istanze e `EMAIL_TEST_ENVIRONMENT=false`.
+I cookie sono sempre Secure in produzione. Per il proxy fidato, i log e le prove
+HTTPS leggere [la procedura di sicurezza](docs/novita/16-19-sicurezza-accesso.md).
+Non usare il segreto finto di `.env.example` in produzione.
+
+La creazione utenti richiede email valide secondo email-validator, senza DNS.
+Il login mantiene la compatibilità con gli indirizzi storici; `.test` è ammesso
+nelle nuove creazioni solo con `EMAIL_TEST_ENVIRONMENT=true` in sviluppo/test.
+La suite comprende prove TLS locali con certificati temporanei generati da cryptography.
