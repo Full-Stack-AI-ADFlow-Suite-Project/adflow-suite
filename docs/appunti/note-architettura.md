@@ -1,6 +1,6 @@
 # Note sull'architettura · AdFlow Suite
 
-Appunti che spiegano l'architettura disegnata nella cartella `architettura/` (diagrammi 02, 05, 06, 08, 10), con il perché delle scelte tecniche. Il dettaglio per gli agenti (modello dati, API, job) sta in `docs/agenti/plan.md`; decisioni in [`ADR.md`](ADR.md); rischi e punti da verificare in [`lavori-aperti.md`](lavori-aperti.md). Versione 5.0 del 01/10/2026.
+Appunti che spiegano l'architettura disegnata nella cartella `architettura/` (diagrammi 02, 05, 06, 08, 10), con il perché delle scelte tecniche. Il dettaglio per gli agenti (modello dati, API, job) sta in `docs/agenti/plan.md`; decisioni, con il perché, in [`ADR.md`](ADR.md); rischi e punti da verificare in [`lavori-aperti.md`](lavori-aperti.md). Versione 5.2 del 06/10/2026: canali sulla campagna, gruppi, piano editoriale e uscite (ADR-57…70); documento ridotto (ADR-72).
 
 Si parte **da zero** nel repository del team (ADR-45): ogni tabella nasce già nella sua forma definitiva, nello sprint indicato in `docs/agenti/plan.md` §2, senza migrazioni "di passaggio".
 
@@ -29,41 +29,9 @@ Si parte **da zero** nel repository del team (ADR-45): ogni tabella nasce già n
 | **2 · Docker su server proprio** | `docker compose` con frontend, api, worker, postgres; volumi per database e foto; backup giornaliero; reverse proxy con HTTPS | Quando il flusso funziona in locale |
 | Roadmap | Cloud o PostgreSQL gestito, storage a oggetti, CI/CD | Dopo il progetto |
 
-**Configurazione** (`backend/.env`, esempio in `.env.example`):
-```
-DATABASE_URL=postgresql+psycopg2://adflow:***@localhost:5432/adflow
-DATABASE_URL_TEST=postgresql+psycopg2://adflow:***@localhost:5432/adflow_test
-ARCHIVIO_FOTO_DIR=./archivio
-AI_PROVIDER=finto                 # oppure litellm
-AI_MODELLO_VISIONE=openai/<modello-con-visione>
-AI_MODELLO_TESTO=openai/<modello-testo>
-OPENAI_API_KEY=
-ANTICIPO_MINIMO_GIORNI=3
-MARGINE_SLOT_MINUTI=15
-SMTP_HOST=localhost
-SMTP_PORT=1025
-```
+**Configurazione**: le variabili di `backend/.env` sono elencate in `docs/agenti/plan.md` §1 e in `backend/.env.example`.
 
-### Scelte tecniche (motivazioni)
-
-| ID | Decisione | Motivazione | Alternative scartate |
-|---|---|---|---|
-| D-A | **Monolite a moduli + worker** | Semplice da spiegare e costruire, un solo deploy; il codice è ordinato per moduli di dominio (D-C13) | Microservizi, serverless |
-| D-B | **Coda dei job in PostgreSQL** | Nessun servizio in più, retry inclusi | Redis, cron + script |
-| D-C1 | Backend e worker in **Python + FastAPI** | Ecosistema AI più ricco; un solo linguaggio lato server | Node/TypeScript, Next.js |
-| D-C2 | Frontend **React + Vite** (TypeScript) | Il più diffuso, molte librerie per calendario e form | Angular, Vue |
-| D-C3 | Fase 1 locale, fase 2 Docker su server proprio | Si parte senza infrastruttura | Cloud gestito (roadmap) |
-| D-C4 | **AI multi-provider** da configurazione | Nessun vincolo a un fornitore; confronto qualità/costo | Provider fisso |
-| D-C5 | Login con **sessione e cookie** httpOnly | Più semplice e sicuro per una SPA sullo stesso dominio; logout immediato | JWT, provider esterno |
-| D-C6 | Multi-provider tramite **LiteLLM** dentro l'adattatore AI | Molti provider con la stessa sintassi | Interfaccia propria + SDK ufficiali |
-| D-C7 | Primo provider reale: **OpenAI** | Testo + visione, documentazione ampia | Claude, Gemini, modello locale |
-| D-C8 | **Un solo consorzio** | Schema e permessi più semplici | Multi-tenant |
-| D-C9 | Coda e job pianificati con **Procrastinate** | Pronta su PostgreSQL: tentativi, job ogni minuto, lock | Tabella scritta da noi |
-| D-C10 | Interfaccia con **Mantine** | Componenti pronti per form, card, notifiche | MUI, Tailwind + shadcn/ui |
-| D-C11 | **Monorepo** `backend/`, `frontend/`, `docs/` | Una modifica, un commit; più semplice per 5 persone | Due repository |
-| D-C12 | Test **unitari + API** su PostgreSQL reale; **un solo end-to-end** | Sicurezza veloce; l'E2E dimostra l'insieme | E2E per ogni funzione |
-| D-C13 | Backend ordinato per **moduli di dominio** (sette moduli + `core` e `adapters` condivisi), con dipendenze in un solo verso (§3) | Cinque persone lavorano in cartelle diverse; confini scritti e controllati da un test; non costa nulla finché il codice non c'è | Strati tecnici con `domain.py`, `models.py`, `schemas.py` unici; microservizi |
-| D-C14 | Lavoro in **sei corsie**: una comune a tutto il team e cinque personali in parallelo (§3.9) | Ciò che è condiviso si decide insieme una volta; poi nessuno aspetta nessuno e nessuno tocca i file degli altri | Task presi liberamente da un elenco unico; fondamenta affidate a una persona sola |
+**Scelte tecniche**: con motivazione e alternative scartate stanno in [`ADR.md`](ADR.md), righe 01–11, 49 e 50 (alias da D-A a D-C14).
 
 ## 2. Architettura
 
@@ -71,14 +39,14 @@ SMTP_PORT=1025
 
 | Componente | Cosa fa | Con chi parla | Se si rompe |
 |---|---|---|---|
-| **Web App** | Viste per ruolo. Artigiano: pagina Profilo bottega, pagina Campagna, calendario in lettura, metriche. Operatore: elenco artigiani, pagina artigiano, Vedi campagna (decisioni in blocco, motivi del No, interventi AI), metriche | Backend API | Nessuna azione possibile, ma le pubblicazioni continuano |
-| **Backend API** | Sette moduli di dominio (§3): accesso, notifiche, artigiani, campagne, contenuti, revisione, pubblicazione. All'invio copia canali/frequenza/obiettivo e salva `profilo_snapshot`. Mette i job in coda | DB, archivio, adattatori | L'app si ferma; il worker continua |
-| **Worker** | Esegue i job dei moduli (elenco in `docs/agenti/plan.md` §4); quelli della campagna leggono `profilo_snapshot` | DB, archivio, adattatori | I job restano in coda: solo ritardo |
+| **Web App** | Viste per ruolo. Artigiano: pagina Profilo bottega e pagina Campagna (canali, gruppi di foto; dopo l'invio: stato, piano approvato con calendario in lettura, metriche). Operatore: ingresso, campagne da approvare, elenco artigiani, nuovo artigiano, pagina artigiano, campagne chiuse, Vedi campagna (piano, uscite con i post dei canali, decisioni in blocco, motivi del No, interventi AI), metriche. Mappa in `pagine/index.html` | Backend API | Nessuna azione possibile, ma le pubblicazioni continuano |
+| **Backend API** | Sette moduli di dominio (§3): accesso, notifiche, artigiani, campagne, contenuti, revisione, pubblicazione. All'invio ricontrolla minimi e canali collegati, copia frequenza e obiettivo e salva `profilo_snapshot`. Mette i job in coda | DB, archivio, adattatori | L'app si ferma; il worker continua |
+| **Worker** | Esegue i job dei moduli (elenco in `docs/agenti/plan.md` §4); quelli della campagna leggono `profilo_snapshot`. La generazione lavora a tappe e salva man mano: un nuovo tentativo riparte da dove si era fermata | DB, archivio, adattatori | I job restano in coda: solo ritardo |
 | **PostgreSQL** | Tutti i dati + coda dei job | API, worker | Tutto fermo: backup giornalieri |
 | **Archivio foto** | Originali, ritocchi AI, immagini create dall'AI, ritagli | API, worker | Generazione e pubblicazione ferme |
-| **Validatore** | Regole verificabili sui testi (lunghezza, hashtag, parole vietate, "cose da non dire", niente prezzi o premi inventati). Sta nel modulo `contenuti` | API, worker | Post "da rivedere", mai pubblicato senza controllo |
-| **Adattatore AI** | `analizza_immagine()`, `ritocca_immagine()`, `crea_immagine()` (da definire, A-05), `genera_post()`; provider e modello da configurazione; prompt per tipo di prodotto, con versione | Provider AI | Nuovo tentativo, poi "da rivedere" o "generazione fallita" |
-| **Adattatore social** | `collega_account()`, `pubblica()`, `leggi_metriche()`; implementazioni Meta e **simulata** | Social | Nuovo tentativo, "fallito" o "account da ricollegare" |
+| **Validatore** | Regole verificabili: sui testi (limiti della scheda del canale, parole vietate, "cose da non dire", niente prezzi o premi inventati) e sul piano (limiti di capacità, date, foto ripetute). Sta nel modulo `contenuti` | API, worker | Post "da rivedere", mai pubblicato senza controllo; piano debole fermato dall'operatore |
+| **Adattatore AI** | `analizza_gruppo()`, `pianifica_campagna()`, `genera_post()`, `ritocca_immagine()`, `crea_immagine()` (da pianificare, A-05); provider e modello da configurazione; prompt per tipo di prodotto e per canale, con versione | Provider AI | Nuovo tentativo, poi "da rivedere" o "generazione fallita" |
+| **Adattatore social** | `collega_account()`, `pubblica()` con una o più foto, `leggi_metriche()`; implementazioni Meta e **simulata** | Social | Nuovo tentativo, "fallito" o "account da ricollegare" |
 | **Adattatore email** | `invia()`; notifiche e report | Catcher locale / SMTP | Notifica salvata e reinviata |
 
 I componenti non cambiano con la struttura a moduli: restano un'API e un worker con lo stesso codice, un database, un deploy (ADR-01). Cambia **come è ordinato il codice dentro** il backend.
@@ -93,28 +61,9 @@ Il repository riparte dai soli documenti (ADR-51): l'impalcatura iniziale di `ba
 
 Il backend nasce quindi ordinato **per modulo di dominio** (ADR-49, D-C13): ogni modulo tiene insieme i suoi endpoint, i suoi casi d'uso, le sue tabelle e i suoi stati. Resta un monolite: i moduli sono cartelle dello stesso programma, non servizi separati.
 
-### 3.2 Albero delle cartelle
+### 3.2 Cartelle e file di un modulo
 
-```
-backend/
-  app/
-    main.py            composizione dell'API: monta i router dei moduli
-    worker.py          composizione del worker: registra i job dei moduli, definisce il tick
-    cli.py             comandi: crea utente, seed
-    tabelle.py         importa i models di tutti i moduli (serve ad Alembic e ai test)
-    core/              condiviso, senza dominio
-      config.py  db.py  coda.py  security.py  transizioni.py  errori.py  orologio.py
-    adapters/          servizi esterni, ognuno con interfaccia + finto + reale
-      ai/  social/  email/  archivio/
-    moduli/
-      accesso/  notifiche/  artigiani/  campagne/  contenuti/  revisione/  pubblicazione/
-  alembic/             una sola catena di migrazioni
-  tests/
-    moduli/<modulo>/   test del modulo (unitari, service, API) e fabbrica.py
-    percorsi/          test che attraversano più moduli (es. invio → approvazione → pubblicazione)
-    adapters/          test degli adattatori, senza rete
-    test_confini.py    controlla le regole di dipendenza (§3.5)
-```
+L'albero delle cartelle sta in `docs/agenti/constitution.md` §2.
 
 Dentro ogni modulo, solo i file che servono:
 
@@ -135,20 +84,20 @@ L'ordine della tabella è l'ordine delle dipendenze: **un modulo può usare solo
 |---|---|---|---|---|---|---|
 | 1 | `accesso` | trasversale | utente, sessione | `/auth/login`, `/auth/logout`, `/auth/me` | — | — |
 | 2 | `notifiche` | trasversale | notifica | — | `invia_notifica` | accesso |
-| 3 | `artigiani` | 1 | profilo_bottega, anagrafica_artigiano, account_social | `/profilo`; creazione, anagrafica e collegamento social di `/artigiani` | — | accesso |
-| 4 | `campagne` | 1 | campagna, foto, decisione_campagna | `/campagne` (bozza, elenco, dettaglio, modifica), foto e gruppi, `/invia`, `/riprova`, `/sospendi`, `/riattiva`, `/annulla` | — | accesso, artigiani |
-| 5 | `contenuti` | 2 | post, versione_post, versione_foto | — | `genera_campagna`, `rigenera_post`, `ritocca_foto` | notifiche, campagne |
-| 6 | `revisione` | 3 | approvazione | `/campagne/{id}/post`, `/approva`, `/rimanda`, `/respingi`, `/post/{id}/rigenera`, `/ritocca-foto`, `/scegli-foto`; elenco e pagina artigiano dell'operatore | `promemoria`; scadenze nel tick | accesso, notifiche, artigiani, campagne, contenuti |
+| 3 | `artigiani` | 1 | profilo_bottega, anagrafica_artigiano, account_social | `/profilo`, `/canali`; creazione, anagrafica e collegamento social di `/artigiani` | — | accesso |
+| 4 | `campagne` | 1 | campagna, gruppo_foto, foto, decisione_campagna | `/campagne` (bozza, elenco, dettaglio, modifica), gruppi e foto, `/invia`, `/riprova` | — | accesso, artigiani |
+| 5 | `contenuti` | 2 | piano, uscita, post, versione_post, versione_post_foto, versione_foto, errore_generazione | `/campagne/{id}/calendario` (sprint 3) | `genera_campagna`, `rigenera_post`, `ritocca_foto` | notifiche, campagne |
+| 6 | `revisione` | 3 | approvazione | `/campagne/{id}/post`, `/prosegui`, `/approva`, `/togli-canale`, `/nota`, `/respingi`, `/sospendi`, `/riattiva`, `/annulla`, `/post/{id}/modifica`, `/post/{id}/rigenera`, `/post/{id}/controllato`, `/post/{id}/riprogramma`, `/ritocca-foto`, `/scegli-foto`, `/cambia-foto`, `/sposta`; `/da-approvare`, elenco e pagina artigiano dell'operatore | `promemoria`; scadenze nel tick | accesso, notifiche, artigiani, campagne, contenuti |
 | 7 | `pubblicazione` | 4 | pubblicazione, metrica | `/metriche` | pubblicazione nel tick, `raccogli_metriche`, `report_settimanale` | accesso, notifiche, artigiani, campagne, contenuti |
 
 Che cosa possiede ogni modulo, oltre alle tabelle:
 
 - **accesso**: password (scrypt), sessione con cookie, le dipendenze "utente corrente" e "richiede ruolo" usate da tutti i router.
 - **notifiche**: crea la riga di notifica e la spedisce con l'adattatore email. Riceve solo identificativi e testi: non conosce campagne né post.
-- **artigiani**: il profilo dei passi 1–9, l'anagrafica dell'operatore, gli account social. Valori ammessi del profilo (tipo di prodotto, tono, canali, frequenza…).
-- **campagne**: la bozza, le foto a gruppi, l'invio con la fotografia del profilo, lo **stato della campagna** e lo storico delle decisioni. `cambia_stato()` è l'unica funzione che modifica lo stato di una campagna.
-- **contenuti**: i post e le loro versioni, le versioni delle foto, il calcolo degli slot, il validatore, la generazione e le rigenerazioni con l'AI. Possiede lo **stato del post**.
-- **revisione**: tutto ciò che fa l'operatore su una campagna (Vedi campagna, approva, rimanda, respingi, interventi sui post), la scadenza e il promemoria, e le pagine dell'operatore che mettono insieme più moduli.
+- **artigiani**: il profilo dei passi 1–9, l'anagrafica dell'operatore, gli account social (dallo sprint 1: dicono quali canali una campagna può dichiarare). Valori ammessi del profilo (tipo di prodotto, tono, canali, frequenza…).
+- **campagne**: la bozza con i suoi canali, i gruppi di foto (caricate o da creare) e, con loro, l'archivio della bottega (gruppi e foto senza campagna, ADR-83 e ADR-86: le tabelle sono pronte dallo sprint 1, il caricamento dal profilo arriva con la 2a), l'invio con la fotografia del profilo, lo **stato della campagna** e lo storico delle decisioni. `cambia_stato()` è l'unica funzione che modifica lo stato di una campagna.
+- **contenuti**: il piano editoriale e le uscite, i post e le loro versioni con le foto, le versioni delle foto, i limiti di capacità e il controllo del piano, i riempitivi con la composizione delle cartoline (ADR-88), la scheda dei canali, il validatore, la generazione a tappe e le rigenerazioni con l'AI. Possiede lo **stato del post**.
+- **revisione**: tutto ciò che fa l'operatore su una campagna (Vedi campagna, prosegui, approva, togli il canale, nota interna, respingi, sospendi, riattiva e annulla, interventi sui post), la scadenza e il promemoria, e le pagine dell'operatore che mettono insieme più moduli.
 - **pubblicazione**: i tentativi di pubblicazione, la sospensione per account mancante, la chiusura della campagna, le metriche e il report.
 
 `decisione_campagna` sta in `campagne` e non in `revisione` perché è lo storico della campagna: lo leggono anche il dettaglio della campagna e il Bentornato (ultima respinta), che vengono prima. `revisione` lo scrive passando dal service di `campagne`.
@@ -187,17 +136,19 @@ Insieme ai contratti ogni modulo offre le **fabbriche di test** (`tests/moduli/<
 
 | Caso | Dove vive | Cosa chiama |
 |---|---|---|
-| **Invio** della campagna | `campagne` | `artigiani.service` per il profilo → copia canali, frequenza, obiettivo e salva lo snapshot → `cambia_stato(inviata)` → `accoda("genera_campagna")` |
-| **Generazione** | job di `contenuti` | `campagne.service` per snapshot e foto → adattatore AI, slot, validatore → crea post e versioni, salva l'analisi con `campagne.service.aggiorna_foto()` → `campagne.cambia_stato(in_revisione)` oppure `generazione_fallita` |
-| **Riprova** | `campagne` | `cambia_stato(inviata)` → `accoda("genera_campagna")` |
-| **Approva** | `revisione` | `contenuti.service` approva i post → scrive le righe `approvazione` → `campagne.service` registra la decisione e `cambia_stato(attiva)` |
+| **Invio** della campagna | `campagne` | `artigiani.service` per il profilo e i canali collegati → controlla minimi e canali → copia frequenza e obiettivo e salva lo snapshot → `cambia_stato(inviata)` → `accoda("genera_campagna")` |
+| **Generazione** | job di `contenuti` | A tappe, ognuna salvata prima della successiva: `campagne.service` per snapshot, gruppi e foto → analisi dei gruppi, salvata con `campagne.service.aggiorna_foto()` → piano dell'AI, controllo del piano, uscite e post → se il piano è debole `campagne.cambia_stato(piano_da_rivedere)` e ci si ferma → testo di ogni post, validatore, versioni → `campagne.cambia_stato(in_revisione)` oppure `generazione_fallita` |
+| **Prosegui** | `revisione` | da `piano_da_rivedere`: controlla con `contenuti.service` che il piano abbia dei post → `campagne.service` registra la decisione e `cambia_stato(in_generazione)` → `accoda("genera_campagna")`, che riparte dai testi |
+| **Riprova** | `campagne` | `cambia_stato(inviata)` → `accoda("genera_campagna")`, che non rifà le tappe già salvate |
+| **Approva** | `revisione` | `contenuti.service` approva i post da approvare (quelli con la data passata scadono) → scrive le righe `approvazione` → `campagne.service` registra la decisione e `cambia_stato(attiva)` |
+| **Togli il canale** | `revisione` | `contenuti.service` scarta i post di quel canale → `campagne.service` segna il canale tolto e registra la decisione |
 | **Respingi** | `revisione` | `contenuti.service` scarta i post → `campagne.service` registra la decisione e `cambia_stato(respinta)` → `notifiche.service` crea l'email |
 | **Rigenera / ritocca** | `revisione` | controlla stato e cicli con `contenuti.service` → `accoda("rigenera_post")` o `accoda("ritocca_foto")` |
 | **Tick ogni minuto** | `worker.py` | prima `revisione.service` (scadenze), poi `pubblicazione.service` (post dovuti) |
-| **Pubblicazione** | `pubblicazione` | `contenuti.service` per i post approvati → `artigiani.service` per l'account → adattatore social → `contenuti` segna pubblicato o fallito → `campagne.cambia_stato(conclusa / sospesa)` → `notifiche` |
+| **Pubblicazione** | `pubblicazione` | `contenuti.service` per i post approvati con le loro foto → `artigiani.service` per l'account → adattatore social → `contenuti` segna pubblicato o fallito → `campagne.cambia_stato(conclusa / sospesa)` → `notifiche` |
 | **Bentornato** | `campagne` | profilo da `artigiani.service`, ultima decisione dal proprio storico |
 
-L'API vista dal frontend **non cambia**: stessi percorsi, stessi ruoli, stessi esiti. Cambia solo in quale cartella sta il codice di ogni endpoint.
+La struttura a moduli non cambia l'API vista dal frontend: decide solo in quale cartella sta il codice di ogni endpoint. Gli endpoint, con le novità del 06/10 (canali, gruppi, Prosegui, Togli il canale), sono in `docs/agenti/plan.md` §3.
 
 ### 3.8 Frontend
 
@@ -209,36 +160,20 @@ L'obiettivo della divisione è che **cinque persone lavorino senza toccare gli s
 
 | Corsia | Chi | Di sua proprietà | Sprint 1 |
 |---|---|---|---|
-| **0 · Comune** | tutto il team | `core/`, `main.py`, `worker.py`, `cli.py`, `tabelle.py`, `alembic/`; di ogni modulo le tabelle (`models.py`), gli stati (`domain.py`) e le funzioni del contratto usate da più corsie; `tests/percorsi/`, test dei confini, fabbriche di test | Struttura, contratti, tabelle, stati e letture comuni, coda e worker, seed, chiusura |
-| **1 · Accesso e artigiani** | Gianluca | `moduli/accesso/`, `moduli/notifiche/`, `moduli/artigiani/`, `adapters/email/` | Login, permessi, creazione utenti |
-| **2 · Campagne** | Silvia | `moduli/campagne/`, `adapters/archivio/` | Archivio, bozza, foto a gruppi, invio, Riprova |
-| **3 · Contenuti** | Giovanni | `moduli/contenuti/`, `adapters/ai/` | AI finta, slot, validatore, generazione |
-| **4 · Revisione e pubblicazione** | Nilton | `moduli/revisione/`, `moduli/pubblicazione/`, `adapters/social/` | Social simulato, Vedi campagna e Approva, pubblicazione |
+| **0 · Comune** | tutto il team | `core/`, `main.py`, `worker.py`, `cli.py`, `tabelle.py`, `alembic/`; di ogni modulo le tabelle (`models.py`), gli stati (`domain.py`) e le funzioni del contratto usate da più corsie; `tests/percorsi/`, test dei confini, fabbriche di test | Struttura, contratti, tabelle, stati e letture comuni, coda e worker, seed, riallineamento al modello del 06/10, chiusura |
+| **1 · Accesso e artigiani** | Gianluca | `moduli/accesso/`, `moduli/notifiche/`, `moduli/artigiani/`, `adapters/email/` | Login, permessi, creazione utenti, canali collegati |
+| **2 · Campagne** | Silvia | `moduli/campagne/`, `adapters/archivio/` | Archivio, bozza con i canali, gruppi e foto, invio e Riprova |
+| **3 · Contenuti** | Giovanni | `moduli/contenuti/`, `adapters/ai/` | AI finta, limiti e controllo del piano, validatore, generazione a tappe |
+| **4 · Revisione e pubblicazione** | Nilton | `moduli/revisione/`, `moduli/pubblicazione/`, `adapters/social/` | Social simulato, Vedi campagna con Approva e Prosegui, pubblicazione |
 | **5 · Frontend** | Angelo | `frontend/` | Login, pagina Campagna dell'artigiano, pagine minime dell'operatore |
 
 **Il principio:** tutto ciò che più di una corsia usa sta nella corsia 0. Per questo, finita la fase comune, nessuna corsia personale aspetta un'altra.
 
-**Corsia 0.** I primi sei task si fanno all'inizio, insieme; l'ultimo alla fine.
+**Corsia 0.** I primi sei task si fanno all'inizio, insieme; T1-08 e T1-09 riallineano ciò che è già su `main` alle decisioni del 06/10 e vengono prima delle corsie; T1-07 alla fine.
 
-| Task | Cosa si fa insieme | Perché è comune | Viene dopo |
-|---|---|---|---|
-| T1-01 Struttura | Albero con i sette moduli già montati, `core/`, health, test dei confini | È la casa di tutti; dopo, nessuno tocca più la composizione | — |
-| T1-02 Contratti | Le firme dei `service.py`, una per una, e i nomi dei job | Chi scrive una funzione e chi la usa devono essere d'accordo prima | T1-01 |
-| T1-03 Tabelle | Tutte le tabelle dello sprint 1, una migrazione per modulo, fabbriche di base | La catena delle migrazioni è l'unico punto dove si lavora per forza uno alla volta | T1-01 |
-| T1-04 Stati e letture comuni | Stati e transizioni di campagna e post, `cambia_stato()`, funzioni di stato dei post, letture usate da più corsie, fabbriche complete | Erano gli unici punti in cui una corsia aspettava l'altra | T1-02, T1-03 |
-| T1-05 Coda e worker | `accoda()` per nome, worker, tick | Lo usano invio, generazione e pubblicazione | T1-02 |
-| T1-06 Seed e utente di prova | Hash delle password, seed, utente di prova per i test delle API | Le corsie 2 e 4 provano le loro API senza aspettare il login vero | T1-03 |
-| T1-07 Chiusura | Percorso completo con il codice di tutti, frontend sulle API vere | È il momento in cui le corsie si incontrano | tutti |
+I task della corsia 0, con che cosa si fa in ognuno e in quale ordine, stanno in `docs/agenti/tasks.md`. Sono comuni per un motivo solo: toccano ciò che più corsie usano (struttura, firme, tabelle, stati, coda, seed) oppure sono il punto in cui le corsie si incontrano (chiusura).
 
-**Corsie 1–5.** Partono quando i task T1-01…T1-06 sono su `main`. Ogni corsia comincia da un task che non dipende dagli altri (un adattatore, una funzione pura, il login) e finisce con il suo task più grosso: invio per la 2, generazione per la 3, pubblicazione per la 4. Che cosa aspetta ciascun task:
-
-| Task delle corsie 1–5 | Aspetta dalla corsia 0 | Aspetta da un'altra corsia |
-|---|---|---|
-| Archivio (2), AI finta, slot, validatore (3), social simulato (4), base del frontend (5) | T1-01 | — |
-| Login, creazione utente (1) | T1-06 | — |
-| API bozza (2), Vedi campagna e Approva (4) | T1-04, T1-06 | — |
-| Invio e Riprova (2), generazione (3), pubblicazione (4) | T1-04, T1-05 | — |
-| Pagine del frontend (5), solo per passare alle API vere | — | invio (2), approvazione (4) |
+**Corsie 1–5.** Partono quando i task T1-01…T1-06, T1-08 e T1-09 sono su `main`. Ogni corsia comincia da un task che non dipende dagli altri (un adattatore, una funzione pura, il login) e finisce con il suo task più grosso: invio per la 2, generazione per la 3, pubblicazione per la 4. Nessun task di una corsia personale aspetta un'altra corsia: aspetta solo la corsia 0. Fa eccezione il frontend, che per passare alle API vere aspetta l'invio (2) e l'approvazione (4).
 
 I task, con identificativi, letture e criteri di accettazione, stanno solo nel canale agenti: `docs/agenti/tasks.md`.
 
@@ -280,14 +215,15 @@ Metodo (diagramma 02): si disegna il flusso, se ne ricava l'architettura, si ver
 |---|---|---|---|
 | 1.0 Accesso | Web App, API | accesso | utente, sessione, profilo_bottega |
 | 1.1–1.1b Pagina Profilo e Bentornato | Web App, API | artigiani, campagne | profilo_bottega, decisione_campagna (ultima respinta) |
-| 1.2 Account social | API, adattatore social | artigiani | account_social |
-| 1.3–1.5 Pagina Campagna: bozza, foto, spunta immagini AI | Web App, API, archivio | campagne | campagna, foto |
+| 1.2 Account social | API, adattatore social | artigiani | account_social (dallo sprint 1, dal seed) |
+| 1.3–1.5 Pagina Campagna: bozza, canali, gruppi, foto | Web App, API, archivio | campagne (canali collegati da artigiani) | campagna, gruppo_foto, foto |
 | 1.6 Invio | API, worker (coda) | campagne | campagna (`profilo_snapshot`) |
-| 2.1–2.1c Analisi, ritocco, creazione immagini | worker, adattatore AI, archivio | contenuti | foto, versione_foto |
-| 2.2–2.4 Calendario, post, controllo | worker, adattatore AI, validatore | contenuti | post, versione_post |
-| 2.5 Campagna pronta | worker, adattatore email | contenuti, notifiche | notifica |
+| 2.1–2.3 Analisi dei gruppi, piano, controllo del piano | worker, adattatore AI, validatore | contenuti | foto (analisi), piano, uscita, post |
+| 2.4–2.5 Ritocco e creazione immagini | worker, adattatore AI, archivio | contenuti | versione_foto, foto |
+| 2.6–2.7 Post e controllo a regole | worker, adattatore AI, validatore | contenuti | versione_post, versione_post_foto |
+| 2.8 Campagna pronta | worker, adattatore email | contenuti, notifiche | notifica |
 | 3.1 Dashboard operatore | Web App, API | revisione | anagrafica_artigiano, campagna |
-| 3.2–3.3 Vedi campagna e interventi | Web App, API, worker, validatore, adattatore AI | revisione, contenuti | post, versione_post, versione_foto |
+| 3.2–3.3 Vedi campagna, piano da rivedere e interventi | Web App, API, worker, validatore, adattatore AI | revisione, campagne, contenuti | piano, uscita, post, versione_post, versione_post_foto, versione_foto |
 | 3.4 Decisione | Web App, API, adattatore email | revisione | decisione_campagna, approvazione, notifica |
 | 3.5 Promemoria e scadenza | worker, adattatore email | revisione | campagna, post, notifica |
 | 3.6 Sospendi / annulla | Web App, API | campagne | campagna |

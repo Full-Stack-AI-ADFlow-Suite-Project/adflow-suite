@@ -56,7 +56,9 @@ def richiede_ruolo(*ruoli: str) -> Callable[..., Utente]:
     """
 
     def controlla(utente: Annotated[Utente, Depends(utente_corrente)]) -> Utente:
-        if utente.ruolo not in ruoli:
+        if utente.ruolo not in ruoli and not (
+            utente.ruolo == "admin" and "operatore" in ruoli
+        ):
             raise NonPermesso("Non hai i permessi per questa operazione.")
         return utente
 
@@ -88,5 +90,14 @@ def crea_utente(
     Raises:
         DatiNonValidi: se l'email è già registrata o il ruolo non è ammesso.
         NotImplementedError: stub — implementazione in T1-13.
+    """
+    raise NotImplementedError  # T1-13
+
+
+def cambia_password(db: Session, email: str, password: str) -> None:
+    """Cambia la password con scrypt; contratto CLI, implementazione in T1-13.
+
+    Solleva NonTrovato per un'email assente e DatiNonValidi per dati invalidi.
+    Non registra password, non esegue commit.
     """
     raise NotImplementedError  # T1-13

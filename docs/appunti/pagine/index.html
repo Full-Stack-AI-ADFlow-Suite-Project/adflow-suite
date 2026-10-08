@@ -1,0 +1,253 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Mappa delle pagine</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  /* Stessi token delle pagine statiche di AdFlow. */
+  :root{
+    --paper:#F6F3EC; --paper-raised:#FFFFFF; --ink:#201D17; --ink-soft:#6E6656; --ink-faint:#9C927D;
+    --accent:#2E6B5C; --accent-strong:#1D4A3F; --accent-soft:#DCEAE3; --accent-on-soft:#1D4A3F;
+    --line:#DDD5C2; --danger:#AE3B2C; --danger-soft:#F6E1DC; --danger-on-soft:#7A281C;
+    --warn:#8A6A1F; --warn-soft:#F3E7C9;
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --paper:#1B1914; --paper-raised:#26231C; --ink:#EFEAE0; --ink-soft:#B7AE9B; --ink-faint:#837A68;
+      --accent:#7EC4AE; --accent-strong:#A9DCC9; --accent-soft:#22392F; --accent-on-soft:#A9DCC9;
+      --line:#3A362B; --danger:#E08776; --danger-soft:#3A2420; --danger-on-soft:#E08776;
+      --warn:#E4C878; --warn-soft:#3A331C;
+      color-scheme: dark;
+    }
+  }
+  :root[data-theme="dark"]{
+    --paper:#1B1914; --paper-raised:#26231C; --ink:#EFEAE0; --ink-soft:#B7AE9B; --ink-faint:#837A68;
+    --accent:#7EC4AE; --accent-strong:#A9DCC9; --accent-soft:#22392F; --accent-on-soft:#A9DCC9;
+    --line:#3A362B; --danger:#E08776; --danger-soft:#3A2420; --danger-on-soft:#E08776;
+    --warn:#E4C878; --warn-soft:#3A331C;
+    color-scheme: dark;
+  }
+
+  *{ box-sizing:border-box; }
+  body{ background:var(--paper); color:var(--ink); font-family:"IBM Plex Sans", system-ui, sans-serif; margin:0; padding:28px 16px 48px; line-height:1.5; }
+  h1,h2,h3{ font-family:"Fraunces", Georgia, serif; font-weight:600; text-wrap:balance; margin:0; }
+  a{ color:var(--accent-strong); }
+  code{ font-family:"IBM Plex Mono", monospace; font-size:.92em; }
+  .wrap{ max-width:940px; margin-inline:auto; }
+
+  .eyebrow{ font-family:"IBM Plex Mono", monospace; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); }
+  .masthead h1{ font-size:30px; margin-top:6px; }
+  .masthead p{ color:var(--ink-soft); font-size:15px; margin:10px 0 0; max-width:68ch; }
+
+  .conto{ display:flex; flex-wrap:wrap; gap:10px; margin:22px 0 10px; }
+  .conto div{ background:var(--paper-raised); border:1px solid var(--line); border-radius:12px; padding:12px 16px; min-width:130px; flex:1; }
+  .conto b{ display:block; font-family:"Fraunces", Georgia, serif; font-size:26px; font-weight:600; line-height:1.1; }
+  .conto span{ font-size:13px; color:var(--ink-soft); }
+
+  .legenda{ display:flex; flex-wrap:wrap; gap:6px 18px; font-size:13px; color:var(--ink-soft); margin:14px 0 0; padding:0; list-style:none; }
+
+  .stato{ display:inline-block; font-family:"IBM Plex Mono", monospace; font-size:11.5px; letter-spacing:.04em; border-radius:20px; padding:2px 10px; border:1px solid; white-space:nowrap; }
+  .stato.approvata{ background:var(--accent-soft); border-color:var(--accent); color:var(--accent-on-soft); }
+  .stato.bozza{ background:var(--warn-soft); border-color:var(--warn); color:var(--warn); }
+
+  .ruolo{ margin-top:34px; }
+  .ruolo > h2{ font-size:21px; }
+  .ruolo > p{ color:var(--ink-soft); font-size:14px; margin:4px 0 14px; max-width:70ch; }
+
+  .pagine{ display:grid; grid-template-columns:repeat(auto-fit, minmax(270px, 1fr)); gap:14px; }
+  .pagina{ background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:18px; display:flex; flex-direction:column; gap:8px; }
+  .pagina .testa{ display:flex; align-items:baseline; justify-content:space-between; gap:10px; }
+  .pagina .num{ font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--accent-strong); letter-spacing:.06em; }
+  .pagina h3{ font-size:19px; }
+  .pagina p{ margin:0; font-size:13.5px; color:var(--ink-soft); }
+  .pagina dl{ margin:2px 0 0; font-size:12.5px; display:grid; grid-template-columns:auto 1fr; gap:3px 10px; }
+  .pagina dt{ color:var(--ink-faint); }
+  .pagina dd{ margin:0; }
+  .pagina .apri{ margin-top:auto; padding-top:10px; border-top:1px solid var(--line); display:flex; flex-direction:column; gap:6px; font-size:13.5px; }
+  .pagina .apri a{ text-decoration:none; font-weight:500; }
+  .pagina .apri a:hover{ text-decoration:underline; }
+  .pagina .apri small{ display:block; font-weight:400; color:var(--ink-soft); font-size:12.5px; }
+  .pagina .file{ font-family:"IBM Plex Mono", monospace; font-size:11.5px; color:var(--ink-faint); font-weight:400; overflow-wrap:anywhere; }
+
+  .riquadro{ background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:20px 22px; margin-top:34px; }
+  .riquadro h2{ font-size:21px; }
+  .riquadro > p{ color:var(--ink-soft); font-size:14px; margin:6px 0 0; max-width:74ch; }
+  .riquadro ul{ margin:12px 0 0; padding-left:20px; font-size:14px; }
+  .riquadro li{ margin-bottom:8px; max-width:78ch; }
+  .riquadro li:last-child{ margin-bottom:0; }
+  .fonti{ font-size:12.5px; color:var(--ink-faint); margin-top:26px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <div class="eyebrow">AdFlow Suite · Pagine statiche di prova</div>
+    <h1>Mappa delle pagine</h1>
+    <p>Il programma ha undici pagine: una comune, due dell'artigiano e otto dell'operatore. Ognuna ha qui la sua pagina statica, con dati di esempio. Sono tutte approvate. Il 07/10/2026 le domande in fondo alle pagine sono state chiuse (ADR-89…110) e Vedi campagna, ridisegnata sul modello a uscite, è stata approvata (ADR-111).</p>
+  </div>
+
+  <div class="conto">
+    <div><b>11</b><span>pagine del programma</span></div>
+    <div><b>12</b><span>pagine statiche: la Campagna ne ha due</span></div>
+    <div><b>12</b><span>approvate</span></div>
+    <div><b>0</b><span>bozze</span></div>
+    <div><b>0</b><span>domande aperte: 57 chiuse il 07/10</span></div>
+  </div>
+
+  <ul class="legenda">
+    <li><span class="stato approvata">approvata</span> vale come riferimento, con la sua ADR</li>
+    <li><span class="stato bozza">bozza</span> ancora in discussione: oggi nessuna</li>
+  </ul>
+
+  <section class="ruolo">
+    <h2>Tutti</h2>
+    <p>Artigiano, operatore e admin entrano dalla stessa pagina; dopo l'accesso ognuno arriva alla propria pagina di partenza.</p>
+    <div class="pagine">
+      <article class="pagina">
+        <div class="testa"><span class="num">1</span><span class="stato approvata">approvata</span></div>
+        <h3>Accesso</h3>
+        <p>Modulo vuoto, credenziali sbagliate, sessione scaduta, e dove si arriva dopo l'accesso.</p>
+        <dl><dt>Sprint</dt><dd>1 (T1-51, API di T1-11)</dd></dl>
+        <div class="apri">
+          <a href="AdFlow-login.html">Apri la pagina →<span class="file"> AdFlow-login.html</span></a>
+          <span>Domande chiuse: ADR-102</span>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="ruolo">
+    <h2>Artigiano</h2>
+    <p>Profilo una volta, poi una Campagna a ogni invio. Dopo l'invio la pagina Campagna mostra lo stato della campagna al posto dei passi, con il calendario e le metriche.</p>
+    <div class="pagine">
+      <article class="pagina">
+        <div class="testa"><span class="num">2</span><span class="stato approvata">approvata</span></div>
+        <h3>Profilo bottega</h3>
+        <p>Passi 1–9: identità, storia, prodotti, pubblico e obiettivo, voce e vincoli, presenza social, foto con l'archivio della bottega e il logo, calendario eventi, logistica con il ritmo scelto.</p>
+        <dl><dt>Sprint</dt><dd>2a (nello sprint 1 il profilo arriva dal seed)</dd></dl>
+        <div class="apri">
+          <a href="AdFlow-profilo-bottega.html">Apri la pagina →<span class="file"> AdFlow-profilo-bottega.html</span></a>
+        </div>
+      </article>
+      <article class="pagina">
+        <div class="testa"><span class="num">3</span><span class="stato approvata">approvata</span></div>
+        <h3>Campagna</h3>
+        <p>Bentornato, passo 10 durata e canali, passo 11 gruppi di foto con stella e data e gruppi di immagini da creare, passo 12 riepilogo con la stima di ciò che uscirà, gli avvisi e invio. Dopo l'invio: una vista per stato; dopo l'approvazione il piano, con calendario (foto nuove, d'archivio, cartoline, immagini create) e metriche.</p>
+        <dl><dt>Sprint</dt><dd>1 minima (T1-52), completa in 2a; calendario in 3, metriche in 4</dd></dl>
+        <div class="apri">
+          <a href="AdFlow-campagna.html">Prima dell'invio →<span class="file"> AdFlow-campagna.html</span></a>
+          <a href="AdFlow-campagna-stati.html">Dopo l'invio →<span class="file"> AdFlow-campagna-stati.html</span></a>
+          <span>Domande chiuse: ADR-104</span>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="ruolo">
+    <h2>Operatore</h2>
+    <p>Dall'ingresso alle campagne da approvare o all'elenco delle botteghe; dalla pagina di un artigiano a Vedi campagna, l'unico posto in cui si decide.</p>
+    <div class="pagine">
+      <article class="pagina">
+        <div class="testa"><span class="num">4</span><span class="stato approvata">approvata</span></div>
+        <h3>Ingresso</h3>
+        <p>Dove arriva l'operatore dopo l'accesso: tre porte (campagne da approvare, artigiani, nuovo artigiano) e l'elenco di ciò che va sistemato.</p>
+        <dl><dt>Sprint</dt><dd>3; fino ad allora si arriva su Campagne da approvare</dd></dl>
+        <div class="apri">
+          <a href="AdFlow-operatore-ingresso.html">Apri la pagina →<span class="file"> AdFlow-operatore-ingresso.html</span></a>
+          <span>Domande chiuse: ADR-105</span>
+        </div>
+      </article>
+      <article class="pagina">
+        <div class="testa"><span class="num">5</span><span class="stato approvata">approvata</span></div>
+        <h3>Campagne da approvare</h3>
+        <p>Le campagne di tutti gli artigiani che aspettano una decisione, dalla scadenza più vicina. Da ogni riga: Vedi campagna, oppure la pagina artigiano con lo storico.</p>
+        <dl><dt>Sprint</dt><dd>1 (T1-53)</dd></dl>
+        <div class="apri">
+          <a href="AdFlow-operatore-da-approvare.html">Apri la pagina →<span class="file"> AdFlow-operatore-da-approvare.html</span></a>
+          <span>Domande chiuse: ADR-106</span>
+        </div>
+      </article>
+      <article class="pagina">
+        <div class="testa"><span class="num">6</span><span class="stato approvata">approvata</span></div>
+        <h3>Elenco artigiani</h3>
+        <p>Tutte le botteghe del consorzio: iscrizione, account social, campagne da approvare e in corso, prossima scadenza.</p>
+        <dl><dt>Sprint</dt><dd>3</dd></dl>
+        <div class="apri">
+          <a href="AdFlow-operatore-elenco.html">Apri la pagina →<span class="file"> AdFlow-operatore-elenco.html</span></a>
+          <span>Domande chiuse: ADR-107</span>
+        </div>
+      </article>
+      <article class="pagina">
+        <div class="testa"><span class="num">7</span><span class="stato approvata">approvata</span></div>
+        <h3>Nuovo artigiano</h3>
+        <p>Il modulo dell'anagrafica e la conferma dopo il salvataggio.</p>
+        <dl><dt>Sprint</dt><dd>3</dd></dl>
+        <div class="apri">
+          <a href="AdFlow-operatore-nuovo-artigiano.html">Apri la pagina →<span class="file"> AdFlow-operatore-nuovo-artigiano.html</span></a>
+          <span>Domande chiuse: ADR-103</span>
+        </div>
+      </article>
+      <article class="pagina">
+        <div class="testa"><span class="num">8</span><span class="stato approvata">approvata</span></div>
+        <h3>Pagina artigiano</h3>
+        <p>Dati di iscrizione, pagine social collegate, profilo bottega in lettura. Delle campagne mostra quelle da approvare, quelle in corso e le ultime chiuse.</p>
+        <dl><dt>Sprint</dt><dd>3</dd></dl>
+        <div class="apri">
+          <a href="AdFlow-operatore-artigiano.html">Apri la pagina →<span class="file"> AdFlow-operatore-artigiano.html</span></a>
+        </div>
+      </article>
+      <article class="pagina">
+        <div class="testa"><span class="num">9</span><span class="stato approvata">approvata</span></div>
+        <h3>Campagne chiuse di un artigiano</h3>
+        <p>Lo storico completo di una bottega: scadute, concluse, annullate e respinte, con un filtro per esito. Si apre dal pulsante in fondo alla pagina artigiano.</p>
+        <dl><dt>Sprint</dt><dd>3</dd></dl>
+        <div class="apri">
+          <a href="AdFlow-operatore-artigiano-campagne.html">Apri la pagina →<span class="file"> AdFlow-operatore-artigiano-campagne.html</span></a>
+          <span>Domande chiuse: ADR-108</span>
+        </div>
+      </article>
+      <article class="pagina">
+        <div class="testa"><span class="num">10</span><span class="stato approvata">approvata</span></div>
+        <h3>Vedi campagna</h3>
+        <p>Decisione sulla campagna e piano in cima; uscite con i post dei canali affiancati; calendario; foto e profilo. Interattiva, con AI simulata, in ogni stato dopo l'invio: modifica a mano, rigenerazione, nota interna, togli il canale, approva e respingi, scadenza morbida, sospendi e riattiva, riprogramma.</p>
+        <dl><dt>Sprint</dt><dd>1 minima (T1-53), completa in 2b; ritocco, cambio foto, spostamento e calendario in 3</dd></dl>
+        <div class="apri">
+          <a href="AdFlow-operatore-campagna.html">Apri la pagina →<span class="file"> AdFlow-operatore-campagna.html</span></a>
+          <span>Decisioni: ADR-89…101 · approvata: ADR-111</span>
+        </div>
+      </article>
+      <article class="pagina">
+        <div class="testa"><span class="num">11</span><span class="stato approvata">approvata</span></div>
+        <h3>Metriche</h3>
+        <p>Come vanno i post pubblicati: tutto il consorzio, una bottega o una sola campagna.</p>
+        <dl><dt>Sprint</dt><dd>4</dd></dl>
+        <div class="apri">
+          <a href="AdFlow-operatore-metriche.html">Apri la pagina →<span class="file"> AdFlow-operatore-metriche.html</span></a>
+          <span>Domande chiuse: ADR-109</span>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <section class="riquadro">
+    <h2>Il conto delle pagine</h2>
+    <ul>
+      <li><strong>Otto pagine dell'operatore</strong> (ADR-53, ADR-54). Erano quattro: l'elenco si è diviso in ingresso, campagne da approvare, elenco artigiani e nuovo artigiano, e lo storico delle campagne è uscito dalla pagina artigiano.</li>
+      <li><strong>Calendario e metriche dell'artigiano</strong> stanno dentro la pagina Campagna, nelle viste della campagna attiva e conclusa (ADR-55): non sono pagine a sé.</li>
+      <li><strong>Admin.</strong> Non ha pagine: gli utenti si creano da riga di comando. Entra come un operatore (ADR-102).</li>
+      <li><strong>Account social.</strong> Non è una pagina: sono i pulsanti Collega e Ricollega dentro la Pagina artigiano.</li>
+      <li><strong>Numeri di prima.</strong> Nelle note di lavoro del 06/10 le pagine dell'operatore erano 4a, 4b, 4c, 4d, 5, 5b, 6 e 7: ora sono 4–11, nello stesso ordine.</li>
+    </ul>
+  </section>
+
+  <p class="fonti">Fonti del conteggio: ADR-47 (due pagine dell'artigiano), ADR-53 e ADR-54 (otto pagine dell'operatore), ADR-55 (pagine approvate), ADR-87 (riallineamento alla presenza costante), ADR-89…111 (domande chiuse, Vedi campagna ridisegnata e approvata), note-flusso.md §5.2 e §5.3, note-architettura.md §2. Sprint da <code>docs/agenti/tasks.md</code>.</p>
+
+</div>
+</body>
+</html>

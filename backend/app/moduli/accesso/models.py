@@ -16,6 +16,9 @@ class Utente(Base):
     attivo: Mapped[bool] = mapped_column(
         Boolean, nullable=False, server_default=text("true")
     )
+    deve_cambiare_password: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("true")
+    )
 
 
 class Sessione(Base):

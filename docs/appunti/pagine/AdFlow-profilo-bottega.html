@@ -112,6 +112,12 @@
 
   .final-actions{ text-align:center; margin-top:8px; }
 </style>
+<!-- fascia-mappa: stato della pagina statica e ritorno alla mappa. Non fa parte della schermata. -->
+<div style="max-width:640px; margin:0 auto 18px; border:1px solid var(--line); border-radius:10px; padding:8px 14px; background:var(--paper-raised); color:var(--ink-soft); font:12px/1.5 'IBM Plex Mono', ui-monospace, monospace; display:flex; flex-wrap:wrap; gap:2px 16px; justify-content:space-between;">
+  <a href="index.html" style="color:inherit;">← Mappa delle pagine</a>
+  <span>Pagina statica · <strong style="color:var(--ink); font-weight:500;">approvata</strong> · ADR-47 · frequenza, archivio e logo: ADR-81, ADR-83, ADR-87, ADR-88</span>
+</div>
+<!-- /fascia-mappa -->
 
 <div class="wrap">
 
@@ -333,6 +339,20 @@
         <option>Spesso (es. io al lavoro)</option>
       </select>
     </div>
+    <div class="field" style="margin-top:18px;">
+      <label>Archivio della bottega (facoltativo)</label>
+      <div class="desc">Foto sempre valide: il laboratorio, tu al lavoro, la vetrina, i pezzi a cui tieni. Le usiamo quando in una campagna le foto nuove non bastano a tenere il ritmo che hai scelto. Si caricano a gruppi, con una descrizione, come nella pagina Campagna. Qui finiscono da sole anche le foto buone delle tue campagne.</div>
+      <button type="button" class="add-btn">+ Aggiungi un gruppo di foto all'archivio</button>
+    </div>
+    <div class="field">
+      <label for="fo_logo">Logo della bottega (facoltativo)</label>
+      <input type="file" id="fo_logo" accept="image/*">
+      <div class="desc">Serve per le cartoline: un'immagine con il logo e una frase, per un evento, gli orari o un augurio. Senza logo usiamo il nome della bottega.</div>
+    </div>
+    <div class="banner warn" style="margin-bottom:0;">
+      <span class="icon">!</span>
+      <span><b>Sprint 2a (ADR-88).</b> Archivio e logo si costruiscono insieme a questa pagina; le tabelle sono già pronte (ADR-86). Nello sprint 1 i post che le foto non coprono sono cartoline con il nome della bottega.</span>
+    </div>
   </div>
 
   <div class="card" id="s08">
@@ -362,19 +382,21 @@
     <h2>Come gestire le pubblicazioni</h2>
     <div class="field">
       <label>Canali su cui vuoi essere presente *</label>
+      <div class="desc">Sono la proposta di partenza: i canali di ogni campagna si scelgono nella pagina Campagna, tra quelli collegati.</div>
       <div class="choice-grid">
         <label class="choice checked"><input type="checkbox" checked>Facebook</label>
         <label class="choice checked"><input type="checkbox" checked>Instagram</label>
       </div>
     </div>
     <div class="field">
-      <label for="lo_frequenza">Post a settimana che ti sembrano sostenibili da rivedere</label>
+      <label for="lo_frequenza">Post a settimana, per ogni canale, che ti sembrano sostenibili da rivedere</label>
       <select id="lo_frequenza">
         <option>1-2 a settimana</option>
         <option selected>3-4 a settimana</option>
         <option>5 o più a settimana</option>
         <option>Non so, decidete voi</option>
       </select>
+      <div class="desc" style="margin-top:6px;">È il ritmo che ci impegniamo a tenere e la misura del prezzo, contata sul totale dei canali di ogni campagna: 3 a settimana su due canali sono 6 post a settimana (ADR-81).</div>
     </div>
     <div class="field">
       <label for="lo_orari">Giorno o orario in cui i tuoi clienti sono più attivi (opzionale)</label>
