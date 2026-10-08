@@ -74,7 +74,7 @@ Migrazioni dello sprint 1: 001 accesso, 002 artigiani, 003 campagne, 004 contenu
 | errore_generazione.tipo | temporaneo, risposta, configurazione, richiesta, rifiuto |
 | post.intervento_in_corso | rigenera_totale, rigenera_da_proposta, ritocco_foto |
 
-**Scheda per canale**: `SCHEDE_CANALE` in `contenuti/domain.py`, una voce per canale con `max_caratteri` e `max_hashtag` (editoriali: avviso), `limite_caratteri` e `limite_hashtag` (della piattaforma: blocco), `max_foto`, `proporzioni`, `link_cliccabili`. I numeri sono in spec R-21. La leggono il validatore, il controllo del piano e, tramite le risposte dell'API, le anteprime.
+**Scheda per canale**: `SCHEDE_CANALE` in `contenuti/domain.py`, una voce per canale con `max_caratteri` e `max_hashtag` (editoriali: avviso), `limite_caratteri` e `limite_hashtag` (della piattaforma: blocco), `max_foto`, `proporzioni`, `link_cliccabili`. I valori sono in spec R-21. `proporzioni` è una tupla di coppie `(larghezza, altezza)`: `((1, 1), (4, 5))` su entrambi i canali; nella risposta JSON diventa `[[1, 1], [4, 5]]`. `link_cliccabili` è un booleano riferito al testo del post: `true` per Facebook, `false` per Instagram. La leggono il validatore, il controllo del piano e, tramite le risposte dell'API, le anteprime.
 
 ## 3. API (prefisso `/api`)
 | Sprint | Modulo | Metodo e percorso | Ruolo | Esito |

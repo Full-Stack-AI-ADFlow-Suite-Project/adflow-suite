@@ -545,13 +545,15 @@ def test_valori_di_dominio_nuovi_del_piano():
     }
 
 
-def test_schede_canali_numeri_esatti_r21():
+def test_schede_canali_valori_mvp_r21():
     assert contenuti_domain.SCHEDE_CANALE["facebook"] == {
         "max_caratteri": 500,
         "max_hashtag": 3,
         "limite_caratteri": 5000,
         "limite_hashtag": 30,
         "max_foto": 10,
+        "proporzioni": ((1, 1), (4, 5)),
+        "link_cliccabili": True,
     }
     assert contenuti_domain.SCHEDE_CANALE["instagram"] == {
         "max_caratteri": 600,
@@ -559,6 +561,8 @@ def test_schede_canali_numeri_esatti_r21():
         "limite_caratteri": 2200,
         "limite_hashtag": 30,
         "max_foto": 10,
+        "proporzioni": ((1, 1), (4, 5)),
+        "link_cliccabili": False,
     }
 
 
