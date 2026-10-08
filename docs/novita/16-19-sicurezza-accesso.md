@@ -2,7 +2,9 @@
 
 Implementazione richiesta da Gianluca dopo l'apertura delle issue; comprende
 la corsia 0 (configurazione, composizione, tabella e migrazione) e la corsia 1
-(accesso). La PR si appoggia alla sequenza #30 → #31. Le parti comuni richiedono la revisione
+(accesso). T1-11, T1-12 e T1-13 sono integrati in `main` tramite le PR #28 e #30
+(la #31 era stata unita nel branch della #30). La PR #21 si appoggia a `main`.
+Le parti comuni richiedono la revisione
 di tutto il team; il merge resta all'admin. Nessun nuovo servizio.
 
 ## #16 · contatori condivisi PostgreSQL
