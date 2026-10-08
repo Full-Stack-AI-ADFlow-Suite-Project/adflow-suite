@@ -22,7 +22,8 @@ from tests.moduli.accesso.fabbrica import PASSWORD_DI_PROVA, utente
 def test_server_reale_login_rotazione_logout_e_input_invalidi(motore_test):
     url_test = leggi_impostazioni().database_url_test
     url = make_url(url_test)
-    assert (url.database, url.host, url.port) == ("adflow_test", "127.0.0.1", 5432)
+    assert (url.database, url.port) == ("adflow_test", 5432)
+    assert url.host in {"127.0.0.1", "localhost"}
     with motore_test.connect() as connessione:
         assert connessione.scalar(text("select current_database()")) == "adflow_test"
     email = f"{uuid4().hex}@example.test"
@@ -45,7 +46,8 @@ from app.core.db import motore
 i = leggi_impostazioni()
 assert i.database_url == i.database_url_test
 u = make_url(i.database_url)
-assert (u.database, u.host, u.port) == ('adflow_test', '127.0.0.1', 5432)
+assert (u.database, u.port) == ('adflow_test', 5432)
+assert u.host in {'127.0.0.1', 'localhost'}
 with motore().connect() as c:
     assert c.scalar(text('select current_database()')) == 'adflow_test'
 if sys.platform == 'win32':

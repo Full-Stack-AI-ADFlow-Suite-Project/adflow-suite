@@ -36,7 +36,8 @@ def test_catena_https_e_proxy_non_fidato(
 ):
     url_test = leggi_impostazioni().database_url_test
     u = make_url(url_test)
-    assert (u.database, u.host, u.port) == ("adflow_test", "127.0.0.1", 5432)
+    assert (u.database, u.port) == ("adflow_test", 5432)
+    assert u.host in {"127.0.0.1", "localhost"}
     email = f"{uuid4().hex}@example.test"
     with Session(motore_test) as db, db.begin():
         record_id = utente(db, email=email).id
@@ -52,7 +53,8 @@ from sqlalchemy import make_url, text
 from app.core.config import leggi_impostazioni
 from app.core.db import motore
 u=make_url(leggi_impostazioni().database_url)
-assert (u.database,u.host,u.port)==('adflow_test','127.0.0.1',5432)
+assert (u.database,u.port)==('adflow_test',5432)
+assert u.host in {'127.0.0.1','localhost'}
 with motore().connect() as c:
     assert c.scalar(text('SELECT current_database()'))=='adflow_test'
 if sys.platform=='win32':

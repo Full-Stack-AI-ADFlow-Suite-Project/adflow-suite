@@ -127,6 +127,12 @@ reale senza PII, proxy fidati/non fidati, TLS reale, Unicode e account storici.
 Provati upgrade/downgrade completo e 009→008→009, inclusa coerenza dei modelli.
 Nessuna migrazione eseguita sul database applicativo.
 
+Le prove HTTP/TLS e multiprocesso accettano entrambi gli host locali del database,
+`localhost` e `127.0.0.1`. Restano obbligatori `adflow_test`, la porta 5432 e il
+controllo `current_database()` nei processi che aprono connessioni: non si
+accettano host remoti né il database applicativo. Le credenziali arrivano dalla
+configurazione soltanto nell'ambiente dei processi, senza modificare `.env`.
+
 Le issue restano aperte fino alla revisione/merge. #17 richiede inoltre la prova
 dello staging reale. I responsabili del deploy/logging e le policy operative
 devono essere confermati dal team; non sono stati inventati assegnatari GitHub.
