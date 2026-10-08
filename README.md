@@ -95,4 +95,3 @@ La creazione utenti richiede email valide secondo email-validator, senza DNS.
 Il login mantiene la compatibilità con gli indirizzi storici; `.test` è ammesso
 nelle nuove creazioni solo con `EMAIL_TEST_ENVIRONMENT=true` in sviluppo/test.
 La suite comprende prove TLS locali con certificati temporanei generati da cryptography.
-
