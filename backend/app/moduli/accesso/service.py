@@ -3,16 +3,18 @@
 from collections.abc import Callable
 from datetime import datetime, timedelta
 from functools import lru_cache
+import re
 from typing import Annotated
 
 from fastapi import Depends, Request, Response
 from sqlalchemy import delete, func, select, update
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from app.core.config import leggi_impostazioni
 from app.core.db import get_db
 from app.core.orologio import adesso
-from app.core.errori import NonAutenticato, NonPermesso
+from app.core.errori import DatiNonValidi, NonAutenticato, NonPermesso, NonTrovato
 from app.core.security import genera_token, hash_password, hash_token, verifica_password
 
 from .models import Sessione, Utente
@@ -186,6 +188,35 @@ def richiede_ruolo(*ruoli: str) -> Callable[..., Utente]:
     return controlla
 
 
+RUOLI_AMMESSI = ("artigiano", "operatore", "admin")
+
+
+def _testo_valido(testo: str, *, campo_postgres: bool = False) -> bool:
+    if campo_postgres and "\x00" in testo:
+        return False
+    try:
+        testo.encode("utf-8")
+    except UnicodeEncodeError:
+        return False
+    return True
+
+
+def _normalizza_email(email: str) -> str:
+    email = email.strip().lower()
+    if (
+        not _testo_valido(email, campo_postgres=True)
+        or len(email) > 320
+        or re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email) is None
+    ):
+        raise DatiNonValidi("Indirizzo email non valido.")
+    return email
+
+
+def _valida_password(password: str) -> None:
+    if not _testo_valido(password) or not password or len(password) > 1024:
+        raise DatiNonValidi("La password deve contenere da 1 a 1024 caratteri.")
+
+
 def crea_utente(
     db: Session,
     email: str,
@@ -193,15 +224,16 @@ def crea_utente(
     nome: str,
     ruolo: str,
 ) -> Utente:
-    """Crea un nuovo utente con password cifrata con scrypt.
+    """Crea un nuovo utente con password protetta da un hash scrypt.
 
-    Usata da ``cli.py`` per il comando ``crea-utente`` e dal seed.
+    Usata da ``cli.py`` per il comando ``crea-utente``. Il seed esistente
+    continua a inserire direttamente gli utenti (corsia 0).
     Non espone mai la password in chiaro nei log o nelle eccezioni.
 
     Args:
         db: sessione del database (aperta e chiusa dal chiamante).
         email: indirizzo email univoco nel sistema.
-        password: password in chiaro — viene cifrata prima del salvataggio.
+        password: password in chiaro — viene trasformata in hash prima del salvataggio.
         nome: nome visualizzato dell'utente.
         ruolo: uno tra ``artigiano``, ``operatore``, ``admin``.
 
@@ -210,15 +242,76 @@ def crea_utente(
 
     Raises:
         DatiNonValidi: se l'email è già registrata o il ruolo non è ammesso.
-        NotImplementedError: stub — implementazione in T1-13.
     """
-    raise NotImplementedError  # T1-13
+    email = _normalizza_email(email)
+    nome = nome.strip()
+    if not _testo_valido(email, campo_postgres=True):
+        raise DatiNonValidi("Indirizzo email non valido.")
+    if not _testo_valido(nome, campo_postgres=True):
+        raise DatiNonValidi("Nome non valido.")
+    if not _testo_valido(password):
+        raise DatiNonValidi("Password non valida.")
+    if ruolo not in RUOLI_AMMESSI:
+        raise DatiNonValidi("Ruolo non ammesso.")
+    if not nome:
+        raise DatiNonValidi("Il nome non può essere vuoto.")
+    if not password or len(password) > 1024:
+        raise DatiNonValidi("La password deve contenere da 1 a 1024 caratteri.")
+    if (
+        db.scalar(select(Utente.id).where(func.lower(Utente.email) == email))
+        is not None
+    ):
+        raise DatiNonValidi("Email già registrata.")
+    record = Utente(
+        email=email,
+        nome=nome,
+        ruolo=ruolo,
+        password_hash=hash_password(password),
+        attivo=True,
+    )
+    # Il vincolo DB risolve anche la gara tra due creazioni della stessa email.
+    # Il savepoint mantiene utilizzabile la transazione del chiamante.
+    # begin_nested fa flush anche sotto no_autoflush: gli errori dei record
+    # già pendenti devono propagarsi fuori dalla gestione del nuovo utente.
+    db.flush()
+    try:
+        with db.begin_nested():
+            db.add(record)
+            db.flush()
+    except IntegrityError as errore:
+        if (
+            getattr(errore.orig, "sqlstate", None) == "23505"
+            and getattr(getattr(errore.orig, "diag", None), "constraint_name", None)
+            == "utente_email_key"
+        ):
+            raise DatiNonValidi("Email già registrata.") from None
+        raise
+    return record
 
 
 def cambia_password(db: Session, email: str, password: str) -> None:
-    """Cambia la password con scrypt; contratto CLI, implementazione in T1-13.
+    """Cambia l'hash scrypt e revoca tutte le sessioni, senza commit.
 
-    Solleva NonTrovato per un'email assente e DatiNonValidi per dati invalidi.
-    Non registra password, non esegue commit.
+    Il blocco sull'utente coordina questa operazione con il login di T1-11.
+    Un'identità legacy ambigua non viene selezionata arbitrariamente.
     """
-    raise NotImplementedError  # T1-13
+    email = _normalizza_email(email)
+    _valida_password(password)
+    nuovo_hash = hash_password(password)
+    candidati = list(
+        db.scalars(
+            select(Utente)
+            .where(func.lower(Utente.email) == email)
+            .limit(2)
+            .with_for_update()
+        )
+    )
+    if not candidati:
+        raise NonTrovato("Utente non trovato.")
+    if len(candidati) != 1:
+        raise DatiNonValidi("Identità utente ambigua.")
+    record = candidati[0]
+    record.password_hash = nuovo_hash
+    record.deve_cambiare_password = False
+    db.execute(delete(Sessione).where(Sessione.utente_id == record.id))
+    db.flush()

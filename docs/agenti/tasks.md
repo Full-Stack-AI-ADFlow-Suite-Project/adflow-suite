@@ -43,7 +43,7 @@ Nei loro moduli le corsie 1–4 possiedono `router.py`, `schemas.py`, `jobs.py`,
 |---|---|---|---|---|---|
 | T1-11 | Login: `POST /auth/login`, `POST /auth/logout`, `GET /auth/me`; cookie `adflow_sessione` httpOnly; nel database solo l'hash del token; durata della sessione per ruolo, dalla configurazione | plan §1, §2, §3; constitution §3; spec R-29 | T1-06, T1-09 | CA-01, CA-02 | ☑ |
 | T1-12 | Permessi: `utente_corrente` e `richiede_ruolo()` veri (401 senza sessione o con la sessione scaduta, 403 per ruolo, l'admin dove passa l'operatore); ogni richiesta sposta in avanti la scadenza della sessione | plan §6; constitution §3; spec R-29 | T1-11 | CA-03, CA-62; CA-61 e i test delle altre corsie restano verdi | ☑ |
-| T1-13 | `crea_utente()` e `cambia_password()`: email unica, ruolo ammesso, password con scrypt | plan §2, §6; constitution §3 | T1-06, T1-09 | utente creato e password cambiata da riga di comando | ☐ |
+| T1-13 | `crea_utente()` e `cambia_password()`: email unica, ruolo ammesso, password con scrypt | plan §2, §6; constitution §3 | T1-06, T1-09 | utente creato e password cambiata da riga di comando | ☑ |
 | T1-14 | Canali collegati: `GET /canali` con lo stato del collegamento per ogni canale dell'MVP | plan §3, §6; spec R-22 | T1-09 | l'artigiano del seed vede Facebook e Instagram collegati; un account scaduto o scollegato risulta non collegato | ☐ |
 
 ### Corsia 2 · Campagne (Silvia)
