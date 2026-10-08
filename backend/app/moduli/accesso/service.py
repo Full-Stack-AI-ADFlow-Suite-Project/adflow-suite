@@ -5,11 +5,13 @@ from datetime import datetime, timedelta
 from functools import lru_cache
 from typing import Annotated
 
-from fastapi import Depends
-from sqlalchemy import delete, func, select
+from fastapi import Depends, Request, Response
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.orm import Session
 
 from app.core.config import leggi_impostazioni
+from app.core.db import get_db
+from app.core.orologio import adesso
 from app.core.errori import NonAutenticato, NonPermesso
 from app.core.security import genera_token, hash_password, hash_token, verifica_password
 
@@ -88,43 +90,67 @@ def logout(db: Session, token: str | None) -> None:
 
 
 def utente_della_sessione(db: Session, token: str | None, ora: datetime) -> Utente:
-    """Legge l'utente solo con token valido, sessione non scaduta e account attivo."""
+    """Verifica account e sessione e rinnova atomicamente la scadenza (R-29).
+
+    Il rinnovo condizionale non ricrea una sessione revocata o scaduta.
+    La transazione resta del chiamante; nessun commit nel service.
+    """
     if not token:
         raise NonAutenticato("Sessione non valida o scaduta.")
+    digest = hash_token(token)
     record = db.scalar(
         select(Utente)
         .join(Sessione, Sessione.utente_id == Utente.id)
         .where(
-            Sessione.token_hash == hash_token(token),
+            Sessione.token_hash == digest,
             Sessione.scade_il > ora,
             Utente.attivo.is_(True),
             Utente.ruolo.in_(("artigiano", "operatore", "admin")),
         )
+        .execution_options(populate_existing=True)
     )
     if record is None:
+        raise NonAutenticato("Sessione non valida o scaduta.")
+    rinnovata = db.scalar(
+        update(Sessione)
+        .where(
+            Sessione.token_hash == digest,
+            Sessione.utente_id == record.id,
+            Sessione.scade_il > ora,
+            Sessione.utente_id.in_(
+                select(Utente.id).where(
+                    Utente.attivo.is_(True), Utente.ruolo == record.ruolo
+                )
+            ),
+        )
+        .values(scade_il=ora + durata_sessione(record.ruolo))
+        .returning(Sessione.id)
+    )
+    if rinnovata is None:
         raise NonAutenticato("Sessione non valida o scaduta.")
     return record
 
 
-def utente_corrente() -> Utente:
-    """Dipendenza FastAPI: restituisce l'utente autenticato dalla sessione.
-
-    Si usa nei router con ``Depends``::
-
-        def mio_endpoint(utente: Annotated[Utente, Depends(utente_corrente)]):
-            ...
-
-    Fino a T1-12 i test la sostituiscono con la fixture ``utente_di_prova``
-    (T1-06).
-
-    Returns:
-        Il record utente corrispondente al cookie ``adflow_sessione``.
-
-    Raises:
-        NonAutenticato: se il cookie è assente, scaduto o non valido.
-        NotImplementedError: stub — implementazione in T1-12.
-    """
-    raise NotImplementedError  # T1-12
+def utente_corrente(
+    request: Request,
+    response: Response,
+    db: Annotated[Session, Depends(get_db)],
+    ora: Annotated[datetime, Depends(adesso)],
+) -> Utente:
+    """Dipendenza reale: valida la sessione e rinnova anche il cookie browser."""
+    token = request.cookies.get(COOKIE_SESSIONE)
+    record = utente_della_sessione(db, token, ora)
+    response.set_cookie(
+        COOKIE_SESSIONE,
+        token,
+        max_age=int(durata_sessione(record.ruolo).total_seconds()),
+        httponly=True,
+        secure=request.url.scheme == "https",
+        samesite="lax",
+        path="/",
+    )
+    response.headers["Cache-Control"] = "no-store"
+    return record
 
 
 def richiede_ruolo(*ruoli: str) -> Callable[..., Utente]:
