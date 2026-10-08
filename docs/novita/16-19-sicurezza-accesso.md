@@ -3,7 +3,8 @@
 Implementazione richiesta da Gianluca dopo l'apertura delle issue; comprende
 la corsia 0 (configurazione, composizione, tabella e migrazione) e la corsia 1
 (accesso). T1-11, T1-12 e T1-13 sono integrati in `main` tramite le PR #28 e #30
-(la #31 era stata unita nel branch della #30). La PR #21 si appoggia a `main`.
+(la #31 era stata unita nel branch della #30). La PR #36 si appoggia a `main`
+e sostituisce la #21, chiusa senza merge dopo l'eliminazione della vecchia base.
 Le parti comuni richiedono la revisione
 di tutto il team; il merge resta all'admin. Nessun nuovo servizio.
 
@@ -133,4 +134,4 @@ devono essere confermati dal team; non sono stati inventati assegnatari GitHub.
 
 ## Riallineamento al modello corrente
 
-La revisione dei contatori è 009, dopo 008_riallineamento. La PR #21 si appoggia a `main`, dove T1-12 e T1-13 sono entrati con il merge della #30, conservando sessioni per ruolo, rinnovo sliding e cambio password con revoca. La stessa politica Secure protegge login, logout e rinnovo. I nuovi test dell'accesso verificano anche le API di revisione T1-42 con login reale, admin/operatore/artigiano, logout e scadenza. T1-14 resta nella PR #33. Lo staging non è ancora predisposto: la prova locale non chiude #17; il team deploy deve predisporlo e allegare l'evidenza reale.
+La revisione dei contatori è 009, dopo 008_riallineamento. La PR #36 si appoggia a `main`, dove T1-12 e T1-13 sono entrati con il merge della #30 e T1-14 con la #33, conservando sessioni per ruolo, rinnovo sliding e cambio password con revoca. La stessa politica Secure protegge login, logout e rinnovo. I nuovi test dell'accesso verificano anche GET /canali e le API di revisione T1-42 con login reale, admin/operatore/artigiano, logout e scadenza. Il riesame comprende anche il codice di pubblicazione T1-43 integrato con la #35. Lo staging non è ancora predisposto: la prova locale non chiude #17; il team deploy deve predisporlo e allegare l'evidenza reale.

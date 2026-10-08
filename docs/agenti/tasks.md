@@ -95,7 +95,7 @@ Le corsie restano le stesse: ogni novità va alla corsia del suo modulo; tabelle
 ## Follow-up sicurezza accesso · issue #16–19
 
 Richiesti da Gianluca per le issue #16–19. Modifiche comuni della corsia 0 e accesso
-della corsia 1 raccolte nella PR #21 su `main`, dopo il merge della #30 che include
+della corsia 1 raccolte nella PR #36 su `main` (sostituisce la #21 chiusa senza merge), dopo il merge della #30 che include
 T1-12 e T1-13: revisione di tutto il team,
 merge dell'admin. Non si introducono servizi nuovi. Le caselle descrivono la
 preparazione per revisione, non la chiusura formale dopo il merge.
