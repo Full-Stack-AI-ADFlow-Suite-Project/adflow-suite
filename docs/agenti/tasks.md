@@ -71,7 +71,7 @@ Nei loro moduli le corsie 1–4 possiedono `router.py`, `schemas.py`, `jobs.py`,
 |---|---|---|---|---|---|
 | T1-41 | Adattatore social simulato: `pubblica()` con una o più foto, con esito ok, errore temporaneo ed errore definitivo a comando | plan §5 | T1-01 | nessuna chiamata di rete nei test | ☑ |
 | T1-42 | Vedi campagna, Approva e Prosegui: `GET /campagne/{id}/post` in ogni stato dopo l'invio, con il piano, le uscite, i post dei canali con tipo di riempitivo, versione corrente, autore, blocchi e avvisi, foto e storico, le foto non usate, l'ultimo errore della generazione; `POST /campagne/{id}/approva` in blocco, con righe di approvazione e decisione; `POST /campagne/{id}/prosegui` | plan §3, §6; spec §2.3, R-14, R-20, R-35 | T1-09, T1-05 | CA-21, CA-22, CA-49 (Prosegui), CA-60 | ☑ |
-| T1-43 | Pubblicazione: `pubblica_dovuti()`; tentativo registrato prima della chiamata, tutte le foto del post (per una cartolina la sua immagine), un solo `ok` per post, nuovi tentativi, post `fallito`, campagna `conclusa` secondo `tutti_chiusi()` | plan §4, §5, §6; constitution §1; spec §2.4, R-34 | T1-41, T1-09, T1-05 | CA-36…39, CA-52 (pubblicazione), CA-57 (pubblicazione) | ☐ |
+| T1-43 | Pubblicazione: `pubblica_dovuti()`; tentativo registrato prima della chiamata, tutte le foto del post (per una cartolina la sua immagine), un solo `ok` per post, nuovi tentativi, post `fallito`, campagna `conclusa` secondo `tutti_chiusi()` | plan §4, §5, §6; constitution §1; spec §2.4, R-34 | T1-41, T1-09, T1-05 | CA-36…39, CA-52 (pubblicazione), CA-57 (pubblicazione) | ☑ |
 
 ### Corsia 5 · Frontend (Angelo)
 
