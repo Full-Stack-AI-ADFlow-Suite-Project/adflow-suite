@@ -33,11 +33,6 @@ def test_crea_utente_con_ruolo_e_password_scrypt(db, client, ruolo):
     assert PASSWORD not in record.password_hash
     assert verifica_password(PASSWORD, record.password_hash)
     assert not verifica_password("sbagliata", record.password_hash)
-    risposta = client.post(
-        "/api/auth/login", json={"email": record.email, "password": PASSWORD}
-    )
-    assert risposta.status_code == 200
-    assert client.get("/api/auth/me").json()["id"] == record.id
 
 
 @pytest.mark.parametrize("email", ["persona@example.test", " PERSONA@EXAMPLE.TEST "])

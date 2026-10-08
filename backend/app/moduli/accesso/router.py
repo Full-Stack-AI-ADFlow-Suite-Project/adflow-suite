@@ -24,12 +24,7 @@ from .email import identita_login
 
 
 def cookie_sicuro(request: Request) -> bool:
-    impostazioni = leggi_impostazioni()
-    if impostazioni.ambiente == "produzione":
-        return True
-    if impostazioni.cookie_secure is not None:
-        return impostazioni.cookie_secure
-    return request.url.scheme == "https"
+    return service.cookie_sicuro(request)
 
 
 class RottaAccesso(APIRoute):
@@ -77,7 +72,7 @@ def login(
     response.set_cookie(
         service.COOKIE_SESSIONE,
         token,
-        max_age=int(service.DURATA_SESSIONE.total_seconds()),
+        max_age=int(service.durata_sessione(utente.ruolo).total_seconds()),
         httponly=True,
         secure=cookie_sicuro(request),
         samesite="lax",

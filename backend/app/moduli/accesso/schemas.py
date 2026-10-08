@@ -25,6 +25,13 @@ class Login(BaseModel):
             raise ValueError("Indirizzo email non valido.")
         return valore
 
+    @field_validator("password")
+    @classmethod
+    def password_rappresentabile(cls, valore: str) -> str:
+        if not testo_valido(valore):
+            raise ValueError("Password non valida.")
+        return valore
+
 
 class UtentePubblico(BaseModel):
     model_config = ConfigDict(from_attributes=True)

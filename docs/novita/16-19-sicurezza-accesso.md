@@ -2,12 +2,12 @@
 
 Implementazione richiesta da Gianluca dopo l'apertura delle issue; comprende
 la corsia 0 (configurazione, composizione, tabella e migrazione) e la corsia 1
-(accesso). La PR dipende dalla PR #20. Le parti comuni richiedono la revisione
+(accesso). La PR si appoggia alla sequenza #30 → #31. Le parti comuni richiedono la revisione
 di tutto il team; il merge resta all'admin. Nessun nuovo servizio.
 
 ## #16 · contatori condivisi PostgreSQL
 
-La migrazione 008 crea `limite_login`. Sono due limiti indipendenti: IP e
+La migrazione 009 crea `limite_login`. Sono due limiti indipendenti: IP e
 identità dell'account. Cinque richieste per ciascuno in una finestra di 900 secondi
 a partire dal primo tentativo. I valori sono configurabili in `.env` mediante
 `LOGIN_LIMITE_TENTATIVI` e `LOGIN_FINESTRA_SECONDI`. Anche un accesso riuscito
@@ -19,7 +19,7 @@ L'upsert PostgreSQL serializza gli incrementi concorrenti. La prenotazione usa
 una transazione distinta dalla sessione di autenticazione: un 401 o rollback
 del login non ripristina il contatore. I contatori sopravvivono ai riavvii e
 sono condivisi tra processi/istanze. Non servono Redis o SQLite.
-Login e logout chiudono la dipendenza database prima di inviare la risposta:
+Login, logout e rinnovo chiudono la dipendenza database prima di inviare la risposta:
 il browser riceve il cookie soltanto dopo il commit della sessione.
 Il contatore satura a limite+1; un 429 restituisce `Retry-After` e `no-store`.
 In caso di guasto del database il login restituisce 503, senza bypass.
@@ -30,11 +30,12 @@ logiche: farlo come operazione coordinata, senza lasciare istanze con segreti di
 Le chiavi sono HMAC-SHA256 di IP/account con un prefisso distinto; non si
 salvano IP o email in chiaro. `LOGIN_LIMITE_SEGRETO` deve essere casuale,
 almeno 32 caratteri, custodito in `.env` e uguale su tutte le istanze.
-La modalità produzione rifiuta il valore finto. Nessun indice identifica un utente.
+La modalità produzione rifiuta il valore finto. Le chiavi sono pseudonimi, non
+dati anonimi: permettono correlazione e, con il segreto, verifica degli identificatori.
 
 ## #17 · cookie e proxy
 
-`AMBIENTE=produzione` rende i cookie Secure al login e alla cancellazione anche
+`AMBIENTE=produzione` rende i cookie Secure al login, al rinnovo e alla cancellazione anche
 se il backend riceve HTTP dal proxy. Rifiuta `COOKIE_SECURE=false`. In sviluppo
 il valore opzionale può essere impostato; altrimenti segue lo schema percepito.
 Il router non interpreta direttamente `X-Forwarded-Proto`.
@@ -120,9 +121,14 @@ Test su PostgreSQL `adflow_test`: limite esatto, scadenza, 8/20 richieste
 concorrenti, sei processi indipendenti, rate limit su IP/account, payload
 malformati, successo e sessioni esistenti, guasti del DB/logger, contenuto JSON
 reale senza PII, proxy fidati/non fidati, TLS reale, Unicode e account storici.
-Provati upgrade/downgrade completo e 008→007→008, inclusa coerenza dei modelli.
+Provati upgrade/downgrade completo e 009→008→009, inclusa coerenza dei modelli.
 Nessuna migrazione eseguita sul database applicativo.
 
 Le issue restano aperte fino alla revisione/merge. #17 richiede inoltre la prova
 dello staging reale. I responsabili del deploy/logging e le policy operative
 devono essere confermati dal team; non sono stati inventati assegnatari GitHub.
+
+
+## Riallineamento al modello corrente
+
+La revisione dei contatori è 009, dopo 008_riallineamento. La PR #21 si appoggia alla sequenza #30 (T1-13) → #31 (T1-12), conservando sessioni per ruolo, rinnovo sliding e cambio password con revoca. La stessa politica Secure protegge login, logout e rinnovo. T1-14 resta nella PR #33. Lo staging non è ancora predisposto: la prova locale non chiude #17; il team deploy deve predisporlo e allegare l’evidenza reale.

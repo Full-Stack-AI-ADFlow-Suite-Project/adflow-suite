@@ -1,9 +1,9 @@
-"""008: contatori condivisi dei tentativi di login, senza identificatori in chiaro."""
+"""009: contatori condivisi dei tentativi di login, senza identificatori in chiaro."""
 from alembic import op
 import sqlalchemy as sa
 
-revision = "008"
-down_revision = "007"
+revision = "009"
+down_revision = "008"
 branch_labels = None
 depends_on = None
 

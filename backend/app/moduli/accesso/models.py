@@ -2,8 +2,8 @@
 from datetime import datetime
 
 from sqlalchemy import (
-    Boolean,
     CheckConstraint,
+    Boolean,
     DateTime,
     ForeignKey,
     Integer,
@@ -23,6 +23,9 @@ class Utente(Base):
     nome: Mapped[str] = mapped_column(Text, nullable=False)
     ruolo: Mapped[str] = mapped_column(Text, nullable=False)
     attivo: Mapped[bool] = mapped_column(
+        Boolean, nullable=False, server_default=text("true")
+    )
+    deve_cambiare_password: Mapped[bool] = mapped_column(
         Boolean, nullable=False, server_default=text("true")
     )
 

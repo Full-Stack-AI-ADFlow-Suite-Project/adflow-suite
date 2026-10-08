@@ -6,16 +6,18 @@ PUBBLICATO = "pubblicato"
 FALLITO = "fallito"
 SCADUTO = "scaduto"
 SCARTATO = "scartato"
+ANNULLATO = "annullato"
 
 # stato → stati ammessi; si usa con core.transizioni.verifica_transizione().
 # da_rivedere è un indicatore (campo bool del post), non uno stato.
 TRANSIZIONI: dict[str, frozenset[str]] = {
     DA_APPROVARE: frozenset({APPROVATO, SCADUTO, SCARTATO}),
-    APPROVATO: frozenset({PUBBLICATO, FALLITO}),
+    APPROVATO: frozenset({PUBBLICATO, FALLITO, ANNULLATO}),
     FALLITO: frozenset({APPROVATO}),
     PUBBLICATO: frozenset(),
     SCADUTO: frozenset(),
     SCARTATO: frozenset(),
+    ANNULLATO: frozenset(),
 }
 STATI = tuple(TRANSIZIONI)
 
@@ -26,6 +28,44 @@ TIPI_INTERVENTO = (
     "generazione",
     "rigenera_totale",
     "rigenera_da_proposta",
+    "modifica_operatore",
     "ritocco_foto",
     "scelta_foto",
+    "cambio_foto",
 )
+
+FORMATI_POST = ("singola", "carosello")
+TIPI_RIEMPITIVO = ("archivio", "cartolina", "immagine_ai")
+LIVELLI_VALIDATORE = ("blocco", "avviso")
+TIPI_ERRORE_GENERAZIONE = (
+    "temporaneo",
+    "risposta",
+    "configurazione",
+    "richiesta",
+    "rifiuto",
+)
+TIPI_INTERVENTO_IN_CORSO = ("rigenera_totale", "rigenera_da_proposta", "ritocco_foto")
+STATI_CHIUSI = (PUBBLICATO, FALLITO, ANNULLATO, SCARTATO, SCADUTO)
+
+# Schede MVP (R-21): proporzioni come stringhe "larghezza:altezza".
+# Sono scelte del progetto, non tutti i formati supportati dalle piattaforme.
+SCHEDE_CANALE = {
+    "facebook": {
+        "max_caratteri": 500,
+        "max_hashtag": 3,
+        "limite_caratteri": 5000,
+        "limite_hashtag": 30,
+        "max_foto": 10,
+        "proporzioni": ("1:1", "4:5"),
+        "link_cliccabili": True,
+    },
+    "instagram": {
+        "max_caratteri": 600,
+        "max_hashtag": 5,
+        "limite_caratteri": 2200,
+        "limite_hashtag": 30,
+        "max_foto": 10,
+        "proporzioni": ("1:1", "4:5"),
+        "link_cliccabili": False,
+    },
+}

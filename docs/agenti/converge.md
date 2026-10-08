@@ -26,10 +26,11 @@ Database pulito a ogni test con le fixture `db` e `client` di `tests/conftest.py
 ## 3. Chiusura dello sprint 1 (T1-07)
 Su `main` pulito, da database vuoto: comandi del §1 verdi, tutti i CA con S = 1 coperti, frontend sulle API vere, poi a mano:
 1. seed → avvio di API, worker, frontend;
-2. artigiano: bozza che inizia tra 4 giorni, 3 foto in 2 gruppi con descrizione, invio;
+2. artigiano: bozza di 7 giorni che inizia tra 4 giorni, su Facebook e Instagram, 4 foto in 2 gruppi con descrizione e una stella, invio;
 3. la campagna passa a in_revisione (AI finta);
-4. operatore: Vedi campagna, controlla numero di post, canali alternati, foto ≤ 2 usi; approva;
+4. operatore: Vedi campagna, controlla il piano, le uscite con un post per canale, il numero di post per canale, uguale a quelli chiesti (R-05), nessuna foto due volte sullo stesso canale, la foto con la stella presente; un post con soli avvisi non blocca; approva;
 5. data di test avanti: i post si pubblicano (simulato), campagna conclusa;
-6. prove negative: inizio tra 1 giorno, un PDF come foto, artigiano su pagina operatore.
+6. prove negative: inizio tra 1 giorno, durata di 3 giorni, un PDF come foto, invio con 3 foto, canale non collegato, artigiano su pagina operatore (l'admin invece entra), errore di configurazione dell'AI: generazione fallita subito, con il motivo accanto a Riprova;
+7. piano debole: 4 settimane con 4 foto → `piano_da_rivedere`; Prosegui → in_revisione, con 12 post per canale: 4 con le foto e 8 cartoline (R-28).
 
 Il controllo visivo contro le pagine statiche lo fa una persona (vedi gli appunti).

@@ -439,9 +439,72 @@ def test_migrazione_downgrade_upgrade_solo_test(motore_test):
     cfg = Config("alembic.ini")
     cfg.attributes["url"] = leggi_impostazioni().database_url_test
     assert cfg.attributes["url"].endswith("/adflow_test")
-    command.downgrade(cfg, "007")
+    command.downgrade(cfg, "008")
     with motore_test.connect() as c:
         assert c.scalar(text("SELECT to_regclass('limite_login')")) is None
     command.upgrade(cfg, "head")
     with motore_test.connect() as c:
         assert c.scalar(text("SELECT to_regclass('limite_login')")) == "limite_login"
+
+
+@pytest.mark.parametrize(
+    "salvata,inserita",
+    [
+        ("persona@xn--bcher-kva.de", "persona@bücher.de"),
+        ("persona@bücher.de", "persona@xn--bcher-kva.de"),
+    ],
+)
+def test_login_e_cambio_password_compatibili_con_idna_storico(
+    db, client, salvata, inserita
+):
+    from app.core.security import verifica_password
+
+    storico = utente(db, email=salvata)
+    risposta = client.post(
+        "/api/auth/login", json={"email": inserita, "password": PASSWORD_DI_PROVA}
+    )
+    assert risposta.status_code == 200
+    assert risposta.json()["id"] == storico.id
+    service.cambia_password(db, inserita, "NuovaPasswordSoloTest!2026")
+    assert verifica_password("NuovaPasswordSoloTest!2026", storico.password_hash)
+    assert client.get("/api/auth/me").status_code == 401
+
+
+def test_alias_idna_ambigui_non_scelgono_identita(db, client):
+    utente(db, email="persona@xn--bcher-kva.de")
+    utente(db, "admin", email="persona@bücher.de")
+    assert (
+        client.post(
+            "/api/auth/login",
+            json={"email": "persona@bücher.de", "password": PASSWORD_DI_PROVA},
+        ).status_code
+        == 401
+    )
+    with pytest.raises(DatiNonValidi, match="Identità utente ambigua"):
+        service.cambia_password(db, "persona@bücher.de", "NuovaPasswordSoloTest!2026")
+
+
+def test_rinnovo_cookie_secure_anche_dietro_proxy_http_in_produzione(
+    db, client, monkeypatch
+):
+    impostazioni = leggi_impostazioni()
+    monkeypatch.setattr(impostazioni, "ambiente", "produzione")
+    monkeypatch.setattr(impostazioni, "email_test_environment", False)
+    monkeypatch.setattr(
+        impostazioni,
+        "login_limite_segreto",
+        "chiave-solo-test-produzione-di-almeno-32-caratteri",
+    )
+    record = utente(db)
+    risposta = client.post(
+        "/api/auth/login", json={"email": record.email, "password": PASSWORD_DI_PROVA}
+    )
+    assert risposta.status_code == 200
+    token = client.cookies.get(service.COOKIE_SESSIONE)
+    risposta = client.get(
+        "/api/auth/me", headers={"Cookie": f"{service.COOKIE_SESSIONE}={token}"}
+    )
+    assert risposta.status_code == 200
+    cookie = risposta.headers["set-cookie"].lower()
+    assert "secure" in cookie and "httponly" in cookie and "samesite=lax" in cookie
+    assert "max-age=604800" in cookie

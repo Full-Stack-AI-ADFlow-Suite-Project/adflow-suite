@@ -1,6 +1,6 @@
 """CA-03 con sessioni reali e compatibilità della fixture utente_di_prova."""
 
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 from typing import Annotated
 
 import pytest
@@ -11,7 +11,7 @@ from app.core.db import get_db
 from app.core.orologio import adesso
 from app.main import app
 from app.moduli.accesso.models import Utente
-from app.moduli.accesso.service import COOKIE_SESSIONE, richiede_ruolo
+from app.moduli.accesso.service import COOKIE_SESSIONE, richiede_ruolo, durata_sessione
 from tests.moduli.accesso.fabbrica import PASSWORD_DI_PROVA, utente
 
 
@@ -72,7 +72,7 @@ def test_scadenza_precede_controllo_del_ruolo(db, client, riservato):
     ora = datetime(2026, 10, 7, tzinfo=timezone.utc)
     app.dependency_overrides[adesso] = lambda: ora
     accesso.cookies.set(COOKIE_SESSIONE, login(client, utente(db)))
-    prova.dependency_overrides[adesso] = lambda: ora + timedelta(hours=8)
+    prova.dependency_overrides[adesso] = lambda: ora + durata_sessione("artigiano")
     assert accesso.get("/operatore").status_code == 401
 
 

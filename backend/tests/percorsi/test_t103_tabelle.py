@@ -13,7 +13,7 @@ from sqlalchemy.orm import Session
 
 from app.tabelle import del_modello, metadata
 from app.moduli.accesso.models import Sessione
-from app.moduli.campagne.models import DecisioneCampagna
+from app.moduli.campagne.models import DecisioneCampagna, GruppoFoto
 from app.moduli.contenuti.models import VersionePost
 from app.moduli.revisione.models import Approvazione
 from app.moduli.pubblicazione.models import Pubblicazione
@@ -33,13 +33,27 @@ TABELLE = {
     "utente",
     "sessione",
     "profilo_bottega",
+    "account_social",
     "campagna",
+    "gruppo_foto",
     "foto",
     "decisione_campagna",
+    "piano",
+    "uscita",
     "post",
     "versione_post",
+    "versione_post_foto",
+    "errore_generazione",
     "approvazione",
     "pubblicazione",
+}
+TABELLE_NUOVE_008 = {
+    "account_social",
+    "gruppo_foto",
+    "piano",
+    "uscita",
+    "versione_post_foto",
+    "errore_generazione",
 }
 TABELLE_CODA = {
     "procrastinate_jobs",
@@ -66,6 +80,10 @@ def test_upgrade_downgrade_completo_e_ultimo_passaggio(motore_test):
     command.downgrade(config, "-1")
     with motore_test.connect() as conn:
         assert "limite_login" not in inspect(conn).get_table_names()
+        assert TABELLE_NUOVE_008 <= set(inspect(conn).get_table_names())
+    command.downgrade(config, "-1")
+    with motore_test.connect() as conn:
+        assert not TABELLE_NUOVE_008 & set(inspect(conn).get_table_names())
     command.downgrade(config, "-1")
     with motore_test.connect() as conn:
         assert not TABELLE_CODA & set(inspect(conn).get_table_names())
@@ -78,7 +96,7 @@ def test_upgrade_downgrade_completo_e_ultimo_passaggio(motore_test):
             set(inspect(conn).get_table_names()) - {"alembic_version"}
             == TABELLE | TABELLE_CODA
         )
-        assert conn.scalar(text("select version_num from alembic_version")) == "008"
+        assert conn.scalar(text("select version_num from alembic_version")) == "009"
         contesto = MigrationContext.configure(conn, opts={"include_name": del_modello})
         assert compare_metadata(contesto, metadata) == []
 
@@ -121,7 +139,7 @@ def test_sessione_token_unico_e_scadenza_utc(db):
         db.flush()
 
 
-def test_roundtrip_json_array_uuid_e_default(db):
+def test_roundtrip_json_array_e_default(db):
     campagna = campagna_inviata(
         db,
         profilo_snapshot={
@@ -130,15 +148,19 @@ def test_roundtrip_json_array_uuid_e_default(db):
             "social_esistenti": {"canali": ["instagram"]},
         },
     )
-    immagine = foto(db, campagna=campagna)
-    gruppo = immagine.gruppo_id
+    mazzo = db.scalar(select(GruppoFoto).where(GruppoFoto.campagna_id == campagna.id))
+    immagine = foto(db, gruppo=mazzo)
     db.expire_all()
     assert campagna.profilo_snapshot["social_esistenti"]["canali"] == ["instagram"]
     assert campagna.canali == ["instagram"]
-    assert campagna.crea_immagini_ai is False
-    assert campagna.rimandata is False
-    assert immagine.gruppo_id == gruppo
+    assert campagna.canali_tolti is None
+    assert campagna.chiusa_il is None
+    assert mazzo.origine == "caricate"
+    assert mazzo.descrizione
+    assert immagine.gruppo_id == mazzo.id
+    assert immagine.campagna_id == campagna.id
     assert immagine.origine == "caricata"
+    assert immagine.da_usare is False
     assert immagine.n_utilizzi == 0
 
 

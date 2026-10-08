@@ -10,7 +10,7 @@ from app.core.orologio import adesso
 from app.core.security import hash_token
 from app.main import app
 from app.moduli.accesso.models import Sessione
-from app.moduli.accesso.service import COOKIE_SESSIONE, DURATA_SESSIONE
+from app.moduli.accesso.service import COOKIE_SESSIONE, durata_sessione
 from tests.moduli.accesso.fabbrica import PASSWORD_DI_PROVA, utente
 
 ORA = datetime(2026, 10, 7, 10, tzinfo=timezone.utc)
@@ -80,12 +80,12 @@ def test_cookie_e_hash_del_token(db, client):
     assert sessione.token_hash == hash_token(token)
     assert sessione.token_hash != token
     assert sessione.utente_id == record.id
-    assert sessione.scade_il == ORA + DURATA_SESSIONE
+    assert sessione.scade_il == ORA + durata_sessione("artigiano")
     cookie = risposta.headers["set-cookie"].lower()
     assert "httponly" in cookie
     assert "samesite=lax" in cookie
     assert "path=/" in cookie
-    assert "max-age=28800" in cookie
+    assert "max-age=604800" in cookie
     assert "secure" not in cookie
     assert token not in risposta.text
     assert record.password_hash not in risposta.text
@@ -115,7 +115,7 @@ def test_me_senza_sessione_valida(client, token):
 def test_scadenza_server_precisa(db, client, scarto):
     entra(client, utente(db))
     app.dependency_overrides[adesso] = (
-        lambda: ORA + DURATA_SESSIONE + timedelta(seconds=scarto)
+        lambda: ORA + durata_sessione("artigiano") + timedelta(seconds=scarto)
     )
     assert client.get("/api/auth/me").status_code == (200 if scarto < 0 else 401)
 

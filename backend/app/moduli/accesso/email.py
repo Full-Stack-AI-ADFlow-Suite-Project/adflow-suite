@@ -22,3 +22,19 @@ def identita_login(email: str) -> str:
         return normalizza_email(email)
     except DatiNonValidi:
         return email.strip().lower()
+
+
+def candidati_login(email: str) -> set[str]:
+    """Forme storiche, Unicode e IDNA dell'indirizzo, senza DNS."""
+    candidati = {email.strip().lower(), identita_login(email)}
+    try:
+        validata = validate_email(
+            email.strip(),
+            check_deliverability=False,
+            test_environment=leggi_impostazioni().email_test_environment,
+        )
+    except EmailNotValidError:
+        return candidati
+    if validata.ascii_email is not None:
+        candidati.add(validata.ascii_email.lower())
+    return candidati

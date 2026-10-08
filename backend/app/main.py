@@ -3,6 +3,7 @@
 from fastapi import FastAPI, Request
 from fastapi.responses import JSONResponse
 
+from app.core.config import leggi_impostazioni
 from app.core.errori import ErroreDominio, NonAutenticato, NonPermesso
 from app.core.eventi_sicurezza import CorrelazioneRichieste, registra, id_richiesta
 from app.core.limite_login import TroppiTentativi, LimiteNonDisponibile
@@ -59,3 +60,14 @@ def errore_dominio(request: Request, errore: ErroreDominio) -> JSONResponse:
 @app.get("/api/health")
 def health() -> dict[str, str]:
     return {"stato": "ok"}
+
+
+@app.get("/api/consorzio")
+def consorzio() -> dict[str, str]:
+    """Contatto pubblico dalla configurazione (R-29)."""
+    impostazioni = leggi_impostazioni()
+    return {
+        "nome": impostazioni.consorzio_nome,
+        "telefono": impostazioni.consorzio_telefono,
+        "email": impostazioni.consorzio_email,
+    }

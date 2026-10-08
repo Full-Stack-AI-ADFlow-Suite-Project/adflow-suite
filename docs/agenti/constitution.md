@@ -3,14 +3,17 @@
 Regole non negoziabili. Se un task le contraddice, fermati e chiedi.
 
 ## 1. Invarianti del prodotto
-1. Si pubblica solo un post `approvato`; si approva solo la campagna intera.
+1. Si pubblica solo un post `approvato`; si approva solo la campagna intera: tutti i suoi post `da_approvare`.
 2. Niente si cancella: versioni di post e foto, decisioni, campagne respinte o scadute restano.
 3. La foto originale (versione 0) non si perde mai.
 4. Generazione e rigenerazioni usano `campagna.profilo_snapshot`, mai il profilo corrente.
-5. In campagna `attiva` o `sospesa` nessuna modifica ai post.
-6. Il testo di un post cambia solo tramite AI + validatore: niente modifica a mano.
+5. In campagna `attiva` o `sospesa` nessuna modifica ai post e nessun intervento sul singolo post: si sospende, si riattiva o si annulla la campagna. Unica eccezione: riprogrammare un post `fallito`.
+6. Ogni versione di un post, scritta dall'AI o dall'operatore, ha un autore e passa il validatore; una modifica a mano con un blocco non si salva.
 7. Pubblicazione idempotente: il tentativo si registra prima di chiamare il social; al massimo un `ok` per post.
 8. Gli stati cambiano solo nel modulo proprietario e solo con `verifica_transizione()` (transizioni in plan §2).
+9. Nella stessa campagna una foto non esce due volte sullo stesso canale.
+10. Il piano di una campagna ha, per ogni canale, esattamente i post chiesti: quelli che le foto non coprono sono riempitivi.
+11. In revisione un post non si toglie: si sistema. I post di una campagna calano solo con un canale tolto o con la scadenza.
 
 ## 2. Architettura
 Monolite a moduli + worker: stesso codice Python, un database, una catena di migrazioni Alembic. Nessun servizio nuovo.
@@ -41,8 +44,8 @@ Ordine dei moduli: `accesso`, `notifiche`, `artigiani`, `campagne`, `contenuti`,
 
 ## 3. Sicurezza
 - Segreti solo in `backend/.env` (mai in git); ogni nuova variabile va in `.env.example` con un valore finto.
-- Password con scrypt; cookie `adflow_sessione` httpOnly; nel database solo l'hash del token.
-- Permessi controllati sul server a ogni richiesta: 401 senza sessione, 403 ruolo, 404 per risorse di un altro artigiano.
+- Password con scrypt; cookie `adflow_sessione` httpOnly; nel database solo l'hash del token; la sessione scade dopo un periodo senza uso (spec R-29).
+- Permessi controllati sul server a ogni richiesta: 401 senza sessione, 403 ruolo, 404 per risorse di un altro artigiano. L'admin passa dove passa l'operatore.
 - Upload: controllo di tipo reale, peso e dimensioni; il nome del file lo genera il server.
 - Permessi social cifrati. Nessun dato personale o token nei log.
 - Nei test nessuna chiamata reale ad AI, social o email.

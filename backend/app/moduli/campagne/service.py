@@ -1,15 +1,24 @@
 """Logica del modulo campagne: l'unica parte che gli altri moduli possono importare."""
 
+from datetime import datetime
 from typing import Any
 
 from sqlalchemy import select
-from sqlalchemy.orm import Session
+from sqlalchemy.orm import Session, selectinload
 
 from app.core.errori import DatiNonValidi, NonTrovato
+from app.core import orologio
 from app.core.transizioni import verifica_transizione
 
-from .domain import ESITI_DECISIONE, ESITO_RESPINTA, MOTIVI_DECISIONE, TRANSIZIONI
-from .models import Campagna, DecisioneCampagna, Foto
+from .domain import (
+    ESITI_DECISIONE,
+    ESITO_RESPINTA,
+    MOTIVI_DECISIONE,
+    TRANSIZIONI,
+    STATI_CHIUSI,
+    ORIGINI_FOTO,
+)
+from .models import Campagna, DecisioneCampagna, Foto, GruppoFoto
 
 
 def campagna(
@@ -90,6 +99,8 @@ def cambia_stato(
     db: Session,
     campagna: Campagna,
     nuovo: str,
+    *,
+    ora: datetime | None = None,
 ) -> None:
     """Aggiorna lo stato della campagna verificando che la transizione sia ammessa.
 
@@ -102,6 +113,7 @@ def cambia_stato(
         db: sessione del database (aperta e chiusa dal chiamante).
         campagna: il record ``Campagna`` da aggiornare (già caricato in sessione).
         nuovo: lo stato di destinazione (es. ``"inviata"``).
+        ora: istante di chiusura iniettato; se assente usa ``core.orologio.adesso``.
 
     Raises:
         StatoNonValido: se la transizione da stato attuale a ``nuovo`` non è
@@ -109,6 +121,8 @@ def cambia_stato(
     """
     verifica_transizione(TRANSIZIONI, campagna.stato, nuovo)
     campagna.stato = nuovo
+    if nuovo in STATI_CHIUSI:
+        campagna.chiusa_il = ora if ora is not None else orologio.adesso()
     db.flush()
 
 
@@ -120,10 +134,12 @@ def registra_decisione(
     motivo: str | None,
     nota: str | None,
     foto_segnate: list[int],
+    canale: str | None = None,
+    post_id: int | None = None,
 ) -> None:
     """Scrive una riga nella tabella ``decisione_campagna``.
 
-    Usata da ``revisione`` dopo ogni approvazione, rimanda o respinta.
+    Usata da ``revisione`` dopo ogni approvazione, nota o respinta.
     Le decisioni non si cancellano mai (constitution §1.2): questa funzione
     crea sempre un nuovo record, non aggiorna quelli esistenti.
 
@@ -131,13 +147,15 @@ def registra_decisione(
         db: sessione del database (aperta e chiusa dal chiamante).
         campagna: il record ``Campagna`` a cui appartiene la decisione.
         utente_id: id dell'operatore che ha preso la decisione.
-        esito: ``"approvata"``, ``"rimandata"`` o ``"respinta"``.
+        esito: uno degli esiti di ``domain.ESITI_DECISIONE``.
         motivo: obbligatorio se ``esito`` è ``"respinta"`` (``"foto"`` o
                 ``"altro"``), ``None`` altrimenti.
         nota: testo libero dell'operatore; obbligatoria se ``esito`` è
               ``"respinta"``, facoltativa altrimenti.
         foto_segnate: lista di id delle foto segnalate come problematiche,
                       vuota se non applicabile.
+        canale: canale tolto, facoltativo (decisione ``canale_tolto``).
+        post_id: post riprogrammato, facoltativo (decisione ``riprogrammato``).
 
     Raises:
         DatiNonValidi: esito o motivo fuori dai valori di ``campagne/domain.py``,
@@ -157,6 +175,8 @@ def registra_decisione(
             motivo=motivo,
             nota=nota,
             foto_segnate=foto_segnate,
+            canale=canale,
+            post_id=post_id,
         )
     )
     db.flush()
@@ -192,3 +212,44 @@ def aggiorna_foto(
     foto.analisi_ai = analisi_ai
     foto.n_utilizzi = n_utilizzi
     db.flush()
+
+
+def gruppi_della_campagna(db: Session, id: int) -> list[GruppoFoto]:
+    """Gruppi della campagna con le foto caricate, senza i gruppi di archivio."""
+    return list(
+        db.scalars(
+            select(GruppoFoto)
+            .where(GruppoFoto.campagna_id == id)
+            .options(selectinload(GruppoFoto.foto))
+            .order_by(GruppoFoto.id)
+            .execution_options(populate_existing=True)
+        )
+    )
+
+
+def aggiungi_foto(
+    db: Session,
+    campagna_id: int,
+    origine: str,
+    file: str,
+    mime: str,
+    larghezza: int,
+    altezza: int,
+) -> Foto:
+    """Crea una foto senza gruppo per le cartoline, senza commit (plan §6)."""
+    proprietaria = campagna(db, campagna_id)
+    if origine not in ORIGINI_FOTO:
+        raise DatiNonValidi("Origine della foto non valida.")
+    record = Foto(
+        profilo_id=proprietaria.profilo_id,
+        campagna_id=campagna_id,
+        gruppo_id=None,
+        origine=origine,
+        file=file,
+        mime=mime,
+        larghezza=larghezza,
+        altezza=altezza,
+    )
+    db.add(record)
+    db.flush()
+    return record

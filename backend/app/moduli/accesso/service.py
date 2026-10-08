@@ -3,25 +3,45 @@
 from collections.abc import Callable
 from datetime import datetime, timedelta
 from functools import lru_cache
+import re
 from typing import Annotated
 
-from fastapi import Depends, Request
-from sqlalchemy import delete, func, select
+from fastapi import Depends, Request, Response
+from sqlalchemy import delete, func, select, update
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
+from app.core.config import leggi_impostazioni
 from app.core.db import get_db
-from app.core.errori import DatiNonValidi, NonAutenticato, NonPermesso
 from app.core.orologio import adesso
+from app.core.errori import DatiNonValidi, NonAutenticato, NonPermesso, NonTrovato
 from app.core.security import genera_token, hash_password, hash_token, verifica_password
 
 from .models import Sessione, Utente
-from .schemas import testo_valido
-from .email import identita_login, normalizza_email
+from .email import candidati_login, identita_login, normalizza_email
 
-DURATA_SESSIONE = timedelta(hours=8)
+
 COOKIE_SESSIONE = "adflow_sessione"
-RUOLI_AMMESSI = ("artigiano", "operatore", "admin")
+
+
+def cookie_sicuro(request: Request) -> bool:
+    """Unica politica per login, logout e rinnovo; Secure obbligatorio in produzione."""
+    impostazioni = leggi_impostazioni()
+    if impostazioni.ambiente == "produzione":
+        return True
+    if impostazioni.cookie_secure is not None:
+        return impostazioni.cookie_secure
+    return request.url.scheme == "https"
+
+
+def durata_sessione(ruolo: str) -> timedelta:
+    """Durata per ruolo configurata in T1-09; nessun ruolo sconosciuto."""
+    impostazioni = leggi_impostazioni()
+    if ruolo == "artigiano":
+        return timedelta(days=impostazioni.sessione_artigiano_giorni)
+    if ruolo in ("operatore", "admin"):
+        return timedelta(hours=impostazioni.sessione_operatore_ore)
+    raise NonAutenticato("Sessione non valida o scaduta.")
 
 
 @lru_cache
@@ -45,12 +65,10 @@ def login(
     candidati = list(
         db.scalars(
             select(Utente)
-            .where(
-                func.lower(Utente.email).in_(
-                    {email.strip().lower(), identita_login(email)}
-                )
-            )
+            .where(func.lower(Utente.email).in_(candidati_login(email)))
+            .order_by(Utente.id)
             .limit(2)
+            .with_for_update()
         )
     )
     # Il vincolo storico distingue maiuscole/minuscole: in presenza di due
@@ -59,7 +77,12 @@ def login(
     password_valida = verifica_password(
         password, record.password_hash if record is not None else _hash_fittizio()
     )
-    if record is None or not password_valida or not record.attivo:
+    if (
+        record is None
+        or not password_valida
+        or not record.attivo
+        or record.ruolo not in ("artigiano", "operatore", "admin")
+    ):
         raise NonAutenticato("Email o password non corrette.")
     logout(db, token_precedente)
     token = genera_token()
@@ -67,7 +90,7 @@ def login(
         Sessione(
             token_hash=hash_token(token),
             utente_id=record.id,
-            scade_il=ora + DURATA_SESSIONE,
+            scade_il=ora + durata_sessione(record.ruolo),
         )
     )
     db.flush()
@@ -81,44 +104,67 @@ def logout(db: Session, token: str | None) -> None:
 
 
 def utente_della_sessione(db: Session, token: str | None, ora: datetime) -> Utente:
-    """Legge l'utente solo con token valido, sessione non scaduta e account attivo."""
+    """Verifica account e sessione e rinnova atomicamente la scadenza (R-29).
+
+    Il rinnovo condizionale non ricrea una sessione revocata o scaduta.
+    La transazione resta del chiamante; nessun commit nel service.
+    """
     if not token:
         raise NonAutenticato("Sessione non valida o scaduta.")
+    digest = hash_token(token)
     record = db.scalar(
         select(Utente)
         .join(Sessione, Sessione.utente_id == Utente.id)
         .where(
-            Sessione.token_hash == hash_token(token),
+            Sessione.token_hash == digest,
             Sessione.scade_il > ora,
             Utente.attivo.is_(True),
+            Utente.ruolo.in_(("artigiano", "operatore", "admin")),
         )
+        .execution_options(populate_existing=True)
     )
     if record is None:
+        raise NonAutenticato("Sessione non valida o scaduta.")
+    rinnovata = db.scalar(
+        update(Sessione)
+        .where(
+            Sessione.token_hash == digest,
+            Sessione.utente_id == record.id,
+            Sessione.scade_il > ora,
+            Sessione.utente_id.in_(
+                select(Utente.id).where(
+                    Utente.attivo.is_(True), Utente.ruolo == record.ruolo
+                )
+            ),
+        )
+        .values(scade_il=ora + durata_sessione(record.ruolo))
+        .returning(Sessione.id)
+    )
+    if rinnovata is None:
         raise NonAutenticato("Sessione non valida o scaduta.")
     return record
 
 
 def utente_corrente(
     request: Request,
-    db: Annotated[Session, Depends(get_db)],
+    response: Response,
+    db: Annotated[Session, Depends(get_db, scope="function")],
     ora: Annotated[datetime, Depends(adesso)],
 ) -> Utente:
-    """Dipendenza FastAPI: restituisce l'utente autenticato dalla sessione.
-
-    Si usa nei router con ``Depends``::
-
-        def mio_endpoint(utente: Annotated[Utente, Depends(utente_corrente)]):
-            ...
-
-    I test possono sostituirla con la fixture ``utente_di_prova`` (T1-06).
-
-    Returns:
-        Il record utente corrispondente al cookie ``adflow_sessione``.
-
-    Raises:
-        NonAutenticato: se il cookie è assente, scaduto o non valido.
-    """
-    return utente_della_sessione(db, request.cookies.get(COOKIE_SESSIONE), ora)
+    """Dipendenza reale: valida la sessione e rinnova anche il cookie browser."""
+    token = request.cookies.get(COOKIE_SESSIONE)
+    record = utente_della_sessione(db, token, ora)
+    response.set_cookie(
+        COOKIE_SESSIONE,
+        token,
+        max_age=int(durata_sessione(record.ruolo).total_seconds()),
+        httponly=True,
+        secure=cookie_sicuro(request),
+        samesite="lax",
+        path="/",
+    )
+    response.headers["Cache-Control"] = "no-store"
+    return record
 
 
 def richiede_ruolo(*ruoli: str) -> Callable[..., Utente]:
@@ -145,11 +191,42 @@ def richiede_ruolo(*ruoli: str) -> Callable[..., Utente]:
     """
 
     def controlla(utente: Annotated[Utente, Depends(utente_corrente)]) -> Utente:
-        if utente.ruolo not in ruoli:
+        if utente.ruolo not in ruoli and not (
+            utente.ruolo == "admin" and "operatore" in ruoli
+        ):
             raise NonPermesso("Non hai i permessi per questa operazione.")
         return utente
 
     return controlla
+
+
+RUOLI_AMMESSI = ("artigiano", "operatore", "admin")
+
+
+def _testo_valido(testo: str, *, campo_postgres: bool = False) -> bool:
+    if campo_postgres and "\x00" in testo:
+        return False
+    try:
+        testo.encode("utf-8")
+    except UnicodeEncodeError:
+        return False
+    return True
+
+
+def _normalizza_email(email: str) -> str:
+    email = email.strip().lower()
+    if (
+        not _testo_valido(email, campo_postgres=True)
+        or len(email) > 320
+        or re.fullmatch(r"[^@\s]+@[^@\s]+\.[^@\s]+", email) is None
+    ):
+        raise DatiNonValidi("Indirizzo email non valido.")
+    return identita_login(email)
+
+
+def _valida_password(password: str) -> None:
+    if not _testo_valido(password) or not password or len(password) > 1024:
+        raise DatiNonValidi("La password deve contenere da 1 a 1024 caratteri.")
 
 
 def crea_utente(
@@ -180,11 +257,11 @@ def crea_utente(
     """
     email = normalizza_email(email)
     nome = nome.strip()
-    if not testo_valido(email, campo_postgres=True):
+    if not _testo_valido(email, campo_postgres=True):
         raise DatiNonValidi("Indirizzo email non valido.")
-    if not testo_valido(nome, campo_postgres=True):
+    if not _testo_valido(nome, campo_postgres=True):
         raise DatiNonValidi("Nome non valido.")
-    if not testo_valido(password):
+    if not _testo_valido(password):
         raise DatiNonValidi("Password non valida.")
     if ruolo not in RUOLI_AMMESSI:
         raise DatiNonValidi("Ruolo non ammesso.")
@@ -192,9 +269,6 @@ def crea_utente(
         raise DatiNonValidi("Il nome non può essere vuoto.")
     if not password or len(password) > 1024:
         raise DatiNonValidi("La password deve contenere da 1 a 1024 caratteri.")
-    # Anche un indirizzo Unicode storico non normalizzato può coincidere con
-    # quello nuovo. La creazione è rara: confronta le identità esistenti senza
-    # modificarle, impedendo che un nuovo account renda ambiguo quello storico.
     if any(
         identita_login(precedente) == email
         for precedente in db.scalars(select(Utente.email))
@@ -225,3 +299,33 @@ def crea_utente(
             raise DatiNonValidi("Email già registrata.") from None
         raise
     return record
+
+
+def cambia_password(db: Session, email: str, password: str) -> None:
+    """Cambia l'hash scrypt e revoca tutte le sessioni, senza commit.
+
+    Il blocco sull'utente coordina questa operazione con il login di T1-11.
+    Un'identità legacy ambigua non viene selezionata arbitrariamente.
+    """
+    candidati_email = candidati_login(email)
+    email = _normalizza_email(email)
+    _valida_password(password)
+    nuovo_hash = hash_password(password)
+    candidati = list(
+        db.scalars(
+            select(Utente)
+            .where(func.lower(Utente.email).in_(candidati_email))
+            .order_by(Utente.id)
+            .limit(2)
+            .with_for_update()
+        )
+    )
+    if not candidati:
+        raise NonTrovato("Utente non trovato.")
+    if len(candidati) != 1:
+        raise DatiNonValidi("Identità utente ambigua.")
+    record = candidati[0]
+    record.password_hash = nuovo_hash
+    record.deve_cambiare_password = False
+    db.execute(delete(Sessione).where(Sessione.utente_id == record.id))
+    db.flush()

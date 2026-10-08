@@ -93,7 +93,7 @@
   .section-head p{ margin:0; font-size:13.5px; color:var(--ink-soft); }
   section{ scroll-margin-top:16px; }
 
-  .counts{ display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:18px; }
+  .counts{ display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-bottom:18px; }
   .count{ display:block; background:var(--paper-raised); border:1px solid var(--line); border-radius:10px; padding:12px 14px; text-decoration:none; color:var(--ink); }
   .count b{ display:block; font-family:"IBM Plex Mono", monospace; font-weight:500; font-size:24px; }
   .count span{ font-size:13px; color:var(--ink-soft); }
@@ -130,16 +130,23 @@
   .diff.block{ display:block; margin-left:0; margin-top:2px; }
   .evento{ font-size:13px; padding:6px 0; }
 </style>
+<!-- fascia-mappa: stato della pagina statica e ritorno alla mappa. Non fa parte della schermata. -->
+<div style="border-bottom:1px solid var(--line); padding:8px 18px; background:var(--paper-raised); color:var(--ink-soft); font:12px/1.5 'IBM Plex Mono', ui-monospace, monospace; display:flex; flex-wrap:wrap; gap:2px 16px; justify-content:space-between;">
+  <a href="index.html" style="color:inherit;">← Mappa delle pagine</a>
+  <span>Pagina statica · <strong style="color:var(--ink); font-weight:500;">approvata</strong> · ADR-53 · ADR-54 · riallineata ad ADR-94, 95</span>
+</div>
+<!-- /fascia-mappa -->
 
 <!-- ============ Barra comune alle pagine operatore ============ -->
 <header class="topbar">
   <div class="wrap">
-    <a class="brand" href="#">AdFlow <small>Operatore</small></a>
+    <a class="brand" href="AdFlow-operatore-ingresso.html">AdFlow <small>Operatore</small></a>
     <nav class="nav" aria-label="Sezioni operatore">
+      <a href="AdFlow-operatore-da-approvare.html">Da approvare</a>
       <a href="AdFlow-operatore-elenco.html" class="current">Artigiani</a>
       <a href="AdFlow-operatore-metriche.html">Metriche</a>
     </nav>
-    <div class="user"><span>Laura Rossi · operatore</span><a href="#">Esci</a></div>
+    <div class="user"><span>Laura Rossi · operatore</span><a href="AdFlow-login.html">Esci</a></div>
   </div>
 </header>
 
@@ -147,7 +154,7 @@
 
   <div class="banner warn">
     <span class="icon">i</span>
-    <span><b>Schema statico, non interattivo</b> (v5.0, ADR-38, ADR-39 e ADR-40…44). Pagina dell'operatore dedicata a un artigiano, con dati di esempio (Falegnameria Bianchi, come nelle pagine Profilo e Campagna). Nessun pulsante funziona: è lo scheletro da cui costruire la pagina reale (sprint 3). Oggi è il 28/09/2026.</span>
+    <span><b>Schema statico, non interattivo</b> (v5.0, ADR-38, ADR-40…44, ADR-53 e ADR-54). Pagina dell'operatore dedicata a un artigiano, con dati di esempio (Falegnameria Bianchi, come nelle pagine Profilo e Campagna). Nessun pulsante funziona: è lo scheletro da cui costruire la pagina reale (sprint 3). Oggi è il 28/09/2026.</span>
   </div>
 
   <div class="crumb"><a href="AdFlow-operatore-elenco.html">← Elenco artigiani</a></div>
@@ -186,21 +193,21 @@
     </div>
 
     <div class="card">
-      <div class="tab">Account social · segnaposto sprint 3</div>
+      <div class="tab">Account social · collegamento dallo sprint 3</div>
       <h3>Pagine su cui si pubblica</h3>
       <div class="social-row">
         <span>Facebook<span class="sub">Falegnameria Bianchi · permesso fino al 12/12/2026</span></span>
         <span class="badge ok">collegato</span>
       </div>
       <div class="social-row">
-        <span>Instagram<span class="sub">canale scelto nel profilo (passo 9)</span></span>
-        <span class="badge danger">non collegato</span>
+        <span>Instagram<span class="sub">falegnameriabianchi · permesso scaduto il 28/09/2026</span></span>
+        <span class="badge danger">permesso scaduto</span>
       </div>
       <div class="foot">
-        <button type="button" class="btn primary">Collega Instagram</button>
+        <button type="button" class="btn primary">Ricollega Instagram</button>
         <button type="button" class="btn quiet">Ricollega Facebook</button>
       </div>
-      <p class="note">Si collega una volta, insieme all'artigiano (ADR-26). Senza account la campagna si genera e si rivede, ma alla prima pubblicazione su quel canale passa a "sospesa".</p>
+      <p class="note">Si collega una volta, insieme all'artigiano. Senza account collegato l'artigiano non può scegliere quel canale in una campagna (ADR-57). Se il permesso scade dopo l'invio, alla prima pubblicazione su quel canale la campagna passa a "sospesa" (R-07). Nello sprint 1 gli account arrivano dal seed.</p>
     </div>
 
     <div class="card">
@@ -210,11 +217,12 @@
         <div class="rev-line"><dt>Bozza dell'artigiano</dt><dd>Campagna Novembre 2026 · 01/11–30/11 · 3 foto in 1 gruppo · ferma al passo 11</dd></div>
         <div class="rev-line"><dt>Profilo aggiornato</dt><dd>20/09/2026 <span class="diff block">dopo l'invio di 1 campagna in corso</span></dd></div>
         <div class="rev-line"><dt>Campagne inviate</dt><dd>6 dal 01/04/2026</dd></div>
+        <div class="rev-line"><dt>Archivio della bottega</dt><dd>41 foto dalle campagne chiuse · nessuna caricata dal profilo · logo assente</dd></div>
         <div class="rev-line"><dt>Post pubblicati</dt><dd>41 in totale · 3 falliti</dd></div>
         <div class="rev-line"><dt>Campagne non uscite</dt><dd>1 scaduta · 1 respinta</dd></div>
       </dl>
       <div class="foot"><a class="btn" href="AdFlow-operatore-metriche.html?artigiano=ART-0042">Vedi metriche →</a></div>
-      <p class="note">La bozza è solo informativa: la compila e la invia l'artigiano.</p>
+      <p class="note">La bozza è solo informativa: la compila e la invia l'artigiano. L'archivio sono le foto buone delle campagne chiuse, usate o no: su un canale dove non sono mai uscite valgono come nuove (ADR-83).</p>
     </div>
 
   </div>
@@ -228,40 +236,40 @@
 
     <div class="banner info">
       <span class="icon">i</span>
-      <span><b>Sezioni (ADR-39).</b> Da approvare: <span class="mono">inviata</span>, <span class="mono">in_generazione</span>, <span class="mono">generazione_fallita</span>, <span class="mono">in_revisione</span> (anche "rimandata") · In corso: <span class="mono">attiva</span>, <span class="mono">sospesa</span> · Scadute: <span class="mono">scaduta</span>, cioè inviate dall'artigiano e non approvate entro l'inizio · Passate: <span class="mono">conclusa</span>, <span class="mono">annullata</span>, <span class="mono">respinta</span>. Approva, rimanda, respingi (con motivo: foto o altro) e gli interventi AI sui post (rigenera il testo, ritocca la foto: max 3 + 3 per post) stanno nella pagina <b>Vedi campagna</b>, con tutti i post e il calendario. In campagna attiva nessuna modifica ai post: si sospende o si annulla (ADR-44).</span>
+      <span><b>Sezioni (ADR-53).</b> Da approvare: <span class="mono">inviata</span>, <span class="mono">in_generazione</span>, <span class="mono">piano_da_rivedere</span>, <span class="mono">generazione_fallita</span>, <span class="mono">in_revisione</span> · In corso: <span class="mono">attiva</span>, <span class="mono">sospesa</span> · Storico: le ultime campagne chiuse (<span class="mono">scaduta</span>, <span class="mono">conclusa</span>, <span class="mono">annullata</span>, <span class="mono">respinta</span>); le altre stanno in una pagina a parte, raggiunta dal pulsante in fondo. Approva, respingi (con motivo: foto o altro), la nota interna, la modifica a mano e gli interventi AI sui post (rigenera il testo, ritocca la foto: max 3 + 3 per post) stanno nella pagina <b>Vedi campagna</b>, con tutti i post e il calendario. In campagna attiva nessuna modifica ai post: si sospende o si annulla (ADR-44).</span>
     </div>
 
     <div class="counts">
       <a class="count attn" href="#da-approvare"><b>1</b><span>Da approvare</span></a>
       <a class="count" href="#in-corso"><b>1</b><span>In corso</span></a>
-      <a class="count" href="#scadute"><b>1</b><span>Scadute</span></a>
-      <a class="count" href="#passate"><b>3</b><span>Passate</span></a>
+      <a class="count" href="#storico"><b>4</b><span>Chiuse · qui le ultime 3</span></a>
     </div>
 
     <div class="group" id="da-approvare">
       <h3 class="group-title">Da approvare <span class="n">1</span></h3>
       <article class="camp attn">
         <div>
-          <h3>Campagna Ottobre 2026 <span class="badge warn">in_revisione</span> <span class="badge">rimandata</span></h3>
+          <h3>Campagna Ottobre 2026 <span class="badge warn">in_revisione</span></h3>
           <div class="meta">
             <span>01/10/2026 → 31/10/2026 · 31 giorni</span>
             <span>Facebook, Instagram</span>
-            <span>3 post/settimana</span>
-            <span>6 foto in 3 gruppi</span>
+            <span>3 post/settimana per canale</span>
+            <span>6 foto in 3 gruppi · 7 dall'archivio</span>
             <span>Inviata il 25/09/2026</span>
           </div>
           <div class="posts">
-            <span class="badge">12 post</span>
-            <span class="badge warn">12 da approvare</span>
+            <span class="badge">26 post · 13 per canale</span>
+            <span class="badge warn">26 da approvare</span>
             <span class="badge danger">1 da rivedere</span>
+            <span class="badge warn">5 riempitivi su Facebook, oltre uno ogni due foto nuove: 2 immagini chieste dall'artigiano, 2 foto già uscite, 1 cartolina</span>
             <span class="badge">5 rigenerazioni del testo usate</span>
           </div>
           <p class="desc">"A ottobre voglio spingere i regali su misura per Natale, ho anche il mercatino il weekend del 6-7 dicembre da preparare."</p>
-          <div class="next"><b>Scade se non approvata entro:</b> 01/10 ore 00:00 · promemoria il 29/09</div>
-          <div class="next"><b>Nota interna</b> (rimandata il 27/09, L. Rossi): aspetto conferma delle date del mercatino.</div>
+          <div class="next"><b>Entro quando:</b> primo post da approvare giovedì 01/10 alle 18:30 · promemoria il 29/09</div>
+          <div class="next"><b>Nota interna</b> (27/09, L. Rossi): aspetto conferma delle date del mercatino.</div>
         </div>
         <div class="actions">
-          <a class="btn primary" href="#">Vedi campagna →</a>
+          <a class="btn primary" href="AdFlow-operatore-campagna.html">Vedi campagna →</a>
         </div>
       </article>
     </div>
@@ -275,13 +283,13 @@
             <span>01/09/2026 → 30/09/2026 · 30 giorni</span>
             <span>Facebook</span>
             <span>3 post/settimana</span>
-            <span>7 foto in 3 gruppi</span>
+            <span>4 foto in 2 gruppi · 8 dall'archivio</span>
             <span>Approvata il 29/08/2026</span>
           </div>
           <div class="posts">
-            <span class="badge">13 post</span>
+            <span class="badge">12 post</span>
             <span class="badge ok">10 pubblicati</span>
-            <span class="badge">2 approvati</span>
+            <span class="badge">1 approvato</span>
             <span class="badge danger">1 fallito</span>
           </div>
           <div class="next"><b>Prossima pubblicazione:</b> 29/09 ore 18:30 · Facebook</div>
@@ -293,8 +301,8 @@
       </article>
     </div>
 
-    <div class="group" id="scadute">
-      <h3 class="group-title">Scadute <span class="n">1</span></h3>
+    <div class="group" id="storico">
+      <h3 class="group-title">Storico <span class="n">ultime 3 di 4</span></h3>
       <article class="camp lost">
         <div>
           <h3>Campagna Agosto 2026 <span class="badge danger">scaduta</span></h3>
@@ -302,7 +310,7 @@
             <span>01/08/2026 → 31/08/2026</span>
             <span>Facebook</span>
             <span>2 post/settimana</span>
-            <span>5 foto in 2 gruppi</span>
+            <span>8 foto in 2 gruppi</span>
             <span>Inviata il 27/07/2026</span>
           </div>
           <div class="posts">
@@ -315,10 +323,6 @@
           <a class="btn" href="#">Vedi campagna →</a>
         </div>
       </article>
-    </div>
-
-    <div class="group" id="passate">
-      <h3 class="group-title">Passate <span class="n">3</span></h3>
       <article class="camp">
         <div>
           <h3>Campagna Luglio 2026 <span class="badge">conclusa</span></h3>
@@ -356,24 +360,10 @@
           <a class="btn" href="#">Vedi campagna →</a>
         </div>
       </article>
-      <article class="camp">
-        <div>
-          <h3>Campagna Primavera 2026 <span class="badge">conclusa</span></h3>
-          <div class="meta">
-            <span>01/04/2026 → 30/06/2026</span>
-            <span>Facebook</span>
-            <span>2 post/settimana</span>
-          </div>
-          <div class="posts">
-            <span class="badge">20 post</span>
-            <span class="badge ok">19 pubblicati</span>
-            <span class="badge danger">1 fallito</span>
-          </div>
-        </div>
-        <div class="actions">
-          <a class="btn" href="#">Vedi campagna →</a>
-        </div>
-      </article>
+      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top:12px;">
+        <a class="btn" href="AdFlow-operatore-artigiano-campagne.html">Tutte le campagne chiuse (4) →</a>
+        <span class="note" style="margin:0;">Scadute, concluse, annullate e respinte, dalla più recente.</span>
+      </div>
     </div>
 
     <!-- Esempio di sezione vuota, per lo sviluppo -->
@@ -484,7 +474,7 @@
         <h3>Come pubblicare</h3>
         <dl style="margin:0;">
           <div class="rev-line"><dt>Canali *</dt><dd>Facebook, Instagram</dd></div>
-          <div class="rev-line"><dt>Frequenza</dt><dd>3-4 a settimana <span class="empty">(= 3 post/settimana)</span></dd></div>
+          <div class="rev-line"><dt>Frequenza</dt><dd>3-4 a settimana <span class="empty">(= 3 post a settimana per canale)</span></dd></div>
           <div class="rev-line"><dt>Orari</dt><dd>La sera e nel weekend</dd></div>
         </dl>
       </div>
