@@ -76,7 +76,9 @@ def upgrade() -> None:
         sa.Column(
             "esito_controllo", postgresql.JSONB(astext_type=sa.Text()), nullable=True
         ),
-        sa.Column("debole", sa.Boolean(), server_default=sa.text("false"), nullable=False),
+        sa.Column(
+            "debole", sa.Boolean(), server_default=sa.text("false"), nullable=False
+        ),
         sa.Column("provider_ai", sa.Text(), nullable=True),
         sa.Column("modello_ai", sa.Text(), nullable=True),
         sa.Column("versione_prompt", sa.Text(), nullable=True),
@@ -169,7 +171,9 @@ def upgrade() -> None:
         "post",
         sa.Column("uscita_id", sa.Integer(), nullable=False),
     )
-    op.create_foreign_key("post_uscita_id_fkey", "post", "uscita", ["uscita_id"], ["id"])
+    op.create_foreign_key(
+        "post_uscita_id_fkey", "post", "uscita", ["uscita_id"], ["id"]
+    )
     op.add_column(
         "post",
         sa.Column(
@@ -192,8 +196,12 @@ def upgrade() -> None:
         "post",
         sa.Column("intervento_dal", sa.DateTime(timezone=True), nullable=True),
     )
-    op.create_unique_constraint("uq_post_uscita_canale", "post", ["uscita_id", "canale"])
-    op.drop_constraint("versione_post_foto_id_fkey", "versione_post", type_="foreignkey")
+    op.create_unique_constraint(
+        "uq_post_uscita_canale", "post", ["uscita_id", "canale"]
+    )
+    op.drop_constraint(
+        "versione_post_foto_id_fkey", "versione_post", type_="foreignkey"
+    )
     op.drop_column("versione_post", "foto_id")
     op.add_column(
         "versione_post",

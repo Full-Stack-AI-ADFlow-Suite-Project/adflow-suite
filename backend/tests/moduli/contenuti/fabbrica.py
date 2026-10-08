@@ -78,7 +78,9 @@ def post_da_approvare(db: Session, *, campagna_id: int | None = None, **campi) -
     else:
         immagine = foto(db, campagna=campagna)
     immagine.n_utilizzi += 1
-    uscita_della_campagna = uscita(db, campagna)
+    gruppi = campagne.gruppi_della_campagna(db, campagna_id)
+    mazzo = next((g for g in gruppi if g.id == immagine.gruppo_id), None)
+    uscita_della_campagna = uscita(db, campagna, mazzo)
     dati = dict(
         campagna_id=campagna_id,
         uscita_id=uscita_della_campagna.id,

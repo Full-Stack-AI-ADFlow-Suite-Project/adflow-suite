@@ -47,6 +47,12 @@ python -m app.cli seed             # artigiano con profilo, operatore e admin
 
 Il comando chiede a terminale la password dei tre utenti (`artigiano@example.com`, `operatore@example.com`, `admin@example.com`): non è scritta nel codice. Un altro utente si crea con `python -m app.cli crea-utente --email … --nome … --ruolo artigiano|operatore|admin` (funziona da T1-13).
 
+Il seed crea anche gli account social finti Facebook e Instagram, nello stato `collegato`. Se si rilancia, aggiunge gli account mancanti e conserva quelli esistenti, incluso il loro stato.
+
+`python -m app.cli cambia-password --email …` chiede e conferma la nuova password a terminale, poi delega al service di accesso; l'implementazione del cambio password arriva con T1-13.
+
+In `.env` configura `CONSORZIO_NOME`, `CONSORZIO_TELEFONO` e `CONSORZIO_EMAIL`: `GET /api/consorzio` restituisce soltanto questi contatti, senza sessione. Se non sono configurati restituisce stringhe vuote. `SESSIONE_ARTIGIANO_GIORNI=7` e `SESSIONE_OPERATORE_ORE=12` definiscono la durata senza uso (anche per l'admin); saranno usate dal login di T1-11 e dal rinnovo a ogni richiesta di T1-12.
+
 Controllo: `http://localhost:8000/api/health` risponde `{"stato":"ok"}`; la documentazione delle API è su `http://localhost:8000/docs`.
 
 Prima di ogni PR, sempre da `backend/`:

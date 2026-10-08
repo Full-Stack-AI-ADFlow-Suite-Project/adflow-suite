@@ -3,7 +3,7 @@
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
-from .models import ProfiloBottega
+from .models import AccountSocial, ProfiloBottega
 
 
 def profilo_di(
@@ -26,4 +26,18 @@ def profilo_di(
     """
     return db.scalar(
         select(ProfiloBottega).where(ProfiloBottega.utente_id == utente_id)
+    )
+
+
+def canali_collegati(db: Session, profilo_id: int) -> list[str]:
+    """Canali con account nello stato collegato, in ordine di piattaforma (R-22)."""
+    return list(
+        db.scalars(
+            select(AccountSocial.piattaforma)
+            .where(
+                AccountSocial.profilo_id == profilo_id,
+                AccountSocial.stato == "collegato",
+            )
+            .order_by(AccountSocial.piattaforma)
+        )
     )
