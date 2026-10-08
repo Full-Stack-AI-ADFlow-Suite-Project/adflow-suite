@@ -588,6 +588,20 @@ def test_seed_completa_account_mancante_senza_duplicare(db):
     assert db.scalar(select(func.count()).select_from(AccountSocial)) == 2
 
 
+def test_errori_di_configurazione_non_mostrano_segreti():
+    segreto = "CredenzialeFintaDaNonMostrare!2026"
+    with pytest.raises(ValidationError) as errore:
+        Impostazioni(
+            _env_file=None,
+            database_url={"credenziale": segreto},
+            database_url_test="postgresql://finto",
+        )
+    messaggio = str(errore.value)
+    assert "database_url" in messaggio
+    assert segreto not in messaggio
+    assert "input_value" not in messaggio
+
+
 def test_contratti_scrittura_non_fanno_commit(db, monkeypatch):
     def commit_vietato():
         raise AssertionError("I service e le fabbriche non fanno commit.")
