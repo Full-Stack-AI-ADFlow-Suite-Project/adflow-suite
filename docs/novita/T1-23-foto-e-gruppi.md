@@ -1,11 +1,23 @@
 # Novità · T1-23 Foto e Gruppi
 
-7 ottobre 2026 · corsia 2 (Silvia) · branch `feature/T1-23-foto-e-gruppi`
+8-9 ottobre 2026 · corsia 2 (Silvia) · branch `feature/T1-23-foto-e-gruppi`
 
 ## Funzionalità implementate
 
+- `POST /api/campagne/{id}/gruppi`: creazione esplicita di un gruppo di foto (`HTTP 201`).
+  - Supporta sia gruppi di origine `caricate` (foto manuali) sia `create_ai` (foto generate dal modello AI, CA-46).
+  - Validazione date (CA-47): se specificato `da_usare_il`, deve ricadere tra `data_inizio` e `data_fine` della campagna (`HTTP 422`).
+  - Validazione immagini AI (CA-47): per gruppi `create_ai`, `n_immagini` deve essere compreso tra 1 e 20 (`HTTP 422`).
+  - Consentito solo per campagne in stato `bozza` (`HTTP 409`) e dall'artigiano proprietario (CA-04: `HTTP 404` per campagne altrui).
+- `PUT /api/campagne/{id}/gruppi/{gruppo_id}`: aggiornamento metadati del gruppo (`HTTP 200`).
+  - Consente l'aggiornamento di `descrizione`, `da_usare_il` e `n_immagini`.
+  - Vincolo di stato: consentito solo per campagne in stato `bozza` (`HTTP 409`).
+  - Riservatezza CA-04: solo l'artigiano proprietario può aggiornare il gruppo (`HTTP 404` ad altri artigiani).
+- `DELETE /api/campagne/{id}/gruppi/{gruppo_id}`: eliminazione atomica dell'intero gruppo (`HTTP 204`).
+  - Eliminazione di tutte le foto del gruppo da database e rimozione dei rispettivi file fisici dall'archivio con pulizia sicura post-commit.
+  - Consentito solo per campagne in stato `bozza` (`HTTP 409`) dall'artigiano proprietario.
 - `POST /api/campagne/{id}/foto`: caricamento foto per campagna in bozza (`HTTP 201`).
-  - Controllo del peso: lettura a blocchi di 64 KB con rifiuto oltre 10 MB (Spec R-13, CA-13: `HTTP 422`). Il limite protegge la memoria e il disco dell'archivio, ma non la banda: vedi "Limiti noti".
+  - Controllo del peso: lettura a blocchi di 64 KB con rifiuto oltre 10 MB (Spec R-13, CA-13: `HTTP 422`).
   - Parser binario puro (`immagini.py`) senza dipendenze esterne: ispezione nativa con `struct` per formati PNG (chunk IHDR), JPEG (marker SOF0..SOF15 con salto byte padding `0xFF` e RST), e WebP (VP8 lossy, VP8L lossless bit-packed e VP8X extended canvas a 24-bit).
   - Validazione dimensionale R-13 / CA-13: `min(larghezza, altezza) >= 1080 px` (`HTTP 422`).
   - Protezione Defense in Depth anti-DoS:
@@ -13,24 +25,21 @@
     - Protezione Decompression Bomb / Pixel Flood: `MAX_PIXELS = 36_000_000` (`HTTP 422`).
   - Sanificazione totale del nome file: memorizzazione su archivio con UUIDv4 univoco generato dal server (Constitution §3).
   - Compensazione transazionale: il file viene scritto prima del record; se il flush fallisce o la transazione termina con un rollback (anche dopo la risposta), il file viene rimosso. Se il processo si interrompe di colpo resta un file orfano, innocuo.
-  - Gestione gruppi: generazione automatica di un nuovo UUID per il gruppo o associazione a un gruppo esistente della campagna con ereditarietà automatica della descrizione già impostata.
-- `PUT /api/campagne/{id}/gruppi/{gruppo_id}`: aggiornamento descrizione del gruppo (`HTTP 200`).
-  - Copia e sincronizzazione atomica della descrizione su tutte le foto appartenenti al gruppo indicato.
-  - Vincolo di stato: consentito solo per campagne in stato `bozza` (`HTTP 409`).
-  - Riservatezza CA-04: solo l'artigiano proprietario può aggiornare il gruppo (`HTTP 404` per altri artigiani).
+  - Associazione a gruppo: supporta l'ID del gruppo (`gruppo_id: int`); se omesso, viene creato automaticamente un gruppo `caricate`.
+  - Blocco upload manuale su gruppi AI (CA-47): se il gruppo specificato ha `origine="create_ai"`, l'upload manuale viene bloccato con `HTTP 422`.
+- `PUT /api/foto/{id}`: contrassegno stella foto per la generazione (`HTTP 200`).
+  - Consente di impostare il flag `da_usare: bool` per marcare la foto da utilizzare (Plan §3).
+  - Consentito solo in stato `bozza` (`HTTP 409`) dall'artigiano proprietario (`HTTP 404` per altri).
 - `DELETE /api/foto/{id}`: eliminazione singola foto (`HTTP 204`).
   - Il file fisico viene cancellato solo dopo il commit riuscito (non dopo il `flush()`): se la transazione viene annullata restano record e file. Un errore del disco dopo il commit viene registrato nel log e lascia al massimo un file orfano.
   - Consentito solo per campagne in stato `bozza` (`HTTP 409`) dall'artigiano proprietario (`HTTP 404` ad altri).
-- `DELETE /api/campagne/{id}/gruppi/{gruppo_id}`: eliminazione atomica dell'intero gruppo (`HTTP 204`).
-  - Eliminazione di tutte le foto del gruppo da database e rimozione dei rispettivi file fisici dall'archivio.
-  - Consentito solo per campagne in stato `bozza` (`HTTP 409`) dall'artigiano proprietario.
 - `GET /api/foto/{id}/file`: download file originale dall'archivio (`HTTP 200`).
   - Streaming dei byte con Content-Type corrispondente (`image/png`, `image/jpeg`, `image/webp`).
   - Autorizzazioni granulari: consentito all'artigiano proprietario e agli operatori/admin del consorzio; `HTTP 404` per artigiani terzi (CA-04).
 
 ## Test e Robustezza
 
-- Suite completa in `tests/moduli/campagne/test_foto_gruppi.py`:
+- Suite completa in `tests/moduli/campagne/test_foto_gruppi.py` (42 test):
   - `test_ca13_rifiuto_file_non_immagine` (422)
   - `test_ca13_rifiuto_payload_oltre_10mb` (422)
   - `test_ca13_rifiuto_lato_corto_inferiore_1080px` (422)
@@ -68,7 +77,12 @@
   - `test_rollback_successivo_non_tocca_i_file_gia_confermati` (nessun effetto su foto già confermate)
   - `test_eliminazione_con_rollback_conserva_file_e_record` (DELETE annullata, tutto intatto)
   - `test_limite_massimo_20_foto_per_campagna` (422 al 21-esimo upload, nessun file orfano su disco)
-- 228 test totali passati con successo su tutta la suite locale.
+  - `test_ca46_creazione_gruppo_create_ai_con_descrizione_e_n_immagini` (201, gruppo AI valido con data e n_immagini)
+  - `test_ca47_gruppo_create_ai_n_immagini_fuori_limite_da_422` (422 se n_immagini < 1 o > 20)
+  - `test_ca47_foto_caricata_in_gruppo_create_ai_da_422` (422 se si carica manualmente foto in gruppo create_ai)
+  - `test_ca47_gruppo_da_usare_il_fuori_dal_periodo_da_422` (422 se data gruppo non compresa tra data_inizio e data_fine)
+  - `test_stella_foto_put_da_usare` (200 toggle stella, 409 fuori bozza, 404 altrui)
+- **251 test totali verdi** su tutta la suite locale (214 in `moduli/campagne`, 19 in `test_confini.py`, 18 in `adapters/archivio`).
 
 ## Limiti e Misure di Sicurezza Applicate
 

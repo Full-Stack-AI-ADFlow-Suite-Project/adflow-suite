@@ -317,7 +317,7 @@ def test_gestione_gruppi_e_descrizione(
         prof = profilo(db, utente_id=art.id)
         camp = campagna_in_bozza(db, profilo_id=prof.id)
 
-        # 1. Carica prima foto senza gruppo_id: riceve nuovo UUID
+        # 1. Carica prima foto senza gruppo_id: crea un gruppo di default 'caricate' (int)
         png_1 = _crea_png(1080, 1080)
         res_1 = client.post(
             f"/api/campagne/{camp.id}/foto",
@@ -326,7 +326,7 @@ def test_gestione_gruppi_e_descrizione(
         assert res_1.status_code == 201
         gruppo_id = res_1.json()["gruppo_id"]
         foto1_id = res_1.json()["id"]
-        assert UUID(gruppo_id)
+        assert isinstance(gruppo_id, int)
 
         # 2. Aggiorna descrizione gruppo via PUT
         res_put = client.put(
@@ -338,11 +338,14 @@ def test_gestione_gruppi_e_descrizione(
             res_put.json()["descrizione"] == "Ceramiche decorate a mano con smalti blu"
         )
 
-        # Verifica che foto 1 abbia ora la descrizione
-        foto1_db = db.get(Foto, foto1_id)
-        assert foto1_db.descrizione == "Ceramiche decorate a mano con smalti blu"
+        # Verifica che il gruppo a DB abbia la descrizione aggiornata
+        db.expire_all()
+        from app.moduli.campagne.models import GruppoFoto
 
-        # 3. Carica seconda foto specificando lo stesso gruppo_id: eredita automaticamente la descrizione!
+        gruppo_db = db.get(GruppoFoto, gruppo_id)
+        assert gruppo_db.descrizione == "Ceramiche decorate a mano con smalti blu"
+
+        # 3. Carica seconda foto specificando lo stesso gruppo_id
         jpg_2 = _crea_jpeg(1200, 1200)
         res_2 = client.post(
             f"/api/campagne/{camp.id}/foto",
@@ -351,7 +354,6 @@ def test_gestione_gruppi_e_descrizione(
         )
         assert res_2.status_code == 201
         assert res_2.json()["gruppo_id"] == gruppo_id
-        assert res_2.json()["descrizione"] == "Ceramiche decorate a mano con smalti blu"
 
 
 def test_aggiornamento_descrizione_gruppo_campagna_non_in_bozza_da_409(
@@ -379,11 +381,11 @@ def test_aggiornamento_descrizione_gruppo_inesistente_da_404(
     camp = campagna_in_bozza(db, profilo_id=prof.id)
 
     risposta = client.put(
-        f"/api/campagne/{camp.id}/gruppi/{uuid4()}",
+        f"/api/campagne/{camp.id}/gruppi/99999",
         json={"descrizione": "Nuova descrizione"},
     )
     assert risposta.status_code == 404
-    assert "Gruppo di foto non trovato" in risposta.json()["detail"]
+    assert "Gruppo non trovato nella campagna" in risposta.json()["detail"]
 
 
 # ==============================================================================
@@ -868,7 +870,6 @@ def test_debug_upload_multipli_nello_stesso_gruppo(
             )
             assert res_i.status_code == 201
             assert res_i.json()["gruppo_id"] == gruppo_id
-            assert res_i.json()["descrizione"] == "Set completo sculture in legno"
 
         # Verifica totale foto nel gruppo a DB
         totale = (
@@ -1068,16 +1069,15 @@ def test_debug_dettaglio_campagna_con_struttura_foto_completa(
         res_dett = client.get(f"/api/campagne/{camp.id}")
         assert res_dett.status_code == 200
         dati_camp = res_dett.json()
-        assert len(dati_camp["foto"]) == 3
+        gruppi = dati_camp["gruppi"]
+        assert len(gruppi) >= 2
+        totale_foto = sum(len(g["foto"]) for g in gruppi)
+        assert totale_foto == 3
 
-        gruppi_restituiti = {f["gruppo_id"] for f in dati_camp["foto"]}
-        assert gruppi_restituiti == {g1, g2}
-
-        # Foto di gruppo 1 devono avere la descrizione impostata
-        foto_g1 = [f for f in dati_camp["foto"] if f["gruppo_id"] == g1]
-        assert len(foto_g1) == 2
-        for f in foto_g1:
-            assert f["descrizione"] == "Gruppo 1 Ceramiche"
+        gruppo_g1 = next((g for g in gruppi if g["id"] == g1), None)
+        assert gruppo_g1 is not None
+        assert gruppo_g1["descrizione"] == "Gruppo 1 Ceramiche"
+        assert len(gruppo_g1["foto"]) == 2
 
 
 def test_debug_concorrenza_reale_upload_multi_thread(motore_test, tmp_path: Path):
@@ -1146,8 +1146,16 @@ def test_debug_concorrenza_reale_upload_multi_thread(motore_test, tmp_path: Path
                     {"cid": camp_id},
                 )
                 s.execute(
+                    text("DELETE FROM gruppo_foto WHERE campagna_id = :cid"),
+                    {"cid": camp_id},
+                )
+                s.execute(
                     text("DELETE FROM campagna WHERE id = :cid"),
                     {"cid": camp_id},
+                )
+                s.execute(
+                    text("DELETE FROM account_social WHERE profilo_id = :pid"),
+                    {"pid": prof_id},
                 )
                 s.execute(
                     text("DELETE FROM profilo_bottega WHERE id = :pid"),
@@ -1236,18 +1244,28 @@ def test_eliminazione_con_rollback_conserva_file_e_record(
 def test_limite_massimo_20_foto_per_campagna(
     client: TestClient, utente_di_prova, db: Session, tmp_path: Path
 ):
-    """Caricare più di 20 foto per campagna solleva 422 e non salva il file su disco."""
+    """Caricare più di 20 foto per gruppo solleva 422 e non salva il file su disco (CA-13)."""
+    from app.moduli.campagne.models import GruppoFoto
+
     with usa_archivio(ArchivioDisco(tmp_path)):
         art = utente_di_prova("artigiano")
         prof = profilo(db, utente_id=art.id)
         camp = campagna_in_bozza(db, profilo_id=prof.id)
+
+        gruppo_db = GruppoFoto(
+            profilo_id=prof.id,
+            campagna_id=camp.id,
+            origine="caricate",
+        )
+        db.add(gruppo_db)
+        db.flush()
 
         for i in range(20):
             db.add(
                 Foto(
                     profilo_id=prof.id,
                     campagna_id=camp.id,
-                    gruppo_id=uuid4(),
+                    gruppo_id=gruppo_db.id,
                     origine="caricata",
                     file=f"foto_{i}.png",
                     mime="image/png",
@@ -1259,8 +1277,153 @@ def test_limite_massimo_20_foto_per_campagna(
 
         res = client.post(
             f"/api/campagne/{camp.id}/foto",
+            data={"gruppo_id": gruppo_db.id},
             files={"file": ("foto21.png", BytesIO(_crea_png(1080, 1080)), "image/png")},
         )
         assert res.status_code == 422
-        assert "limite massimo di 20 foto" in res.json()["detail"]
+        assert "massimo 20 foto" in res.json()["detail"]
         assert list(tmp_path.iterdir()) == []
+
+
+# ==============================================================================
+# CA-46, CA-47 & Stella (T1-23 specifici)
+# ==============================================================================
+
+
+def test_ca46_creazione_gruppo_create_ai_con_descrizione_e_n_immagini(
+    client: TestClient, utente_di_prova, db: Session
+):
+    """CA-46: bozza -> gruppo create_ai con descrizione e n_immagini -> salvato e restituito nel dettaglio."""
+    art = utente_di_prova("artigiano")
+    prof = profilo(db, utente_id=art.id)
+    camp = campagna_in_bozza(db, profilo_id=prof.id)
+
+    res = client.post(
+        f"/api/campagne/{camp.id}/gruppi",
+        json={
+            "origine": "create_ai",
+            "descrizione": "Immagini generate AI ispirate alla tradizione sarda",
+            "n_immagini": 5,
+        },
+    )
+    assert res.status_code == 201
+    dati_g = res.json()
+    assert dati_g["origine"] == "create_ai"
+    assert (
+        dati_g["descrizione"] == "Immagini generate AI ispirate alla tradizione sarda"
+    )
+    assert dati_g["n_immagini"] == 5
+    gruppo_id = dati_g["id"]
+
+    # Dettaglio campagna include il gruppo create_ai
+    res_dett = client.get(f"/api/campagne/{camp.id}")
+    assert res_dett.status_code == 200
+    gruppi = res_dett.json()["gruppi"]
+    gruppo_trovato = next((g for g in gruppi if g["id"] == gruppo_id), None)
+    assert gruppo_trovato is not None
+    assert gruppo_trovato["origine"] == "create_ai"
+    assert gruppo_trovato["n_immagini"] == 5
+
+
+def test_ca47_gruppo_create_ai_n_immagini_fuori_limite_da_422(
+    client: TestClient, utente_di_prova, db: Session
+):
+    """CA-47: gruppo create_ai con n_immagini fuori da 1-20 -> 422."""
+    art = utente_di_prova("artigiano")
+    prof = profilo(db, utente_id=art.id)
+    camp = campagna_in_bozza(db, profilo_id=prof.id)
+
+    # Troppe immagini (> 20)
+    res_troppe = client.post(
+        f"/api/campagne/{camp.id}/gruppi",
+        json={"origine": "create_ai", "n_immagini": 25},
+    )
+    assert res_troppe.status_code == 422
+
+    # Zero immagini (< 1)
+    res_zero = client.post(
+        f"/api/campagne/{camp.id}/gruppi",
+        json={"origine": "create_ai", "n_immagini": 0},
+    )
+    assert res_zero.status_code == 422
+
+
+def test_ca47_foto_caricata_in_gruppo_create_ai_da_422(
+    client: TestClient, utente_di_prova, db: Session, tmp_path: Path
+):
+    """CA-47: foto caricata in un gruppo create_ai -> 422."""
+    with usa_archivio(ArchivioDisco(tmp_path)):
+        art = utente_di_prova("artigiano")
+        prof = profilo(db, utente_id=art.id)
+        camp = campagna_in_bozza(db, profilo_id=prof.id)
+
+        res_g = client.post(
+            f"/api/campagne/{camp.id}/gruppi",
+            json={"origine": "create_ai", "n_immagini": 3},
+        )
+        assert res_g.status_code == 201
+        gruppo_ai_id = res_g.json()["id"]
+
+        # Caricamento foto indicando gruppo_ai_id solleva 422
+        res_foto = client.post(
+            f"/api/campagne/{camp.id}/foto",
+            data={"gruppo_id": gruppo_ai_id},
+            files={"file": ("foto.png", BytesIO(_crea_png(1080, 1080)), "image/png")},
+        )
+        assert res_foto.status_code == 422
+        assert (
+            "non è consentito caricare foto in un gruppo create_ai"
+            in res_foto.json()["detail"].lower()
+        )
+
+
+def test_ca47_gruppo_da_usare_il_fuori_dal_periodo_da_422(
+    client: TestClient, utente_di_prova, db: Session
+):
+    """CA-47: gruppo con da_usare_il fuori dal periodo della campagna -> 422."""
+    from datetime import timedelta
+
+    art = utente_di_prova("artigiano")
+    prof = profilo(db, utente_id=art.id)
+    camp = campagna_in_bozza(db, profilo_id=prof.id)
+
+    # Data precedente all'inizio della campagna
+    data_fuori = (camp.inizio - timedelta(days=2)).isoformat()
+    res = client.post(
+        f"/api/campagne/{camp.id}/gruppi",
+        json={"origine": "caricate", "da_usare_il": data_fuori},
+    )
+    assert res.status_code == 422
+    assert "periodo della campagna" in res.json()["detail"]
+
+
+def test_stella_foto_put_da_usare(
+    client: TestClient, utente_di_prova, db: Session, tmp_path: Path
+):
+    """Plan §3: PUT /foto/{id} con {"da_usare": bool} imposta o rimuove la stella."""
+    with usa_archivio(ArchivioDisco(tmp_path)):
+        art = utente_di_prova("artigiano")
+        prof = profilo(db, utente_id=art.id)
+        camp = campagna_in_bozza(db, profilo_id=prof.id)
+
+        # Upload foto iniziale
+        res = client.post(
+            f"/api/campagne/{camp.id}/foto",
+            files={"file": ("foto.png", BytesIO(_crea_png(1080, 1080)), "image/png")},
+        )
+        assert res.status_code == 201
+        foto_id = res.json()["id"]
+        assert res.json()["da_usare"] is False
+
+        # Accendi stella
+        res_on = client.put(f"/api/foto/{foto_id}", json={"da_usare": True})
+        assert res_on.status_code == 200
+        assert res_on.json()["da_usare"] is True
+
+        db.expire_all()
+        assert db.get(Foto, foto_id).da_usare is True
+
+        # Spegni stella
+        res_off = client.put(f"/api/foto/{foto_id}", json={"da_usare": False})
+        assert res_off.status_code == 200
+        assert res_off.json()["da_usare"] is False

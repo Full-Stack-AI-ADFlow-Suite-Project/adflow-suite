@@ -1,19 +1,18 @@
 """Logica del modulo campagne: l'unica parte che gli altri moduli possono importare."""
 
 from collections.abc import Callable
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 import logging
 from typing import Any
-import uuid
 from uuid import UUID
 
 from sqlalchemy import event, func, select, text
 from sqlalchemy.orm import Session, selectinload
 
 from app.adapters.archivio import ottieni_archivio
+from app.core import orologio
 from app.core.config import leggi_impostazioni
 from app.core.errori import DatiNonValidi, NonPermesso, NonTrovato, StatoNonValido
-from app.core import orologio
 from app.core.orologio import ROMA
 from app.core.transizioni import verifica_transizione
 from app.moduli.artigiani import service as artigiani_service
@@ -33,9 +32,30 @@ from .domain import (
     STATI_CHIUSI,
     TRANSIZIONI,
 )
-from .immagini import MAX_FOTO_PER_CAMPAGNA, analizza_e_valida_immagine
+from .immagini import (
+    MAX_FOTO_PER_CAMPAGNA,
+    MAX_HEIGHT,
+    MAX_PIXELS,
+    MAX_WIDTH,
+    MIN_LATO_CORTO,
+    analizza_e_valida_immagine,
+)
 from .models import Campagna, DecisioneCampagna, Foto, GruppoFoto
-from .schemas import CampagnaCrea, CampagnaDettaglio
+from .schemas import (
+    CampagnaCrea,
+    CampagnaDettaglio,
+    CampagnaElencoItem,
+    DecisioneSintetica,
+    FotoSintetica,
+    GruppoAggiorna,
+    GruppoCrea,
+    GruppoSintetico,
+)
+
+CANALI_AMMESSI = ("facebook", "instagram")
+POST_A_SETTIMANA = {"f1_2": 2, "f3_4": 3, "f5_piu": 5, "decidete_voi": 3}
+LIMITI_POLICY_FOTO = {"meno_5": 4, "da5_a12": 12, "da12_a20": 20}
+logger = logging.getLogger(__name__)
 
 
 def campagna(
@@ -66,23 +86,27 @@ def campagna(
 
 def foto_della_campagna(
     db: Session,
-    id: int,
+    campagna_id: int,
 ) -> list[Foto]:
     """Restituisce tutte le foto associate alla campagna indicata.
 
-    Usata da ``contenuti`` (analisi AI), ``revisione`` e ``pubblicazione``.
-    Restituisce una lista vuota se la campagna non ha foto, senza sollevare
-    eccezioni: la presenza di foto è verificata altrove (es. prima dell'invio).
+    Usata da ``contenuti`` durante la generazione e da ``revisione``.
+    Include sia le foto caricate dall'artigiano che quelle generate
+    (immagini AI, cartoline). L'ordinamento è per id crescente per
+    avere un risultato deterministico.
 
     Args:
         db: sessione del database (aperta e chiusa dal chiamante).
-        id: chiave primaria della campagna.
+        campagna_id: chiave primaria della campagna.
 
     Returns:
-        Lista di record ``Foto``, vuota se la campagna non ne ha.
+        Lista dei record ``Foto`` appartenenti alla campagna,
+        eventualmente vuota se la campagna non ha ancora foto.
     """
     return list(
-        db.scalars(select(Foto).where(Foto.campagna_id == id).order_by(Foto.id))
+        db.scalars(
+            select(Foto).where(Foto.campagna_id == campagna_id).order_by(Foto.id)
+        )
     )
 
 
@@ -90,24 +114,26 @@ def campagne_in_stato(
     db: Session,
     stati: list[str],
 ) -> list[Campagna]:
-    """Restituisce tutte le campagne che si trovano in uno degli stati indicati.
+    """Restituisce le campagne che si trovano in uno degli stati indicati.
 
-    Usata da ``contenuti``, ``revisione`` e ``pubblicazione`` per ottenere
-    le campagne su cui agire (es. tutte le ``in_revisione`` da mostrare
-    all'operatore). Accetta una lista per permettere query multi-stato
-    con una sola chiamata al database.
+    Usata da ``contenuti`` per trovare le campagne pronte per la generazione,
+    da ``revisione`` per la lista delle campagne da approvare e da
+    ``pubblicazione`` per individuare quelle attive o sospese.
 
     Args:
         db: sessione del database (aperta e chiusa dal chiamante).
-        stati: lista di stati validi (es. ``["in_revisione", "attiva"]``).
-               Gli stati ammessi sono definiti in ``campagne/domain.py``.
+        stati: lista di stringhe con i nomi degli stati da cercare
+               (es. ``["inviata", "in_generazione"]``).
 
     Returns:
-        Lista di record ``Campagna``, vuota se nessuna corrisponde.
+        Lista dei record ``Campagna`` corrispondenti, ordinati per
+        data di inizio crescente (le più vicine prima).
     """
     return list(
         db.scalars(
-            select(Campagna).where(Campagna.stato.in_(stati)).order_by(Campagna.id)
+            select(Campagna)
+            .where(Campagna.stato.in_(stati))
+            .order_by(Campagna.inizio.asc(), Campagna.id.asc())
         )
     )
 
@@ -116,7 +142,6 @@ def cambia_stato(
     db: Session,
     campagna: Campagna,
     nuovo: str,
-    *,
     ora: datetime | None = None,
 ) -> None:
     """Aggiorna lo stato della campagna verificando che la transizione sia ammessa.
@@ -179,23 +204,34 @@ def registra_decisione(
             oppure ``respinta`` senza motivo o senza nota (R-18).
     """
     if esito not in ESITI_DECISIONE:
-        raise DatiNonValidi("Esito della decisione non valido.")
-    if motivo is not None and motivo not in MOTIVI_DECISIONE:
-        raise DatiNonValidi("Motivo della decisione non valido.")
-    if esito == ESITO_RESPINTA and (motivo is None or not (nota or "").strip()):
-        raise DatiNonValidi("Per respingere servono il motivo e la nota.")
-    db.add(
-        DecisioneCampagna(
-            campagna_id=campagna.id,
-            utente_id=utente_id,
-            esito=esito,
-            motivo=motivo,
-            nota=nota,
-            foto_segnate=foto_segnate,
-            canale=canale,
-            post_id=post_id,
-        )
+        raise DatiNonValidi(f"Esito non valido: {esito}.")
+
+    if esito == ESITO_RESPINTA:
+        if motivo not in MOTIVI_DECISIONE:
+            raise DatiNonValidi(
+                "La decisione di respingimento richiede un motivo valido."
+            )
+        if not nota or not nota.strip():
+            raise DatiNonValidi(
+                "La decisione di respingimento richiede una nota non vuota."
+            )
+    else:
+        if motivo is not None:
+            raise DatiNonValidi(
+                "Il motivo è ammesso solo per decisioni di respingimento."
+            )
+
+    record = DecisioneCampagna(
+        campagna_id=campagna.id,
+        utente_id=utente_id,
+        esito=esito,
+        canale=canale,
+        post_id=post_id,
+        motivo=motivo,
+        nota=nota.strip() if nota else None,
+        foto_segnate=foto_segnate,
     )
+    db.add(record)
     db.flush()
 
 
@@ -229,498 +265,6 @@ def aggiorna_foto(
     foto.analisi_ai = analisi_ai
     foto.n_utilizzi = n_utilizzi
     db.flush()
-
-
-def crea_bozza(
-    db: Session,
-    utente_id: int,
-    dati: CampagnaCrea,
-    ora: datetime,
-) -> Campagna:
-    """Crea una nuova campagna nello stato bozza per l'artigiano autenticato.
-
-    Verifica le regole di pianificazione R-08 e i vincoli di unicità R-12:
-    - Anticipo minimo di 3 giorni rispetto a oggi (CA-09).
-    - Data di fine successiva a data di inizio (CA-10).
-    - Durata massima di 92 giorni (CA-10).
-    - Una sola bozza contemporanea per l'artigiano (CA-11).
-    - Periodo non sovrapposto con campagne attive o in corso dello stesso artigiano (CA-12).
-
-    Args:
-        db: sessione del database aperta dal chiamante.
-        utente_id: ID dell'utente artigiano.
-        dati: payload validato con titolo, date, descrizione e flag crea_immagini_ai.
-        ora: data e ora correnti (per calcolo anticipo minimo).
-
-    Returns:
-        Il record Campagna appena creato in stato bozza.
-
-    Raises:
-        DatiNonValidi: se i vincoli temporali (R-08) non sono rispettati o manca il profilo.
-        StatoNonValido: se esiste già una bozza aperta (CA-11) o c'è sovrapposizione (CA-12).
-    """
-    profilo = artigiani_service.profilo_di(db, utente_id)
-    if profilo is None:
-        raise DatiNonValidi("Profilo bottega non trovato.")
-
-    # Concorrenza atomica: lock di transazione sull'artigiano per serializzare richieste concorrenti
-    db.execute(text("SELECT pg_advisory_xact_lock(:chiave)"), {"chiave": profilo.id})
-
-    oggi = ora.astimezone(ROMA).date() if ora.tzinfo else ora.date()
-    impostazioni = leggi_impostazioni()
-    anticipo_minimo = timedelta(days=impostazioni.anticipo_minimo_giorni)
-
-    if dati.inizio < oggi + anticipo_minimo:
-        raise DatiNonValidi("La data di inizio deve essere ad almeno 3 giorni da oggi.")
-
-    if dati.fine <= dati.inizio:
-        raise DatiNonValidi(
-            "La data di fine deve essere successiva alla data di inizio."
-        )
-
-    if (dati.fine - dati.inizio).days > 92:
-        raise DatiNonValidi("La durata della campagna non può superare 92 giorni.")
-
-    # R-12, CA-11: una sola bozza per artigiano
-    bozza_aperta = db.scalar(
-        select(Campagna.id).where(
-            Campagna.profilo_id == profilo.id,
-            Campagna.stato == BOZZA,
-        )
-    )
-    if bozza_aperta is not None:
-        raise StatoNonValido("Esiste già una campagna in bozza per questo artigiano.")
-
-    # R-12, CA-12: campagne non annullata/conclusa/respinta/scaduta non sovrapposte
-    stati_non_bloccanti = [ANNULLATA, CONCLUSA, RESPINTA, SCADUTA]
-    campagna_sovrapposta = db.scalar(
-        select(Campagna.id).where(
-            Campagna.profilo_id == profilo.id,
-            Campagna.stato.not_in(stati_non_bloccanti),
-            Campagna.inizio <= dati.fine,
-            Campagna.fine >= dati.inizio,
-        )
-    )
-    if campagna_sovrapposta is not None:
-        raise StatoNonValido("Il periodo si sovrappone a una campagna già esistente.")
-
-    nuova = Campagna(
-        profilo_id=profilo.id,
-        titolo=dati.titolo,
-        inizio=dati.inizio,
-        fine=dati.fine,
-        descrizione=dati.descrizione,
-        crea_immagini_ai=dati.crea_immagini_ai,
-        stato=BOZZA,
-    )
-    db.add(nuova)
-    db.flush()
-    return nuova
-
-
-def elenca_campagne(
-    db: Session,
-    utente_id: int,
-    ruolo: str,
-    stato: str | None = None,
-) -> list[Campagna]:
-    """Elenca le campagne accessibili all'utente autenticato.
-
-    L'artigiano visualizza solo le proprie campagne (legate alla sua bottega).
-    L'operatore e l'admin visualizzano tutte le campagne del consorzio.
-    Supporta il filtro opzionale per stato.
-    """
-    query = select(Campagna)
-
-    if ruolo == "artigiano":
-        profilo = artigiani_service.profilo_di(db, utente_id)
-        if profilo is None:
-            return []
-        query = query.where(Campagna.profilo_id == profilo.id)
-    elif ruolo not in ("operatore", "admin"):
-        return []
-
-    if stato:
-        if stato not in STATI:
-            raise DatiNonValidi("Stato della campagna non valido.")
-        query = query.where(Campagna.stato == stato)
-
-    query = query.order_by(Campagna.id.desc())
-    return list(db.scalars(query))
-
-
-def dettaglio_campagna(
-    db: Session,
-    utente_id: int,
-    ruolo: str,
-    campagna_id: int,
-) -> CampagnaDettaglio:
-    """Restituisce il dettaglio della campagna con controlli di accesso granulari.
-
-    Se l'utente è un artigiano e la campagna appartiene a un altro artigiano,
-    solleva NonTrovato (404) per evitare fuga di informazioni (CA-04).
-    Per operatori e admin include anche snapshot e decisioni pregresse.
-    """
-    rec = db.get(Campagna, campagna_id)
-    if rec is None:
-        raise NonTrovato("Campagna non trovata.")
-
-    if ruolo == "artigiano":
-        profilo = artigiani_service.profilo_di(db, utente_id)
-        if profilo is None or rec.profilo_id != profilo.id:
-            raise NonTrovato("Campagna non trovata.")
-    elif ruolo not in ("operatore", "admin"):
-        raise NonPermesso("Non hai i permessi per visualizzare le campagne.")
-
-    foto = foto_della_campagna(db, campagna_id)
-
-    decisioni = []
-    snapshot = None
-    if ruolo in ("operatore", "admin"):
-        snapshot = rec.profilo_snapshot
-        decisioni = list(
-            db.scalars(
-                select(DecisioneCampagna)
-                .where(DecisioneCampagna.campagna_id == campagna_id)
-                .order_by(DecisioneCampagna.id)
-            )
-        )
-
-    return CampagnaDettaglio(
-        id=rec.id,
-        profilo_id=rec.profilo_id,
-        titolo=rec.titolo,
-        inizio=rec.inizio,
-        fine=rec.fine,
-        descrizione=rec.descrizione,
-        crea_immagini_ai=rec.crea_immagini_ai,
-        stato=rec.stato,
-        canali=rec.canali,
-        frequenza=rec.frequenza,
-        obiettivo=rec.obiettivo,
-        inviata_il=rec.inviata_il,
-        rimandata=rec.rimandata,
-        foto=foto,
-        profilo_snapshot=snapshot,
-        decisioni=decisioni,
-    )
-
-
-logger = logging.getLogger(__name__)
-
-
-def _al_termine_transazione(
-    db: Session,
-    *,
-    su_commit: Callable[[], object] | None = None,
-    su_rollback: Callable[[], object] | None = None,
-) -> None:
-    """Esegue un'azione sul file system solo a esito reale della transazione.
-
-    ``flush()`` non rende nulla definitivo: il commit avviene dopo la risposta
-    (``get_db``). Le azioni irreversibili sul disco vanno quindi agganciate a
-    commit o rollback. Ogni azione scatta al massimo una volta; un errore del
-    disco viene registrato e non interrompe il commit già avvenuto, perché un
-    file orfano è innocuo mentre un record senza file no.
-    """
-    concluso = {"fatto": False}
-
-    def gestore(azione: Callable[[], object] | None) -> Callable[[Session], None]:
-        def esegui(_sessione: Session) -> None:
-            if concluso["fatto"]:
-                return
-            concluso["fatto"] = True
-            if azione is None:
-                return
-            try:
-                azione()
-            except OSError:
-                logger.warning(
-                    "Operazione sul file system non riuscita.", exc_info=True
-                )
-
-        return esegui
-
-    event.listen(db, "after_commit", gestore(su_commit))
-    event.listen(db, "after_rollback", gestore(su_rollback))
-
-
-def carica_foto(
-    db: Session,
-    utente_id: int,
-    ruolo: str,
-    campagna_id: int,
-    contenuto: bytes,
-    gruppo_id: UUID | None = None,
-) -> Foto:
-    """Valida, archivia e registra una foto caricata dall'artigiano per la campagna in bozza.
-
-    Verifiche di sicurezza e conformità:
-    - Solo l'artigiano proprietario della bottega può caricare foto (CA-04).
-    - La campagna deve essere nello stato 'bozza' (altrimenti StatoNonValido).
-    - Ispezione binaria e limiti dimensionali (R-13, CA-13): lato corto >= 1080 px,
-      max 8192x8192, max 36 MPixel, max 10 MB.
-    - Se gruppo_id è fornito e già usato, eredita la descrizione del gruppo;
-      se appartiene a un'altra campagna solleva DatiNonValidi.
-    - Salvataggio con nome univoco generato dal server (UUID).
-    - Compensazione atomica anti-TOCTOU: se il database fallisce o solleva eccezione,
-      il file su disco viene rimosso immediatamente.
-    """
-    if ruolo != "artigiano":
-        raise NonPermesso("Solo un artigiano può caricare foto.")
-
-    rec = db.get(Campagna, campagna_id)
-    if rec is None:
-        raise NonTrovato("Campagna non trovata.")
-
-    profilo = artigiani_service.profilo_di(db, utente_id)
-    if profilo is None or rec.profilo_id != profilo.id:
-        raise NonTrovato("Campagna non trovata.")
-
-    if rec.stato != BOZZA:
-        raise StatoNonValido(
-            "Le foto possono essere caricate solo per campagne in bozza."
-        )
-
-    # Verifica tetto massimo foto per campagna (misura anti-abuso proposta)
-    conteggio_foto = db.scalar(
-        select(func.count(Foto.id)).where(Foto.campagna_id == campagna_id)
-    )
-    if (conteggio_foto or 0) >= MAX_FOTO_PER_CAMPAGNA:
-        raise DatiNonValidi(
-            f"Raggiunto il limite massimo di {MAX_FOTO_PER_CAMPAGNA} foto per campagna."
-        )
-
-    # Ispezione binaria e vincoli di dimensione/sicurezza
-    info = analizza_e_valida_immagine(contenuto)
-
-    # Determinazione gruppo e descrizione
-    descrizione_gruppo: str | None = None
-    if gruppo_id is None:
-        gruppo_effettivo = uuid.uuid4()
-    else:
-        gruppo_effettivo = gruppo_id
-        # Verifica se il gruppo è già associato a un'altra campagna
-        altro_uso = db.scalar(
-            select(Foto.campagna_id)
-            .where(
-                Foto.gruppo_id == gruppo_effettivo,
-                Foto.campagna_id != campagna_id,
-            )
-            .limit(1)
-        )
-        if altro_uso is not None:
-            raise DatiNonValidi("Il gruppo specificato appartiene a un'altra campagna.")
-
-        # Eredita eventuale descrizione esistente del gruppo nella campagna
-        foto_esistente = db.scalar(
-            select(Foto)
-            .where(
-                Foto.campagna_id == campagna_id,
-                Foto.gruppo_id == gruppo_effettivo,
-            )
-            .limit(1)
-        )
-        if foto_esistente is not None:
-            descrizione_gruppo = foto_esistente.descrizione
-
-    # Salvataggio fisico su archivio
-    archivio = ottieni_archivio()
-    nome_file = archivio.salva(contenuto, info.estensione)
-
-    # Il file è su disco ma il record non è ancora definitivo: se la transazione
-    # termina con un rollback (anche dopo la risposta) il file viene rimosso.
-    _al_termine_transazione(db, su_rollback=lambda: archivio.elimina(nome_file))
-
-    # Inserimento DB con compensazione immediata se il flush fallisce
-    try:
-        nuova_foto = Foto(
-            profilo_id=profilo.id,
-            campagna_id=campagna_id,
-            gruppo_id=gruppo_effettivo,
-            origine="caricata",
-            file=nome_file,
-            mime=info.mime,
-            larghezza=info.larghezza,
-            altezza=info.altezza,
-            descrizione=descrizione_gruppo,
-        )
-        db.add(nuova_foto)
-        db.flush()
-        return nuova_foto
-    except Exception:
-        archivio.elimina(nome_file)
-        raise
-
-
-def aggiorna_descrizione_gruppo(
-    db: Session,
-    utente_id: int,
-    ruolo: str,
-    campagna_id: int,
-    gruppo_id: UUID,
-    descrizione: str,
-) -> None:
-    """Aggiorna la descrizione di tutte le foto appartenenti a un gruppo della campagna.
-
-    Consentito solo all'artigiano proprietario per campagne in stato 'bozza'.
-    """
-    if ruolo != "artigiano":
-        raise NonPermesso("Solo l'artigiano proprietario può aggiornare il gruppo.")
-
-    rec = db.get(Campagna, campagna_id)
-    if rec is None:
-        raise NonTrovato("Campagna non trovata.")
-
-    profilo = artigiani_service.profilo_di(db, utente_id)
-    if profilo is None or rec.profilo_id != profilo.id:
-        raise NonTrovato("Campagna non trovata.")
-
-    if rec.stato != BOZZA:
-        raise StatoNonValido(
-            "La descrizione può essere modificata solo per campagne in bozza."
-        )
-
-    foto_gruppo = list(
-        db.scalars(
-            select(Foto).where(
-                Foto.campagna_id == campagna_id,
-                Foto.gruppo_id == gruppo_id,
-            )
-        )
-    )
-    if not foto_gruppo:
-        raise NonTrovato("Gruppo di foto non trovato nella campagna.")
-
-    for f in foto_gruppo:
-        f.descrizione = descrizione
-    db.flush()
-
-
-def elimina_foto(
-    db: Session,
-    utente_id: int,
-    ruolo: str,
-    foto_id: int,
-) -> None:
-    """Elimina una singola foto dalla campagna in bozza e rimuove il file fisico.
-
-    Atomicità e anti-TOCTOU: il record a database viene rimosso prima con flush(),
-    e solo a operazione DB completata con successo viene rimosso il file fisico.
-    """
-    if ruolo != "artigiano":
-        raise NonPermesso("Solo l'artigiano proprietario può eliminare le foto.")
-
-    foto = db.get(Foto, foto_id)
-    if foto is None:
-        raise NonTrovato("Foto non trovata.")
-
-    rec = db.get(Campagna, foto.campagna_id)
-    if rec is None:
-        raise NonTrovato("Foto non trovata.")
-
-    profilo = artigiani_service.profilo_di(db, utente_id)
-    if profilo is None or rec.profilo_id != profilo.id:
-        raise NonTrovato("Foto non trovata.")
-
-    if rec.stato != BOZZA:
-        raise StatoNonValido(
-            "Le foto possono essere eliminate solo per campagne in bozza."
-        )
-
-    nome_file = foto.file
-    db.delete(foto)
-    db.flush()
-
-    # Il file si cancella solo dopo il commit riuscito, mai prima.
-    archivio = ottieni_archivio()
-    _al_termine_transazione(db, su_commit=lambda: archivio.elimina(nome_file))
-
-
-def elimina_gruppo(
-    db: Session,
-    utente_id: int,
-    ruolo: str,
-    campagna_id: int,
-    gruppo_id: UUID,
-) -> None:
-    """Elimina tutte le foto appartenenti a un gruppo e rimuove i rispettivi file fisici."""
-    if ruolo != "artigiano":
-        raise NonPermesso("Solo l'artigiano proprietario può eliminare i gruppi.")
-
-    rec = db.get(Campagna, campagna_id)
-    if rec is None:
-        raise NonTrovato("Campagna non trovata.")
-
-    profilo = artigiani_service.profilo_di(db, utente_id)
-    if profilo is None or rec.profilo_id != profilo.id:
-        raise NonTrovato("Campagna non trovata.")
-
-    if rec.stato != BOZZA:
-        raise StatoNonValido(
-            "I gruppi possono essere eliminati solo per campagne in bozza."
-        )
-
-    foto_gruppo = list(
-        db.scalars(
-            select(Foto).where(
-                Foto.campagna_id == campagna_id,
-                Foto.gruppo_id == gruppo_id,
-            )
-        )
-    )
-    if not foto_gruppo:
-        raise NonTrovato("Gruppo di foto non trovato nella campagna.")
-
-    nomi_file = [f.file for f in foto_gruppo]
-    for f in foto_gruppo:
-        db.delete(f)
-    db.flush()
-
-    # Un'azione per file: l'errore su uno non impedisce la rimozione degli altri.
-    archivio = ottieni_archivio()
-    for nome in nomi_file:
-        _al_termine_transazione(
-            db,
-            su_commit=lambda nome_da_rimuovere=nome: archivio.elimina(
-                nome_da_rimuovere
-            ),
-        )
-
-
-def leggi_file_foto(
-    db: Session,
-    utente_id: int,
-    ruolo: str,
-    foto_id: int,
-) -> tuple[bytes, str]:
-    """Recupera il contenuto binario e il mime-type del file originale dall'archivio.
-
-    L'accesso è consentito all'artigiano proprietario della campagna,
-    oppure a operatori e amministratori del consorzio.
-    """
-    foto = db.get(Foto, foto_id)
-    if foto is None:
-        raise NonTrovato("Foto non trovata.")
-
-    rec = db.get(Campagna, foto.campagna_id)
-    if rec is None:
-        raise NonTrovato("Foto non trovata.")
-
-    if ruolo == "artigiano":
-        profilo = artigiani_service.profilo_di(db, utente_id)
-        if profilo is None or rec.profilo_id != profilo.id:
-            raise NonTrovato("Foto non trovata.")
-    elif ruolo not in ("operatore", "admin"):
-        raise NonPermesso("Non hai i permessi per accedere al file della foto.")
-
-    archivio = ottieni_archivio()
-    try:
-        contenuto = archivio.leggi(foto.file)
-    except FileNotFoundError:
-        raise NonTrovato("File immagine non trovato nell'archivio.")
-
-    return contenuto, foto.mime
 
 
 def gruppi_della_campagna(db: Session, id: int) -> list[GruppoFoto]:
@@ -762,3 +306,696 @@ def aggiungi_foto(
     db.add(record)
     db.flush()
     return record
+
+
+def crea_bozza(
+    db: Session,
+    utente_id: int,
+    dati: CampagnaCrea,
+    ora: datetime,
+) -> Campagna:
+    """Crea una nuova campagna nello stato bozza per l'artigiano autenticato.
+
+    Verifica le regole di pianificazione R-08, i vincoli di unicità R-12 e la presenza
+    dei canali collegati R-22 (CA-09, CA-10, CA-11, CA-12, CA-48).
+    """
+    profilo = artigiani_service.profilo_di(db, utente_id)
+    if profilo is None:
+        raise DatiNonValidi("Profilo bottega non trovato.")
+
+    # Concorrenza atomica: lock di transazione sull'artigiano per serializzare richieste concorrenti
+    db.execute(text("SELECT pg_advisory_xact_lock(:chiave)"), {"chiave": profilo.id})
+
+    # R-22, CA-48: verifica canali ammessi e collegati
+    canali_richiesti = dati.canali
+    if not canali_richiesti:
+        raise DatiNonValidi("Selezionare almeno un canale.")
+    for c in canali_richiesti:
+        if c not in CANALI_AMMESSI:
+            raise DatiNonValidi(f"Canale '{c}' non ammesso.")
+
+    collegati = set(artigiani_service.canali_collegati(db, profilo.id))
+    non_collegati = [c for c in canali_richiesti if c not in collegati]
+    if non_collegati:
+        raise DatiNonValidi(
+            f"I seguenti canali non sono collegati: {', '.join(non_collegati)}."
+        )
+
+    oggi = ora.astimezone(ROMA).date() if ora.tzinfo else ora.date()
+    impostazioni = leggi_impostazioni()
+    anticipo_minimo = timedelta(days=impostazioni.anticipo_minimo_giorni)
+
+    if dati.inizio < oggi + anticipo_minimo:
+        raise DatiNonValidi("La data di inizio deve essere ad almeno 3 giorni da oggi.")
+
+    if dati.fine <= dati.inizio:
+        raise DatiNonValidi(
+            "La data di fine deve essere successiva alla data di inizio."
+        )
+
+    durata = (dati.fine - dati.inizio).days + 1
+    if durata < 7:
+        raise DatiNonValidi("La durata della campagna deve essere di almeno 7 giorni.")
+    if durata > 92:
+        raise DatiNonValidi("La durata della campagna non può superare 92 giorni.")
+
+    # R-12, CA-11: una sola bozza per artigiano
+    bozza_aperta = db.scalar(
+        select(Campagna.id).where(
+            Campagna.profilo_id == profilo.id,
+            Campagna.stato == BOZZA,
+        )
+    )
+    if bozza_aperta is not None:
+        raise StatoNonValido("Esiste già una campagna in bozza per questo artigiano.")
+
+    # R-12, CA-12: campagne non chiuse non sovrapposte
+    campagna_sovrapposta = db.scalar(
+        select(Campagna.id).where(
+            Campagna.profilo_id == profilo.id,
+            Campagna.stato.not_in(STATI_CHIUSI),
+            Campagna.inizio <= dati.fine,
+            Campagna.fine >= dati.inizio,
+        )
+    )
+    if campagna_sovrapposta is not None:
+        raise StatoNonValido("Il periodo si sovrappone a una campagna già esistente.")
+
+    nuova = Campagna(
+        profilo_id=profilo.id,
+        titolo=dati.titolo,
+        inizio=dati.inizio,
+        fine=dati.fine,
+        descrizione=dati.descrizione,
+        canali=dati.canali,
+        stato=BOZZA,
+    )
+    db.add(nuova)
+    db.flush()
+    return nuova
+
+
+def elenca_campagne(
+    db: Session,
+    utente_id: int,
+    ruolo: str,
+    stati: list[str] | None = None,
+) -> list[CampagnaElencoItem]:
+    """Elenca le campagne accessibili all'utente autenticato.
+
+    L'artigiano visualizza solo le proprie campagne.
+    L'operatore e l'admin visualizzano tutte le campagne del consorzio con bottega e città.
+    Supporta il filtro ripetibile per stati (CA-54).
+    """
+    if stati:
+        for s in stati:
+            if s not in STATI:
+                raise DatiNonValidi(f"Stato della campagna non valido: {s}.")
+
+    query = select(Campagna)
+
+    if ruolo == "artigiano":
+        profilo = artigiani_service.profilo_di(db, utente_id)
+        if profilo is None:
+            return []
+        query = query.where(Campagna.profilo_id == profilo.id)
+    elif ruolo not in ("operatore", "admin"):
+        return []
+
+    if stati:
+        query = query.where(Campagna.stato.in_(stati))
+
+    campagne = list(db.scalars(query.order_by(Campagna.id.desc())))
+    if not campagne:
+        return []
+
+    if ruolo in ("operatore", "admin"):
+        profilo_ids = list({c.profilo_id for c in campagne})
+        rows = db.execute(
+            text("SELECT id, nome, citta FROM profilo_bottega WHERE id = ANY(:ids)"),
+            {"ids": profilo_ids},
+        ).fetchall()
+        mappa_profili = {r[0]: (r[1], r[2]) for r in rows}
+        return [
+            CampagnaElencoItem(
+                id=c.id,
+                profilo_id=c.profilo_id,
+                titolo=c.titolo,
+                inizio=c.inizio,
+                fine=c.fine,
+                stato=c.stato,
+                canali=c.canali,
+                bottega=mappa_profili.get(c.profilo_id, (None, None))[0],
+                citta=mappa_profili.get(c.profilo_id, (None, None))[1],
+            )
+            for c in campagne
+        ]
+
+    return [
+        CampagnaElencoItem(
+            id=c.id,
+            profilo_id=c.profilo_id,
+            titolo=c.titolo,
+            inizio=c.inizio,
+            fine=c.fine,
+            stato=c.stato,
+            canali=c.canali,
+            bottega=None,
+            citta=None,
+        )
+        for c in campagne
+    ]
+
+
+def dettaglio_campagna(
+    db: Session,
+    utente_id: int,
+    ruolo: str,
+    campagna_id: int,
+) -> CampagnaDettaglio:
+    """Restituisce il dettaglio della campagna con gruppi, post chiesti e avvisi.
+
+    Se l'utente è un artigiano e la campagna appartiene a un altro artigiano,
+    solleva NonTrovato (404) per evitare fuga di informazioni (CA-04).
+    Per operatori e admin include anche snapshot e decisioni pregresse.
+    """
+    rec = db.get(Campagna, campagna_id)
+    if rec is None:
+        raise NonTrovato("Campagna non trovata.")
+
+    profilo = None
+    if ruolo == "artigiano":
+        profilo = artigiani_service.profilo_di(db, utente_id)
+        if profilo is None or rec.profilo_id != profilo.id:
+            raise NonTrovato("Campagna non trovata.")
+    elif ruolo not in ("operatore", "admin"):
+        raise NonPermesso("Non hai i permessi per visualizzare le campagne.")
+
+    gruppi_db = gruppi_della_campagna(db, campagna_id)
+    gruppi_out = [
+        GruppoSintetico(
+            id=g.id,
+            origine=g.origine,
+            descrizione=g.descrizione,
+            da_usare_il=g.da_usare_il,
+            n_immagini=g.n_immagini,
+            foto=[
+                FotoSintetica(
+                    id=f.id,
+                    gruppo_id=f.gruppo_id,
+                    file=f.file,
+                    mime=f.mime,
+                    larghezza=f.larghezza,
+                    altezza=f.altezza,
+                    da_usare=f.da_usare,
+                    origine=f.origine,
+                )
+                for f in g.foto
+            ],
+        )
+        for g in gruppi_db
+    ]
+
+    # Calcolo post_chiesti_per_canale secondo spec R-05
+    giorni = (rec.fine - rec.inizio).days + 1
+    frequenza_val = rec.frequenza
+    foto_policy_val = None
+
+    if profilo is not None:
+        if not frequenza_val:
+            frequenza_val = profilo.frequenza
+        foto_policy_val = profilo.foto_policy
+    else:
+        p_row = db.execute(
+            text("SELECT frequenza, foto_policy FROM profilo_bottega WHERE id = :pid"),
+            {"pid": rec.profilo_id},
+        ).fetchone()
+        if p_row:
+            if not frequenza_val:
+                frequenza_val = p_row[0]
+            foto_policy_val = p_row[1]
+
+    freq = frequenza_val or "decidete_voi"
+    post_sett = POST_A_SETTIMANA.get(freq, 3)
+    post_chiesti = (post_sett * giorni) // 7
+
+    canali = rec.canali or []
+    post_chiesti_per_canale = {canale: post_chiesti for canale in canali}
+
+    # Calcolo avvisi informativi (spec R-25, CA-54)
+    n_foto_caricate = sum(len(g.foto) for g in gruppi_db if g.origine == "caricate")
+    avvisi: list[str] = []
+    for _canale in canali:
+        if post_chiesti > 0 and n_foto_caricate < post_chiesti:
+            if "foto_poche" not in avvisi:
+                avvisi.append("foto_poche")
+        if post_chiesti > n_foto_caricate and (post_chiesti - n_foto_caricate) > (
+            n_foto_caricate / 2
+        ):
+            if "riempitivi_molti" not in avvisi:
+                avvisi.append("riempitivi_molti")
+
+    if isinstance(foto_policy_val, dict):
+        q_mese = foto_policy_val.get("quantita_mese")
+        if q_mese in LIMITI_POLICY_FOTO:
+            limite = LIMITI_POLICY_FOTO[q_mese]
+            if (post_sett * 4) > limite:
+                if "frequenza_alta" not in avvisi:
+                    avvisi.append("frequenza_alta")
+
+    snapshot = None
+    decisioni = []
+    if ruolo in ("operatore", "admin"):
+        snapshot = rec.profilo_snapshot
+        decisioni_db = list(
+            db.scalars(
+                select(DecisioneCampagna)
+                .where(DecisioneCampagna.campagna_id == campagna_id)
+                .order_by(DecisioneCampagna.id)
+            )
+        )
+        decisioni = [DecisioneSintetica.model_validate(d) for d in decisioni_db]
+
+    return CampagnaDettaglio(
+        id=rec.id,
+        profilo_id=rec.profilo_id,
+        titolo=rec.titolo,
+        inizio=rec.inizio,
+        fine=rec.fine,
+        descrizione=rec.descrizione,
+        stato=rec.stato,
+        canali=rec.canali,
+        canali_tolti=rec.canali_tolti,
+        frequenza=rec.frequenza,
+        obiettivo=rec.obiettivo,
+        inviata_il=rec.inviata_il,
+        chiusa_il=rec.chiusa_il,
+        gruppi=gruppi_out,
+        post_chiesti_per_canale=post_chiesti_per_canale,
+        avvisi=avvisi,
+        profilo_snapshot=snapshot,
+        decisioni=decisioni,
+    )
+
+
+def _al_termine_transazione(
+    db: Session,
+    *,
+    su_commit: Callable[[], object] | None = None,
+    su_rollback: Callable[[], object] | None = None,
+) -> None:
+    """Esegue un'azione sul file system solo all'esito reale della transazione.
+
+    ``flush()`` non rende nulla definitivo: il commit avviene dopo la risposta
+    (``get_db``). Le azioni irreversibili sul disco vanno quindi agganciate a
+    commit o rollback. Ogni azione scatta al massimo una volta.
+    """
+    concluso = {"fatto": False}
+
+    def gestore(azione: Callable[[], object] | None) -> Callable[[Session], None]:
+        def esegui(_sessione: Session) -> None:
+            if concluso["fatto"]:
+                return
+            concluso["fatto"] = True
+            if azione is None:
+                return
+            try:
+                azione()
+            except OSError:
+                logger.warning(
+                    "Operazione sul file system non riuscita.", exc_info=True
+                )
+
+        return esegui
+
+    event.listen(db, "after_commit", gestore(su_commit))
+    event.listen(db, "after_rollback", gestore(su_rollback))
+
+
+def crea_gruppo(
+    db: Session,
+    utente_id: int,
+    ruolo: str,
+    campagna_id: int,
+    dati: GruppoCrea,
+) -> GruppoFoto:
+    """Crea un nuovo gruppo di foto per la campagna in bozza (CA-46, CA-47)."""
+    if ruolo != "artigiano":
+        raise NonPermesso("Solo un artigiano può creare gruppi.")
+
+    rec = db.get(Campagna, campagna_id)
+    if rec is None:
+        raise NonTrovato("Campagna non trovata.")
+
+    profilo = artigiani_service.profilo_di(db, utente_id)
+    if profilo is None or rec.profilo_id != profilo.id:
+        raise NonTrovato("Campagna non trovata.")
+
+    if rec.stato != BOZZA:
+        raise StatoNonValido(
+            "I gruppi possono essere creati solo per campagne in bozza."
+        )
+
+    if dati.origine not in ORIGINI_GRUPPO:
+        raise DatiNonValidi(f"Origine gruppo '{dati.origine}' non valida.")
+
+    if dati.da_usare_il is not None:
+        if dati.da_usare_il < rec.inizio or dati.da_usare_il > rec.fine:
+            raise DatiNonValidi(
+                "La data del gruppo deve rientrare nel periodo della campagna."
+            )
+
+    if dati.origine == "create_ai":
+        if dati.n_immagini is None or dati.n_immagini < 1 or dati.n_immagini > 20:
+            raise DatiNonValidi(
+                "Il numero di immagini per un gruppo create_ai deve essere compreso tra 1 e 20."
+            )
+        n_immagini_val = dati.n_immagini
+    else:
+        n_immagini_val = None
+
+    gruppo = GruppoFoto(
+        profilo_id=profilo.id,
+        campagna_id=rec.id,
+        origine=dati.origine,
+        descrizione=dati.descrizione,
+        da_usare_il=dati.da_usare_il,
+        n_immagini=n_immagini_val,
+    )
+    db.add(gruppo)
+    db.flush()
+    return gruppo
+
+
+def aggiorna_gruppo(
+    db: Session,
+    utente_id: int,
+    ruolo: str,
+    campagna_id: int,
+    gruppo_id: int,
+    dati: GruppoAggiorna,
+) -> GruppoFoto:
+    """Aggiorna metadati e descrizione del gruppo (PUT /campagne/{id}/gruppi/{gruppo_id})."""
+    if ruolo != "artigiano":
+        raise NonPermesso("Solo l'artigiano proprietario può aggiornare il gruppo.")
+
+    rec = db.get(Campagna, campagna_id)
+    if rec is None:
+        raise NonTrovato("Campagna non trovata.")
+
+    profilo = artigiani_service.profilo_di(db, utente_id)
+    if profilo is None or rec.profilo_id != profilo.id:
+        raise NonTrovato("Campagna non trovata.")
+
+    if rec.stato != BOZZA:
+        raise StatoNonValido(
+            "Il gruppo può essere modificato solo per campagne in bozza."
+        )
+
+    gruppo = db.get(GruppoFoto, gruppo_id)
+    if gruppo is None or gruppo.campagna_id != rec.id:
+        raise NonTrovato("Gruppo non trovato nella campagna.")
+
+    if dati.da_usare_il is not None:
+        if dati.da_usare_il < rec.inizio or dati.da_usare_il > rec.fine:
+            raise DatiNonValidi(
+                "La data del gruppo deve rientrare nel periodo della campagna."
+            )
+        gruppo.da_usare_il = dati.da_usare_il
+
+    if dati.descrizione is not None:
+        gruppo.descrizione = dati.descrizione
+
+    if dati.n_immagini is not None:
+        if gruppo.origine == "create_ai":
+            if dati.n_immagini < 1 or dati.n_immagini > 20:
+                raise DatiNonValidi(
+                    "Il numero di immagini deve essere compreso tra 1 e 20."
+                )
+            gruppo.n_immagini = dati.n_immagini
+
+    db.flush()
+    return gruppo
+
+
+def elimina_gruppo(
+    db: Session,
+    utente_id: int,
+    ruolo: str,
+    campagna_id: int,
+    gruppo_id: int,
+) -> None:
+    """Elimina tutte le foto appartenenti a un gruppo e il gruppo stesso."""
+    if ruolo != "artigiano":
+        raise NonPermesso("Solo l'artigiano proprietario può eliminare i gruppi.")
+
+    rec = db.get(Campagna, campagna_id)
+    if rec is None:
+        raise NonTrovato("Campagna non trovata.")
+
+    profilo = artigiani_service.profilo_di(db, utente_id)
+    if profilo is None or rec.profilo_id != profilo.id:
+        raise NonTrovato("Campagna non trovata.")
+
+    if rec.stato != BOZZA:
+        raise StatoNonValido(
+            "I gruppi possono essere eliminati solo per campagne in bozza."
+        )
+
+    gruppo = db.get(GruppoFoto, gruppo_id)
+    if gruppo is None or gruppo.campagna_id != rec.id:
+        raise NonTrovato("Gruppo non trovato nella campagna.")
+
+    foto_gruppo = list(
+        db.scalars(
+            select(Foto).where(
+                Foto.campagna_id == campagna_id,
+                Foto.gruppo_id == gruppo_id,
+            )
+        )
+    )
+    nomi_file = [f.file for f in foto_gruppo]
+    for f in foto_gruppo:
+        db.delete(f)
+    db.delete(gruppo)
+    db.flush()
+
+    archivio = ottieni_archivio()
+    for nome in nomi_file:
+        _al_termine_transazione(
+            db,
+            su_commit=lambda nome_da_rimuovere=nome: archivio.elimina(
+                nome_da_rimuovere
+            ),
+        )
+
+
+def carica_foto(
+    db: Session,
+    utente_id: int,
+    ruolo: str,
+    campagna_id: int,
+    contenuto: bytes,
+    gruppo_id: int | None = None,
+) -> Foto:
+    """Valida, archivia e registra una foto caricata dall'artigiano per la campagna in bozza.
+
+    Verifiche di sicurezza e conformità:
+    - Solo l'artigiano proprietario della bottega può caricare foto (CA-04).
+    - La campagna deve essere nello stato 'bozza' (altrimenti StatoNonValido 409).
+    - Ispezione binaria e limiti dimensionali (R-13, CA-13): lato corto >= 1080 px,
+      max 8192x8192, max 36 MPixel, max 10 MB.
+    - Se gruppo_id è fornito e appartiene a create_ai solleva DatiNonValidi (CA-47).
+    - Max 20 foto per gruppo (CA-13).
+    - Compensazione atomica anti-TOCTOU: se il database fallisce o solleva eccezione,
+      il file su disco viene rimosso immediatamente.
+    """
+    if ruolo != "artigiano":
+        raise NonPermesso("Solo un artigiano può caricare foto.")
+
+    rec = db.get(Campagna, campagna_id)
+    if rec is None:
+        raise NonTrovato("Campagna non trovata.")
+
+    profilo = artigiani_service.profilo_di(db, utente_id)
+    if profilo is None or rec.profilo_id != profilo.id:
+        raise NonTrovato("Campagna non trovata.")
+
+    if rec.stato != BOZZA:
+        raise StatoNonValido(
+            "Le foto possono essere caricate solo per campagne in bozza."
+        )
+
+    if gruppo_id is not None:
+        gruppo = db.get(GruppoFoto, gruppo_id)
+        if gruppo is None:
+            raise NonTrovato("Gruppo non trovato.")
+        if gruppo.campagna_id != rec.id:
+            raise DatiNonValidi("Il gruppo specificato appartiene a un'altra campagna.")
+        if gruppo.origine == "create_ai":
+            raise DatiNonValidi(
+                "Non è consentito caricare foto in un gruppo create_ai."
+            )
+    else:
+        gruppo = GruppoFoto(
+            profilo_id=profilo.id,
+            campagna_id=rec.id,
+            origine="caricate",
+            descrizione=None,
+        )
+        db.add(gruppo)
+        db.flush()
+
+    # Spec R-13, CA-13: al massimo 20 foto per gruppo
+    conteggio = (
+        db.scalar(select(func.count(Foto.id)).where(Foto.gruppo_id == gruppo.id)) or 0
+    )
+    if conteggio >= 20:
+        raise DatiNonValidi("Un gruppo può contenere al massimo 20 foto caricate.")
+
+    # Ispezione binaria e vincoli di dimensione/sicurezza (R-13, CA-13, Defense in Depth)
+    info = analizza_e_valida_immagine(contenuto)
+
+    archivio = ottieni_archivio()
+    nome_file = archivio.salva(contenuto, info.estensione)
+
+    _al_termine_transazione(db, su_rollback=lambda: archivio.elimina(nome_file))
+
+    try:
+        nuova_foto = Foto(
+            profilo_id=profilo.id,
+            campagna_id=rec.id,
+            gruppo_id=gruppo.id,
+            origine="caricata",
+            file=nome_file,
+            mime=info.mime,
+            larghezza=info.larghezza,
+            altezza=info.altezza,
+            da_usare=False,
+        )
+        db.add(nuova_foto)
+        db.flush()
+        return nuova_foto
+    except Exception:
+        archivio.elimina(nome_file)
+        raise
+
+
+def imposta_stella_foto(
+    db: Session,
+    utente_id: int,
+    ruolo: str,
+    foto_id: int,
+    da_usare: bool,
+) -> Foto:
+    """Imposta il flag stella (da_usare) sulla foto (PUT /foto/{id})."""
+    if ruolo != "artigiano":
+        raise NonPermesso(
+            "Solo l'artigiano proprietario può modificare la stella della foto."
+        )
+
+    foto = db.get(Foto, foto_id)
+    if foto is None or foto.campagna_id is None:
+        raise NonTrovato("Foto non trovata.")
+
+    rec = db.get(Campagna, foto.campagna_id)
+    if rec is None:
+        raise NonTrovato("Campagna non trovata.")
+
+    profilo = artigiani_service.profilo_di(db, utente_id)
+    if profilo is None or rec.profilo_id != profilo.id:
+        raise NonTrovato("Foto non trovata.")
+
+    if rec.stato != BOZZA:
+        raise StatoNonValido(
+            "La stella può essere modificata solo per campagne in bozza."
+        )
+
+    foto.da_usare = da_usare
+    db.flush()
+    return foto
+
+
+def elimina_foto(
+    db: Session,
+    utente_id: int,
+    ruolo: str,
+    foto_id: int,
+) -> None:
+    """Elimina una singola foto dalla campagna in bozza e rimuove il file fisico."""
+    if ruolo != "artigiano":
+        raise NonPermesso("Solo l'artigiano proprietario può eliminare le foto.")
+
+    foto = db.get(Foto, foto_id)
+    if foto is None or foto.campagna_id is None:
+        raise NonTrovato("Foto non trovata.")
+
+    rec = db.get(Campagna, foto.campagna_id)
+    if rec is None:
+        raise NonTrovato("Campagna non trovata.")
+
+    profilo = artigiani_service.profilo_di(db, utente_id)
+    if profilo is None or rec.profilo_id != profilo.id:
+        raise NonTrovato("Foto non trovata.")
+
+    if rec.stato != BOZZA:
+        raise StatoNonValido(
+            "Le foto possono essere eliminate solo per campagne in bozza."
+        )
+
+    nome_file = foto.file
+    db.delete(foto)
+    db.flush()
+
+    archivio = ottieni_archivio()
+    _al_termine_transazione(db, su_commit=lambda: archivio.elimina(nome_file))
+
+
+def leggi_file_foto(
+    db: Session,
+    utente_id: int,
+    ruolo: str,
+    foto_id: int,
+) -> tuple[bytes, str]:
+    """Recupera il contenuto binario e il mime-type del file originale dall'archivio."""
+    foto = db.get(Foto, foto_id)
+    if foto is None or foto.campagna_id is None:
+        raise NonTrovato("Foto non trovata.")
+
+    rec = db.get(Campagna, foto.campagna_id)
+    if rec is None:
+        raise NonTrovato("Campagna non trovata.")
+
+    if ruolo == "artigiano":
+        profilo = artigiani_service.profilo_di(db, utente_id)
+        if profilo is None or rec.profilo_id != profilo.id:
+            raise NonTrovato("Foto non trovata.")
+    elif ruolo not in ("operatore", "admin"):
+        raise NonPermesso("Non hai i permessi per accedere al file della foto.")
+
+    archivio = ottieni_archivio()
+    try:
+        contenuto = archivio.leggi(foto.file)
+    except FileNotFoundError:
+        raise NonTrovato("File immagine non trovato nell'archivio.")
+
+    return contenuto, foto.mime
+
+
+def aggiorna_descrizione_gruppo(
+    db: Session,
+    utente_id: int,
+    ruolo: str,
+    campagna_id: int,
+    gruppo_id: int,
+    descrizione: str,
+) -> None:
+    """Aggiorna la descrizione associata al gruppo di foto indicato."""
+    aggiorna_gruppo(
+        db=db,
+        utente_id=utente_id,
+        ruolo=ruolo,
+        campagna_id=campagna_id,
+        gruppo_id=gruppo_id,
+        dati=GruppoAggiorna(descrizione=descrizione),
+    )

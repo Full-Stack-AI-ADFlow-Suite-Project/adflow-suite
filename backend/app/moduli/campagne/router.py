@@ -2,7 +2,6 @@
 
 from datetime import datetime
 from typing import Annotated, Any
-from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, Form, Query, Response, UploadFile
 from sqlalchemy.orm import Session
@@ -19,7 +18,10 @@ from .schemas import (
     CampagnaDettaglio,
     CampagnaElencoItem,
     FotoDettaglio,
-    GruppoDescrizioneAggiorna,
+    FotoStellaModifica,
+    GruppoAggiorna,
+    GruppoCrea,
+    GruppoDettaglio,
 )
 
 router = APIRouter(tags=["campagne"])
@@ -32,7 +34,7 @@ def crea_campagna(
     utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
     ora: Annotated[datetime, Depends(adesso)],
 ) -> CampagnaDettaglio:
-    """Crea una nuova campagna in bozza per l'artigiano autenticato (CA-09, CA-10, CA-11, CA-12, CA-46)."""
+    """Crea una nuova campagna in bozza per l'artigiano autenticato (CA-09, CA-10, CA-11, CA-12, CA-48)."""
     campagna = service.crea_bozza(db, utente.id, dati, ora)
     return service.dettaglio_campagna(db, utente.id, utente.ruolo, campagna.id)
 
@@ -41,11 +43,10 @@ def crea_campagna(
 def elenca_campagne(
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[Any, Depends(utente_corrente)],
-    stato: Annotated[str | None, Query()] = None,
+    stato: Annotated[list[str] | None, Query()] = None,
 ) -> list[CampagnaElencoItem]:
-    """Elenca le campagne accessibili all'utente (l'artigiano vede solo le sue)."""
-    campagne = service.elenca_campagne(db, utente.id, utente.ruolo, stato)
-    return [CampagnaElencoItem.model_validate(c) for c in campagne]
+    """Elenca le campagne accessibili all'utente (l'artigiano vede solo le sue, operatore/admin tutte con bottega e città)."""
+    return service.elenca_campagne(db, utente.id, utente.ruolo, stato)
 
 
 @router.get("/campagne/{id}", response_model=CampagnaDettaglio)
@@ -58,13 +59,71 @@ def dettaglio_campagna(
     return service.dettaglio_campagna(db, utente.id, utente.ruolo, id)
 
 
+@router.post("/campagne/{id}/gruppi", response_model=GruppoDettaglio, status_code=201)
+def crea_gruppo(
+    id: int,
+    payload: GruppoCrea,
+    db: Annotated[Session, Depends(get_db)],
+    utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
+) -> GruppoDettaglio:
+    """Crea un gruppo di foto (caricate o create_ai) per la campagna in bozza (CA-46, CA-47)."""
+    gruppo = service.crea_gruppo(
+        db=db,
+        utente_id=utente.id,
+        ruolo=utente.ruolo,
+        campagna_id=id,
+        dati=payload,
+    )
+    return GruppoDettaglio.model_validate(gruppo)
+
+
+@router.put(
+    "/campagne/{id}/gruppi/{gruppo_id}", response_model=GruppoDettaglio, status_code=200
+)
+def aggiorna_gruppo(
+    id: int,
+    gruppo_id: int,
+    payload: GruppoAggiorna,
+    db: Annotated[Session, Depends(get_db)],
+    utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
+) -> GruppoDettaglio:
+    """Aggiorna metadati e descrizione del gruppo della campagna in bozza."""
+    gruppo = service.aggiorna_gruppo(
+        db=db,
+        utente_id=utente.id,
+        ruolo=utente.ruolo,
+        campagna_id=id,
+        gruppo_id=gruppo_id,
+        dati=payload,
+    )
+    return GruppoDettaglio.model_validate(gruppo)
+
+
+@router.delete("/campagne/{id}/gruppi/{gruppo_id}", status_code=204)
+def elimina_gruppo(
+    id: int,
+    gruppo_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
+) -> Response:
+    """Elimina tutte le foto appartenenti a un gruppo e il gruppo stesso dalla campagna in bozza."""
+    service.elimina_gruppo(
+        db=db,
+        utente_id=utente.id,
+        ruolo=utente.ruolo,
+        campagna_id=id,
+        gruppo_id=gruppo_id,
+    )
+    return Response(status_code=204)
+
+
 @router.post("/campagne/{id}/foto", response_model=FotoDettaglio, status_code=201)
 def carica_foto(
     id: int,
     file: Annotated[UploadFile, File(...)],
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
-    gruppo_id: Annotated[UUID | None, Form()] = None,
+    gruppo_id: Annotated[int | None, Form()] = None,
 ) -> FotoDettaglio:
     """Carica una nuova foto nella campagna in bozza con streaming e limiti anti-DoS (CA-13, R-13)."""
     dimensione_max = DIMENSIONE_MAX_BYTE
@@ -96,24 +155,22 @@ def carica_foto(
     return FotoDettaglio.model_validate(foto)
 
 
-@router.put("/campagne/{id}/gruppi/{gruppo_id}", status_code=200)
-def aggiorna_descrizione_gruppo(
+@router.put("/foto/{id}", response_model=FotoDettaglio, status_code=200)
+def imposta_stella_foto(
     id: int,
-    gruppo_id: UUID,
-    payload: GruppoDescrizioneAggiorna,
+    payload: FotoStellaModifica,
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
-) -> dict[str, Any]:
-    """Aggiorna la descrizione associata al gruppo di foto indicato."""
-    service.aggiorna_descrizione_gruppo(
+) -> FotoDettaglio:
+    """Imposta o toglie la stella ('da_usare') su una foto della campagna in bozza."""
+    foto = service.imposta_stella_foto(
         db=db,
         utente_id=utente.id,
         ruolo=utente.ruolo,
-        campagna_id=id,
-        gruppo_id=gruppo_id,
-        descrizione=payload.descrizione,
+        foto_id=id,
+        da_usare=payload.da_usare,
     )
-    return {"ok": True, "descrizione": payload.descrizione}
+    return FotoDettaglio.model_validate(foto)
 
 
 @router.delete("/foto/{id}", status_code=204)
@@ -124,24 +181,6 @@ def elimina_foto(
 ) -> Response:
     """Elimina una singola foto dalla campagna in bozza."""
     service.elimina_foto(db=db, utente_id=utente.id, ruolo=utente.ruolo, foto_id=id)
-    return Response(status_code=204)
-
-
-@router.delete("/campagne/{id}/gruppi/{gruppo_id}", status_code=204)
-def elimina_gruppo(
-    id: int,
-    gruppo_id: UUID,
-    db: Annotated[Session, Depends(get_db)],
-    utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
-) -> Response:
-    """Elimina tutte le foto appartenenti a un gruppo della campagna in bozza."""
-    service.elimina_gruppo(
-        db=db,
-        utente_id=utente.id,
-        ruolo=utente.ruolo,
-        campagna_id=id,
-        gruppo_id=gruppo_id,
-    )
     return Response(status_code=204)
 
 
