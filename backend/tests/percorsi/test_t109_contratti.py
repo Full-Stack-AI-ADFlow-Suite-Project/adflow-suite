@@ -255,8 +255,8 @@ def test_foto_di_tutte_le_versioni_ordinate_disponibili_senza_sessione(db):
     db.flush()
     trovato = contenuti.post_della_campagna(db, record.id)[0]
     db.expunge_all()
-    assert len(trovato.versioni[0].foto) == 1
-    assert [f.foto_id for f in trovato.versione_corrente.foto] == [
+    assert len(trovato.versioni[0].legami_foto) == 1
+    assert [f.foto_id for f in trovato.versione_corrente.legami_foto] == [
         immagini[0].id,
         immagini[1].id,
     ]
@@ -552,7 +552,7 @@ def test_schede_canali_valori_mvp_r21():
         "limite_caratteri": 5000,
         "limite_hashtag": 30,
         "max_foto": 10,
-        "proporzioni": ((1, 1), (4, 5)),
+        "proporzioni": ("1:1", "4:5"),
         "link_cliccabili": True,
     }
     assert contenuti_domain.SCHEDE_CANALE["instagram"] == {
@@ -561,7 +561,7 @@ def test_schede_canali_valori_mvp_r21():
         "limite_caratteri": 2200,
         "limite_hashtag": 30,
         "max_foto": 10,
-        "proporzioni": ((1, 1), (4, 5)),
+        "proporzioni": ("1:1", "4:5"),
         "link_cliccabili": False,
     }
 

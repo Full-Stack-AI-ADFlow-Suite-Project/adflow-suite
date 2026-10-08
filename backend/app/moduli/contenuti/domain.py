@@ -47,7 +47,7 @@ TIPI_ERRORE_GENERAZIONE = (
 TIPI_INTERVENTO_IN_CORSO = ("rigenera_totale", "rigenera_da_proposta", "ritocco_foto")
 STATI_CHIUSI = (PUBBLICATO, FALLITO, ANNULLATO, SCARTATO, SCADUTO)
 
-# Schede MVP (R-21): proporzioni come coppie (larghezza, altezza).
+# Schede MVP (R-21): proporzioni come stringhe "larghezza:altezza".
 # Sono scelte del progetto, non tutti i formati supportati dalle piattaforme.
 SCHEDE_CANALE = {
     "facebook": {
@@ -56,7 +56,7 @@ SCHEDE_CANALE = {
         "limite_caratteri": 5000,
         "limite_hashtag": 30,
         "max_foto": 10,
-        "proporzioni": ((1, 1), (4, 5)),
+        "proporzioni": ("1:1", "4:5"),
         "link_cliccabili": True,
     },
     "instagram": {
@@ -65,7 +65,7 @@ SCHEDE_CANALE = {
         "limite_caratteri": 2200,
         "limite_hashtag": 30,
         "max_foto": 10,
-        "proporzioni": ((1, 1), (4, 5)),
+        "proporzioni": ("1:1", "4:5"),
         "link_cliccabili": False,
     },
 }

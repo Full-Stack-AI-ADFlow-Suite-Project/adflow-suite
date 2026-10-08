@@ -141,7 +141,7 @@ class VersionePost(Base):
         server_default=text("CURRENT_TIMESTAMP"),
     )
     post: Mapped[Post] = relationship(back_populates="versioni")
-    foto: Mapped[list["VersionePostFoto"]] = relationship(
+    legami_foto: Mapped[list["VersionePostFoto"]] = relationship(
         order_by="VersionePostFoto.posizione"
     )
 

@@ -40,14 +40,15 @@ def post_della_campagna(
     Returns:
         Lista di ``Post`` in ordine di data: ``post.versione_corrente`` è
         la versione corrente, ``post.versioni`` lo storico completo.
-        ``versione.foto`` contiene i legami ordinati per posizione, con ``foto_id``.
+        ``versione.legami_foto`` contiene i legami ordinati per posizione,
+        con ``foto_id`` (non gli oggetti foto del modulo campagne).
         Lista vuota se la campagna non ha post.
     """
     return list(
         db.scalars(
             select(Post)
             .where(Post.campagna_id == campagna_id)
-            .options(selectinload(Post.versioni).selectinload(VersionePost.foto))
+            .options(selectinload(Post.versioni).selectinload(VersionePost.legami_foto))
             .order_by(Post.data_ora, Post.id)
             .execution_options(populate_existing=True)
         )
