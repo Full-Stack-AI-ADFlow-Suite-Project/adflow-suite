@@ -39,7 +39,7 @@
 
 ## Test e Robustezza
 
-- Suite completa in `tests/moduli/campagne/test_foto_gruppi.py` (42 test):
+- Suite completa in `tests/moduli/campagne/test_foto_gruppi.py` (49 test):
   - `test_ca13_rifiuto_file_non_immagine` (422)
   - `test_ca13_rifiuto_payload_oltre_10mb` (422)
   - `test_ca13_rifiuto_lato_corto_inferiore_1080px` (422)
@@ -82,7 +82,14 @@
   - `test_ca47_foto_caricata_in_gruppo_create_ai_da_422` (422 se si carica manualmente foto in gruppo create_ai)
   - `test_ca47_gruppo_da_usare_il_fuori_dal_periodo_da_422` (422 se data gruppo non compresa tra data_inizio e data_fine)
   - `test_stella_foto_put_da_usare` (200 toggle stella, 409 fuori bozza, 404 altrui)
-- **251 test totali verdi** su tutta la suite locale (214 in `moduli/campagne`, 19 in `test_confini.py`, 18 in `adapters/archivio`).
+  - `test_debug_form_upload_con_gruppo_id_stringa_vuota` (201, tolleranza su stringhe vuote da FormData)
+  - `test_debug_form_upload_con_gruppo_id_alfanumerico_invalido` (422, validazione esplicita su id gruppo malformato)
+  - `test_debug_png_con_dimensioni_zero_da_422` (422, protezione su dimensioni nulle o negative PNG)
+  - `test_debug_webp_con_dimensioni_zero_da_422` (422, protezione su dimensioni nulle VP8)
+  - `test_debug_gruppo_da_usare_il_uguale_a_inizio_e_fine` (201 e 200, validità dei confini esatti della campagna)
+  - `test_debug_operatore_puo_scaricare_foto_in_campagna_conclusa` (200, download foto consentito all'operatore in qualunque stato)
+  - `test_debug_concorrenza_upload_limite_20_foto` (concorrenza serializzata con row-lock PostgreSQL, limite 20 foto per gruppo rispettato)
+- **261 test totali verdi** su tutta la suite locale (224 in `moduli/campagne`, 19 in `test_confini.py`, 18 in `adapters/archivio`).
 
 ## Limiti e Misure di Sicurezza Applicate
 

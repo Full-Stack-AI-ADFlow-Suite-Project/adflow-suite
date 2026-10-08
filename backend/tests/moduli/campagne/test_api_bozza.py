@@ -478,3 +478,98 @@ def test_debug_creazione_bozza_concorrente_atomica(motore_test):
                 {"pid": profilo_id},
             )
             s.execute(text("DELETE FROM utente WHERE id = :uid"), {"uid": u_id})
+
+
+def test_debug_canali_case_insensitive_e_spazi(
+    client: TestClient, utente_di_prova, db: Session
+):
+    """Verifica che i canali forniti con maiuscole e spazi vengano puliti e accettati."""
+    u = utente_di_prova("artigiano")
+    profilo(db, utente_id=u.id, canali=["instagram", "facebook"])
+
+    oggi = adesso().astimezone(ROMA).date()
+    inizio = oggi + timedelta(days=5)
+    fine = inizio + timedelta(days=10)
+
+    res = client.post(
+        "/api/campagne",
+        json={
+            "titolo": "Campagna con canali misti",
+            "inizio": inizio.isoformat(),
+            "fine": fine.isoformat(),
+            "canali": ["  Instagram  ", "FACEBOOK"],
+        },
+    )
+    assert res.status_code == 201
+    assert res.json()["canali"] == ["instagram", "facebook"]
+
+
+def test_debug_foto_policy_come_stringa_json_in_dettaglio(
+    client: TestClient, utente_di_prova, db: Session
+):
+    """Verifica che se foto_policy è serializzata come stringa JSON, venga gestita senza 500."""
+    from sqlalchemy import text
+
+    u = utente_di_prova("artigiano")
+    p = profilo(
+        db,
+        utente_id=u.id,
+        canali=["instagram"],
+        frequenza="f3_4",
+    )
+    # Aggiorna foto_policy come stringa json raw nel DB
+    db.execute(
+        text("UPDATE profilo_bottega SET foto_policy = :fp WHERE id = :pid"),
+        {"fp": '{"quantita_mese": "meno_5"}', "pid": p.id},
+    )
+    db.flush()
+
+    oggi = adesso().astimezone(ROMA).date()
+    c = campagna_in_bozza(
+        db,
+        profilo_id=p.id,
+        inizio=oggi + timedelta(days=5),
+        fine=oggi + timedelta(days=18),
+        canali=["instagram"],
+    )
+
+    res = client.get(f"/api/campagne/{c.id}")
+    assert res.status_code == 200
+    assert "frequenza_alta" in res.json()["avvisi"]
+
+
+def test_debug_durata_minima_7_giorni_esatta(
+    client: TestClient, utente_di_prova, db: Session
+):
+    """Verifica il confine esatto: durata 7 giorni esatti consentita, 6 giorni da 422."""
+    u = utente_di_prova("artigiano")
+    profilo(db, utente_id=u.id, canali=["instagram"])
+
+    oggi = adesso().astimezone(ROMA).date()
+    inizio = oggi + timedelta(days=5)
+
+    # 6 giorni (es. inizio + 5 giorni inclusi) -> 422
+    res_6g = client.post(
+        "/api/campagne",
+        json={
+            "titolo": "Durata 6 giorni",
+            "inizio": inizio.isoformat(),
+            "fine": (inizio + timedelta(days=5)).isoformat(),
+            "canali": ["instagram"],
+        },
+    )
+    assert res_6g.status_code == 422
+    assert "almeno 7 giorni" in res_6g.json()["detail"]
+
+    # 7 giorni (inizio + 6 giorni inclusi) -> 201
+    res_7g = client.post(
+        "/api/campagne",
+        json={
+            "titolo": "Durata 7 giorni esatti",
+            "inizio": inizio.isoformat(),
+            "fine": (inizio + timedelta(days=6)).isoformat(),
+            "canali": ["instagram"],
+        },
+    )
+    assert res_7g.status_code == 201
+    assert res_7g.json()["titolo"] == "Durata 7 giorni esatti"

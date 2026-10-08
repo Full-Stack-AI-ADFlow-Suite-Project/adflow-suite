@@ -123,9 +123,16 @@ def carica_foto(
     file: Annotated[UploadFile, File(...)],
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
-    gruppo_id: Annotated[int | None, Form()] = None,
+    gruppo_id: Annotated[str | int | None, Form()] = None,
 ) -> FotoDettaglio:
     """Carica una nuova foto nella campagna in bozza con streaming e limiti anti-DoS (CA-13, R-13)."""
+    gid_int: int | None = None
+    if gruppo_id is not None and str(gruppo_id).strip() != "":
+        try:
+            gid_int = int(gruppo_id)
+        except (ValueError, TypeError):
+            raise DatiNonValidi("ID gruppo non valido.")
+
     dimensione_max = DIMENSIONE_MAX_BYTE
     letti = 0
     blocchi = []
@@ -150,7 +157,7 @@ def carica_foto(
         ruolo=utente.ruolo,
         campagna_id=id,
         contenuto=contenuto,
-        gruppo_id=gruppo_id,
+        gruppo_id=gid_int,
     )
     return FotoDettaglio.model_validate(foto)
 

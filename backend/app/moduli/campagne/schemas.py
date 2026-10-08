@@ -56,12 +56,13 @@ class CampagnaCrea(BaseModel):
         ammessi = {"facebook", "instagram"}
         visti = []
         for c in canali:
-            if c not in ammessi:
+            c_norm = c.strip().lower()
+            if c_norm not in ammessi:
                 raise ValueError(
                     f"Canale '{c}' non valido. Ammessi: facebook, instagram."
                 )
-            if c not in visti:
-                visti.append(c)
+            if c_norm not in visti:
+                visti.append(c_norm)
         return visti
 
 
@@ -158,11 +159,12 @@ class GruppoCrea(BaseModel):
     @field_validator("origine")
     @classmethod
     def valida_origine(cls, v: str) -> str:
-        if v not in ("caricate", "create_ai"):
+        v_norm = v.strip().lower()
+        if v_norm not in ("caricate", "create_ai"):
             raise ValueError(
                 "Origine del gruppo non valida (ammesse: 'caricate', 'create_ai')."
             )
-        return v
+        return v_norm
 
     @field_validator("descrizione")
     @classmethod

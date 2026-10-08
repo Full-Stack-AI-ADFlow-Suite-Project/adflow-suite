@@ -555,6 +555,14 @@ def dettaglio_campagna(
             if "riempitivi_molti" not in avvisi:
                 avvisi.append("riempitivi_molti")
 
+    if isinstance(foto_policy_val, str):
+        try:
+            import json
+
+            foto_policy_val = json.loads(foto_policy_val)
+        except Exception:
+            foto_policy_val = None
+
     if isinstance(foto_policy_val, dict):
         q_mese = foto_policy_val.get("quantita_mese")
         if q_mese in LIMITI_POLICY_FOTO:
@@ -781,13 +789,19 @@ def elimina_gruppo(
     db.flush()
 
     archivio = ottieni_archivio()
-    for nome in nomi_file:
-        _al_termine_transazione(
-            db,
-            su_commit=lambda nome_da_rimuovere=nome: archivio.elimina(
-                nome_da_rimuovere
-            ),
-        )
+
+    def rimuovi_tutti() -> None:
+        for n in nomi_file:
+            try:
+                archivio.elimina(n)
+            except OSError:
+                logger.warning(
+                    "Operazione sul file system non riuscita per %s.",
+                    n,
+                    exc_info=True,
+                )
+
+    _al_termine_transazione(db, su_commit=rimuovi_tutti)
 
 
 def carica_foto(
@@ -827,7 +841,9 @@ def carica_foto(
         )
 
     if gruppo_id is not None:
-        gruppo = db.get(GruppoFoto, gruppo_id)
+        gruppo = db.scalar(
+            select(GruppoFoto).where(GruppoFoto.id == gruppo_id).with_for_update()
+        )
         if gruppo is None:
             raise NonTrovato("Gruppo non trovato.")
         if gruppo.campagna_id != rec.id:

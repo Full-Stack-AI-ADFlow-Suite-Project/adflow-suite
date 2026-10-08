@@ -1427,3 +1427,225 @@ def test_stella_foto_put_da_usare(
         res_off = client.put(f"/api/foto/{foto_id}", json={"da_usare": False})
         assert res_off.status_code == 200
         assert res_off.json()["da_usare"] is False
+
+
+def test_debug_form_upload_con_gruppo_id_stringa_vuota(
+    client: TestClient, utente_di_prova, db: Session, tmp_path: Path
+):
+    """Verifica che un FormData con gruppo_id='' (stringa vuota) crei un gruppo automatico senza errori 422 di parsing."""
+    with usa_archivio(ArchivioDisco(tmp_path)):
+        art = utente_di_prova("artigiano")
+        prof = profilo(db, utente_id=art.id)
+        camp = campagna_in_bozza(db, profilo_id=prof.id)
+
+        res = client.post(
+            f"/api/campagne/{camp.id}/foto",
+            data={"gruppo_id": ""},
+            files={"file": ("foto.png", BytesIO(_crea_png(1080, 1080)), "image/png")},
+        )
+        assert res.status_code == 201
+        assert res.json()["gruppo_id"] is not None
+
+
+def test_debug_form_upload_con_gruppo_id_alfanumerico_invalido(
+    client: TestClient, utente_di_prova, db: Session
+):
+    """Verifica che un FormData con gruppo_id non numerico sollevi 422 con messaggio chiaro."""
+    art = utente_di_prova("artigiano")
+    prof = profilo(db, utente_id=art.id)
+    camp = campagna_in_bozza(db, profilo_id=prof.id)
+
+    res = client.post(
+        f"/api/campagne/{camp.id}/foto",
+        data={"gruppo_id": "non_un_numero"},
+        files={"file": ("foto.png", BytesIO(_crea_png(1080, 1080)), "image/png")},
+    )
+    assert res.status_code == 422
+    assert "ID gruppo non valido" in res.json()["detail"]
+
+
+def test_debug_png_con_dimensioni_zero_da_422(
+    client: TestClient, utente_di_prova, db: Session
+):
+    """Un PNG con larghezza o altezza a zero byte nell'IHDR viene rifiutato con 422."""
+    art = utente_di_prova("artigiano")
+    prof = profilo(db, utente_id=art.id)
+    camp = campagna_in_bozza(db, profilo_id=prof.id)
+
+    png_zero = _crea_png(0, 1080)
+    res = client.post(
+        f"/api/campagne/{camp.id}/foto",
+        files={"file": ("zero.png", BytesIO(png_zero), "image/png")},
+    )
+    assert res.status_code == 422
+    assert "non valide" in res.json()["detail"].lower()
+
+
+def test_debug_webp_con_dimensioni_zero_da_422(
+    client: TestClient, utente_di_prova, db: Session
+):
+    """Un WebP con dimensioni a zero viene rifiutato con 422."""
+    art = utente_di_prova("artigiano")
+    prof = profilo(db, utente_id=art.id)
+    camp = campagna_in_bozza(db, profilo_id=prof.id)
+
+    # WebP VP8 con dimensioni 0
+    header = b"RIFF\x20\x00\x00\x00WEBPVP8 \x14\x00\x00\x00"
+    payload = b"\x00\x00\x00\x9d\x01\x2a\x00\x00\x00\x00" + b"\x00" * 10
+    file_bytes = header + payload
+
+    res = client.post(
+        f"/api/campagne/{camp.id}/foto",
+        files={"file": ("zero.webp", BytesIO(file_bytes), "image/webp")},
+    )
+    assert res.status_code == 422
+
+
+def test_debug_gruppo_da_usare_il_uguale_a_inizio_e_fine(
+    client: TestClient, utente_di_prova, db: Session
+):
+    """Verifica che da_usare_il coincidente con inizio o fine sia ammesso sia in POST che in PUT."""
+    art = utente_di_prova("artigiano")
+    prof = profilo(db, utente_id=art.id)
+    camp = campagna_in_bozza(db, profilo_id=prof.id)
+
+    # POST con da_usare_il == camp.inizio -> 201
+    res_inizio = client.post(
+        f"/api/campagne/{camp.id}/gruppi",
+        json={"origine": "caricate", "da_usare_il": camp.inizio.isoformat()},
+    )
+    assert res_inizio.status_code == 201
+    gruppo_id = res_inizio.json()["id"]
+
+    # PUT con da_usare_il == camp.fine -> 200
+    res_fine = client.put(
+        f"/api/campagne/{camp.id}/gruppi/{gruppo_id}",
+        json={"da_usare_il": camp.fine.isoformat()},
+    )
+    assert res_fine.status_code == 200
+    assert res_fine.json()["da_usare_il"] == camp.fine.isoformat()
+
+
+def test_debug_operatore_puo_scaricare_foto_in_campagna_conclusa(
+    client: TestClient, utente_di_prova, db: Session, tmp_path: Path
+):
+    """Verifica che un operatore possa scaricare la foto originale anche quando la campagna è in stato conclusa."""
+    from app.moduli.campagne import domain
+
+    with usa_archivio(ArchivioDisco(tmp_path)):
+        art = utente_di_prova("artigiano")
+        prof = profilo(db, utente_id=art.id)
+        camp = campagna_in_bozza(db, profilo_id=prof.id)
+
+        # Upload foto in bozza
+        res_upload = client.post(
+            f"/api/campagne/{camp.id}/foto",
+            files={"file": ("foto.png", BytesIO(_crea_png(1080, 1080)), "image/png")},
+        )
+        assert res_upload.status_code == 201
+        foto_id = res_upload.json()["id"]
+
+        # Avanzamento forzato della campagna a 'conclusa'
+        camp.stato = domain.CONCLUSA
+        db.flush()
+
+        # Operatore scarica la foto con successo (200)
+        utente_di_prova("operatore")
+        res_dl = client.get(f"/api/foto/{foto_id}/file")
+        assert res_dl.status_code == 200
+        assert res_dl.headers["content-type"] == "image/png"
+
+
+def test_debug_concorrenza_upload_limite_20_foto(motore_test, tmp_path: Path):
+    """Verifica che il row-lock su gruppo_foto prevenga race condition: con 19 foto, solo 1 su 2 thread concorrenti entra."""
+    from concurrent.futures import ThreadPoolExecutor
+    from sqlalchemy import text
+    from sqlalchemy.orm import Session as SessionClass
+    from app.core.errori import DatiNonValidi
+    from app.moduli.campagne import service as camp_service
+    from app.moduli.campagne.models import GruppoFoto
+
+    with usa_archivio(ArchivioDisco(tmp_path)):
+        with SessionClass(motore_test) as s, s.begin():
+            p = profilo(s, canali=["instagram"])
+            u_id = p.utente_id
+            prof_id = p.id
+            camp = campagna_in_bozza(s, profilo_id=prof_id)
+            camp_id = camp.id
+            g = GruppoFoto(profilo_id=prof_id, campagna_id=camp_id, origine="caricate")
+            s.add(g)
+            s.flush()
+            g_id = g.id
+
+            # Inseriamo 19 foto
+            for i in range(19):
+                s.add(
+                    Foto(
+                        profilo_id=prof_id,
+                        campagna_id=camp_id,
+                        gruppo_id=g_id,
+                        origine="caricata",
+                        file=f"concurr_{i}.png",
+                        mime="image/png",
+                        larghezza=1080,
+                        altezza=1080,
+                    )
+                )
+
+        try:
+            file_bytes = _crea_png(1080, 1080)
+
+            def tenta_upload(indice: int) -> str:
+                with SessionClass(motore_test) as sess:
+                    try:
+                        with sess.begin():
+                            camp_service.carica_foto(
+                                sess,
+                                u_id,
+                                "artigiano",
+                                camp_id,
+                                file_bytes,
+                                gruppo_id=g_id,
+                            )
+                        return "ok"
+                    except DatiNonValidi:
+                        return "422"
+
+            with ThreadPoolExecutor(max_workers=2) as executor:
+                futures = [executor.submit(tenta_upload, i) for i in range(2)]
+                esiti = [f.result() for f in futures]
+
+            # Esattamente 1 thread deve essere entrato (20-esima foto) e 1 respinto con 422
+            assert esiti.count("ok") == 1
+            assert esiti.count("422") == 1
+
+            with SessionClass(motore_test) as s:
+                totale = (
+                    s.query(Foto)
+                    .filter(Foto.campagna_id == camp_id, Foto.gruppo_id == g_id)
+                    .count()
+                )
+                assert totale == 20
+        finally:
+            with SessionClass(motore_test) as s, s.begin():
+                s.execute(
+                    text("DELETE FROM foto WHERE campagna_id = :cid"),
+                    {"cid": camp_id},
+                )
+                s.execute(
+                    text("DELETE FROM gruppo_foto WHERE campagna_id = :cid"),
+                    {"cid": camp_id},
+                )
+                s.execute(
+                    text("DELETE FROM campagna WHERE id = :cid"),
+                    {"cid": camp_id},
+                )
+                s.execute(
+                    text("DELETE FROM account_social WHERE profilo_id = :pid"),
+                    {"pid": prof_id},
+                )
+                s.execute(
+                    text("DELETE FROM profilo_bottega WHERE id = :pid"),
+                    {"pid": prof_id},
+                )
+                s.execute(text("DELETE FROM utente WHERE id = :uid"), {"uid": u_id})

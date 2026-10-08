@@ -19,7 +19,8 @@ MIN_LATO_CORTO: int = 1080
 MAX_WIDTH: int = 8192
 MAX_HEIGHT: int = 8192
 MAX_PIXELS: int = 36_000_000
-MAX_FOTO_PER_CAMPAGNA: int = 20
+MAX_FOTO_PER_GRUPPO: int = 20
+MAX_FOTO_PER_CAMPAGNA: int = 20  # Alias di retrocompatibilità
 
 
 class InfoImmagine(NamedTuple):
@@ -40,6 +41,8 @@ def _estrai_dimensioni_png(dati: bytes) -> tuple[int, int]:
         raise DatiNonValidi("Intestazione IHDR non trovata nell'immagine PNG.")
 
     larghezza, altezza = struct.unpack(">II", dati[16:24])
+    if larghezza <= 0 or altezza <= 0:
+        raise DatiNonValidi("Dimensioni PNG non valide (<= 0 px).")
     return larghezza, altezza
 
 
@@ -129,6 +132,8 @@ def _estrai_dimensioni_webp(dati: bytes) -> tuple[int, int]:
         # Larghezza e altezza a 14 bit (little endian)
         raw_w = struct.unpack("<H", dati[26:28])[0] & 0x3FFF
         raw_h = struct.unpack("<H", dati[28:30])[0] & 0x3FFF
+        if raw_w <= 0 or raw_h <= 0:
+            raise DatiNonValidi("Dimensioni WEBP non valide (<= 0 px).")
         return raw_w, raw_h
 
     # 2. VP8L (lossless)
