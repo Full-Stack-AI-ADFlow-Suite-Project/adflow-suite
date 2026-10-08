@@ -52,6 +52,7 @@ def login(
             select(Utente)
             .where(func.lower(Utente.email) == email.strip().lower())
             .limit(2)
+            .with_for_update()
         )
     )
     # Il vincolo storico distingue maiuscole/minuscole: in presenza di due
