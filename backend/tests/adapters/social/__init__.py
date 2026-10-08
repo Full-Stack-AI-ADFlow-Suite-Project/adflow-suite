@@ -1,1 +1,1 @@
-# Placeholder
+"""Test dell'adattatore social."""
