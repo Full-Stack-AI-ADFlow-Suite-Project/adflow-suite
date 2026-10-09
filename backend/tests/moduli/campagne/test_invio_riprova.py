@@ -7,7 +7,7 @@ import pytest
 from app.core import coda as modulo_coda
 from app.core.orologio import adesso
 from app.main import app
-from app.moduli.campagne import service
+from app.moduli.campagne import domain, service
 from tests.moduli.artigiani.fabbrica import profilo
 from tests.moduli.campagne.fabbrica import (
     campagna_in_bozza,
@@ -244,16 +244,7 @@ def test_ca19_ca50_riprova_conserva_snapshot_e_analisi(
 
 
 @pytest.mark.parametrize(
-    "stato",
-    [
-        "bozza",
-        "inviata",
-        "in_generazione",
-        "in_revisione",
-        "attiva",
-        "conclusa",
-        "piano_da_rivedere",
-    ],
+    "stato", [stato for stato in domain.STATI if stato != domain.GENERAZIONE_FALLITA]
 )
 def test_riprova_rifiuta_altri_stati(db, client, utente_di_prova, coda, stato):
     c = campagna_inviata(db)
@@ -295,3 +286,26 @@ def test_errore_coda_annulla_transazione(db, bozza, monkeypatch, azione):
     db.refresh(c)
     assert c.stato == stato_originale
     assert c.inviata_il is None and c.profilo_snapshot is None
+
+
+@pytest.mark.parametrize("origine", ["creata_ai", "cartolina"])
+def test_ca14_gruppo_caricate_non_ammette_foto_di_altra_origine(
+    db, client, bozza, coda, origine
+):
+    _, _, c, g = bozza
+    foto(db, gruppo=g, origine=origine)
+    db.expire(g, ["foto"])
+    assert invia(client, c).status_code == 422
+    assert c.stato == "bozza" and c.profilo_snapshot is None
+    assert not coda.jobs
+
+
+def test_ca14_gruppo_caricate_non_ammette_foto_di_altra_campagna(
+    db, client, bozza, coda
+):
+    _, _, c, g = bozza
+    altra = campagna_in_bozza(db)
+    foto(db, gruppo=g, campagna_id=altra.id)
+    db.expire(g, ["foto"])
+    assert invia(client, c).status_code == 422
+    assert c.stato == "bozza" and not coda.jobs

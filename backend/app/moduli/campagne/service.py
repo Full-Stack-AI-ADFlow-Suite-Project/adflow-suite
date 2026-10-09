@@ -1020,7 +1020,11 @@ def invia_campagna(
                 for f in gruppo.foto
                 if f.origine == "caricata" and f.campagna_id == rec.id
             ]
-            if not 1 <= len(gruppo.foto) <= MAX_FOTO_PER_GRUPPO:
+            if len(fotografie) != len(gruppo.foto):
+                raise DatiNonValidi(
+                    "Il gruppo deve contenere solo foto caricate di questa campagna."
+                )
+            if not 1 <= len(fotografie) <= MAX_FOTO_PER_GRUPPO:
                 raise DatiNonValidi(
                     "Ogni gruppo caricato deve contenere da 1 a 20 foto."
                 )
