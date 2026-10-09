@@ -206,3 +206,25 @@ def scarica_file_foto(
         media_type=mime,
         headers={"X-Content-Type-Options": "nosniff"},
     )
+
+
+@router.post("/campagne/{id}/invia", response_model=CampagnaDettaglio)
+def invia_campagna(
+    id: int,
+    db: Annotated[Session, Depends(get_db, scope="function")],
+    utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
+    ora: Annotated[datetime, Depends(adesso)],
+) -> CampagnaDettaglio:
+    service.invia_campagna(db, utente.id, id, ora)
+    return service.dettaglio_campagna(db, utente.id, utente.ruolo, id)
+
+
+@router.post("/campagne/{id}/riprova", response_model=CampagnaDettaglio)
+def riprova_campagna(
+    id: int,
+    db: Annotated[Session, Depends(get_db, scope="function")],
+    utente: Annotated[Any, Depends(richiede_ruolo("operatore"))],
+    ora: Annotated[datetime, Depends(adesso)],
+) -> CampagnaDettaglio:
+    service.riprova_campagna(db, id, ora)
+    return service.dettaglio_campagna(db, utente.id, utente.ruolo, id)
