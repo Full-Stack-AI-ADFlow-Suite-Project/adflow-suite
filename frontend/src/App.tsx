@@ -5,6 +5,7 @@ import { paginaIniziale, useAuth } from "./contesto-auth";
 import { Accesso } from "./pages/Accesso";
 import { Campagna } from "./pages/artigiano/Campagna";
 import { DaApprovare } from "./pages/operatore/DaApprovare";
+import { VediCampagna } from "./pages/operatore/VediCampagna";
 
 function Ingresso() {
   const { utente } = useAuth();
@@ -29,6 +30,14 @@ export default function App() {
         element={
           <RichiedeRuolo ruoli={["operatore", "admin"]}>
             <DaApprovare />
+          </RichiedeRuolo>
+        }
+      />
+      <Route
+        path="/campagne/:id"
+        element={
+          <RichiedeRuolo ruoli={["operatore", "admin"]}>
+            <VediCampagna />
           </RichiedeRuolo>
         }
       />

@@ -41,6 +41,11 @@ const utentiEsempio: (UtentePubblico & { password: string })[] = [
 
 const CHIAVE_SESSIONE = "adflow_utente_esempio";
 
+/** La sessione finta in chiaro, per i moduli esempio che filtrano per ruolo. */
+export function sessioneEsempio(): UtentePubblico | null {
+  return leggiSessione();
+}
+
 function leggiSessione(): UtentePubblico | null {
   const grezzo = localStorage.getItem(CHIAVE_SESSIONE);
   if (!grezzo) return null;
