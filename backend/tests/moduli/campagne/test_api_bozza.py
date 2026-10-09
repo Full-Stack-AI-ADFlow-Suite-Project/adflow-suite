@@ -120,13 +120,13 @@ def test_ca10_durata_superiore_92_giorni_o_fine_prima_inizio_da_422(
     assert risposta_troppo_corta.status_code == 422
     assert "almeno 7 giorni" in risposta_troppo_corta.json()["detail"]
 
-    # 4. Durata superiore a 92 giorni (es. 93 giorni)
+    # 4. Durata superiore a 92 giorni: 93 giorni compresi inizio e fine
     risposta_troppo_lunga = client.post(
         "/api/campagne",
         json={
             "titolo": "Troppo lunga",
             "inizio": inizio_valido.isoformat(),
-            "fine": (inizio_valido + timedelta(days=93)).isoformat(),
+            "fine": (inizio_valido + timedelta(days=92)).isoformat(),
             "canali": ["instagram"],
         },
     )

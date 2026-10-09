@@ -1241,10 +1241,10 @@ def test_eliminazione_con_rollback_conserva_file_e_record(
         assert db.get(Foto, foto_id) is not None
 
 
-def test_limite_massimo_20_foto_per_campagna(
+def test_ca13_limite_massimo_20_foto_per_gruppo(
     client: TestClient, utente_di_prova, db: Session, tmp_path: Path
 ):
-    """Caricare più di 20 foto per gruppo solleva 422 e non salva il file su disco (CA-13)."""
+    """CA-13: la ventunesima foto di un gruppo dà 422 senza file su disco; un altro gruppo resta libero (R-13)."""
     from app.moduli.campagne.models import GruppoFoto
 
     with usa_archivio(ArchivioDisco(tmp_path)):
@@ -1283,6 +1283,20 @@ def test_limite_massimo_20_foto_per_campagna(
         assert res.status_code == 422
         assert "massimo 20 foto" in res.json()["detail"]
         assert list(tmp_path.iterdir()) == []
+
+        # Il limite vale per gruppo: un secondo gruppo della stessa campagna accetta foto
+        secondo = GruppoFoto(
+            profilo_id=prof.id, campagna_id=camp.id, origine="caricate"
+        )
+        db.add(secondo)
+        db.commit()
+        res_secondo = client.post(
+            f"/api/campagne/{camp.id}/foto",
+            data={"gruppo_id": secondo.id},
+            files={"file": ("altra.png", BytesIO(_crea_png(1080, 1080)), "image/png")},
+        )
+        assert res_secondo.status_code == 201
+        assert res_secondo.json()["gruppo_id"] == secondo.id
 
 
 # ==============================================================================
