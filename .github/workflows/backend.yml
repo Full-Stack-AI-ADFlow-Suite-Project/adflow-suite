@@ -1,0 +1,59 @@
+# Controllo del backend a ogni PR: gli stessi comandi di docs/agenti/converge.md §1,
+# su una macchina pulita.
+name: Backend
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  controllo:
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          # Credenziali finte: il database vive solo per la durata del controllo.
+          POSTGRES_USER: adflow
+          POSTGRES_PASSWORD: adflow
+          POSTGRES_DB: adflow
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U adflow"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      DATABASE_URL: postgresql+psycopg://adflow:adflow@localhost:5432/adflow
+      DATABASE_URL_TEST: postgresql+psycopg://adflow:adflow@localhost:5432/adflow_test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Installa le dipendenze
+        run: |
+          uv venv --python 3.11 --seed .venv
+          uv pip install -r backend/requirements.txt
+
+      - name: Crea il database dei test
+        run: psql -h localhost -U adflow -d adflow -c "CREATE DATABASE adflow_test"
+        env:
+          PGPASSWORD: adflow
+
+      - name: Migrazioni
+        working-directory: backend
+        run: uv run alembic upgrade head
+
+      - name: Test
+        working-directory: backend
+        run: uv run pytest
+
+      - name: Formattazione
+        working-directory: backend
+        run: uv run black --check .
