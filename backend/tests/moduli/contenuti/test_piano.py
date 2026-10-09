@@ -22,7 +22,6 @@ from app.moduli.contenuti.piano import (
     foto_disponibili,
     limiti_per_canale,
     piano_debole,
-    post_chiesti,
 )
 from tests.moduli.artigiani.fabbrica import profilo
 from tests.moduli.campagne.fabbrica import campagna_in_bozza, campagna_inviata, foto
@@ -155,47 +154,39 @@ def test_ca17_limiti_sei_post_chiesti_cinque_foto_e_una_cartolina(db):
 
 @pytest.mark.parametrize(
     ("a_settimana", "giorni", "attesi"),
-    [
-        (2, 7, 2),  # durata minima (R-08)
-        (3, 7, 3),
-        (5, 7, 5),
-        (3, 8, 3),  # 24 ÷ 7, per difetto
-        (3, 10, 4),  # 30 ÷ 7, per difetto
-        (3, 14, 6),  # CA-17
-        (2, 92, 26),  # durata massima (R-08): 184 ÷ 7
-        (5, 92, 65),  # 460 ÷ 7
-    ],
+    [(2, 7, 2), (3, 10, 4), (5, 92, 65)],  # durata minima, per difetto, massima
 )
-def test_post_chiesti_per_difetto(a_settimana, giorni, attesi):
+def test_limiti_per_canale_con_i_post_chiesti_di_campagne(a_settimana, giorni, attesi):
+    """La formula di R-05 è una sola, in ``campagne.service.post_chiesti()`` (#44)."""
     fine = INIZIO + timedelta(days=giorni - 1)
-    assert post_chiesti(a_settimana, INIZIO, fine) == attesi
+    limiti = limiti_per_canale(["facebook"], a_settimana, INIZIO, fine, [])
+    assert limiti["facebook"]["post_chiesti"] == attesi
+    assert attesi == campagne.post_chiesti(a_settimana, INIZIO, fine)
 
 
-def test_post_chiesti_con_periodo_rovesciato_sono_zero():
-    assert post_chiesti(3, FINE, INIZIO) == 0
-
-
-@pytest.mark.parametrize(
-    ("frequenza", "giorni"),
-    [("f1_2", 7), ("f3_4", 14), ("f5_piu", 10), ("f5_piu", 92), (None, 30)],
-)
-def test_post_chiesti_uguali_a_quelli_del_dettaglio_della_campagna(
-    client, utente_di_prova, db, frequenza, giorni
+def test_limiti_uguali_ai_post_chiesti_del_dettaglio_della_campagna(
+    client, utente_di_prova, db
 ):
-    """La formula di R-05 vive anche nel dettaglio della campagna: devono coincidere."""
+    """L'artigiano legge nel dettaglio gli stessi post che il piano dovrà avere."""
     utente_di_prova("operatore")
-    bottega = profilo(db, canali=["facebook", "instagram"], frequenza=frequenza)
-    fine = INIZIO + timedelta(days=giorni - 1)
+    bottega = profilo(db, canali=["facebook", "instagram"], frequenza="f5_piu")
+    fine = INIZIO + timedelta(days=9)
     campagna = campagna_in_bozza(db, profilo_id=bottega.id, inizio=INIZIO, fine=fine)
 
     risposta = client.get(f"/api/campagne/{campagna.id}")
 
+    limiti = limiti_per_canale(
+        campagna.canali,
+        artigiani.post_a_settimana(bottega.frequenza),
+        campagna.inizio,
+        campagna.fine,
+        [],
+    )
     assert risposta.status_code == 200
-    attesi = post_chiesti(artigiani.post_a_settimana(frequenza), INIZIO, fine)
     assert risposta.json()["post_chiesti_per_canale"] == {
-        "facebook": attesi,
-        "instagram": attesi,
+        canale: limite["post_chiesti"] for canale, limite in limiti.items()
     }
+    assert limiti["instagram"]["post_chiesti"] == 7  # 5 × 10 ÷ 7, per difetto
 
 
 def test_foto_disponibili_idonee_e_senza_doppioni_sommate_sui_gruppi():
@@ -587,6 +578,46 @@ def test_una_foto_con_la_stella_non_idonea_resta_fuori_dal_piano():
     ]
     limiti = limiti_per_canale(["instagram"], 3, INIZIO, FINE, gruppi)
     assert _controlla(_piano_valido(limiti), limiti, gruppi) == []
+
+
+def test_regola_foto_con_la_stella_quando_sono_piu_dei_post_chiesti():
+    """R-23 (#45): con 8 stelle e 6 post chiesti il piano ne usa almeno 6."""
+    gruppi = [_gruppo(1, [_foto(n, stella=n > 2) for n in range(1, 11)])]
+    limiti = limiti_per_canale(["instagram"], 3, INIZIO, FINE, gruppi)
+    assert len(foto_con_stella(gruppi)) == 8
+    contenuto = _piano_valido(limiti)  # foto da 1 a 6: solo 4 con la stella
+
+    violazioni = _controlla(contenuto, limiti, gruppi)
+
+    assert violazioni == [
+        {
+            "regola": "foto_con_stella",
+            "canale": None,
+            "messaggio": (
+                "Le foto con la stella sono 8, più dei post chiesti: "
+                "il piano ne deve usare almeno 6, ne usa 4."
+            ),
+        }
+    ]
+
+    # una foto con la stella per post: il piano passa anche se due restano fuori
+    for uscita, foto_del_post in zip(contenuto["uscite"], range(3, 9)):
+        uscita["post"][0]["foto"] = [foto_del_post]
+    assert _controlla(contenuto, limiti, gruppi) == []
+
+
+def test_tante_stelle_quanti_i_post_chiesti_devono_esserci_tutte():
+    gruppi = [_gruppo(1, [_foto(n, stella=n > 2) for n in range(1, 9)])]
+    limiti = limiti_per_canale(["instagram"], 3, INIZIO, FINE, gruppi)
+    assert len(foto_con_stella(gruppi)) == 6
+    contenuto = _piano_valido(limiti)  # foto da 1 a 6: mancano la 7 e la 8
+
+    violazioni = _controlla(contenuto, limiti, gruppi)
+
+    assert [v["messaggio"] for v in violazioni] == [
+        "La foto 7 ha la stella e non è in nessun post.",
+        "La foto 8 ha la stella e non è in nessun post.",
+    ]
 
 
 @pytest.mark.parametrize("canale", sorted(domain.SCHEDE_CANALE))
