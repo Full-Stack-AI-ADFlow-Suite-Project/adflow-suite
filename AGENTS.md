@@ -12,6 +12,8 @@ uv run python allinea.py
 
 Aggiorna `main`, le dipendenze e il database senza toccare il lavoro in corso, poi stampa i task pronti della corsia, cosa leggere per ognuno e il branch da aprire. La corsia si indica una volta sola (`uv run python allinea.py 3`) e resta ricordata. Il task si sceglie da ciò che stampa, non a memoria e non dalle note di una sessione precedente: la fonte è `docs/agenti/tasks.md` su `main`. Se la persona non ha indicato un task, proponi il primo segnato PRONTO e aspetta la conferma.
 
+`tasks.md` ha una sezione per sprint (1, 2a, 2b, 3). Lo sprint corrente è il primo che ha ancora un task da fare: `allinea.py` mostra quello e, degli sprint dopo, solo i task della tua corsia che sono già pronti. Queste istruzioni valgono per ogni agente, qualunque sia lo strumento con cui lavori.
+
 ## Cosa leggere
 
 1. `docs/agenti/constitution.md`: sempre, prima di tutto.
@@ -35,6 +37,10 @@ Da `backend/`: `uv run uvicorn app.main:app --reload` avvia l'API; `uv run alemb
 - Un task alla volta, su un branch `feature/<id>-<breve>`, mai su `main`.
 - Fai solo il task: il resto diventa un nuovo task o una domanda.
 - Tocchi solo ciò che appartiene alla corsia del task (`tasks.md`). Ciò che è della corsia 0 (tabelle, stati, funzioni di plan §6, `core/`, composizione, `requirements.txt`) non si cambia in un task delle corsie 1–5: fermati e chiedi.
+- Dallo sprint 2a ogni task ha la colonna **Tocca**: sono i soli file che cambi, con i loro test. La logica nuova va nel file che il task nomina, spesso un file nuovo del modulo; in `service.py` restano le funzioni di plan §6. Se ti serve un file che il task non nomina, fermati e chiedi.
+- Uno sprint si apre con il task `-01` della corsia 0 (tabelle, firme con `NotImplementedError`, fabbriche, forma delle API) e si chiude con il `-07`. Finché l'apertura non è su `main` i task delle corsie non partono; una firma che ti serve e non c'è è una domanda per la corsia 0, non una funzione da scrivere nel tuo task.
+- Nel frontend una pagina usa i dati di esempio (`src/api/esempi/`) finché il suo endpoint non è su `main`: il passaggio alle API vere si fa nella chiusura dello sprint, non nel tuo task.
+- Un task del frontend ha una **riserva** e alcuni task sono **prestabili**: lo dice la riga del task. Prendi un task di un'altra corsia solo così, e nella PR scrivi che è un prestito: la rivede il proprietario della corsia.
 - Una libreria nuova entra in `backend/requirements.txt` con una PR della corsia 0 **prima** della PR del task: senza, l'API e i test degli altri non partono.
 - I dati di un altro modulo si leggono solo con le funzioni di plan §6: niente SQL scritto a mano sulle sue tabelle e niente copie delle sue costanti. Se la funzione che serve non c'è, è una domanda per la corsia 0.
 - Quando porti `main` nel tuo branch e c'è un conflitto in un file che contiene funzioni della corsia 0, di quelle funzioni tieni la versione di `main`.
