@@ -12,6 +12,10 @@ branch di lavoro, mai con modifiche non salvate di mezzo), installa le dipendenz
 cambiate, porta il database all'ultima migrazione, poi legge `docs/agenti/tasks.md`
 e stampa i task pronti della tua corsia, cosa leggere e il branch da aprire.
 
+`tasks.md` ha una sezione per sprint (`## Sprint 2a · …`): lo sprint corrente è
+il primo che ha ancora un task da fare. Dei successivi si vedono solo i task
+della propria corsia che sono già pronti.
+
 Usa solo la libreria standard: funziona anche prima di installare le dipendenze.
 """
 
@@ -31,6 +35,8 @@ TASKS = RADICE / "docs" / "agenti" / "tasks.md"
 CHIAVE_CORSIA = "adflow.corsia"
 
 FATTO, DA_FARE = "☑", "☐"
+# T1-23, T2a-11, T2b-41, T3-07: sprint (con la lettera, se c'è), corsia, numero.
+ID_TASK = r"T\d[ab]?-\d\d"
 
 
 # --- lettura di tasks.md -----------------------------------------------------
@@ -45,6 +51,7 @@ class Task:
     fatto_quando: str
     fatto: bool
     tutti: bool = False  # dipende da tutti gli altri task dello sprint
+    tocca: str = ""  # i file del task, dove la tabella ha la colonna "Tocca"
 
 
 @dataclass
@@ -53,6 +60,7 @@ class Corsia:
     nome: str
     chi: str
     task: list[Task] = field(default_factory=list)
+    sprint: str = ""
 
 
 def _titolo(cella: str) -> str:
@@ -64,28 +72,39 @@ def _titolo(cella: str) -> str:
 
 
 def leggi_tasks(testo: str) -> tuple[list[Corsia], list[str]]:
-    """Corsie con i loro task e, a parte, le righe ancora aperte dei follow-up."""
+    """Corsie di ogni sprint con i loro task e, a parte, i follow-up ancora aperti.
+
+    Una riga di task ha 6 celle (ID, Task, Leggi, Dipende da, Fatto quando,
+    casella) oppure 7, con "Tocca" dopo il task.
+    """
     corsie: list[Corsia] = []
     aperti: list[str] = []
+    sprint = ""
     for riga in testo.splitlines():
+        titolo_sprint = re.match(r"## Sprint (\S+) · ", riga)
+        if titolo_sprint:
+            sprint = titolo_sprint.group(1)
+            continue
         intestazione = re.match(r"### Corsia (\d) · (.+?) \((.+)\)\s*$", riga)
         if intestazione:
             numero, nome, chi = intestazione.groups()
-            corsie.append(Corsia(int(numero), nome, chi))
+            corsie.append(Corsia(int(numero), nome, chi, sprint=sprint))
             continue
         if not riga.startswith("|"):
             continue
         celle = [c.strip() for c in riga.strip().strip("|").split("|")]
-        if re.fullmatch(r"T\d-\d\d", celle[0]) and len(celle) == 6 and corsie:
+        if re.fullmatch(ID_TASK, celle[0]) and len(celle) in (6, 7) and corsie:
+            leggi, dipende_da, fatto_quando, casella = celle[-4:]
             corsie[-1].task.append(
                 Task(
                     id=celle[0],
                     titolo=_titolo(celle[1]),
-                    leggi=celle[2],
-                    dipende_da=re.findall(r"T\d-\d\d", celle[3]),
-                    fatto_quando=celle[4],
-                    fatto=celle[5] == FATTO,
-                    tutti="tutti i task" in celle[3],
+                    leggi=leggi,
+                    dipende_da=re.findall(ID_TASK, dipende_da),
+                    fatto_quando=fatto_quando,
+                    fatto=casella == FATTO,
+                    tutti="tutti i task" in dipende_da,
+                    tocca=celle[2] if len(celle) == 7 else "",
                 )
             )
         elif celle[0].startswith("#") and celle[-1] == DA_FARE:
@@ -94,21 +113,49 @@ def leggi_tasks(testo: str) -> tuple[list[Corsia], list[str]]:
 
 
 def stato_dei_task(corsie: list[Corsia]) -> dict[str, list[str]]:
-    """Per ogni task da fare, i task da cui dipende che non sono ancora fatti."""
+    """Per ogni task da fare, i task da cui dipende che non sono ancora fatti.
+
+    "Tutti i task dello sprint" vuol dire tutti gli altri del suo sprint.
+    """
     fatti = {t.id for c in corsie for t in c.task if t.fatto}
-    ogni_task = [t.id for c in corsie for t in c.task]
     manca: dict[str, list[str]] = {}
     for corsia in corsie:
+        dello_sprint = [
+            t.id for c in corsie if c.sprint == corsia.sprint for t in c.task
+        ]
         for task in corsia.task:
             if task.fatto:
                 continue
             attesi = (
-                [i for i in ogni_task if i != task.id]
+                [i for i in dello_sprint if i != task.id]
                 if task.tutti
                 else task.dipende_da
             )
             manca[task.id] = [i for i in attesi if i not in fatti]
     return manca
+
+
+def sprint_corrente(corsie: list[Corsia]) -> str:
+    """Il primo sprint con un task ancora da fare; se sono tutti fatti, l'ultimo."""
+    for corsia in corsie:
+        if any(not task.fatto for task in corsia.task):
+            return corsia.sprint
+    return corsie[-1].sprint if corsie else ""
+
+
+def pronti_in_anticipo(
+    corsie: list[Corsia], manca: dict[str, list[str]], corrente: str, numero: int
+) -> list[Task]:
+    """I task della corsia negli sprint dopo quello corrente che sono già pronti."""
+    ordine = list(dict.fromkeys(c.sprint for c in corsie))
+    dopo = ordine[ordine.index(corrente) + 1 :] if corrente in ordine else []
+    return [
+        task
+        for corsia in corsie
+        if corsia.sprint in dopo and corsia.numero == numero
+        for task in corsia.task
+        if not task.fatto and not manca[task.id]
+    ]
 
 
 _VUOTE = {"a", "e", "di", "del", "il", "la", "le", "con", "per", "da", "in"}
@@ -307,6 +354,8 @@ def stampa_corsia(corsia: Corsia, manca: dict[str, list[str]], esteso: bool) -> 
         print(f"  →  {task.id} {task.titolo} · PRONTO")
         if esteso:
             print(f"       leggi:        constitution.md, poi {task.leggi}")
+            if task.tocca:
+                print(f"       tocca:        {task.tocca}")
             print(f"       fatto quando: {task.fatto_quando}")
             print(f"       branch:       git switch -c {nome_del_branch(task)}")
 
@@ -337,14 +386,29 @@ def main(argomenti: list[str]) -> int:
             allinea_database()
         allinea_frontend()
 
-    corsie, aperti = leggi_tasks(TASKS.read_text("utf-8"))
-    manca = stato_dei_task(corsie)
+    tutte, aperti = leggi_tasks(TASKS.read_text("utf-8"))
+    manca = stato_dei_task(tutte)
+    corrente = sprint_corrente(tutte)
+    corsie = [c for c in tutte if c.sprint == corrente]
     totale = [t for c in corsie for t in c.task]
-    print(f"\nSprint 1: {sum(t.fatto for t in totale)}/{len(totale)} task su main.")
+    print(
+        f"\nSprint {corrente or '1'}: "
+        f"{sum(t.fatto for t in totale)}/{len(totale)} task su main."
+    )
 
     mie = [c for c in corsie if scelta.isdigit() and c.numero == int(scelta)]
     for corsia in mie or corsie:
         stampa_corsia(corsia, manca, esteso=bool(mie))
+    anticipo = (
+        pronti_in_anticipo(tutte, manca, corrente, int(scelta))
+        if scelta.isdigit()
+        else []
+    )
+    if anticipo:
+        print("\nGià pronti negli sprint successivi, per la tua corsia:")
+        for task in anticipo:
+            print(f"  →  {task.id} {task.titolo}")
+            print(f"       branch:       git switch -c {nome_del_branch(task)}")
     if not mie and scelta != "tutte":
         print(
             "\nPer vedere solo la tua corsia, con cosa leggere e il branch da aprire:"
