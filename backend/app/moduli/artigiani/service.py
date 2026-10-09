@@ -1,11 +1,15 @@
 """Logica del modulo artigiani: l'unica parte che gli altri moduli possono importare."""
 
+from datetime import datetime
+
 from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
 from .models import AccountSocial, ProfiloBottega
 from .domain import CANALI, POST_A_SETTIMANA
 from .schemas import CanaleCollegato
+from .profilo_schemas import ProfiloScrittura
 
 
 def stato_canali(db: Session, utente_id: int) -> list[CanaleCollegato]:
@@ -71,3 +75,30 @@ def canali_collegati(db: Session, profilo_id: int) -> list[str]:
             .order_by(AccountSocial.piattaforma)
         )
     )
+
+
+def leggi_profilo_personale(db: Session, utente_id: int) -> ProfiloBottega:
+    """Profilo dell'artigiano autenticato; non accetta un proprietario dal client."""
+    from app.core.errori import NonTrovato
+
+    record = profilo_di(db, utente_id)
+    if record is None:
+        raise NonTrovato("Profilo della bottega non trovato.")
+    return record
+
+
+def salva_profilo_personale(
+    db: Session, utente_id: int, dati: "ProfiloScrittura", ora: "datetime"
+) -> ProfiloBottega:
+    """Sostituisce i dati del profilo, preservando logo, account e snapshot.
+
+    L'upsert PostgreSQL evita due profili anche con prime scritture concorrenti.
+    Il commit resta alla sessione del router.
+    """
+    valori = dati.model_dump()
+    valori["aggiornato_il"] = ora
+    inserimento = insert(ProfiloBottega).values(utente_id=utente_id, **valori)
+    comando = inserimento.on_conflict_do_update(
+        index_elements=[ProfiloBottega.utente_id], set_=valori
+    ).returning(ProfiloBottega)
+    return db.scalars(comando, execution_options={"populate_existing": True}).one()
