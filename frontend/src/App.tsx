@@ -1,0 +1,39 @@
+import { Navigate, Route, Routes } from "react-router-dom";
+
+import { RichiedeRuolo } from "./auth";
+import { paginaIniziale, useAuth } from "./contesto-auth";
+import { Accesso } from "./pages/Accesso";
+import { Campagna } from "./pages/artigiano/Campagna";
+import { DaApprovare } from "./pages/operatore/DaApprovare";
+
+function Ingresso() {
+  const { utente } = useAuth();
+  if (!utente) return <Navigate to="/accesso" replace />;
+  return <Navigate to={paginaIniziale(utente.ruolo)} replace />;
+}
+
+export default function App() {
+  return (
+    <Routes>
+      <Route path="/accesso" element={<Accesso />} />
+      <Route
+        path="/campagna"
+        element={
+          <RichiedeRuolo ruoli={["artigiano"]}>
+            <Campagna />
+          </RichiedeRuolo>
+        }
+      />
+      <Route
+        path="/da-approvare"
+        element={
+          <RichiedeRuolo ruoli={["operatore", "admin"]}>
+            <DaApprovare />
+          </RichiedeRuolo>
+        }
+      />
+      <Route path="/" element={<Ingresso />} />
+      <Route path="*" element={<Ingresso />} />
+    </Routes>
+  );
+}

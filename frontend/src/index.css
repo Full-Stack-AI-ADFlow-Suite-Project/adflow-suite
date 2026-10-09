@@ -1,0 +1,18 @@
+/* Token delle pagine statiche approvate (docs/appunti/pagine). */
+:root {
+  --carta: #f6f3ec;
+  --inchiostro: #201d17;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --carta: #1b1914;
+    --inchiostro: #efeae0;
+  }
+}
+
+body {
+  background: var(--carta);
+  color: var(--inchiostro);
+  margin: 0;
+}
