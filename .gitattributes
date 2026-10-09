@@ -1,0 +1,3 @@
+# Fine riga LF per tutti i file di testo, su ogni sistema: niente differenze
+# finte tra Windows, macOS e Linux, qualunque sia la configurazione di git.
+* text=auto eol=lf

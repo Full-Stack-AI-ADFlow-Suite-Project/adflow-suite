@@ -14,25 +14,25 @@ Monolite a moduli + worker per la gestione di campagne social per artigiani.
 
 ## Installazione
 
-```bash
-# Crea virtual environment
-python -m venv .venv
-source .venv/bin/activate  # Linux/Mac
-# .venv\Scripts\activate  # Windows
+Dalla radice del repository, con [uv](https://docs.astral.sh/uv/getting-started/installation/); i comandi sono gli stessi su Windows, macOS e Linux (dettagli nel [README principale](../README.md)):
 
-# Installa dipendenze
-pip install -r requirements.txt
+```bash
+uv venv --python 3.11 --seed .venv
+uv pip install -r backend/requirements.txt
 ```
+
+Gli altri comandi di questa pagina si lanciano da `backend/` con `uv run` davanti (per esempio `uv run pytest`), oppure con l'ambiente virtuale attivo.
 
 ## Configurazione
 
 Copia `.env.example` in `.env` e configura le variabili:
 
 ```bash
-cp .env.example .env
+cp backend/.env.example backend/.env
 ```
 
 Variabili obbligatorie:
+
 - `DATABASE_URL`: URL del database PostgreSQL
 - `DATABASE_URL_TEST`: URL del database di test
 
