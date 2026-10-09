@@ -1,0 +1,48 @@
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "Allinea",
+      "detail": "Aggiorna main, dipendenze e database, poi mostra i task pronti della tua corsia",
+      "type": "shell",
+      "command": "uv run python allinea.py",
+      "options": { "cwd": "${workspaceFolder}" },
+      "group": { "kind": "build", "isDefault": true },
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true, "focus": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Allinea: scegli la corsia",
+      "detail": "Come Allinea, e ricorda la corsia scelta per le volte dopo",
+      "type": "shell",
+      "command": "uv run python allinea.py ${input:corsia}",
+      "options": { "cwd": "${workspaceFolder}" },
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true, "focus": true },
+      "problemMatcher": []
+    },
+    {
+      "label": "Stato di tutte le corsie",
+      "detail": "Solo lettura: non aggiorna nulla",
+      "type": "shell",
+      "command": "uv run python allinea.py tutte --stato",
+      "options": { "cwd": "${workspaceFolder}" },
+      "presentation": { "reveal": "always", "panel": "dedicated", "clear": true },
+      "problemMatcher": []
+    }
+  ],
+  "inputs": [
+    {
+      "id": "corsia",
+      "type": "pickString",
+      "description": "La tua corsia",
+      "options": [
+        { "label": "0 · Comune (tutto il team)", "value": "0" },
+        { "label": "1 · Accesso e artigiani (Gianluca)", "value": "1" },
+        { "label": "2 · Campagne (Silvia)", "value": "2" },
+        { "label": "3 · Contenuti (Giovanni)", "value": "3" },
+        { "label": "4 · Revisione e pubblicazione (Nilton)", "value": "4" },
+        { "label": "5 · Frontend (Angelo)", "value": "5" }
+      ]
+    }
+  ]
+}

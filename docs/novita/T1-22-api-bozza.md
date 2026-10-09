@@ -2,6 +2,8 @@
 
 7 ottobre 2026 · corsia 2 (Silvia) · branch `feature/T1-22-api-bozza`
 
+> Nota del 7 ottobre, in parte superata dal riallineamento di T1-08 e T1-09 e dalla revisione del 9 ottobre: `crea_immagini_ai` non esiste più (i gruppi `create_ai` sono in T1-23), il payload porta `canali[]`, la durata si conta compresi inizio e fine (da 7 a 92 giorni), `stato` è ripetibile e l'operatore vede `bottega` e `citta`. Fa testo `docs/agenti/plan.md` §3; l'elenco dei test è quello del file `tests/moduli/campagne/test_api_bozza.py`.
+
 ## Funzionalità implementate
 
 - `POST /api/campagne`: creazione bozza campagna riservata all'artigiano (`HTTP 201`).
