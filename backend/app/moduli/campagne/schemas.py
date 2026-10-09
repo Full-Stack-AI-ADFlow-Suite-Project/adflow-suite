@@ -213,9 +213,6 @@ class GruppoAggiorna(BaseModel):
         return v
 
 
-GruppoDescrizioneAggiorna = GruppoAggiorna
-
-
 class GruppoDettaglio(BaseModel):
     """Rappresentazione di un gruppo di foto nel dettaglio o come risultato di creazione."""
 

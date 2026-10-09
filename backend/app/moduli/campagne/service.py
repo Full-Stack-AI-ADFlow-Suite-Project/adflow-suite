@@ -1,10 +1,10 @@
 """Logica del modulo campagne: l'unica parte che gli altri moduli possono importare."""
 
 from collections.abc import Callable
-from datetime import date, datetime, timedelta
+from datetime import datetime, timedelta
+import json
 import logging
 from typing import Any
-from uuid import UUID
 
 from sqlalchemy import event, func, select, text
 from sqlalchemy.orm import Session, selectinload
@@ -18,28 +18,17 @@ from app.core.transizioni import verifica_transizione
 from app.moduli.artigiani import service as artigiani_service
 
 from .domain import (
-    ANNULLATA,
     BOZZA,
-    CONCLUSA,
     ESITI_DECISIONE,
     ESITO_RESPINTA,
     MOTIVI_DECISIONE,
     ORIGINI_FOTO,
     ORIGINI_GRUPPO,
-    RESPINTA,
-    SCADUTA,
     STATI,
     STATI_CHIUSI,
     TRANSIZIONI,
 )
-from .immagini import (
-    MAX_FOTO_PER_CAMPAGNA,
-    MAX_HEIGHT,
-    MAX_PIXELS,
-    MAX_WIDTH,
-    MIN_LATO_CORTO,
-    analizza_e_valida_immagine,
-)
+from .immagini import MAX_FOTO_PER_GRUPPO, analizza_e_valida_immagine
 from .models import Campagna, DecisioneCampagna, Foto, GruppoFoto
 from .schemas import (
     CampagnaCrea,
@@ -86,27 +75,23 @@ def campagna(
 
 def foto_della_campagna(
     db: Session,
-    campagna_id: int,
+    id: int,
 ) -> list[Foto]:
     """Restituisce tutte le foto associate alla campagna indicata.
 
-    Usata da ``contenuti`` durante la generazione e da ``revisione``.
-    Include sia le foto caricate dall'artigiano che quelle generate
-    (immagini AI, cartoline). L'ordinamento è per id crescente per
-    avere un risultato deterministico.
+    Usata da ``contenuti`` (analisi AI), ``revisione`` e ``pubblicazione``.
+    Restituisce una lista vuota se la campagna non ha foto, senza sollevare
+    eccezioni: la presenza di foto è verificata altrove (es. prima dell'invio).
 
     Args:
         db: sessione del database (aperta e chiusa dal chiamante).
-        campagna_id: chiave primaria della campagna.
+        id: chiave primaria della campagna.
 
     Returns:
-        Lista dei record ``Foto`` appartenenti alla campagna,
-        eventualmente vuota se la campagna non ha ancora foto.
+        Lista di record ``Foto``, vuota se la campagna non ne ha.
     """
     return list(
-        db.scalars(
-            select(Foto).where(Foto.campagna_id == campagna_id).order_by(Foto.id)
-        )
+        db.scalars(select(Foto).where(Foto.campagna_id == id).order_by(Foto.id))
     )
 
 
@@ -114,26 +99,24 @@ def campagne_in_stato(
     db: Session,
     stati: list[str],
 ) -> list[Campagna]:
-    """Restituisce le campagne che si trovano in uno degli stati indicati.
+    """Restituisce tutte le campagne che si trovano in uno degli stati indicati.
 
-    Usata da ``contenuti`` per trovare le campagne pronte per la generazione,
-    da ``revisione`` per la lista delle campagne da approvare e da
-    ``pubblicazione`` per individuare quelle attive o sospese.
+    Usata da ``contenuti``, ``revisione`` e ``pubblicazione`` per ottenere
+    le campagne su cui agire (es. tutte le ``in_revisione`` da mostrare
+    all'operatore). Accetta una lista per permettere query multi-stato
+    con una sola chiamata al database.
 
     Args:
         db: sessione del database (aperta e chiusa dal chiamante).
-        stati: lista di stringhe con i nomi degli stati da cercare
-               (es. ``["inviata", "in_generazione"]``).
+        stati: lista di stati validi (es. ``["in_revisione", "attiva"]``).
+               Gli stati ammessi sono definiti in ``campagne/domain.py``.
 
     Returns:
-        Lista dei record ``Campagna`` corrispondenti, ordinati per
-        data di inizio crescente (le più vicine prima).
+        Lista di record ``Campagna``, vuota se nessuna corrisponde.
     """
     return list(
         db.scalars(
-            select(Campagna)
-            .where(Campagna.stato.in_(stati))
-            .order_by(Campagna.inizio.asc(), Campagna.id.asc())
+            select(Campagna).where(Campagna.stato.in_(stati)).order_by(Campagna.id)
         )
     )
 
@@ -142,6 +125,7 @@ def cambia_stato(
     db: Session,
     campagna: Campagna,
     nuovo: str,
+    *,
     ora: datetime | None = None,
 ) -> None:
     """Aggiorna lo stato della campagna verificando che la transizione sia ammessa.
@@ -204,34 +188,23 @@ def registra_decisione(
             oppure ``respinta`` senza motivo o senza nota (R-18).
     """
     if esito not in ESITI_DECISIONE:
-        raise DatiNonValidi(f"Esito non valido: {esito}.")
-
-    if esito == ESITO_RESPINTA:
-        if motivo not in MOTIVI_DECISIONE:
-            raise DatiNonValidi(
-                "La decisione di respingimento richiede un motivo valido."
-            )
-        if not nota or not nota.strip():
-            raise DatiNonValidi(
-                "La decisione di respingimento richiede una nota non vuota."
-            )
-    else:
-        if motivo is not None:
-            raise DatiNonValidi(
-                "Il motivo è ammesso solo per decisioni di respingimento."
-            )
-
-    record = DecisioneCampagna(
-        campagna_id=campagna.id,
-        utente_id=utente_id,
-        esito=esito,
-        canale=canale,
-        post_id=post_id,
-        motivo=motivo,
-        nota=nota.strip() if nota else None,
-        foto_segnate=foto_segnate,
+        raise DatiNonValidi("Esito della decisione non valido.")
+    if motivo is not None and motivo not in MOTIVI_DECISIONE:
+        raise DatiNonValidi("Motivo della decisione non valido.")
+    if esito == ESITO_RESPINTA and (motivo is None or not (nota or "").strip()):
+        raise DatiNonValidi("Per respingere servono il motivo e la nota.")
+    db.add(
+        DecisioneCampagna(
+            campagna_id=campagna.id,
+            utente_id=utente_id,
+            esito=esito,
+            motivo=motivo,
+            nota=nota,
+            foto_segnate=foto_segnate,
+            canale=canale,
+            post_id=post_id,
+        )
     )
-    db.add(record)
     db.flush()
 
 
@@ -346,7 +319,10 @@ def crea_bozza(
     anticipo_minimo = timedelta(days=impostazioni.anticipo_minimo_giorni)
 
     if dati.inizio < oggi + anticipo_minimo:
-        raise DatiNonValidi("La data di inizio deve essere ad almeno 3 giorni da oggi.")
+        raise DatiNonValidi(
+            "La data di inizio deve essere ad almeno "
+            f"{impostazioni.anticipo_minimo_giorni} giorni da oggi."
+        )
 
     if dati.fine <= dati.inizio:
         raise DatiNonValidi(
@@ -557,10 +533,8 @@ def dettaglio_campagna(
 
     if isinstance(foto_policy_val, str):
         try:
-            import json
-
             foto_policy_val = json.loads(foto_policy_val)
-        except Exception:
+        except json.JSONDecodeError:
             foto_policy_val = None
 
     if isinstance(foto_policy_val, dict):
@@ -866,8 +840,10 @@ def carica_foto(
     conteggio = (
         db.scalar(select(func.count(Foto.id)).where(Foto.gruppo_id == gruppo.id)) or 0
     )
-    if conteggio >= 20:
-        raise DatiNonValidi("Un gruppo può contenere al massimo 20 foto caricate.")
+    if conteggio >= MAX_FOTO_PER_GRUPPO:
+        raise DatiNonValidi(
+            f"Un gruppo può contenere al massimo {MAX_FOTO_PER_GRUPPO} foto caricate."
+        )
 
     # Ispezione binaria e vincoli di dimensione/sicurezza (R-13, CA-13, Defense in Depth)
     info = analizza_e_valida_immagine(contenuto)
@@ -996,22 +972,3 @@ def leggi_file_foto(
         raise NonTrovato("File immagine non trovato nell'archivio.")
 
     return contenuto, foto.mime
-
-
-def aggiorna_descrizione_gruppo(
-    db: Session,
-    utente_id: int,
-    ruolo: str,
-    campagna_id: int,
-    gruppo_id: int,
-    descrizione: str,
-) -> None:
-    """Aggiorna la descrizione associata al gruppo di foto indicato."""
-    aggiorna_gruppo(
-        db=db,
-        utente_id=utente_id,
-        ruolo=ruolo,
-        campagna_id=campagna_id,
-        gruppo_id=gruppo_id,
-        dati=GruppoAggiorna(descrizione=descrizione),
-    )

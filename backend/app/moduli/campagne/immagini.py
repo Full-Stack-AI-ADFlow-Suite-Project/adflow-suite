@@ -20,7 +20,6 @@ MAX_WIDTH: int = 8192
 MAX_HEIGHT: int = 8192
 MAX_PIXELS: int = 36_000_000
 MAX_FOTO_PER_GRUPPO: int = 20
-MAX_FOTO_PER_CAMPAGNA: int = 20  # Alias di retrocompatibilità
 
 
 class InfoImmagine(NamedTuple):
