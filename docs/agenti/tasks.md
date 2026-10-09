@@ -106,3 +106,15 @@ preparazione per revisione, non la chiusura formale dopo il merge.
 | #18 | 0 | Eventi JSON distinti senza PII, request ID generato, guasto logger testato, procedure operative documentate | ☑ |
 | #19 | 1/0 | email-validator senza DNS, Unicode/.test/account storici verificati, dipendenza documentata | ☑ |
 | #17 | 0 | Configurazione proxy/cookie documentata e testata localmente con TLS; evidenza nello staging reale da allegare | ☐ |
+
+## Follow-up della revisione del 9 ottobre · issue #39–41
+
+Emersi dalla revisione delle PR #23 e #24 (T1-22, T1-23). Corsia 0 e corsia 2 insieme, su
+`feature/39-41-chiusura-revisione`: revisione di tutto il team, merge dell'admin. Le caselle
+descrivono la preparazione per la revisione, come sopra.
+
+| Issue | Corsia | Task / fatto quando | Preparato |
+|---|---|---|---|
+| #39 | 0/2 | Contratti `artigiani.service.profilo()` e `post_a_settimana()` in plan §6; campagne senza SQL diretto su `profilo_bottega` e senza costanti copiate | ☑ |
+| #40 | 0 | `core/limite_richiesta.py`: 413 oltre `RICHIESTA_MAX_BYTE`, con `Content-Length` e a blocchi; una foto da 10 MB passa | ☑ |
+| #41 | 2 | `gruppo_id` obbligatorio in `POST /campagne/{id}/foto` (422 se manca); nessun gruppo nasce dal caricamento | ☑ |

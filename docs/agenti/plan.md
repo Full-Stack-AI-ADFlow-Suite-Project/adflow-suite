@@ -7,10 +7,11 @@ Python 3.11+ · FastAPI · Pydantic · SQLAlchemy 2 + Alembic · PostgreSQL 16 �
 
 `backend/.env` (ogni variabile è un campo di `core/config.py`, in minuscolo):
 ```
-DATABASE_URL · DATABASE_URL_TEST · ARCHIVIO_FOTO_DIR
+DATABASE_URL · DATABASE_URL_TEST · ARCHIVIO_FOTO_DIR · RICHIESTA_MAX_BYTE=12582912
 AI_PROVIDER=finto|litellm · AI_MODELLO_VISIONE · AI_MODELLO_TESTO · OPENAI_API_KEY
 ANTICIPO_MINIMO_GIORNI=3 · MARGINE_SLOT_MINUTI=15 · SMTP_HOST · SMTP_PORT
 SESSIONE_ARTIGIANO_GIORNI=7 · SESSIONE_OPERATORE_ORE=12 · CONSORZIO_NOME · CONSORZIO_TELEFONO · CONSORZIO_EMAIL
+AMBIENTE=sviluppo|test|produzione · LOGIN_LIMITE_TENTATIVI=5 · LOGIN_FINESTRA_SECONDI=900 · LOGIN_LIMITE_SEGRETO · EMAIL_TEST_ENVIRONMENT · COOKIE_SECURE
 ```
 
 ## 2. Modello dati
@@ -87,7 +88,7 @@ Migrazioni dello sprint 1: 001 accesso, 002 artigiani, 003 campagne, 004 contenu
 | 1 | campagne | GET /campagne/{id} | proprietario, operatore | campagna, gruppi con le loro foto, `post_chiesti_per_canale`, `avvisi[]` (R-25) (senza post); all'operatore anche snapshot e decisioni, note interne comprese |
 | 1 | campagne | POST /campagne/{id}/gruppi `{origine, descrizione, da_usare_il, n_immagini}` | artigiano | 201 · solo in bozza · 422 R-13 |
 | 1 | campagne | PUT /campagne/{id}/gruppi/{gruppo_id} `{descrizione, da_usare_il, n_immagini}` | artigiano | solo in bozza · 422 R-13 |
-| 1 | campagne | POST /campagne/{id}/foto (multipart: file, gruppo_id) | artigiano | 201 · solo in bozza, solo in un gruppo `caricate` · 422 R-13 |
+| 1 | campagne | POST /campagne/{id}/foto (multipart: file, gruppo_id; entrambi obbligatori) | artigiano | 201 · solo in bozza, solo in un gruppo `caricate` già creato · 422 R-13 o senza gruppo |
 | 1 | campagne | PUT /foto/{id} `{da_usare}` | artigiano | la stella · solo in bozza |
 | 1 | campagne | DELETE /foto/{id} · DELETE /campagne/{id}/gruppi/{gruppo_id} | artigiano | 204 · solo in bozza |
 | 1 | campagne | GET /foto/{id}/file | proprietario, operatore | immagine |
@@ -120,6 +121,8 @@ Migrazioni dello sprint 1: 001 accesso, 002 artigiani, 003 campagne, 004 contenu
 | 3 | contenuti | GET /campagne/{id}/calendario | proprietario, operatore | strategia del piano e soli post approvati, pubblicati, falliti o annullati (data, canale, stato, testo e foto della versione corrente); canali tolti con la nota; numero dei post scaduti · 409 prima dell'approvazione |
 | 4 | pubblicazione | GET /metriche?artigiano=&campagna=&dal=&al= | operatore; artigiano solo le sue | metriche (R-39) |
 
+Per ogni percorso: una richiesta oltre `RICHIESTA_MAX_BYTE` (12 MiB: i 10 MB di una foto più il margine del multipart) riceve 413 prima di arrivare al router; `POST /auth/login` oltre il limite dei tentativi riceve 429 con `Retry-After`.
+
 Non esistono: approvazione, scarto o annullamento del singolo post; togliere un'uscita; `rimanda`. Non esistono ancora: caricamento di foto e logo dal profilo per l'archivio della bottega (2a, spec R-27).
 
 ## 4. Job
@@ -151,6 +154,7 @@ Le sole funzioni di `moduli/<modulo>/service.py` che un altro modulo può chiama
 | accesso | `crea_utente(email, password, nome, ruolo)` · `cambia_password(email, password)` | `cli.py` | T1-13 |
 | artigiani | `profilo_di(utente_id)` → profilo o `None` | campagne, revisione | T1-04 |
 | artigiani | `canali_collegati(profilo_id)` → canali con account `collegato` | campagne, pubblicazione | T1-09 |
+| artigiani | `profilo(profilo_id)` → profilo o `None` · `post_a_settimana(frequenza)` → post alla settimana per canale (senza frequenza vale `decidete_voi`) | campagne, contenuti | issue #39 |
 | campagne | `campagna(id)` · `foto_della_campagna(id)` · `campagne_in_stato(stati)` | contenuti, revisione, pubblicazione | T1-04 |
 | campagne | `gruppi_della_campagna(id)` (gruppi con le loro foto) | contenuti, revisione | T1-09 |
 | campagne | `cambia_stato(campagna, nuovo)` | contenuti, revisione, pubblicazione | T1-04 |
@@ -162,7 +166,8 @@ Le sole funzioni di `moduli/<modulo>/service.py` che un altro modulo può chiama
 | contenuti | `post_dovuti(adesso)` (approvati, data raggiunta, campagna attiva) · `segna_esito(post, esito)` · `tutti_chiusi(campagna_id, adesso)` | pubblicazione | T1-04; scartati, scaduti, annullati e `adesso` in T1-09 |
 | pubblicazione | `pubblica_dovuti(adesso)` | `tick_pubblicazione` | T1-43 |
 
-- Sprint successivi (firme da fissare nel loro sprint, con un task della corsia 0): notifiche `crea()`; accesso `utente()`, `password_provvisoria()`; artigiani `profilo()`, `account_social()`, `anagrafica_di()`; campagne `campagne_di()`, `togli_canale()`, `ultima_nota()`, `foto_di_archivio()`; contenuti `scarta_post_della_campagna()`, `scarta_post_del_canale()`, `scadi_post()`, `annulla_post()`, `riprogramma_post()`, `modifica_post()`, `segna_controllato()`, `accendi_intervento()`, `puo_rigenerare()`, `puo_ritoccare()`, `scegli_foto()`, `cambia_foto()`, `sposta_post()`; revisione `scadenze()`.
+- Sprint successivi (firme da fissare nel loro sprint, con un task della corsia 0): notifiche `crea()`; accesso `utente()`, `password_provvisoria()`; artigiani `account_social()`, `anagrafica_di()`; campagne `campagne_di()`, `togli_canale()`, `ultima_nota()`, `foto_di_archivio()`; contenuti `scarta_post_della_campagna()`, `scarta_post_del_canale()`, `scadi_post()`, `annulla_post()`, `riprogramma_post()`, `modifica_post()`, `segna_controllato()`, `accendi_intervento()`, `puo_rigenerare()`, `puo_ritoccare()`, `scegli_foto()`, `cambia_foto()`, `sposta_post()`; revisione `scadenze()`.
+- I dati di un altro modulo si leggono solo con le funzioni di questa tabella: niente SQL scritto a mano sulle sue tabelle e niente copie delle sue costanti (`tests/test_confini.py` controlla gli import, non questo).
 - Lo stato si passa per nome, `cambia_stato(db, campagna, "attiva")`: il `domain.py` di un altro modulo non si importa. Dentro il modulo proprietario si usano le sue costanti.
 - `approva_post(campagna_id, adesso)` porta a `scaduto` i post `da_approvare` con la data passata e approva gli altri; lascia `scartato` e `scaduto` come sono. Se non resta nessun post da approvare solleva `StatoNonValido` e nessun post cambia stato.
 - `ha_blocchi(campagna_id, adesso)` è vero se un post `da_approvare` ha `da_rivedere` oppure un intervento in corso partito da meno di 10 minuti (spec R-31).
@@ -181,6 +186,7 @@ Ciò che ogni modulo trova già pronto. È della corsia 0: si usa, non si cambia
 | `core/errori.py` | `NonAutenticato` 401 · `NonPermesso` 403 · `NonTrovato` 404 · `StatoNonValido` 409 · `DatiNonValidi` 422 | il service fa `raise NonTrovato("Campagna non trovata.")`; `main.py` risponde `{"detail": …}`. Niente `HTTPException` nei service |
 | `core/orologio.py` | `adesso()` (UTC) · `ROMA` | nei router `ora: datetime = Depends(adesso)`, poi passata al service; nei test si passa un'ora fissa |
 | `core/security.py` | `hash_password()` · `verifica_password()` · `genera_token()` · `hash_token()` | scrypt per salvare la password e per verificarla al login; `genera_token()` va nel cookie, `hash_token()` (sha256) in `sessione.token_hash`. Non serve altro scrypt |
+| `core/limite_richiesta.py` · `core/limite_login.py` · `core/eventi_sicurezza.py` | limite di 12 MiB per richiesta (413) · limite dei tentativi di login (429) · `X-Request-ID` ed eventi di sicurezza senza dati personali | già montati in `main.py` e nel login: non si richiamano dai moduli. Un router non rifà il controllo della dimensione della richiesta; quello dei 10 MB di una foto (R-13) resta in campagne |
 | `core/transizioni.py` | `verifica_transizione(transizioni, da, a)` | `transizioni` è il dizionario stato → stati ammessi del `domain.py` del modulo; se il passaggio non è ammesso solleva `StatoNonValido` |
 | `tabelle.py` | importa i `models.py` dei moduli | un `models.py` nuovo viene visto da Alembic senza toccare altro; le tabelle `procrastinate_*` restano fuori dall'autogenerazione (`del_modello()`) |
 | `main.py` | router di ogni modulo montato sotto `/api` · `GET /health` · `GET /consorzio` | gli endpoint di plan §3 si scrivono nel `router.py` del modulo, senza `/api` |
