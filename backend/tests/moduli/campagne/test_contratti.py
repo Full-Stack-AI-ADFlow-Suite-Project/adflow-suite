@@ -1,4 +1,5 @@
 """T1-04: stati, transizioni e funzioni comuni del modulo campagne."""
+from datetime import date, timedelta
 from itertools import product
 
 import pytest
@@ -13,6 +14,7 @@ from app.moduli.campagne.service import (
     campagna,
     campagne_in_stato,
     foto_della_campagna,
+    post_chiesti,
     registra_decisione,
 )
 from tests.moduli.accesso.fabbrica import utente
@@ -182,6 +184,30 @@ def test_aggiorna_foto(db):
 def test_aggiorna_foto_inesistente(db):
     with pytest.raises(NonTrovato):
         aggiorna_foto(db, -1, None, 0)
+
+
+@pytest.mark.parametrize(
+    ("a_settimana", "giorni", "attesi"),
+    [
+        (2, 7, 2),  # durata minima (R-08)
+        (3, 7, 3),
+        (5, 7, 5),
+        (3, 8, 3),  # 24 ÷ 7, per difetto
+        (3, 10, 4),  # 30 ÷ 7, per difetto
+        (3, 14, 6),  # CA-17
+        (2, 92, 26),  # durata massima (R-08): 184 ÷ 7
+        (5, 92, 65),  # 460 ÷ 7
+    ],
+)
+def test_post_chiesti_per_difetto(a_settimana, giorni, attesi):
+    """Issue #44: la formula di R-05, con inizio e fine compresi."""
+    inizio = date(2030, 1, 7)
+    fine = inizio + timedelta(days=giorni - 1)
+    assert post_chiesti(a_settimana, inizio, fine) == attesi
+
+
+def test_post_chiesti_con_periodo_rovesciato_sono_zero():
+    assert post_chiesti(3, date(2030, 1, 20), date(2030, 1, 7)) == 0
 
 
 def test_le_fabbriche_dall_invio_in_poi_sono_complete(db):
