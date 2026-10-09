@@ -18,7 +18,7 @@ GitHub rilancia i comandi del backend a ogni PR (`.github/workflows/backend.yml`
 
 - [ ] "Fatto quando" del task vero; ogni CA citato ha un test `test_caNN_...` verde.
 - [ ] Nessuna regola di `constitution.md` violata; `tests/test_confini.py` verde.
-- [ ] La PR tocca solo ciò che è della corsia del task (`tasks.md`). Tabelle, stati, funzioni di plan §6, `core/` e composizione solo nei task della corsia 0.
+- [ ] La PR tocca solo ciò che è della corsia del task (`tasks.md`) e, dallo sprint 2a, solo i file della colonna "Tocca" del task, con i loro test. Tabelle, stati, funzioni di plan §6, `core/` e composizione solo nei task della corsia 0.
 - [ ] Dopo aver portato `main` nel branch, le funzioni della corsia 0 sono identiche a `main`: `git diff origin/main -- <file>` non mostra righe tolte o cambiate dentro quelle funzioni.
 - [ ] Nessuna libreria nuova fuori da `requirements.txt` su `main`; nessun SQL scritto a mano sulle tabelle di un altro modulo e nessuna copia delle sue costanti (plan §6).
 - [ ] Se tocchi il database (solo corsia 0): `alembic downgrade -1` e di nuovo `upgrade head` funzionano.
@@ -44,7 +44,15 @@ Su `main` pulito, da database vuoto: comandi del §1 verdi, tutti i CA con S = 1
 3. la campagna passa a in_revisione (AI finta);
 4. operatore: Vedi campagna, controlla il piano, le uscite con un post per canale, il numero di post per canale, uguale a quelli chiesti (R-05), nessuna foto due volte sullo stesso canale, la foto con la stella presente; un post con soli avvisi non blocca; approva;
 5. data di test avanti: i post si pubblicano (simulato), campagna conclusa;
-6. prove negative: inizio tra 1 giorno, durata di 3 giorni, un PDF come foto, invio con 3 foto, canale non collegato, artigiano su pagina operatore (l'admin invece entra), errore di configurazione dell'AI: generazione fallita subito, con il motivo accanto a Riprova;
+6. prove negative: inizio tra 1 giorno, durata di 3 giorni, un PDF come foto, invio con 3 foto, canale non collegato, artigiano su pagina operatore (l'admin invece entra), errore di configurazione dell'AI (con `AI_PROVIDER=litellm`, finché il provider vero non c'è): generazione fallita subito, con il motivo accanto a Riprova;
 7. piano debole: 4 settimane con 4 foto → `piano_da_rivedere`; Prosegui → in_revisione, con 12 post per canale: 4 con le foto e 8 cartoline (R-28).
 
 Il controllo visivo contro le pagine statiche lo fa una persona (vedi gli appunti).
+
+## 4. Chiusura degli sprint successivi (T2a-07, T2b-07, T3-07)
+
+Come al §3: su `main` pulito, da database vuoto, comandi del §1 verdi, tutti i CA dello sprint coperti (`S` dello sprint in spec §6), frontend sulle API vere al posto dei dati di esempio, poi il percorso a mano.
+
+Il percorso a mano di ogni sprint lo scrive qui il suo task di apertura (T2a-01, T2b-01, T3-01), insieme alle firme: così chi lavora sa fin dall'inizio che cosa verrà provato alla fine. Ogni percorso riparte da quello dello sprint prima e aggiunge le cose nuove e le loro prove negative.
+
+Ciò che la chiusura trova rotto torna alla corsia proprietaria come una PR piccola: la chiusura non corregge il codice degli altri.
