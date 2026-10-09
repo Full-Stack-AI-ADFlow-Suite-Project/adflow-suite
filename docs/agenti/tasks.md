@@ -95,11 +95,11 @@ Nei loro moduli le corsie 1–4 possiedono `router.py`, `schemas.py`, `jobs.py`,
 
 Finché un endpoint non è su `main`, la pagina usa dati di esempio con la forma di plan §3 (`src/api/esempi/`). Il passaggio alle API vere (login di T1-11, canali di T1-14, invio di T1-24, approvazione di T1-42) si chiude in T1-07. La pagina statica di Vedi campagna è approvata e segue il modello a uscite: per T1-53 è il riferimento visivo, da dare nel brief; delle sue azioni lo sprint 1 costruisce solo Approva, Prosegui e Riprova.
 
-**Prestiti per chiudere lo sprint 1** (decisi il 9 ottobre): T1-24 e poi T1-52 li fa Gianluca, T1-53 lo fa Nilton, che ha già fatto T1-51. T1-07 lo fa Giovanni, quando questi tre sono su `main`. Silvia e Angelo restano proprietari delle corsie 2 e 5 e rivedono le PR.
+**Prestiti per chiudere lo sprint 1** (decisi il 9 ottobre): T1-24 lo fa Gianluca; T1-52 (PR #57) e poi T1-53 li fa Nilton, che ha già fatto T1-51. T1-07 lo fa Giovanni, quando questi tre sono su `main`. Silvia e Angelo restano proprietari delle corsie 2 e 5 e rivedono le PR.
 
 ## Sprint 2a · Pagine Profilo e Campagna (profilo, bozza modificabile, archivio della bottega, logo)
 
-**Ordine.** T2a-01 → corsie 1–5 in parallelo → T2a-07. Apertura e chiusura le scrive Giovanni e le approva il team. T2a-11 è già scritto (PR #46) e non aspetta l'apertura. CA dello sprint: CA-05…CA-08, CA-16, CA-76…CA-78.
+**Ordine.** T2a-01 → corsie 1–5 in parallelo → T2a-07. Apertura e chiusura le scrive Giovanni e le approva il team. T2a-11 è già scritto (PR #46) e non aspetta l'apertura. La pagina Campagna di T1-52 (PR #57) ha già, sui dati di esempio, il Bentornato, i passi 10–12 e una vista per stato: T2a-53 e T2b-53 partono da lì e la completano. CA dello sprint: CA-05…CA-08, CA-16, CA-76…CA-78.
 
 ### Corsia 0 · Comune (tutto il team)
 
