@@ -76,7 +76,7 @@
   - `test_upload_con_rollback_rimuove_il_file_orfano` (rollback dopo upload, nessun file residuo)
   - `test_rollback_successivo_non_tocca_i_file_gia_confermati` (nessun effetto su foto già confermate)
   - `test_eliminazione_con_rollback_conserva_file_e_record` (DELETE annullata, tutto intatto)
-  - `test_limite_massimo_20_foto_per_campagna` (422 al 21-esimo upload, nessun file orfano su disco)
+  - `test_ca13_limite_massimo_20_foto_per_gruppo` (422 alla ventunesima foto del gruppo, nessun file orfano su disco; un secondo gruppo della stessa campagna accetta foto)
   - `test_ca46_creazione_gruppo_create_ai_con_descrizione_e_n_immagini` (201, gruppo AI valido con data e n_immagini)
   - `test_ca47_gruppo_create_ai_n_immagini_fuori_limite_da_422` (422 se n_immagini < 1 o > 20)
   - `test_ca47_foto_caricata_in_gruppo_create_ai_da_422` (422 se si carica manualmente foto in gruppo create_ai)
@@ -93,13 +93,15 @@
 
 ## Limiti e Misure di Sicurezza Applicate
 
-- **Quantità di foto per campagna**: introdotto un tetto prudenziale di 20 foto per campagna (`MAX_FOTO_PER_CAMPAGNA = 20`), con blocco a livello di servizio (`HTTP 422`) prima della scrittura su disco.
+- **Quantità di foto per gruppo** (R-13): al massimo 20 foto in ogni gruppo `caricate` (`MAX_FOTO_PER_GRUPPO = 20`), con blocco a livello di servizio (`HTTP 422`) prima della scrittura su disco. Il limite non vale per la campagna intera: più gruppi possono avere 20 foto ciascuno.
 
 ## Domande Formali per la Corsia 0 (Comune)
 
 Secondo la Costituzione del Progetto (§2) e `tasks.md`, i componenti comuni (`requirements.txt`, `main.py`, middleware) possono essere modificati solo attraverso domande e task di Corsia 0. Di seguito il testo pronto per le due segnalazioni:
 
-### Domanda 1: Aggiunta di `python-multipart` a `backend/requirements.txt`
+### Domanda 1: Aggiunta di `python-multipart` a `backend/requirements.txt` (chiusa)
+
+Chiusa il 9 ottobre 2026: `python-multipart==0.0.32` (licenza Apache-2.0) è in `backend/requirements.txt` con una PR della corsia 0.
 
 > **Oggetto**: [Corsia 0 · Dipendenze] Inserimento di `python-multipart` in `requirements.txt` > **Contesto**: L'endpoint di caricamento foto `POST /campagne/{id}/foto` (T1-23) utilizza `UploadFile` e parametri `Form` di FastAPI.
 > **Problema**: FastAPI delega il parsing del formato `multipart/form-data` alla libreria `python-multipart`. Sebbene sia presente nell'ambiente virtuale di sviluppo locale, non è dichiarata esplicitamente in `requirements.txt`.
