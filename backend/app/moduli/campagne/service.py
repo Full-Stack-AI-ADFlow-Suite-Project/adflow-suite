@@ -1,6 +1,7 @@
 """Logica del modulo campagne: l'unica parte che gli altri moduli possono importare."""
 
 from collections.abc import Callable
+from copy import deepcopy
 from datetime import date, datetime, timedelta
 import json
 import logging
@@ -10,7 +11,7 @@ from sqlalchemy import event, func, select, text
 from sqlalchemy.orm import Session, selectinload
 
 from app.adapters.archivio import ottieni_archivio
-from app.core import orologio
+from app.core import coda, orologio
 from app.core.config import leggi_impostazioni
 from app.core.errori import DatiNonValidi, NonPermesso, NonTrovato, StatoNonValido
 from app.core.orologio import ROMA
@@ -19,6 +20,8 @@ from app.moduli.artigiani import service as artigiani_service
 
 from .domain import (
     BOZZA,
+    GENERAZIONE_FALLITA,
+    INVIATA,
     ESITI_DECISIONE,
     ESITO_RESPINTA,
     MOTIVI_DECISIONE,
@@ -958,3 +961,102 @@ def leggi_file_foto(
         raise NonTrovato("File immagine non trovato nell'archivio.")
 
     return contenuto, foto.mime
+
+
+def _campagna_per_invio(db: Session, campagna_id: int) -> Campagna:
+    """Serializza invio e riprova, rileggendo lo stato dopo il lock."""
+    rec = db.scalar(
+        select(Campagna)
+        .where(Campagna.id == campagna_id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    )
+    if rec is None:
+        raise NonTrovato("Campagna non trovata.")
+    return rec
+
+
+def invia_campagna(
+    db: Session, utente_id: int, campagna_id: int, ora: datetime
+) -> Campagna:
+    """Ricontrolla la bozza e fotografa il profilo prima di accodare la generazione."""
+    rec = _campagna_per_invio(db, campagna_id)
+    profilo = artigiani_service.profilo_di(db, utente_id)
+    if profilo is None:
+        raise StatoNonValido("Salvare il profilo della bottega prima dell'invio.")
+    if rec.profilo_id != profilo.id:
+        raise NonTrovato("Campagna non trovata.")
+    if rec.stato != BOZZA:
+        raise StatoNonValido("Si possono inviare solo campagne in bozza.")
+
+    oggi = ora.astimezone(ROMA).date() if ora.tzinfo else ora.date()
+    anticipo = leggi_impostazioni().anticipo_minimo_giorni
+    if rec.inizio < oggi + timedelta(days=anticipo):
+        raise DatiNonValidi(
+            f"La data di inizio deve essere ad almeno {anticipo} giorni da oggi."
+        )
+    if not 7 <= (rec.fine - rec.inizio).days + 1 <= 92:
+        raise DatiNonValidi("La durata della campagna deve essere tra 7 e 92 giorni.")
+    if not rec.canali:
+        raise DatiNonValidi("Selezionare almeno un canale.")
+    collegati = set(artigiani_service.canali_collegati(db, profilo.id))
+    if any(canale not in collegati for canale in rec.canali):
+        raise StatoNonValido("Collegare tutti i canali selezionati prima dell'invio.")
+
+    gruppi = gruppi_della_campagna(db, rec.id)
+    caricate = 0
+    for gruppo in gruppi:
+        if not gruppo.descrizione or not gruppo.descrizione.strip():
+            raise DatiNonValidi("Ogni gruppo deve avere una descrizione.")
+        if gruppo.da_usare_il is not None and not (
+            rec.inizio <= gruppo.da_usare_il <= rec.fine
+        ):
+            raise DatiNonValidi(
+                "La data del gruppo deve rientrare nel periodo della campagna."
+            )
+        if gruppo.origine == "caricate":
+            fotografie = [
+                f
+                for f in gruppo.foto
+                if f.origine == "caricata" and f.campagna_id == rec.id
+            ]
+            if len(fotografie) != len(gruppo.foto):
+                raise DatiNonValidi(
+                    "Il gruppo deve contenere solo foto caricate di questa campagna."
+                )
+            if not 1 <= len(fotografie) <= MAX_FOTO_PER_GRUPPO:
+                raise DatiNonValidi(
+                    "Ogni gruppo caricato deve contenere da 1 a 20 foto."
+                )
+            caricate += len(fotografie)
+        elif gruppo.origine == "create_ai":
+            if gruppo.n_immagini is None or not 1 <= gruppo.n_immagini <= 20:
+                raise DatiNonValidi("Indicare da 1 a 20 immagini da creare.")
+        else:
+            raise DatiNonValidi("Origine del gruppo non valida.")
+    if caricate < 4:
+        raise DatiNonValidi("Caricare almeno 4 foto prima dell'invio.")
+
+    rec.profilo_snapshot = {
+        colonna.name: deepcopy(getattr(profilo, colonna.name))
+        for colonna in profilo.__table__.columns
+        if colonna.name not in ("id", "aggiornato_il")
+    }
+    rec.frequenza = profilo.frequenza
+    rec.obiettivo = profilo.obiettivo
+    rec.inviata_il = ora
+    cambia_stato(db, rec, INVIATA, ora=ora)
+    coda.accoda(coda.GENERA_CAMPAGNA, campagna_id=rec.id)
+    return rec
+
+
+def riprova_campagna(db: Session, campagna_id: int, ora: datetime) -> Campagna:
+    """Riparte con gli stessi dati e senza cancellare le tappe già salvate (R-24)."""
+    rec = _campagna_per_invio(db, campagna_id)
+    if rec.stato != GENERAZIONE_FALLITA:
+        raise StatoNonValido(
+            "Si possono riprovare solo campagne con generazione fallita."
+        )
+    cambia_stato(db, rec, INVIATA, ora=ora)
+    coda.accoda(coda.GENERA_CAMPAGNA, campagna_id=rec.id)
+    return rec
