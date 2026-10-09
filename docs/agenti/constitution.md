@@ -21,6 +21,7 @@ Monolite a moduli + worker: stesso codice Python, un database, una catena di mig
 ```
 backend/app/  main.py · worker.py · cli.py · tabelle.py            (composizione)
 backend/app/core/  config.py · db.py · coda.py · security.py · transizioni.py · errori.py · orologio.py
+                   eventi_sicurezza.py · limite_login.py · limite_richiesta.py
 backend/app/adapters/  ai/ · social/ · email/ · archivio/
 backend/app/moduli/<modulo>/  router.py · service.py · models.py · schemas.py · domain.py · jobs.py   (solo quelli che servono)
 backend/alembic/
@@ -55,7 +56,7 @@ Ordine dei moduli: `accesso`, `notifiche`, `artigiani`, `campagne`, `contenuti`,
 - Dominio in italiano (tabelle, campi, funzioni, messaggi); termini tecnici in inglese.
 - Python 3.11+, type hints, SQLAlchemy 2 (`Mapped`), Pydantic, `black`.
 - Date in UTC (`timestamptz`); Europe/Rome solo per slot e scadenze.
-- Errori API: `{"detail": "messaggio in italiano"}`; 401 / 403 / 404 / 409 stato non valido / 422 dati non validi.
+- Errori API: `{"detail": "messaggio in italiano"}`; 401 / 403 / 404 / 409 stato non valido / 422 dati non validi / 413 richiesta troppo grande / 429 troppi tentativi di accesso.
 - Frontend: TypeScript strict, Mantine, niente stato globale; i tipi di `api/<modulo>.ts` rispecchiano lo `schemas.py` del modulo.
 - Test su PostgreSQL reale (`adflow_test`), mai SQLite; l'ora "adesso" si inietta (`core/orologio.py`).
 

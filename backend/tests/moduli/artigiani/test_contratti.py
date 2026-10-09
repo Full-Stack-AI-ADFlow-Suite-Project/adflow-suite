@@ -1,5 +1,5 @@
 """T1-04: valori ammessi e letture comuni del modulo artigiani."""
-from app.moduli.artigiani import domain
+from app.moduli.artigiani import domain, service
 from app.moduli.artigiani.models import ProfiloBottega
 from app.moduli.artigiani.service import profilo_di
 from tests.moduli.accesso.fabbrica import utente
@@ -47,3 +47,22 @@ def test_la_fabbrica_usa_valori_ammessi(db):
     assert bottega.obiettivo in domain.OBIETTIVI
     assert set(bottega.canali) <= set(domain.CANALI)
     assert bottega.frequenza in domain.FREQUENZE
+
+
+def test_profilo_per_id_restituisce_il_profilo_o_none(db):
+    atteso = profilo(db)
+    profilo(db)
+    assert service.profilo(db, atteso.id) is atteso
+    assert service.profilo(db, atteso.id + 1000) is None
+
+
+def test_post_a_settimana_di_ogni_frequenza():
+    for frequenza, numero in domain.POST_A_SETTIMANA.items():
+        assert service.post_a_settimana(frequenza) == numero
+
+
+def test_post_a_settimana_senza_frequenza_vale_decidete_voi():
+    atteso = domain.POST_A_SETTIMANA["decidete_voi"]
+    assert service.post_a_settimana(None) == atteso
+    assert service.post_a_settimana("") == atteso
+    assert service.post_a_settimana("inesistente") == atteso

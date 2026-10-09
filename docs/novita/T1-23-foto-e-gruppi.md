@@ -25,7 +25,7 @@
     - Protezione Decompression Bomb / Pixel Flood: `MAX_PIXELS = 36_000_000` (`HTTP 422`).
   - Sanificazione totale del nome file: memorizzazione su archivio con UUIDv4 univoco generato dal server (Constitution §3).
   - Compensazione transazionale: il file viene scritto prima del record; se il flush fallisce o la transazione termina con un rollback (anche dopo la risposta), il file viene rimosso. Se il processo si interrompe di colpo resta un file orfano, innocuo.
-  - Associazione a gruppo: supporta l'ID del gruppo (`gruppo_id: int`); se omesso, viene creato automaticamente un gruppo `caricate`.
+  - Associazione a gruppo: `gruppo_id` è obbligatorio e indica un gruppo `caricate` già creato con `POST /campagne/{id}/gruppi`; senza, `HTTP 422` (dal 9 ottobre 2026, issue #41: prima il caricamento senza gruppo ne creava uno da solo).
   - Blocco upload manuale su gruppi AI (CA-47): se il gruppo specificato ha `origine="create_ai"`, l'upload manuale viene bloccato con `HTTP 422`.
 - `PUT /api/foto/{id}`: contrassegno stella foto per la generazione (`HTTP 200`).
   - Consente di impostare il flag `da_usare: bool` per marcare la foto da utilizzare (Plan §3).
@@ -107,7 +107,9 @@ Chiusa il 9 ottobre 2026: `python-multipart==0.0.32` (licenza Apache-2.0) è in 
 > **Problema**: FastAPI delega il parsing del formato `multipart/form-data` alla libreria `python-multipart`. Sebbene sia presente nell'ambiente virtuale di sviluppo locale, non è dichiarata esplicitamente in `requirements.txt`.
 > **Richiesta per Corsia 0**: Aggiungere `python-multipart>=0.0.9` (o versione compatibile) a `backend/requirements.txt` per garantire l'installazione deterministica negli ambienti di CI e produzione.
 
-### Domanda 2: Protezione anti-DoS sul body HTTP a monte (`main.py` o reverse proxy)
+### Domanda 2: Protezione anti-DoS sul body HTTP a monte (`main.py` o reverse proxy) (chiusa)
+
+Chiusa il 9 ottobre 2026 con l'issue #40: `core/limite_richiesta.py`, montato in `main.py`, rifiuta con `HTTP 413` le richieste oltre `RICHIESTA_MAX_BYTE` (12 MiB). Il limite sul proxy si aggiunge con lo staging (issue #17).
 
 > **Oggetto**: [Corsia 0 · Sicurezza] Limite massimo sulla dimensione del body HTTP in streaming
 > **Contesto**: Il servizio foto (Corsia 2) rifiuta file con dimensione > 10 MB tramite streaming a blocchi (`DIMENSIONE_MAX_BYTE = 10 * 1024 * 1024`).

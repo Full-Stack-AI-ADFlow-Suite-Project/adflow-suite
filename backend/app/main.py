@@ -7,6 +7,7 @@ from app.core.config import leggi_impostazioni
 from app.core.errori import ErroreDominio, NonAutenticato, NonPermesso
 from app.core.eventi_sicurezza import CorrelazioneRichieste, registra, id_richiesta
 from app.core.limite_login import TroppiTentativi, LimiteNonDisponibile
+from app.core.limite_richiesta import LimiteRichiesta
 from app.moduli.accesso.router import router as accesso
 from app.moduli.artigiani.router import router as artigiani
 from app.moduli.campagne.router import router as campagne
@@ -16,6 +17,8 @@ from app.moduli.pubblicazione.router import router as pubblicazione
 from app.moduli.revisione.router import router as revisione
 
 app = FastAPI(title="AdFlow Suite")
+# L'ultimo aggiunto è il più esterno: anche un 413 porta X-Request-ID
+app.add_middleware(LimiteRichiesta, massimo=leggi_impostazioni().richiesta_max_byte)
 app.add_middleware(CorrelazioneRichieste)
 
 for _router in (

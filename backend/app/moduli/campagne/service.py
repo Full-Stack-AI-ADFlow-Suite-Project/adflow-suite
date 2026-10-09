@@ -41,8 +41,7 @@ from .schemas import (
     GruppoSintetico,
 )
 
-CANALI_AMMESSI = ("facebook", "instagram")
-POST_A_SETTIMANA = {"f1_2": 2, "f3_4": 3, "f5_piu": 5, "decidete_voi": 3}
+# R-25: massimo di post al mese per fascia di `foto_policy.quantita_mese`
 LIMITI_POLICY_FOTO = {"meno_5": 4, "da5_a12": 12, "da12_a20": 20}
 logger = logging.getLogger(__name__)
 
@@ -299,13 +298,10 @@ def crea_bozza(
     # Concorrenza atomica: lock di transazione sull'artigiano per serializzare richieste concorrenti
     db.execute(text("SELECT pg_advisory_xact_lock(:chiave)"), {"chiave": profilo.id})
 
-    # R-22, CA-48: verifica canali ammessi e collegati
+    # R-22, CA-48: solo canali con account collegato (quelli ammessi li conosce artigiani)
     canali_richiesti = dati.canali
     if not canali_richiesti:
         raise DatiNonValidi("Selezionare almeno un canale.")
-    for c in canali_richiesti:
-        if c not in CANALI_AMMESSI:
-            raise DatiNonValidi(f"Canale '{c}' non ammesso.")
 
     collegati = set(artigiani_service.canali_collegati(db, profilo.id))
     non_collegati = [c for c in canali_richiesti if c not in collegati]
@@ -406,12 +402,11 @@ def elenca_campagne(
         return []
 
     if ruolo in ("operatore", "admin"):
-        profilo_ids = list({c.profilo_id for c in campagne})
-        rows = db.execute(
-            text("SELECT id, nome, citta FROM profilo_bottega WHERE id = ANY(:ids)"),
-            {"ids": profilo_ids},
-        ).fetchall()
-        mappa_profili = {r[0]: (r[1], r[2]) for r in rows}
+        mappa_profili = {}
+        for profilo_id in {c.profilo_id for c in campagne}:
+            bottega = artigiani_service.profilo(db, profilo_id)
+            if bottega is not None:
+                mappa_profili[profilo_id] = (bottega.nome, bottega.citta)
         return [
             CampagnaElencoItem(
                 id=c.id,
@@ -497,22 +492,14 @@ def dettaglio_campagna(
     frequenza_val = rec.frequenza
     foto_policy_val = None
 
+    if profilo is None:
+        profilo = artigiani_service.profilo(db, rec.profilo_id)
     if profilo is not None:
         if not frequenza_val:
             frequenza_val = profilo.frequenza
         foto_policy_val = profilo.foto_policy
-    else:
-        p_row = db.execute(
-            text("SELECT frequenza, foto_policy FROM profilo_bottega WHERE id = :pid"),
-            {"pid": rec.profilo_id},
-        ).fetchone()
-        if p_row:
-            if not frequenza_val:
-                frequenza_val = p_row[0]
-            foto_policy_val = p_row[1]
 
-    freq = frequenza_val or "decidete_voi"
-    post_sett = POST_A_SETTIMANA.get(freq, 3)
+    post_sett = artigiani_service.post_a_settimana(frequenza_val)
     post_chiesti = (post_sett * giorni) // 7
 
     canali = rec.canali or []
@@ -784,7 +771,7 @@ def carica_foto(
     ruolo: str,
     campagna_id: int,
     contenuto: bytes,
-    gruppo_id: int | None = None,
+    gruppo_id: int,
 ) -> Foto:
     """Valida, archivia e registra una foto caricata dall'artigiano per la campagna in bozza.
 
@@ -793,7 +780,8 @@ def carica_foto(
     - La campagna deve essere nello stato 'bozza' (altrimenti StatoNonValido 409).
     - Ispezione binaria e limiti dimensionali (R-13, CA-13): lato corto >= 1080 px,
       max 8192x8192, max 36 MPixel, max 10 MB.
-    - Se gruppo_id è fornito e appartiene a create_ai solleva DatiNonValidi (CA-47).
+    - La foto entra in un gruppo `caricate` già creato (plan §3): un gruppo
+      `create_ai` solleva DatiNonValidi (CA-47).
     - Max 20 foto per gruppo (CA-13).
     - Compensazione atomica anti-TOCTOU: se il database fallisce o solleva eccezione,
       il file su disco viene rimosso immediatamente.
@@ -814,27 +802,15 @@ def carica_foto(
             "Le foto possono essere caricate solo per campagne in bozza."
         )
 
-    if gruppo_id is not None:
-        gruppo = db.scalar(
-            select(GruppoFoto).where(GruppoFoto.id == gruppo_id).with_for_update()
-        )
-        if gruppo is None:
-            raise NonTrovato("Gruppo non trovato.")
-        if gruppo.campagna_id != rec.id:
-            raise DatiNonValidi("Il gruppo specificato appartiene a un'altra campagna.")
-        if gruppo.origine == "create_ai":
-            raise DatiNonValidi(
-                "Non è consentito caricare foto in un gruppo create_ai."
-            )
-    else:
-        gruppo = GruppoFoto(
-            profilo_id=profilo.id,
-            campagna_id=rec.id,
-            origine="caricate",
-            descrizione=None,
-        )
-        db.add(gruppo)
-        db.flush()
+    gruppo = db.scalar(
+        select(GruppoFoto).where(GruppoFoto.id == gruppo_id).with_for_update()
+    )
+    if gruppo is None:
+        raise NonTrovato("Gruppo non trovato.")
+    if gruppo.campagna_id != rec.id:
+        raise DatiNonValidi("Il gruppo specificato appartiene a un'altra campagna.")
+    if gruppo.origine == "create_ai":
+        raise DatiNonValidi("Non è consentito caricare foto in un gruppo create_ai.")
 
     # Spec R-13, CA-13: al massimo 20 foto per gruppo
     conteggio = (

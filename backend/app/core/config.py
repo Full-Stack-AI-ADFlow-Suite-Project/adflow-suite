@@ -38,6 +38,8 @@ class Impostazioni(BaseSettings):
         return self
 
     archivio_foto_dir: str = "./archivio_foto"
+    # 10 MB di una foto (R-13) più il margine del multipart
+    richiesta_max_byte: int = Field(default=12 * 1024 * 1024, ge=1)
 
     ai_provider: Literal["finto", "litellm"] = "finto"
     ai_modello_visione: str = ""

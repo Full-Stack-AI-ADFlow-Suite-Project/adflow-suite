@@ -263,6 +263,27 @@ def test_ca48_creazione_canale_non_collegato_da_422(
     assert risposta_ig.json()["canali"] == ["instagram"]
 
 
+def test_creazione_con_canale_sconosciuto_da_422(
+    client: TestClient, utente_di_prova, db: Session
+):
+    """R-22: un canale che non esiste non può essere collegato, quindi 422."""
+    u = utente_di_prova("artigiano")
+    profilo(db, utente_id=u.id)
+    inizio = adesso().date() + timedelta(days=5)
+
+    risposta = client.post(
+        "/api/campagne",
+        json={
+            "titolo": "Canale inventato",
+            "inizio": inizio.isoformat(),
+            "fine": (inizio + timedelta(days=15)).isoformat(),
+            "canali": ["instagram", "tiktok"],
+        },
+    )
+    assert risposta.status_code == 422
+    assert "tiktok" in risposta.json()["detail"]
+
+
 def test_ca54_dettaglio_calcolo_post_chiesti_e_avvisi(
     client: TestClient, utente_di_prova, db: Session
 ):
