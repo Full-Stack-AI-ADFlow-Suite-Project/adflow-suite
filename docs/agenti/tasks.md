@@ -121,3 +121,15 @@ descrivono la preparazione per la revisione, come sopra.
 | #39 | 0/2 | Contratti `artigiani.service.profilo()` e `post_a_settimana()` in plan §6; campagne senza SQL diretto su `profilo_bottega` e senza costanti copiate | ☑ |
 | #40 | 0 | `core/limite_richiesta.py`: 413 oltre `RICHIESTA_MAX_BYTE`, con `Content-Length` e a blocchi; una foto da 10 MB passa | ☑ |
 | #41 | 2 | `gruppo_id` obbligatorio in `POST /campagne/{id}/foto` (422 se manca); nessun gruppo nasce dal caricamento | ☑ |
+
+## Follow-up di T1-32 · issue #44–45
+
+Emersi scrivendo T1-32 (limiti e controllo del piano). Corsia 0, su
+`feature/44-45-post-chiesti-e-stelle`: revisione di tutto il team, merge dell'admin, **prima**
+della PR di T1-32, che usa la funzione nuova. Le caselle descrivono la preparazione per la
+revisione, come sopra.
+
+| Issue | Corsia | Task / fatto quando | Preparato |
+|---|---|---|---|
+| #44 | 0 | Contratto `campagne.service.post_chiesti()` in plan §6; il dettaglio della campagna lo usa: la formula di R-05 è scritta una volta sola | ☑ |
+| #45 | 0 | R-23: con più foto con la stella che post chiesti, il piano ne usa almeno quanti sono i post chiesti; il controllo del piano la segue in T1-32 | ☑ |
