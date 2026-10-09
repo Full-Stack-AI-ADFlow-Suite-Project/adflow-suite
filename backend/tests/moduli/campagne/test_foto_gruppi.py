@@ -19,17 +19,34 @@ from unittest.mock import patch
 from uuid import UUID, uuid4
 import zlib
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 from starlette.testclient import TestClient
 
 from app.adapters.archivio import ArchivioDisco, usa_archivio
-from app.moduli.campagne.models import Foto
+from app.moduli.campagne.models import Foto, GruppoFoto
 from tests.moduli.artigiani.fabbrica import profilo
 from tests.moduli.campagne.fabbrica import (
     campagna_in_bozza,
     campagna_inviata,
     foto as fabbrica_foto,
+    gruppo as fabbrica_gruppo,
 )
+
+
+def _gruppo_caricate(db: Session, campagna) -> int:
+    """Id di un gruppo `caricate` della campagna: il caricamento lo richiede (plan §3).
+
+    Riusa il primo gruppo `caricate` della campagna, se c'è; altrimenti lo crea.
+    """
+    esistente = db.scalar(
+        select(GruppoFoto.id)
+        .where(GruppoFoto.campagna_id == campagna.id, GruppoFoto.origine == "caricate")
+        .order_by(GruppoFoto.id)
+    )
+    if esistente is not None:
+        return esistente
+    return fabbrica_gruppo(db, campagna).id
 
 
 def _crea_png(larghezza: int, altezza: int) -> bytes:
@@ -89,6 +106,7 @@ def test_ca13_rifiuto_file_non_immagine(
     )
     risposta = client.post(
         f"/api/campagne/{camp.id}/foto",
+        data={"gruppo_id": _gruppo_caricate(db, camp)},
         files={"file": file_finto},
     )
 
@@ -110,6 +128,7 @@ def test_ca13_rifiuto_payload_oltre_10mb(
 
     risposta = client.post(
         f"/api/campagne/{camp.id}/foto",
+        data={"gruppo_id": _gruppo_caricate(db, camp)},
         files={"file": file_grande},
     )
 
@@ -129,6 +148,7 @@ def test_ca13_rifiuto_lato_corto_inferiore_1080px(
     png_piccolo = _crea_png(1000, 1500)
     risposta = client.post(
         f"/api/campagne/{camp.id}/foto",
+        data={"gruppo_id": _gruppo_caricate(db, camp)},
         files={"file": ("piccola.png", BytesIO(png_piccolo), "image/png")},
     )
 
@@ -152,6 +172,7 @@ def test_ca13_accettazione_png_jpeg_webp_conformi(
         png_bytes = _crea_png(1080, 1080)
         res_png = client.post(
             f"/api/campagne/{camp.id}/foto",
+            data={"gruppo_id": _gruppo_caricate(db, camp)},
             files={"file": ("quadrata.png", BytesIO(png_bytes), "image/png")},
         )
         assert res_png.status_code == 201
@@ -166,6 +187,7 @@ def test_ca13_accettazione_png_jpeg_webp_conformi(
         jpg_bytes = _crea_jpeg(1920, 1080)
         res_jpg = client.post(
             f"/api/campagne/{camp.id}/foto",
+            data={"gruppo_id": _gruppo_caricate(db, camp)},
             files={"file": ("orizzontale.jpg", BytesIO(jpg_bytes), "image/jpeg")},
         )
         assert res_jpg.status_code == 201
@@ -180,6 +202,7 @@ def test_ca13_accettazione_png_jpeg_webp_conformi(
         webp_bytes = _crea_webp(1200, 1600)
         res_webp = client.post(
             f"/api/campagne/{camp.id}/foto",
+            data={"gruppo_id": _gruppo_caricate(db, camp)},
             files={"file": ("verticale.webp", BytesIO(webp_bytes), "image/webp")},
         )
         assert res_webp.status_code == 201
@@ -208,6 +231,7 @@ def test_sicurezza_rifiuto_dimensioni_eccessive(
     png_sproporzionato = _crea_png(9000, 1200)
     risposta = client.post(
         f"/api/campagne/{camp.id}/foto",
+        data={"gruppo_id": _gruppo_caricate(db, camp)},
         files={"file": ("enorme.png", BytesIO(png_sproporzionato), "image/png")},
     )
 
@@ -230,6 +254,7 @@ def test_sicurezza_rifiuto_decompression_bomb_max_pixels(
     png_bomb = _crea_png(7000, 6000)
     risposta = client.post(
         f"/api/campagne/{camp.id}/foto",
+        data={"gruppo_id": _gruppo_caricate(db, camp)},
         files={"file": ("bomb.png", BytesIO(png_bomb), "image/png")},
     )
 
@@ -256,6 +281,7 @@ def test_ca04_upload_su_campagna_altrui_da_404(
     png_valido = _crea_png(1080, 1080)
     risposta = client.post(
         f"/api/campagne/{camp_a.id}/foto",
+        data={"gruppo_id": _gruppo_caricate(db, camp_a)},
         files={"file": ("foto.png", BytesIO(png_valido), "image/png")},
     )
 
@@ -273,6 +299,7 @@ def test_upload_richiede_ruolo_artigiano(
     png_valido = _crea_png(1080, 1080)
     risposta = client.post(
         f"/api/campagne/{camp.id}/foto",
+        data={"gruppo_id": _gruppo_caricate(db, camp)},
         files={"file": ("foto.png", BytesIO(png_valido), "image/png")},
     )
 
@@ -295,6 +322,7 @@ def test_upload_su_campagna_non_in_bozza_da_409(
     png_valido = _crea_png(1080, 1080)
     risposta = client.post(
         f"/api/campagne/{camp.id}/foto",
+        data={"gruppo_id": _gruppo_caricate(db, camp)},
         files={"file": ("foto.png", BytesIO(png_valido), "image/png")},
     )
 
@@ -317,10 +345,11 @@ def test_gestione_gruppi_e_descrizione(
         prof = profilo(db, utente_id=art.id)
         camp = campagna_in_bozza(db, profilo_id=prof.id)
 
-        # 1. Carica prima foto senza gruppo_id: crea un gruppo di default 'caricate' (int)
+        # 1. Carica la prima foto in un gruppo 'caricate' già creato (id intero)
         png_1 = _crea_png(1080, 1080)
         res_1 = client.post(
             f"/api/campagne/{camp.id}/foto",
+            data={"gruppo_id": _gruppo_caricate(db, camp)},
             files={"file": ("foto1.png", BytesIO(png_1), "image/png")},
         )
         assert res_1.status_code == 201
@@ -406,6 +435,7 @@ def test_eliminazione_foto_singola(
         png = _crea_png(1080, 1080)
         res = client.post(
             f"/api/campagne/{camp.id}/foto",
+            data={"gruppo_id": _gruppo_caricate(db, camp)},
             files={"file": ("foto.png", BytesIO(png), "image/png")},
         )
         assert res.status_code == 201
@@ -478,6 +508,7 @@ def test_eliminazione_gruppo_completo(
         # Foto 1
         res_1 = client.post(
             f"/api/campagne/{camp.id}/foto",
+            data={"gruppo_id": _gruppo_caricate(db, camp)},
             files={"file": ("foto1.png", BytesIO(_crea_png(1080, 1080)), "image/png")},
         )
         gruppo_id = res_1.json()["gruppo_id"]
@@ -534,6 +565,7 @@ def test_download_file_foto(
         png_bytes = _crea_png(1080, 1080)
         res_up = client.post(
             f"/api/campagne/{camp_a.id}/foto",
+            data={"gruppo_id": _gruppo_caricate(db, camp_a)},
             files={"file": ("originale.png", BytesIO(png_bytes), "image/png")},
         )
         foto_id = res_up.json()["id"]
@@ -581,6 +613,7 @@ def test_compensazione_rollback_disco_se_db_fallisce(
             try:
                 client.post(
                     f"/api/campagne/{camp.id}/foto",
+                    data={"gruppo_id": _gruppo_caricate(db, camp)},
                     files={
                         "file": (
                             "test_crash.png",
@@ -616,6 +649,7 @@ def test_debug_jpeg_malformato_marker_inatteso(
     jpeg_corrotto = b"\xff\xd8" + app0 + b"\x42\x43\x44\x45"
     res = client.post(
         f"/api/campagne/{camp.id}/foto",
+        data={"gruppo_id": _gruppo_caricate(db, camp)},
         files={"file": ("corrotto.jpg", BytesIO(jpeg_corrotto), "image/jpeg")},
     )
     assert res.status_code == 422
@@ -638,6 +672,7 @@ def test_debug_jpeg_malformato_senza_sof(
 
     res = client.post(
         f"/api/campagne/{camp.id}/foto",
+        data={"gruppo_id": _gruppo_caricate(db, camp)},
         files={"file": ("senza_sof.jpg", BytesIO(jpeg_senza_sof), "image/jpeg")},
     )
     assert res.status_code == 422
@@ -663,6 +698,7 @@ def test_debug_png_troncato_o_senza_ihdr(
 
     res = client.post(
         f"/api/campagne/{camp.id}/foto",
+        data={"gruppo_id": _gruppo_caricate(db, camp)},
         files={"file": ("senza_ihdr.png", BytesIO(png_errato), "image/png")},
     )
     assert res.status_code == 422
@@ -678,6 +714,7 @@ def test_debug_webp_chunk_sconosciuto(client: TestClient, utente_di_prova, db: S
     webp_sconosciuto = b"RIFF\x14\x00\x00\x00WEBPVP8Z\x08\x00\x00\x0012345678"
     res = client.post(
         f"/api/campagne/{camp.id}/foto",
+        data={"gruppo_id": _gruppo_caricate(db, camp)},
         files={"file": ("sconosciuto.webp", BytesIO(webp_sconosciuto), "image/webp")},
     )
     assert res.status_code == 422
@@ -697,6 +734,7 @@ def test_debug_confini_esatti_1080_e_1079(
         # 1. 1080x1080 esatto -> OK (201)
         res_1080 = client.post(
             f"/api/campagne/{camp.id}/foto",
+            data={"gruppo_id": _gruppo_caricate(db, camp)},
             files={"file": ("1080.png", BytesIO(_crea_png(1080, 1080)), "image/png")},
         )
         assert res_1080.status_code == 201
@@ -704,6 +742,7 @@ def test_debug_confini_esatti_1080_e_1079(
         # 2. 1079x1080 (1 px sotto minimo) -> Rifiutato (422)
         res_1079 = client.post(
             f"/api/campagne/{camp.id}/foto",
+            data={"gruppo_id": _gruppo_caricate(db, camp)},
             files={"file": ("1079.png", BytesIO(_crea_png(1079, 1080)), "image/png")},
         )
         assert res_1079.status_code == 422
@@ -711,6 +750,7 @@ def test_debug_confini_esatti_1080_e_1079(
         # 3. 8192x1080 esatto -> OK (201)
         res_8192 = client.post(
             f"/api/campagne/{camp.id}/foto",
+            data={"gruppo_id": _gruppo_caricate(db, camp)},
             files={"file": ("8192.png", BytesIO(_crea_png(8192, 1080)), "image/png")},
         )
         assert res_8192.status_code == 201
@@ -718,6 +758,7 @@ def test_debug_confini_esatti_1080_e_1079(
         # 4. 8193x1080 (1 px sopra massimo) -> Rifiutato (422)
         res_8193 = client.post(
             f"/api/campagne/{camp.id}/foto",
+            data={"gruppo_id": _gruppo_caricate(db, camp)},
             files={"file": ("8193.png", BytesIO(_crea_png(8193, 1080)), "image/png")},
         )
         assert res_8193.status_code == 422
@@ -725,6 +766,7 @@ def test_debug_confini_esatti_1080_e_1079(
         # 5. 6000x6000 (esattamente 36.000.000 px) -> OK (201)
         res_36m = client.post(
             f"/api/campagne/{camp.id}/foto",
+            data={"gruppo_id": _gruppo_caricate(db, camp)},
             files={"file": ("36m.png", BytesIO(_crea_png(6000, 6000)), "image/png")},
         )
         assert res_36m.status_code == 201
@@ -732,6 +774,7 @@ def test_debug_confini_esatti_1080_e_1079(
         # 6. 6001x6000 (36.006.000 px > 36M) -> Rifiutato (422)
         res_36m_plus = client.post(
             f"/api/campagne/{camp.id}/foto",
+            data={"gruppo_id": _gruppo_caricate(db, camp)},
             files={
                 "file": ("36m_plus.png", BytesIO(_crea_png(6001, 6000)), "image/png")
             },
@@ -752,6 +795,7 @@ def test_debug_gruppo_di_altra_campagna_vietato(
         # Carica foto su Campagna A (crea gruppo A)
         res_a = client.post(
             f"/api/campagne/{camp_a.id}/foto",
+            data={"gruppo_id": _gruppo_caricate(db, camp_a)},
             files={"file": ("foto_a.png", BytesIO(_crea_png(1080, 1080)), "image/png")},
         )
         assert res_a.status_code == 201
@@ -787,6 +831,7 @@ def test_debug_descrizione_gruppo_caratteri_non_validi(
 
         res_foto = client.post(
             f"/api/campagne/{camp.id}/foto",
+            data={"gruppo_id": _gruppo_caricate(db, camp)},
             files={"file": ("foto.png", BytesIO(_crea_png(1080, 1080)), "image/png")},
         )
         gruppo_id = res_foto.json()["gruppo_id"]
@@ -818,6 +863,7 @@ def test_debug_download_file_non_trovato_su_disco_da_404(
 
         res = client.post(
             f"/api/campagne/{camp.id}/foto",
+            data={"gruppo_id": _gruppo_caricate(db, camp)},
             files={"file": ("foto.png", BytesIO(_crea_png(1080, 1080)), "image/png")},
         )
         foto_id = res.json()["id"]
@@ -845,6 +891,7 @@ def test_debug_upload_multipli_nello_stesso_gruppo(
         # Prima foto: crea gruppo
         res1 = client.post(
             f"/api/campagne/{camp.id}/foto",
+            data={"gruppo_id": _gruppo_caricate(db, camp)},
             files={"file": ("foto1.png", BytesIO(_crea_png(1080, 1080)), "image/png")},
         )
         gruppo_id = res1.json()["gruppo_id"]
@@ -922,6 +969,7 @@ def test_debug_webp_vp8_lossy_e_vp8l_lossless(
         webp_lossy = _crea_webp_vp8(1200, 1200)
         res_lossy = client.post(
             f"/api/campagne/{camp.id}/foto",
+            data={"gruppo_id": _gruppo_caricate(db, camp)},
             files={"file": ("lossy.webp", BytesIO(webp_lossy), "image/webp")},
         )
         assert res_lossy.status_code == 201
@@ -933,6 +981,7 @@ def test_debug_webp_vp8_lossy_e_vp8l_lossless(
         webp_lossless = _crea_webp_vp8l(1400, 1400)
         res_lossless = client.post(
             f"/api/campagne/{camp.id}/foto",
+            data={"gruppo_id": _gruppo_caricate(db, camp)},
             files={"file": ("lossless.webp", BytesIO(webp_lossless), "image/webp")},
         )
         assert res_lossless.status_code == 201
@@ -955,6 +1004,7 @@ def test_debug_anti_spoofing_estensione_file(
         # Client tenta spoofing estensione dichiarando .png e mime image/png
         res = client.post(
             f"/api/campagne/{camp.id}/foto",
+            data={"gruppo_id": _gruppo_caricate(db, camp)},
             files={"file": ("falso.png", BytesIO(jpeg_reale), "image/png")},
         )
         assert res.status_code == 201
@@ -975,6 +1025,7 @@ def test_debug_upload_file_vuoto_da_422(
 
     res = client.post(
         f"/api/campagne/{camp.id}/foto",
+        data={"gruppo_id": _gruppo_caricate(db, camp)},
         files={"file": ("vuoto.jpg", BytesIO(b""), "image/jpeg")},
     )
     assert res.status_code == 422
@@ -1011,6 +1062,7 @@ def test_debug_matrice_stati_non_bozza_vietati(
         # 1. Upload deve dare 409
         res_up = client.post(
             f"/api/campagne/{camp.id}/foto",
+            data={"gruppo_id": _gruppo_caricate(db, camp)},
             files={"file": ("foto.png", BytesIO(_crea_png(1080, 1080)), "image/png")},
         )
         assert res_up.status_code == 409, f"Upload fallito per stato {st}"
@@ -1040,6 +1092,7 @@ def test_debug_dettaglio_campagna_con_struttura_foto_completa(
         # Carica 2 foto in gruppo 1
         res1 = client.post(
             f"/api/campagne/{camp.id}/foto",
+            data={"gruppo_id": _gruppo_caricate(db, camp)},
             files={"file": ("foto1.png", BytesIO(_crea_png(1080, 1080)), "image/png")},
         )
         g1 = res1.json()["gruppo_id"]
@@ -1059,6 +1112,7 @@ def test_debug_dettaglio_campagna_con_struttura_foto_completa(
         # Carica 1 foto in gruppo 2
         res3 = client.post(
             f"/api/campagne/{camp.id}/foto",
+            data={"gruppo_id": fabbrica_gruppo(db, camp).id},
             files={
                 "file": ("foto3.webp", BytesIO(_crea_webp(1300, 1300)), "image/webp")
             },
@@ -1096,18 +1150,19 @@ def test_debug_concorrenza_reale_upload_multi_thread(motore_test, tmp_path: Path
             prof_id = p.id
             camp = campagna_in_bozza(s, profilo_id=prof_id)
             camp_id = camp.id
+            gruppo_id = fabbrica_gruppo(s, camp).id
 
         try:
-            # Creazione gruppo iniziale
+            # Prima foto del gruppo
             with SessionClass(motore_test) as s, s.begin():
-                foto_ini = camp_service.carica_foto(
+                camp_service.carica_foto(
                     db=s,
                     utente_id=u_id,
                     ruolo="artigiano",
                     campagna_id=camp_id,
                     contenuto=_crea_png(1080, 1080),
+                    gruppo_id=gruppo_id,
                 )
-                gruppo_id = foto_ini.gruppo_id
 
             def carica_singola(indice: int) -> str:
                 file_bytes = _crea_png(1080 + indice, 1080)
@@ -1181,7 +1236,12 @@ def test_upload_con_rollback_rimuove_il_file_orfano(
         camp = campagna_in_bozza(db, profilo_id=prof.id)
 
         foto = camp_service.carica_foto(
-            db, art.id, "artigiano", camp.id, _crea_png(1080, 1080)
+            db,
+            art.id,
+            "artigiano",
+            camp.id,
+            _crea_png(1080, 1080),
+            fabbrica_gruppo(db, camp).id,
         )
         assert (tmp_path / foto.file).is_file()
 
@@ -1201,14 +1261,15 @@ def test_rollback_successivo_non_tocca_i_file_gia_confermati(
         prof = profilo(db, utente_id=art.id)
         camp = campagna_in_bozza(db, profilo_id=prof.id)
 
+        gruppo_id = fabbrica_gruppo(db, camp).id
         prima = camp_service.carica_foto(
-            db, art.id, "artigiano", camp.id, _crea_png(1080, 1080)
+            db, art.id, "artigiano", camp.id, _crea_png(1080, 1080), gruppo_id
         )
         nome_prima = prima.file
         db.commit()
 
         seconda = camp_service.carica_foto(
-            db, art.id, "artigiano", camp.id, _crea_png(1200, 1200)
+            db, art.id, "artigiano", camp.id, _crea_png(1200, 1200), gruppo_id
         )
         nome_seconda = seconda.file
         db.rollback()
@@ -1228,6 +1289,7 @@ def test_eliminazione_con_rollback_conserva_file_e_record(
 
         res = client.post(
             f"/api/campagne/{camp.id}/foto",
+            data={"gruppo_id": _gruppo_caricate(db, camp)},
             files={"file": ("foto.png", BytesIO(_crea_png(1080, 1080)), "image/png")},
         )
         foto_id = res.json()["id"]
@@ -1423,6 +1485,7 @@ def test_stella_foto_put_da_usare(
         # Upload foto iniziale
         res = client.post(
             f"/api/campagne/{camp.id}/foto",
+            data={"gruppo_id": _gruppo_caricate(db, camp)},
             files={"file": ("foto.png", BytesIO(_crea_png(1080, 1080)), "image/png")},
         )
         assert res.status_code == 201
@@ -1443,10 +1506,10 @@ def test_stella_foto_put_da_usare(
         assert res_off.json()["da_usare"] is False
 
 
-def test_debug_form_upload_con_gruppo_id_stringa_vuota(
+def test_upload_senza_gruppo_id_o_con_gruppo_id_vuoto_da_422(
     client: TestClient, utente_di_prova, db: Session, tmp_path: Path
 ):
-    """Verifica che un FormData con gruppo_id='' (stringa vuota) crei un gruppo automatico senza errori 422 di parsing."""
+    """Issue #41: il gruppo è obbligatorio (plan §3). Senza `gruppo_id`, o con la stringa vuota, 422 e nessun gruppo creato."""
     with usa_archivio(ArchivioDisco(tmp_path)):
         art = utente_di_prova("artigiano")
         prof = profilo(db, utente_id=art.id)
@@ -1457,8 +1520,18 @@ def test_debug_form_upload_con_gruppo_id_stringa_vuota(
             data={"gruppo_id": ""},
             files={"file": ("foto.png", BytesIO(_crea_png(1080, 1080)), "image/png")},
         )
-        assert res.status_code == 201
-        assert res.json()["gruppo_id"] is not None
+        assert res.status_code == 422
+        assert "Indica il gruppo" in res.json()["detail"]
+
+        res_senza = client.post(
+            f"/api/campagne/{camp.id}/foto",
+            files={"file": ("foto.png", BytesIO(_crea_png(1080, 1080)), "image/png")},
+        )
+        assert res_senza.status_code == 422
+        assert "Indica il gruppo" in res_senza.json()["detail"]
+
+        assert db.scalar(select(GruppoFoto.id)) is None
+        assert list(tmp_path.iterdir()) == []
 
 
 def test_debug_form_upload_con_gruppo_id_alfanumerico_invalido(
@@ -1489,6 +1562,7 @@ def test_debug_png_con_dimensioni_zero_da_422(
     png_zero = _crea_png(0, 1080)
     res = client.post(
         f"/api/campagne/{camp.id}/foto",
+        data={"gruppo_id": _gruppo_caricate(db, camp)},
         files={"file": ("zero.png", BytesIO(png_zero), "image/png")},
     )
     assert res.status_code == 422
@@ -1510,6 +1584,7 @@ def test_debug_webp_con_dimensioni_zero_da_422(
 
     res = client.post(
         f"/api/campagne/{camp.id}/foto",
+        data={"gruppo_id": _gruppo_caricate(db, camp)},
         files={"file": ("zero.webp", BytesIO(file_bytes), "image/webp")},
     )
     assert res.status_code == 422
@@ -1554,6 +1629,7 @@ def test_debug_operatore_puo_scaricare_foto_in_campagna_conclusa(
         # Upload foto in bozza
         res_upload = client.post(
             f"/api/campagne/{camp.id}/foto",
+            data={"gruppo_id": _gruppo_caricate(db, camp)},
             files={"file": ("foto.png", BytesIO(_crea_png(1080, 1080)), "image/png")},
         )
         assert res_upload.status_code == 201

@@ -4,7 +4,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from .models import AccountSocial, ProfiloBottega
-from .domain import CANALI
+from .domain import CANALI, POST_A_SETTIMANA
 from .schemas import CanaleCollegato
 
 
@@ -39,6 +39,24 @@ def profilo_di(
     return db.scalar(
         select(ProfiloBottega).where(ProfiloBottega.utente_id == utente_id)
     )
+
+
+def profilo(db: Session, profilo_id: int) -> ProfiloBottega | None:
+    """Profilo della bottega con l'id indicato, o None se non esiste (plan §6).
+
+    Usata da ``campagne`` per i dati della bottega di una campagna quando chi
+    guarda non è il proprietario. Il record si legge, non si modifica.
+    """
+    return db.get(ProfiloBottega, profilo_id)
+
+
+def post_a_settimana(frequenza: str | None) -> int:
+    """Post alla settimana per canale di una frequenza (plan §2, spec R-05).
+
+    Senza frequenza, o con un valore fuori da ``domain.FREQUENZE``, vale
+    ``decidete_voi``.
+    """
+    return POST_A_SETTIMANA.get(frequenza or "", POST_A_SETTIMANA["decidete_voi"])
 
 
 def canali_collegati(db: Session, profilo_id: int) -> list[str]:

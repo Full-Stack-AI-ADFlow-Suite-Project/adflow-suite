@@ -53,14 +53,10 @@ class CampagnaCrea(BaseModel):
     def valida_canali(cls, canali: list[str]) -> list[str]:
         if not canali:
             raise ValueError("Selezionare almeno un canale.")
-        ammessi = {"facebook", "instagram"}
+        # Quali canali esistono lo sa artigiani: il service ammette solo quelli collegati
         visti = []
         for c in canali:
             c_norm = c.strip().lower()
-            if c_norm not in ammessi:
-                raise ValueError(
-                    f"Canale '{c}' non valido. Ammessi: facebook, instagram."
-                )
             if c_norm not in visti:
                 visti.append(c_norm)
         return visti
