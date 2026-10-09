@@ -2,6 +2,8 @@
 
 Monolite a moduli + worker per la gestione di campagne social per artigiani.
 
+Installazione, configurazione, avvio e controlli prima della PR sono nel [README principale](../README.md): qui c'è solo la mappa del codice. Per allinearti e sapere quale task prendere, dalla radice: `uv run python allinea.py`.
+
 ## Stack
 
 - Python 3.11+
@@ -9,86 +11,34 @@ Monolite a moduli + worker per la gestione di campagne social per artigiani.
 - SQLAlchemy 2 + Alembic
 - PostgreSQL 16
 - Procrastinate (coda e job in PostgreSQL)
-- LiteLLM (AI; provider finto per sviluppo)
+- LiteLLM (AI; provider finto per sviluppo e test)
 - pytest
 
-## Installazione
+Le versioni stanno in `requirements.txt`. Una libreria nuova entra con una PR della corsia 0.
 
-Dalla radice del repository, con [uv](https://docs.astral.sh/uv/getting-started/installation/); i comandi sono gli stessi su Windows, macOS e Linux (dettagli nel [README principale](../README.md)):
+## Comandi
 
-```bash
-uv venv --python 3.11 --seed .venv
-uv pip install -r backend/requirements.txt
-```
-
-Gli altri comandi di questa pagina si lanciano da `backend/` con `uv run` davanti (per esempio `uv run pytest`), oppure con l'ambiente virtuale attivo.
-
-## Configurazione
-
-Copia `.env.example` in `.env` e configura le variabili:
+Da questa cartella, con `uv run` davanti (usa `.venv` della radice senza attivarlo), uno alla volta:
 
 ```bash
-cp backend/.env.example backend/.env
+uv run alembic upgrade head                                               # database all'ultima migrazione
+uv run uvicorn app.main:app --reload                                      # API su http://localhost:8000
+uv run python -m procrastinate -a app.worker.app worker --concurrency 1   # worker, con il tick di pubblicazione ogni minuto
+uv run python -m app.cli seed                                             # dati di partenza
+uv run pytest                                                             # test, sul database adflow_test
+uv run black --check .                                                    # formattazione
 ```
 
-Variabili obbligatorie:
-
-- `DATABASE_URL`: URL del database PostgreSQL
-- `DATABASE_URL_TEST`: URL del database di test
-
-## Database
-
-```bash
-# Esegui le migrazioni
-alembic upgrade head
-
-# Crea il database di test
-createdb adflow_test
-```
-
-## Avvio
-
-### API server
-
-```bash
-uvicorn app.main:app --reload
-```
-
-L'API sarà disponibile su `http://localhost:8000`
-
-### Worker Procrastinate
-
-```bash
-python -m app.worker
-```
-
-Il worker esegue i job in background dalla coda PostgreSQL.
-
-### Tick pubblicazione
-
-Il job `tick_pubblicazione` deve essere schedulato esternamente per eseguirsi ogni minuto:
-
-```bash
-# Esempio con cron (Linux/Mac)
-* * * * * cd /path/to/backend && python -c "from app.core.coda import accoda, JOB_TICK_PUBBLICAZIONE; accoda(JOB_TICK_PUBBLICAZIONE)"
-```
-
-## Test
-
-```bash
-pytest
-```
-
-I test usano il database `adflow_test` (creato manualmente).
+Il tick di pubblicazione è registrato nel worker: non serve nessun cron esterno. I test svuotano `adflow_test` a ogni esecuzione e lo portano all'ultima migrazione.
 
 ## Struttura
 
 ```
 backend/
 ├── app/
-│   ├── core/          # Funzioni comuni (config, db, coda, errori, orologio, transizioni, security)
+│   ├── core/          # Funzioni comuni (config, db, coda, errori, orologio, transizioni, security, limiti e eventi di sicurezza)
 │   ├── adapters/      # Adattatori per servizi esterni (AI, social, email, archivio)
-│   ├── moduli/        # Moduli di business (accesso, artigiani, campagne, contenuti, revisione, pubblicazione, notifiche)
+│   ├── moduli/        # Moduli di business (accesso, notifiche, artigiani, campagne, contenuti, revisione, pubblicazione)
 │   ├── main.py        # App FastAPI
 │   ├── worker.py      # Worker Procrastinate
 │   ├── cli.py         # CLI per comandi di gestione
@@ -96,12 +46,14 @@ backend/
 ├── tests/
 │   ├── moduli/        # Test dei moduli (con fabbrica.py per ciascuno)
 │   ├── adapters/      # Test degli adattatori
-│   ├── percorsi/      # Test dei percorsi API completi
+│   ├── percorsi/      # Test dei percorsi con più moduli
 │   ├── conftest.py    # Fixture pytest
 │   └── test_confini.py # Test dei confini tra moduli
 ├── alembic/           # Migrazioni del database
 └── requirements.txt
 ```
+
+Cosa offre già `core/` e come si usano le fixture dei test: [`docs/agenti/plan.md`](../docs/agenti/plan.md) §7.
 
 ## Ordine dei moduli
 
@@ -113,4 +65,4 @@ backend/
 6. revisione
 7. pubblicazione
 
-Un modulo importa da un altro modulo solo `service` (e gli schemi che restituisce), e solo se l'altro lo **precede**.
+Un modulo importa da un altro modulo solo `service` (e gli schemi che restituisce), e solo se l'altro lo **precede**. I dati di un altro modulo si leggono con le funzioni di plan §6, mai con SQL scritto a mano sulle sue tabelle.

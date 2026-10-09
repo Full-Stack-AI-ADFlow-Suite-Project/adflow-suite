@@ -49,7 +49,7 @@ Ordine dei moduli: `accesso`, `notifiche`, `artigiani`, `campagne`, `contenuti`,
 - Upload: controllo di tipo reale, peso e dimensioni; il nome del file lo genera il server.
 - Permessi social cifrati. Nessun dato personale o token nei log.
 - Nei test nessuna chiamata reale ad AI, social o email.
-- Una libreria nuova si dichiara nella PR (nome, motivo, licenza).
+- Una libreria nuova si dichiara nella PR (nome, motivo, licenza) ed entra in `backend/requirements.txt` con una PR della corsia 0, prima del task che la usa.
 
 ## 4. Standard
 - Dominio in italiano (tabelle, campi, funzioni, messaggi); termini tecnici in inglese.
@@ -60,5 +60,5 @@ Ordine dei moduli: `accesso`, `notifiche`, `artigiani`, `campagne`, `contenuti`,
 - Test su PostgreSQL reale (`adflow_test`), mai SQLite; l'ora "adesso" si inietta (`core/orologio.py`).
 
 ## 5. Corsie e fatto
-- Ogni file ha una corsia proprietaria (`tasks.md`). La corsia 0 è di tutto il team: composizione, `core/`, `alembic/`, e di ogni modulo `models.py`, `domain.py` e le funzioni di plan §6 scritte nella corsia 0. Si cambiano solo con un task della corsia 0.
+- Ogni file ha una corsia proprietaria (`tasks.md`). La corsia 0 è di tutto il team: composizione, `core/`, `alembic/`, `backend/requirements.txt`, e di ogni modulo `models.py`, `domain.py` e le funzioni di plan §6 scritte nella corsia 0. Si cambiano solo con un task della corsia 0.
 - Un task è fatto quando il suo "Fatto quando" è vero, la checklist di `converge.md` è verde e la PR è unita dall'admin dopo la revisione: approvazione di tutto il team per la corsia 0, revisione di gruppo per le corsie 1–5.

@@ -2,6 +2,8 @@
 
 ## 1. Prima della PR
 
+Si parte allineati: dalla radice `uv run python allinea.py` (aggiorna `main`, dipendenze e database, e dice se il tuo branch è indietro). Se `main` è andato avanti, portalo nel branch prima dei controlli: `git merge origin/main`.
+
 ```bash
 # backend/ (PostgreSQL acceso, backend/.env compilato), un comando alla volta
 uv run alembic upgrade head
@@ -17,6 +19,8 @@ GitHub rilancia i comandi del backend a ogni PR (`.github/workflows/backend.yml`
 - [ ] "Fatto quando" del task vero; ogni CA citato ha un test `test_caNN_...` verde.
 - [ ] Nessuna regola di `constitution.md` violata; `tests/test_confini.py` verde.
 - [ ] La PR tocca solo ciò che è della corsia del task (`tasks.md`). Tabelle, stati, funzioni di plan §6, `core/` e composizione solo nei task della corsia 0.
+- [ ] Dopo aver portato `main` nel branch, le funzioni della corsia 0 sono identiche a `main`: `git diff origin/main -- <file>` non mostra righe tolte o cambiate dentro quelle funzioni.
+- [ ] Nessuna libreria nuova fuori da `requirements.txt` su `main`; nessun SQL scritto a mano sulle tabelle di un altro modulo e nessuna copia delle sue costanti (plan §6).
 - [ ] Se tocchi il database (solo corsia 0): `alembic downgrade -1` e di nuovo `upgrade head` funzionano.
 - [ ] `.env.example` e README aggiornati se serve; casella del task spuntata.
 - [ ] Nella PR: cosa fa, quali CA copre, come si prova.
