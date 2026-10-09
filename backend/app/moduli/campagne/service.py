@@ -1,7 +1,7 @@
 """Logica del modulo campagne: l'unica parte che gli altri moduli possono importare."""
 
 from collections.abc import Callable
-from datetime import datetime, timedelta
+from datetime import date, datetime, timedelta
 import json
 import logging
 from typing import Any
@@ -280,6 +280,17 @@ def aggiungi_foto(
     return record
 
 
+def post_chiesti(post_a_settimana: int, inizio: date, fine: date) -> int:
+    """Post chiesti su un canale: post/settimana × giorni ÷ 7, per difetto (R-05).
+
+    Funzione pura, senza ``db`` (plan §6): la usano il dettaglio della campagna
+    e ``contenuti`` per i limiti del piano, così la formula è scritta una volta.
+    I giorni contano inizio e fine; un periodo rovesciato dà zero.
+    """
+    giorni = (fine - inizio).days + 1
+    return max(0, post_a_settimana * giorni // 7)
+
+
 def crea_bozza(
     db: Session,
     utente_id: int,
@@ -488,7 +499,6 @@ def dettaglio_campagna(
     ]
 
     # Calcolo post_chiesti_per_canale secondo spec R-05
-    giorni = (rec.fine - rec.inizio).days + 1
     frequenza_val = rec.frequenza
     foto_policy_val = None
 
@@ -500,19 +510,19 @@ def dettaglio_campagna(
         foto_policy_val = profilo.foto_policy
 
     post_sett = artigiani_service.post_a_settimana(frequenza_val)
-    post_chiesti = (post_sett * giorni) // 7
+    chiesti = post_chiesti(post_sett, rec.inizio, rec.fine)
 
     canali = rec.canali or []
-    post_chiesti_per_canale = {canale: post_chiesti for canale in canali}
+    post_chiesti_per_canale = {canale: chiesti for canale in canali}
 
     # Calcolo avvisi informativi (spec R-25, CA-54)
     n_foto_caricate = sum(len(g.foto) for g in gruppi_db if g.origine == "caricate")
     avvisi: list[str] = []
     for _canale in canali:
-        if post_chiesti > 0 and n_foto_caricate < post_chiesti:
+        if chiesti > 0 and n_foto_caricate < chiesti:
             if "foto_poche" not in avvisi:
                 avvisi.append("foto_poche")
-        if post_chiesti > n_foto_caricate and (post_chiesti - n_foto_caricate) > (
+        if chiesti > n_foto_caricate and (chiesti - n_foto_caricate) > (
             n_foto_caricate / 2
         ):
             if "riempitivi_molti" not in avvisi:

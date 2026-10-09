@@ -161,6 +161,7 @@ Le sole funzioni di `moduli/<modulo>/service.py` che un altro modulo può chiama
 | campagne | `registra_decisione(campagna, utente_id, esito, motivo, nota, foto_segnate, canale=None, post_id=None)` | revisione | T1-04; `canale`, `post_id` e i nuovi esiti in T1-09 |
 | campagne | `aggiorna_foto(foto_id, analisi_ai, n_utilizzi)` | contenuti | T1-04 |
 | campagne | `aggiungi_foto(campagna_id, origine, file, mime, larghezza, altezza)` → foto senza gruppo, per le cartoline | contenuti | T1-09 |
+| campagne | `post_chiesti(post_a_settimana, inizio, fine)` → post chiesti su un canale (spec R-05); funzione pura, senza `db`: la formula sta solo qui | campagne (dettaglio), contenuti | issue #44 |
 | contenuti | `post_della_campagna(campagna_id)` (post con `versione_corrente`, `versioni` e le foto di ogni versione) · `ha_blocchi(campagna_id, adesso)` · `approva_post(campagna_id, adesso)` → versioni approvate | revisione | T1-04; foto delle versioni, scartati, `adesso` in T1-09 |
 | contenuti | `piano_corrente(campagna_id)` → piano o `None` · `uscite_della_campagna(campagna_id)` · `ultimo_errore(campagna_id)` → errore di generazione o `None` | revisione | T1-09 |
 | contenuti | `post_dovuti(adesso)` (approvati, data raggiunta, campagna attiva) · `segna_esito(post, esito)` · `tutti_chiusi(campagna_id, adesso)` | pubblicazione | T1-04; scartati, scaduti, annullati e `adesso` in T1-09 |
