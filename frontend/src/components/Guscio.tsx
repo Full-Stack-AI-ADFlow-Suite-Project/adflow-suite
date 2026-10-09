@@ -14,10 +14,12 @@ export interface VoceNav {
 export function Guscio({
   titolo,
   nav = [],
+  largo = 720,
   children,
 }: {
   titolo: string;
   nav?: VoceNav[];
+  largo?: number;
   children: ReactNode;
 }) {
   const { utente, esci } = useAuth();
@@ -70,7 +72,7 @@ export function Guscio({
           </Group>
         </Group>
       </AppShell.Header>
-      <AppShell.Main maw={720}>
+      <AppShell.Main maw={largo}>
         <Title order={1} mb="md">
           {titolo}
         </Title>

@@ -56,12 +56,38 @@ export interface CampagnaDettaglio {
   gruppi: GruppoSintetico[];
   post_chiesti_per_canale: Record<string, number>;
   avvisi: string[];
+  /** Visibili solo a operatore e admin (CampagnaDettaglio di schemas.py). */
+  profilo_snapshot?: ProfiloSnapshot | null;
+  decisioni?: DecisioneSintetica[];
   /** Solo esempi: ciò che l'artigiano vedrà di una respinta dalla 2b in poi. */
   esito_respinta?: {
     motivo: string;
     nota: string | null;
     foto_segnate: number[];
   } | null;
+}
+
+/** La fotografia del profilo com'era all'invio (R-11). Backend: dict libero. */
+export interface ProfiloSnapshot {
+  bottega?: string;
+  referente?: string;
+  citta?: string;
+  tipo_prodotto?: string;
+  obiettivo?: string;
+  frequenza?: string;
+  tono?: string;
+  clienti?: string;
+  da_non_dire?: string;
+}
+
+/** DecisioneSintetica di schemas.py: le decisioni dell'operatore. */
+export interface DecisioneSintetica {
+  id: number;
+  esito: string;
+  canale: string | null;
+  post_id: number | null;
+  motivo: string | null;
+  nota: string | null;
 }
 
 export interface CampagnaElencoItem {
@@ -91,9 +117,10 @@ export interface GruppoCrea {
   n_immagini?: number | null;
 }
 
-export function elenco(): Promise<CampagnaElencoItem[]> {
-  if (USA_ESEMPI) return esempiCampagne.elenco();
-  return richiesta<CampagnaElencoItem[]>("GET", "/campagne");
+export function elenco(stato?: string): Promise<CampagnaElencoItem[]> {
+  if (USA_ESEMPI) return esempiCampagne.elenco(stato);
+  const filtro = stato ? `?stato=${encodeURIComponent(stato)}` : "";
+  return richiesta<CampagnaElencoItem[]>("GET", `/campagne${filtro}`);
 }
 
 export function dettaglio(id: number): Promise<CampagnaDettaglio> {

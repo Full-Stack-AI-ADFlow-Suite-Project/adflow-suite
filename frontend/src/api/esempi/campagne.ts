@@ -13,7 +13,13 @@ import type {
   GruppoCrea,
   GruppoSintetico,
 } from "../campagne";
-import { canaliEsempio, profiloEsempio, USA_ESEMPI } from "./artigiani";
+import {
+  canaliEsempio,
+  profiliEsempio,
+  profiloEsempio,
+  USA_ESEMPI,
+} from "./artigiani";
+import { sessioneEsempio } from "./accesso";
 
 export { USA_ESEMPI };
 
@@ -33,13 +39,17 @@ const LIMITI_POLICY_FOTO: Record<string, number> = {
 
 const CHIAVE = "adflow_esempi_campagne";
 
-function postChiesti(inizio: string, fine: string): number {
+function postChiesti(
+  inizio: string,
+  fine: string,
+  frequenza?: string | null,
+): number {
   const giorni =
     (new Date(fine + "T00:00:00").getTime() -
       new Date(inizio + "T00:00:00").getTime()) /
       86400000 +
     1;
-  const postSett = POST_A_SETTIMANA[profiloEsempio.frequenza] ?? 3;
+  const postSett = POST_A_SETTIMANA[frequenza ?? profiloEsempio.frequenza] ?? 3;
   return Math.max(0, Math.floor((postSett * giorni) / 7));
 }
 
@@ -150,18 +160,343 @@ function seed(): CampagnaDettaglio[] {
       ],
       post_chiesti_per_canale: { facebook: 13, instagram: 13 },
       avvisi: [],
+      decisioni: [
+        {
+          id: 1,
+          esito: "respinta",
+          canale: null,
+          post_id: null,
+          motivo: "foto",
+          nota: "Le foto del laboratorio sono troppo buie: ricaricale con più luce e aggiungi il tavolo finito.",
+        },
+      ],
       esito_respinta: {
         motivo: "foto scattate male",
         nota: "Le foto del laboratorio sono troppo buie: ricaricale con più luce e aggiungi il tavolo finito.",
         foto_segnate: [1, 2],
       },
     },
+    ...semiOperatore(),
+  ];
+}
+
+/** Una foto caricata nel seme, compatta. */
+function f(
+  id: number,
+  gruppoId: number,
+  file: string,
+  daUsare = false,
+): FotoSintetica {
+  return {
+    id,
+    gruppo_id: gruppoId,
+    file,
+    mime: "image/jpeg",
+    larghezza: 1200,
+    altezza: 1200,
+    da_usare: daUsare,
+    origine: "caricata",
+  };
+}
+
+/** Le campagne delle altre botteghe, per la pagina dell'operatore (T1-53). */
+function semiOperatore(): CampagnaDettaglio[] {
+  const snap = (profiloId: number) => ({ ...profiliEsempio[profiloId] });
+  return [
+    {
+      id: 10,
+      profilo_id: 2,
+      titolo: "Natale su misura",
+      inizio: "2026-11-09",
+      fine: "2026-11-22",
+      descrizione:
+        "A novembre voglio spingere i regali su misura. Sabato 21 teniamo le porte aperte: se ne parli nella seconda settimana.",
+      stato: "in_revisione",
+      canali: ["facebook", "instagram"],
+      canali_tolti: null,
+      frequenza: "f3_4",
+      obiettivo: "Vendere di più",
+      inviata_il: "2026-11-03T10:12:00",
+      chiusa_il: null,
+      gruppi: [
+        {
+          id: 101,
+          origine: "caricate",
+          descrizione: "Piatti e vassoi della linea autunno, smalto verde.",
+          da_usare_il: null,
+          n_immagini: null,
+          foto: [
+            f(101, 101, "piatto-verde-01.jpg", true),
+            f(102, 101, "vassoio-01.jpg"),
+            f(103, 101, "piatto-dettaglio.jpg"),
+          ],
+        },
+        {
+          id: 102,
+          origine: "caricate",
+          descrizione:
+            "Tazze decorate a mano e le porte aperte di sabato 21 novembre.",
+          da_usare_il: "2026-11-21",
+          n_immagini: null,
+          foto: [
+            f(104, 102, "tazze-01.jpg"),
+            f(105, 102, "mani-tornio.jpg"),
+            f(106, 102, "bottega-ingresso.jpg"),
+            f(107, 102, "tazze-sfocate.jpg"),
+          ],
+        },
+      ],
+      post_chiesti_per_canale: {},
+      avvisi: [],
+      profilo_snapshot: snap(2),
+      decisioni: [],
+    },
+    {
+      id: 11,
+      profilo_id: 3,
+      titolo: "Borse d'inverno",
+      inizio: "2026-10-12",
+      fine: "2026-11-08",
+      descrizione: "Presentare la nuova collezione di borse.",
+      stato: "piano_da_rivedere",
+      canali: ["facebook", "instagram"],
+      canali_tolti: null,
+      frequenza: "f1_2",
+      obiettivo: "Riempire l'agenda ordini",
+      inviata_il: "2026-10-08T15:40:00",
+      chiusa_il: null,
+      gruppi: [
+        {
+          id: 111,
+          origine: "caricate",
+          descrizione: "Le borse della collezione inverno.",
+          da_usare_il: null,
+          n_immagini: null,
+          foto: [
+            f(111, 111, "borsa-cuoio-01.jpg", true),
+            f(112, 111, "borsa-nero.jpg"),
+            f(113, 111, "borsa-buia.jpg"),
+          ],
+        },
+      ],
+      post_chiesti_per_canale: {},
+      avvisi: [],
+      profilo_snapshot: snap(3),
+      decisioni: [],
+    },
+    {
+      id: 12,
+      profilo_id: 2,
+      titolo: "Autunno in tavola",
+      inizio: "2026-10-05",
+      fine: "2026-11-01",
+      descrizione: "La tavola d'autunno con i pezzi della linea.",
+      stato: "generazione_fallita",
+      canali: ["instagram"],
+      canali_tolti: null,
+      frequenza: "f3_4",
+      obiettivo: "Vendere di più",
+      inviata_il: "2026-09-27T09:05:00",
+      chiusa_il: null,
+      gruppi: [
+        {
+          id: 121,
+          origine: "caricate",
+          descrizione: "La tavola apparecchiata e i dettagli.",
+          da_usare_il: null,
+          n_immagini: null,
+          foto: [
+            f(121, 121, "tavola-01.jpg"),
+            f(122, 121, "zucca-piatti.jpg"),
+            f(123, 121, "tavola-dettaglio.jpg"),
+            f(124, 121, "calici.jpg"),
+          ],
+        },
+      ],
+      post_chiesti_per_canale: {},
+      avvisi: [],
+      profilo_snapshot: snap(2),
+      decisioni: [],
+    },
+    {
+      id: 13,
+      profilo_id: 4,
+      titolo: "Sciarpe e plaid",
+      inizio: "2026-10-15",
+      fine: "2026-11-15",
+      descrizione: "Sciarpe e plaid in lana per l'autunno.",
+      stato: "in_revisione",
+      canali: ["facebook"],
+      canali_tolti: null,
+      frequenza: "f1_2",
+      obiettivo: "Farmi conoscere",
+      inviata_il: "2026-10-06T11:20:00",
+      chiusa_il: null,
+      gruppi: [
+        {
+          id: 131,
+          origine: "caricate",
+          descrizione: "Sciarpe e plaid fotografati al telaio.",
+          da_usare_il: null,
+          n_immagini: null,
+          foto: [
+            f(131, 131, "sciarpa-01.jpg", true),
+            f(132, 131, "plaid-piegato.jpg"),
+            f(133, 131, "telaio-filo.jpg"),
+            f(134, 131, "sciarpa-colori.jpg"),
+          ],
+        },
+      ],
+      post_chiesti_per_canale: {},
+      avvisi: [],
+      profilo_snapshot: snap(4),
+      decisioni: [],
+    },
+    {
+      id: 14,
+      profilo_id: 3,
+      titolo: "Collezione inverno",
+      inizio: "2026-10-01",
+      fine: "2026-10-31",
+      descrizione: "La collezione inverno in vetrina.",
+      stato: "attiva",
+      canali: ["facebook"],
+      canali_tolti: null,
+      frequenza: "f1_2",
+      obiettivo: "Riempire l'agenda ordini",
+      inviata_il: "2026-09-25T14:00:00",
+      chiusa_il: null,
+      gruppi: [
+        {
+          id: 141,
+          origine: "caricate",
+          descrizione: "Borse e portafogli della vetrina.",
+          da_usare_il: null,
+          n_immagini: null,
+          foto: [f(141, 141, "vetrina-01.jpg"), f(142, 141, "portafoglio.jpg")],
+        },
+      ],
+      post_chiesti_per_canale: {},
+      avvisi: [],
+      profilo_snapshot: snap(3),
+      decisioni: [
+        {
+          id: 2,
+          esito: "approvata",
+          canale: null,
+          post_id: null,
+          motivo: null,
+          nota: null,
+        },
+      ],
+    },
+    {
+      id: 15,
+      profilo_id: 4,
+      titolo: "Tende d'estate",
+      inizio: "2026-08-01",
+      fine: "2026-08-31",
+      descrizione: null,
+      stato: "conclusa",
+      canali: ["facebook"],
+      canali_tolti: null,
+      frequenza: "f1_2",
+      obiettivo: "Farmi conoscere",
+      inviata_il: "2026-07-20T09:00:00",
+      chiusa_il: "2026-09-01T00:05:00",
+      gruppi: [
+        {
+          id: 151,
+          origine: "caricate",
+          descrizione: "Tende leggere per l'estate.",
+          da_usare_il: null,
+          n_immagini: null,
+          foto: [f(151, 151, "tenda-01.jpg"), f(152, 151, "tenda-02.jpg")],
+        },
+      ],
+      post_chiesti_per_canale: {},
+      avvisi: [],
+      profilo_snapshot: snap(4),
+      decisioni: [
+        {
+          id: 3,
+          esito: "approvata",
+          canale: null,
+          post_id: null,
+          motivo: null,
+          nota: null,
+        },
+      ],
+    },
+    {
+      id: 16,
+      profilo_id: 3,
+      titolo: "Idee per la casa",
+      inizio: "2026-09-14",
+      fine: "2026-09-27",
+      descrizione: "Piccoli accessori in pelle per la casa.",
+      stato: "scaduta",
+      canali: ["instagram"],
+      canali_tolti: null,
+      frequenza: "f1_2",
+      obiettivo: "Riempire l'agenda ordini",
+      inviata_il: "2026-09-10T16:45:00",
+      chiusa_il: "2026-09-14T00:00:00",
+      gruppi: [
+        {
+          id: 161,
+          origine: "caricate",
+          descrizione: "Svuotatasche e copertine.",
+          da_usare_il: null,
+          n_immagini: null,
+          foto: [f(161, 161, "svuotatasche.jpg"), f(162, 161, "copertina.jpg")],
+        },
+      ],
+      post_chiesti_per_canale: {},
+      avvisi: [],
+      profilo_snapshot: snap(3),
+      decisioni: [],
+    },
+    {
+      id: 17,
+      profilo_id: 2,
+      titolo: "Collezione primavera",
+      inizio: "2026-10-20",
+      fine: "2026-11-16",
+      descrizione: "Anticipare la linea primavera.",
+      stato: "in_generazione",
+      canali: ["facebook", "instagram"],
+      canali_tolti: null,
+      frequenza: "f3_4",
+      obiettivo: "Vendere di più",
+      inviata_il: "2026-10-09T08:30:00",
+      chiusa_il: null,
+      gruppi: [
+        {
+          id: 171,
+          origine: "caricate",
+          descrizione: "Prove smalto della linea primavera.",
+          da_usare_il: null,
+          n_immagini: null,
+          foto: [
+            f(171, 171, "smalto-01.jpg"),
+            f(172, 171, "smalto-02.jpg"),
+            f(173, 171, "ciotole-01.jpg"),
+            f(174, 171, "ciotole-02.jpg"),
+          ],
+        },
+      ],
+      post_chiesti_per_canale: {},
+      avvisi: [],
+      profilo_snapshot: snap(2),
+      decisioni: [],
+    },
   ];
 }
 
 function conAvvisi(c: CampagnaDettaglio): CampagnaDettaglio {
   const canali = c.canali ?? [];
-  const chiesti = postChiesti(c.inizio, c.fine);
+  const chiesti = postChiesti(c.inizio, c.fine, c.frequenza);
   const post_chiesti_per_canale = Object.fromEntries(
     canali.map((k) => [k, chiesti]),
   );
@@ -207,18 +542,28 @@ function nuovoId(campagne: CampagnaDettaglio[]): number {
 }
 
 export const esempiCampagne = {
-  async elenco(): Promise<CampagnaElencoItem[]> {
-    return carica().map(
-      ({ id, profilo_id, titolo, inizio, fine, stato, canali }) => ({
+  async elenco(stato?: string): Promise<CampagnaElencoItem[]> {
+    const utente = sessioneEsempio();
+    const operatore =
+      utente?.ruolo === "operatore" || utente?.ruolo === "admin";
+    return carica()
+      .filter((c) => (operatore ? true : c.profilo_id === 1))
+      .filter((c) => !stato || c.stato === stato)
+      .map(({ id, profilo_id, titolo, inizio, fine, stato: st, canali }) => ({
         id,
         profilo_id,
         titolo,
         inizio,
         fine,
-        stato,
+        stato: st,
         canali,
-      }),
-    );
+        ...(operatore
+          ? {
+              bottega: profiliEsempio[profilo_id]?.bottega ?? null,
+              citta: profiliEsempio[profilo_id]?.citta ?? null,
+            }
+          : {}),
+      }));
   },
 
   async dettaglio(id: number): Promise<CampagnaDettaglio> {
@@ -370,7 +715,24 @@ export const esempiCampagne = {
       throw new ApiErrore(409, "Un canale della campagna non è collegato.");
     c.stato = "inviata";
     c.inviata_il = new Date().toISOString();
+    c.profilo_snapshot = { ...profiliEsempio[1] };
     salva(campagne);
     return conAvvisi(c);
   },
 };
+
+/**
+ * Accesso al record interno per il modulo revisione degli esempi:
+ * legge senza ricalcoli e salva dopo le mutazioni (stesso localStorage).
+ */
+export function leggiCampagna(id: number): CampagnaDettaglio {
+  return trova(carica(), id);
+}
+
+export function salvaCampagna(campagna: CampagnaDettaglio): void {
+  const campagne = carica();
+  const i = campagne.findIndex((c) => c.id === campagna.id);
+  if (i < 0) throw new ApiErrore(404, "Campagna non trovata.");
+  campagne[i] = campagna;
+  salva(campagne);
+}
