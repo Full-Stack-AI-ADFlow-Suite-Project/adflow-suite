@@ -15,7 +15,7 @@ export function Riga({ nome, valore }: { nome: string; valore: ReactNode }) {
       <Text c="dimmed" size="sm" style={{ flex: "0 0 42%" }}>
         {nome}
       </Text>
-      <Text size="sm" style={{ flex: 1, minWidth: 0 }}>
+      <Text size="sm" component="div" style={{ flex: 1, minWidth: 0 }}>
         {valore}
       </Text>
     </Box>

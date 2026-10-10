@@ -1,5 +1,5 @@
-/** Bentornato: riepilogo del profilo salvato prima del passo 10. */
 import { Alert, Button, Group, Paper, Stack, Text, Title } from "@mantine/core";
+import { useNavigate } from "react-router-dom";
 
 import type { CampagnaDettaglio } from "../../../api/campagne";
 import type { ProfiloBottega } from "../../../api/artigiani";
@@ -16,6 +16,8 @@ export function Bentornato({
   onAvanti: () => void;
 }) {
   const { utente } = useAuth();
+  const navigate = useNavigate();
+
   return (
     <Paper withBorder radius="md" p="xl">
       <Title order={2}>Bentornato, {utente?.nome.split(" ")[0] ?? ""}</Title>
@@ -49,14 +51,10 @@ export function Bentornato({
         <Button color="verde" onClick={onAvanti}>
           Va bene così, vai alla campagna →
         </Button>
-        <Button variant="default" disabled>
-          Voglio modificare il profilo
+        <Button variant="default" onClick={() => navigate("/profilo")}>
+          Modifica il profilo
         </Button>
       </Group>
-      <Text size="xs" c="dimmed" mt="sm">
-        Il profilo si modifica dalla pagina Profilo bottega, che arriva con lo
-        sprint 2a.
-      </Text>
     </Paper>
   );
 }

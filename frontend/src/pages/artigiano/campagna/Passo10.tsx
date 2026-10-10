@@ -19,7 +19,7 @@ import {
   Tooltip,
 } from "@mantine/core";
 
-import type { CampagnaCrea } from "../../../api/campagne";
+import type { CampagnaCrea, CampagnaDettaglio } from "../../../api/campagne";
 import {
   canali as apiCanali,
   type CanaleCollegato,
@@ -49,21 +49,30 @@ function giorniTra(inizio: string, fine: string): number {
 
 export function Passo10({
   profilo,
+  campagna,
   errore,
   onContinua,
 }: {
   profilo: ProfiloBottega;
+  campagna?: CampagnaDettaglio | null;
   errore: string;
   onContinua: (dati: CampagnaCrea) => Promise<void>;
 }) {
   const [canali, setCanali] = useState<CanaleCollegato[]>([]);
-  const [titolo, setTitolo] = useState("");
-  const [inizio, setInizio] = useState(dataISO(4));
-  const [fine, setFine] = useState(dataISO(34));
-  const [scelti, setScelti] = useState<string[]>(profilo.canali_preferiti);
-  const [descrizione, setDescrizione] = useState("");
+  const [titolo, setTitolo] = useState(campagna?.titolo ?? "");
+  const [inizio, setInizio] = useState(campagna?.inizio ?? dataISO(4));
+  const [fine, setFine] = useState(campagna?.fine ?? dataISO(34));
+  const [scelti, setScelti] = useState<string[]>(
+    campagna?.canali && campagna.canali.length > 0
+      ? campagna.canali
+      : profilo.canali_preferiti,
+  );
+  const [descrizione, setDescrizione] = useState(campagna?.descrizione ?? "");
   const [errori, setErrori] = useState<Record<string, string>>({});
   const [inCorso, setInCorso] = useState(false);
+  // L'errore del server riguarda i dati inviati: se cambiano, non vale più.
+  const [inviati, setInviati] = useState("");
+  const dati = JSON.stringify([titolo, inizio, fine, scelti, descrizione]);
 
   useEffect(() => {
     apiCanali()
@@ -100,6 +109,7 @@ export function Passo10({
     evento.preventDefault();
     if (!valida()) return;
     setInCorso(true);
+    setInviati(dati);
     await onContinua({
       titolo: titolo.trim(),
       inizio,
@@ -224,7 +234,7 @@ export function Passo10({
           error={errori.descrizione}
           onChange={(e) => setDescrizione(e.currentTarget.value)}
         />
-        {errore && (
+        {errore && inviati === dati && (
           <Alert color="red" variant="light">
             {errore}
           </Alert>

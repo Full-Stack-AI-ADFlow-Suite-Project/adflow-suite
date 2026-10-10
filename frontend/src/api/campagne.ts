@@ -113,6 +113,14 @@ export interface CampagnaCrea {
   canali: string[];
 }
 
+export interface CampagnaModifica {
+  titolo?: string | null;
+  inizio?: string | null;
+  fine?: string | null;
+  descrizione?: string | null;
+  canali?: string[] | null;
+}
+
 export interface GruppoCrea {
   origine?: string;
   descrizione?: string | null;
@@ -134,6 +142,14 @@ export function dettaglio(id: number): Promise<CampagnaDettaglio> {
 export function crea(dati: CampagnaCrea): Promise<CampagnaDettaglio> {
   if (USA_ESEMPI) return esempiCampagne.crea(dati);
   return richiesta<CampagnaDettaglio>("POST", "/campagne", dati);
+}
+
+export function modifica(
+  id: number,
+  dati: CampagnaModifica,
+): Promise<CampagnaDettaglio> {
+  if (USA_ESEMPI) return esempiCampagne.modifica(id, dati);
+  return richiesta<CampagnaDettaglio>("PATCH", `/campagne/${id}`, dati);
 }
 
 export function creaGruppo(

@@ -1,13 +1,13 @@
 /**
  * Bozza: i passi 10 (durata e canali), 11 (foto a gruppi) e 12 (riepilogo
- * e invio). La bozza si crea alla fine del passo 10; senza PATCH (2a) i
- * dati del passo 10 si leggono in sola lettura.
+ * e invio). La bozza si crea alla fine del passo 10 o si modifica con PATCH (T2a-21/T2a-53).
+ * CA-08: bozza aperta → rientra → pagina Campagna dal passo 10 con dati, canali, gruppi e foto.
  */
 import { useState } from "react";
-import { Text } from "@mantine/core";
 
 import {
   crea,
+  modifica,
   type CampagnaCrea,
   type CampagnaDettaglio,
 } from "../../../api/campagne";
@@ -30,54 +30,57 @@ export function Bozza({
   onCreata: (c: CampagnaDettaglio) => void;
   onInviata: () => Promise<void>;
 }) {
-  const [passo, setPasso] = useState(campagna ? 11 : 10);
+  const [passo, setPasso] = useState<10 | 11 | 12>(10);
   const [errore, setErrore] = useState("");
 
   const continua10 = async (dati: CampagnaCrea) => {
     setErrore("");
     try {
-      const c = await crea(dati);
-      onCreata(c);
-      setPasso(11);
+      if (campagna) {
+        const c = await modifica(campagna.id, dati);
+        await onCambiata(c);
+        setPasso(11);
+      } else {
+        const c = await crea(dati);
+        onCreata(c);
+        setPasso(11);
+      }
     } catch (e) {
       setErrore(e instanceof ApiErrore ? e.dettaglio : "Errore inatteso.");
     }
   };
 
-  if (passo === 10 && !campagna) {
+  if (passo === 10) {
     return (
-      <Passo10 profilo={profilo} errore={errore} onContinua={continua10} />
+      <Passo10
+        key={campagna?.id ?? "nuova"}
+        profilo={profilo}
+        campagna={campagna}
+        errore={errore}
+        onContinua={continua10}
+      />
     );
   }
+
   if (!campagna) return null;
+
   if (passo === 11) {
     return (
       <Passo11
         campagna={campagna}
         onCambiata={onCambiata}
+        onIndietro={() => setPasso(10)}
         onAvanti={() => setPasso(12)}
       />
     );
   }
+
   return (
-    <>
-      <Text
-        size="sm"
-        c="verde"
-        td="underline"
-        mb="md"
-        component="button"
-        onClick={() => setPasso(11)}
-        style={{
-          background: "none",
-          border: "none",
-          cursor: "pointer",
-          padding: 0,
-        }}
-      >
-        ← Torna alle foto
-      </Text>
-      <Passo12 campagna={campagna} profilo={profilo} onInviata={onInviata} />
-    </>
+    <Passo12
+      campagna={campagna}
+      profilo={profilo}
+      onIndietro={() => setPasso(11)}
+      onInviata={onInviata}
+    />
   );
 }

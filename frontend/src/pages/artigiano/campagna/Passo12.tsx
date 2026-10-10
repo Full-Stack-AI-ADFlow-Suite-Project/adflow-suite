@@ -4,15 +4,7 @@
  * blocchi ricontrollati prima di "Invia all'operatore".
  */
 import { useEffect, useState } from "react";
-import {
-  Alert,
-  Button,
-  Center,
-  Paper,
-  Stack,
-  Text,
-  Title,
-} from "@mantine/core";
+import { Alert, Button, Group, Paper, Stack, Text, Title } from "@mantine/core";
 
 import { invia, type CampagnaDettaglio } from "../../../api/campagne";
 import {
@@ -47,10 +39,12 @@ export function Passo12({
   campagna,
   profilo,
   onInviata,
+  onIndietro,
 }: {
   campagna: CampagnaDettaglio;
   profilo: ProfiloBottega;
   onInviata: () => Promise<void>;
+  onIndietro?: () => void;
 }) {
   const [errore, setErrore] = useState("");
   const [inCorso, setInCorso] = useState(false);
@@ -109,6 +103,24 @@ export function Passo12({
 
   return (
     <Paper withBorder radius="md" p="xl">
+      {onIndietro && (
+        <Text
+          size="sm"
+          c="verde"
+          td="underline"
+          mb="xs"
+          component="button"
+          onClick={onIndietro}
+          style={{
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            padding: 0,
+          }}
+        >
+          ← Torna alle foto
+        </Text>
+      )}
       <Text ff="monospace" size="xs" c="verde">
         12 · RIEPILOGO
       </Text>
@@ -227,7 +239,14 @@ export function Passo12({
             {errore}
           </Alert>
         )}
-        <Center mt="sm">
+        <Group justify="space-between" mt="sm">
+          {onIndietro ? (
+            <Button variant="default" onClick={onIndietro}>
+              ← Torna alle foto
+            </Button>
+          ) : (
+            <div />
+          )}
           <Button
             color="verde"
             size="lg"
@@ -237,7 +256,7 @@ export function Passo12({
           >
             Invia all'operatore
           </Button>
-        </Center>
+        </Group>
       </Stack>
     </Paper>
   );
