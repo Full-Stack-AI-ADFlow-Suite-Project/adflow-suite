@@ -2,7 +2,7 @@
 
 from collections.abc import Callable, Iterable
 from copy import deepcopy
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 import json
 import logging
 from typing import Any, NamedTuple
@@ -338,7 +338,68 @@ def foto_di_archivio(
     Returns:
         Lista di ``FotoDiArchivio``, vuota se l'archivio non ha foto adatte.
     """
-    raise NotImplementedError("T2a-22")
+    decisioni_respinte = db.scalars(
+        select(DecisioneCampagna.foto_segnate)
+        .join(Campagna, Campagna.id == DecisioneCampagna.campagna_id)
+        .where(
+            Campagna.profilo_id == profilo_id,
+            DecisioneCampagna.esito == "respinta",
+        )
+    ).all()
+    foto_escluse_respinta: set[int] = set()
+    for fs in decisioni_respinte:
+        if fs:
+            foto_escluse_respinta.update(fs)
+
+    candidati = list(
+        db.execute(
+            select(Foto, GruppoFoto)
+            .join(GruppoFoto, GruppoFoto.id == Foto.gruppo_id)
+            .outerjoin(Campagna, Campagna.id == Foto.campagna_id)
+            .where(
+                Foto.profilo_id == profilo_id,
+                Foto.origine == "caricata",
+                (Foto.campagna_id.is_(None)) | (Campagna.stato.in_(STATI_CHIUSI)),
+            )
+            .order_by(Foto.gruppo_id, Foto.id)
+        ).all()
+    )
+
+    adesso_utc = adesso if adesso.tzinfo else adesso.replace(tzinfo=timezone.utc)
+    risultato: list[FotoDiArchivio] = []
+
+    for f, g in candidati:
+        if f.id in foto_escluse_respinta:
+            continue
+
+        if f.analisi_ai and isinstance(f.analisi_ai, dict):
+            if f.analisi_ai.get("idonea") is False:
+                continue
+
+        pub = f.pubblicata_su or {}
+        canale_norm = canale.strip().lower()
+        if canale_norm in pub:
+            ultima_dt = datetime.fromisoformat(pub[canale_norm])
+            ultima_utc = (
+                ultima_dt
+                if ultima_dt.tzinfo
+                else ultima_dt.replace(tzinfo=timezone.utc)
+            )
+            if adesso_utc - ultima_utc < timedelta(days=90):
+                continue
+            mai_uscita = False
+        else:
+            mai_uscita = True
+
+        risultato.append(
+            FotoDiArchivio(
+                foto=f,
+                gruppo=g,
+                mai_uscita=mai_uscita,
+            )
+        )
+
+    return risultato
 
 
 def segna_pubblicata(
@@ -364,7 +425,30 @@ def segna_pubblicata(
     Raises:
         NonTrovato: se non esiste nessuna foto con quell'id.
     """
-    raise NotImplementedError("T2a-22")
+    foto = db.get(Foto, foto_id)
+    if foto is None:
+        raise NonTrovato("Foto non trovata.")
+
+    quando_utc = (
+        quando.astimezone(timezone.utc)
+        if quando.tzinfo
+        else quando.replace(tzinfo=timezone.utc)
+    )
+    pub = dict(foto.pubblicata_su or {})
+    canale_norm = canale.strip().lower()
+    if canale_norm in pub:
+        prec_dt = datetime.fromisoformat(pub[canale_norm])
+        prec_utc = (
+            prec_dt.astimezone(timezone.utc)
+            if prec_dt.tzinfo
+            else prec_dt.replace(tzinfo=timezone.utc)
+        )
+        if quando_utc <= prec_utc:
+            return
+
+    pub[canale_norm] = quando_utc.isoformat()
+    foto.pubblicata_su = pub
+    db.flush()
 
 
 def foto_per_id(db: Session, ids: Iterable[int]) -> list[Foto]:
@@ -1027,16 +1111,20 @@ def leggi_file_foto(
 ) -> tuple[bytes, str]:
     """Recupera il contenuto binario e il mime-type del file originale dall'archivio."""
     foto = db.get(Foto, foto_id)
-    if foto is None or foto.campagna_id is None:
+    if foto is None:
         raise NonTrovato("Foto non trovata.")
 
-    rec = db.get(Campagna, foto.campagna_id)
-    if rec is None:
-        raise NonTrovato("Campagna non trovata.")
+    if foto.campagna_id is not None:
+        rec = db.get(Campagna, foto.campagna_id)
+        if rec is None:
+            raise NonTrovato("Campagna non trovata.")
+        profilo_proprietario_id = rec.profilo_id
+    else:
+        profilo_proprietario_id = foto.profilo_id
 
     if ruolo == "artigiano":
         profilo = artigiani_service.profilo_di(db, utente_id)
-        if profilo is None or rec.profilo_id != profilo.id:
+        if profilo is None or profilo_proprietario_id != profilo.id:
             raise NonTrovato("Foto non trovata.")
     elif ruolo not in ("operatore", "admin"):
         raise NonPermesso("Non hai i permessi per accedere al file della foto.")

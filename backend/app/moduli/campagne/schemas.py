@@ -197,6 +197,22 @@ class CampagnaElencoItem(BaseModel):
     citta: str | None = None
 
 
+class GruppoArchivioCrea(BaseModel):
+    """Payload per la creazione di un gruppo nell'archivio della bottega (POST /archivio/gruppi)."""
+
+    descrizione: str = Field(min_length=1, max_length=2000)
+
+    @field_validator("descrizione")
+    @classmethod
+    def valida_descrizione(cls, valore: str) -> str:
+        pulito = valore.strip()
+        if not pulito:
+            raise ValueError("La descrizione non può essere vuota.")
+        if not testo_valido(pulito):
+            raise ValueError("La descrizione contiene caratteri non validi.")
+        return pulito
+
+
 class GruppoCrea(BaseModel):
     """Payload per la creazione di un gruppo di foto (POST /campagne/{id}/gruppi)."""
 
