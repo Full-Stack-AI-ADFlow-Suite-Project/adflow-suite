@@ -43,7 +43,7 @@ Su `main` pulito, da database vuoto: comandi del §1 verdi, tutti i CA con S = 1
 2. artigiano: bozza di 7 giorni che inizia tra 4 giorni, su Facebook e Instagram, 4 foto in 2 gruppi con descrizione e una stella, invio;
 3. la campagna passa a in_revisione (AI finta);
 4. operatore: Vedi campagna, controlla il piano, le uscite con un post per canale, il numero di post per canale, uguale a quelli chiesti (R-05), nessuna foto due volte sullo stesso canale, la foto con la stella presente; un post con soli avvisi non blocca; approva;
-5. data di test avanti: i post si pubblicano (simulato), campagna conclusa;
+5. data di test avanti (`OROLOGIO_GIORNI_AVANTI=12` in `backend/.env`, poi API e worker riavviati): i post si pubblicano (simulato), campagna conclusa;
 6. prove negative: inizio tra 1 giorno, durata di 3 giorni, un PDF come foto, invio con 3 foto, canale non collegato, artigiano su pagina operatore (l'admin invece entra), errore di configurazione dell'AI (con `AI_PROVIDER=litellm`, finché il provider vero non c'è): generazione fallita subito, con il motivo accanto a Riprova;
 7. piano debole: 4 settimane con 4 foto → `piano_da_rivedere`; Prosegui → in_revisione, con 12 post per canale: 4 con le foto e 8 cartoline (R-28).
 

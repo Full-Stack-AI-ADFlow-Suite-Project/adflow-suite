@@ -96,6 +96,8 @@ uv run python -m procrastinate -a app.worker.app worker --concurrency 1
 
 Le tabelle della coda le crea `alembic upgrade head` (migrazione 007).
 
+Per provare a mano la pubblicazione senza aspettare i giorni veri, `OROLOGIO_GIORNI_AVANTI=12` in `backend/.env` manda avanti di 12 giorni l'ora di API e worker: si riavviano entrambi e si rifà l'accesso, perché le sessioni di prima risultano scadute. Le date che scrive il database da solo (per esempio quando è nato un errore) restano quelle vere. In produzione la variabile deve restare a 0: con un altro valore l'applicazione non parte.
+
 ### Prima di ogni PR
 
 Da `backend/`, un comando alla volta:

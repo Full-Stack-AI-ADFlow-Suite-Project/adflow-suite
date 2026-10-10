@@ -9,7 +9,7 @@ Python 3.11+ · FastAPI · Pydantic · SQLAlchemy 2 + Alembic · PostgreSQL 16 �
 ```
 DATABASE_URL · DATABASE_URL_TEST · ARCHIVIO_FOTO_DIR · RICHIESTA_MAX_BYTE=12582912
 AI_PROVIDER=finto|litellm · AI_MODELLO_VISIONE · AI_MODELLO_TESTO · OPENAI_API_KEY
-ANTICIPO_MINIMO_GIORNI=3 · MARGINE_SLOT_MINUTI=15 · SMTP_HOST · SMTP_PORT
+ANTICIPO_MINIMO_GIORNI=3 · MARGINE_SLOT_MINUTI=15 · OROLOGIO_GIORNI_AVANTI=0 · SMTP_HOST · SMTP_PORT
 SESSIONE_ARTIGIANO_GIORNI=7 · SESSIONE_OPERATORE_ORE=12 · CONSORZIO_NOME · CONSORZIO_TELEFONO · CONSORZIO_EMAIL
 AMBIENTE=sviluppo|test|produzione · LOGIN_LIMITE_TENTATIVI=5 · LOGIN_FINESTRA_SECONDI=900 · LOGIN_LIMITE_SEGRETO · EMAIL_TEST_ENVIRONMENT · COOKIE_SECURE
 ```
@@ -190,14 +190,14 @@ Ciò che ogni modulo trova già pronto. È della corsia 0: si usa, non si cambia
 | `core/config.py` | `leggi_impostazioni()` | `leggi_impostazioni().archivio_foto_dir`; mai `os.environ` |
 | `core/db.py` | `Base` · `get_db` · `transazione()` | i modelli ereditano da `Base`; la connessione è in UTC; nei router `db: Session = Depends(get_db)`; nei job `with transazione() as db:`. Commit alla fine, rollback se c'è un errore: router, job e service non chiamano `commit` |
 | `core/errori.py` | `NonAutenticato` 401 · `NonPermesso` 403 · `NonTrovato` 404 · `StatoNonValido` 409 · `DatiNonValidi` 422 | il service fa `raise NonTrovato("Campagna non trovata.")`; `main.py` risponde `{"detail": …}`. Niente `HTTPException` nei service |
-| `core/orologio.py` | `adesso()` (UTC) · `ROMA` | nei router `ora: datetime = Depends(adesso)`, poi passata al service; nei test si passa un'ora fissa |
+| `core/orologio.py` | `adesso()` (UTC) · `ROMA` | nei router `ora: datetime = Depends(adesso)`, poi passata al service; nei test si passa un'ora fissa. Per le prove a mano `OROLOGIO_GIORNI_AVANTI` la manda avanti in API e worker (mai in produzione) |
 | `core/security.py` | `hash_password()` · `verifica_password()` · `genera_token()` · `hash_token()` | scrypt per salvare la password e per verificarla al login; `genera_token()` va nel cookie, `hash_token()` (sha256) in `sessione.token_hash`. Non serve altro scrypt |
 | `core/limite_richiesta.py` · `core/limite_login.py` · `core/eventi_sicurezza.py` | limite di 12 MiB per richiesta (413) · limite dei tentativi di login (429) · `X-Request-ID` ed eventi di sicurezza senza dati personali | già montati in `main.py` e nel login: non si richiamano dai moduli. Un router non rifà il controllo della dimensione della richiesta; quello dei 10 MB di una foto (R-13) resta in campagne |
 | `core/transizioni.py` | `verifica_transizione(transizioni, da, a)` | `transizioni` è il dizionario stato → stati ammessi del `domain.py` del modulo; se il passaggio non è ammesso solleva `StatoNonValido` |
 | `tabelle.py` | importa i `models.py` dei moduli | un `models.py` nuovo viene visto da Alembic senza toccare altro; le tabelle `procrastinate_*` restano fuori dall'autogenerazione (`del_modello()`) |
 | `main.py` | router di ogni modulo montato sotto `/api` · `GET /health` · `GET /consorzio` | gli endpoint di plan §3 si scrivono nel `router.py` del modulo, senza `/api` |
-| `core/coda.py` | `accoda(nome, …)` · nomi dei job · `app` | `accoda(GENERA_CAMPAGNA, campagna_id=…)` restituisce l'id del job e scrive subito nella coda, fuori dalla transazione di chi chiama: si chiama per ultima, e il job controlla lo stato quando parte (la richiesta può essere fallita o non ancora conclusa) |
-| `worker.py` | importa il `jobs.py` di ogni modulo · `tick_pubblicazione` | un job si scrive nel `jobs.py` del suo modulo: `@app.task(name=GENERA_CAMPAGNA)` su una `def` normale (non `async`), con `app` e il nome presi da `core/coda.py`; dentro, `with transazione() as db:`. Avvio del worker: README |
+| `core/coda.py` | `accoda(nome, …)` · nomi dei job · `app` | `accoda(GENERA_CAMPAGNA, campagna_id=…)` restituisce l'id del job e scrive subito nella coda, fuori dalla transazione di chi chiama: si chiama per ultima. Il job parte dopo `ATTESA_PARTENZA_SECONDI` (3), quando chi l'ha accodato ha salvato, e controlla lo stato quando parte (la richiesta può essere fallita) |
+| `worker.py` | importa `tabelle.py` e il `jobs.py` di ogni modulo · `tick_pubblicazione` | un job si scrive nel `jobs.py` del suo modulo: `@app.task(name=GENERA_CAMPAGNA)` su una `def` normale (non `async`), con `app` e il nome presi da `core/coda.py`; dentro, `with transazione() as db:`. Avvio del worker: README |
 | `tests/conftest.py` | fixture `db` · `client` · `coda` · `utente_di_prova` | `db`: sessione su `adflow_test`, annullata a fine test anche dopo un commit; `client`: `TestClient` che usa la stessa sessione; `coda`: coda in memoria attiva in ogni test, i job accodati si leggono in `coda.jobs.values()`, ognuno con `task_name` e `args`; `utente_di_prova("operatore", nome=…)`: crea l'utente con la fabbrica e lo rende l'utente autenticato di `client`, anche per `richiede_ruolo()` (ruolo sbagliato → 403); richiamata, lo cambia |
 
 A ogni esecuzione di `pytest` il database `adflow_test` viene svuotato e portato all'ultima migrazione con Alembic: le migrazioni sono provate da ogni test.
