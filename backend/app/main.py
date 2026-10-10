@@ -1,10 +1,16 @@
 """API: monta i router dei moduli sotto /api."""
 
 from fastapi import FastAPI, Request
+from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 
 from app.core.config import leggi_impostazioni
-from app.core.errori import ErroreDominio, NonAutenticato, NonPermesso
+from app.core.errori import (
+    ErroreDominio,
+    NonAutenticato,
+    NonPermesso,
+    frase_di_validazione,
+)
 from app.core.eventi_sicurezza import CorrelazioneRichieste, registra, id_richiesta
 from app.core.limite_login import TroppiTentativi, LimiteNonDisponibile
 from app.core.limite_richiesta import LimiteRichiesta
@@ -57,6 +63,15 @@ def errore_dominio(request: Request, errore: ErroreDominio) -> JSONResponse:
         status_code=errore.status_code,
         content={"detail": errore.messaggio},
         headers=headers,
+    )
+
+
+@app.exception_handler(RequestValidationError)
+def dati_non_validi(request: Request, errore: RequestValidationError) -> JSONResponse:
+    """Il 422 dello schema: una frase in italiano, come ogni altro errore."""
+    return JSONResponse(
+        status_code=422,
+        content={"detail": frase_di_validazione(errore.errors())},
     )
 
 
