@@ -1,18 +1,31 @@
-/* Token delle pagine statiche approvate (docs/appunti/pagine). */
+/* Token del foglio di stile delle pagine statiche
+   (docs/appunti/pagine/assets/adflow.css, ADR-113), con gli stessi nomi.
+   I valori stanno in tema.ts. Solo tema chiaro. */
 :root {
-  --carta: #f6f3ec;
-  --inchiostro: #201d17;
-}
+  --bg-app: var(--mantine-color-gray-0);
+  --bg-surface: var(--mantine-color-white);
+  --bg-surface-subtle: var(--mantine-color-gray-1);
+  --border-hairline: var(--mantine-color-gray-3);
+  --border-strong: var(--mantine-color-gray-4);
+  --text-main: var(--mantine-color-gray-9);
+  --text-secondary: var(--mantine-color-gray-7);
+  --text-muted: var(--mantine-color-gray-6);
+  --text-faint: var(--mantine-color-gray-5);
+  --primary: var(--mantine-color-blu-6);
+  --primary-light: var(--mantine-color-blu-0);
+  --sidebar-width: 250px;
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --carta: #1b1914;
-    --inchiostro: #efeae0;
-  }
+  color-scheme: light;
 }
 
 body {
-  background: var(--carta);
-  color: var(--inchiostro);
+  background: var(--bg-app);
+  color: var(--text-main);
   margin: 0;
+}
+
+h1,
+h2,
+h3 {
+  letter-spacing: -0.015em;
 }

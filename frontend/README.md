@@ -60,6 +60,7 @@ src/
   api/http.ts        fetch verso /api; ogni 401 torna all'accesso
   auth.tsx           sessione, guard per ruolo, pagina iniziale per ruolo
   pages/             Accesso, artigiano/, operatore/
-  components/        cornici condivise (Guscio)
-  tema.ts            palette e caratteri delle pagine statiche
+  components/        cornici condivise (Guscio: barra laterale e pagina)
+  tema.ts            palette e caratteri delle pagine statiche (assets/adflow.css)
+  index.css          token con i nomi di adflow.css; i valori stanno in tema.ts
 ```

@@ -1,0 +1,224 @@
+/* Cornice con la barra laterale: misure e regole di
+   docs/appunti/pagine/assets/adflow.css (ADR-113). I token sono in index.css. */
+.guscio {
+  display: flex;
+  min-height: 100vh;
+}
+
+.barra {
+  width: var(--sidebar-width);
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border-hairline);
+  display: flex;
+  flex-direction: column;
+  position: fixed;
+  inset: 0 auto 0 0;
+  z-index: 50;
+}
+
+.marca {
+  padding: 20px 20px 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: inherit;
+  text-decoration: none;
+}
+
+.marcaIcona {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  flex: none;
+  background: linear-gradient(
+    135deg,
+    var(--mantine-color-blu-5) 0%,
+    var(--mantine-color-blu-7) 100%
+  );
+  color: var(--mantine-color-white);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.25);
+}
+
+.marcaTesto b {
+  display: block;
+  font-size: 17px;
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text-main);
+}
+
+.marcaTesto span {
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.voci {
+  padding: 12px 14px;
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.voce {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 9px 12px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 13.5px;
+  line-height: 1.5;
+  border-radius: var(--mantine-radius-md);
+  text-decoration: none;
+}
+
+a.voce:hover {
+  background: var(--bg-surface-subtle);
+  color: var(--text-main);
+}
+
+.voce.attiva,
+a.voce.attiva:hover {
+  background: var(--primary-light);
+  color: var(--primary);
+  font-weight: 600;
+}
+
+.voce.inArrivo {
+  color: var(--text-faint);
+  cursor: default;
+}
+
+.voce svg {
+  width: 19px;
+  height: 19px;
+  flex: none;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.piede {
+  padding: 14px 16px;
+  border-top: 1px solid var(--border-hairline);
+  background: var(--bg-app);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.utente {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px;
+  min-width: 0;
+}
+
+.utenteDati {
+  flex: 1;
+  min-width: 0;
+}
+
+.utenteNome {
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.utenteRuolo {
+  font-size: 11.5px;
+  color: var(--text-muted);
+}
+
+.esci {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 6px 10px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--mantine-radius-sm);
+  font-family: inherit;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+
+.esci:hover {
+  background: var(--bg-surface-subtle);
+  border-color: var(--border-strong);
+  color: var(--text-main);
+}
+
+.marca:focus-visible,
+.voce:focus-visible,
+.esci:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.contenuto {
+  margin-left: var(--sidebar-width);
+  flex: 1;
+  min-width: 0;
+  padding: 24px 32px 56px;
+}
+
+.pagina {
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* Schermo stretto: la barra torna in alto, come nelle pagine statiche. */
+@media (max-width: 860px) {
+  .guscio {
+    flex-direction: column;
+  }
+
+  .barra {
+    position: static;
+    width: auto;
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    border-right: none;
+    border-bottom: 1px solid var(--border-hairline);
+  }
+
+  .marca {
+    padding: 10px 16px;
+  }
+
+  .voci {
+    flex-direction: row;
+    flex-wrap: wrap;
+    padding: 6px 10px;
+    overflow: visible;
+  }
+
+  .piede {
+    flex-direction: row;
+    align-items: center;
+    border-top: none;
+    background: none;
+    padding: 6px 16px;
+  }
+
+  .contenuto {
+    margin-left: 0;
+    padding: 16px 16px 40px;
+  }
+}
