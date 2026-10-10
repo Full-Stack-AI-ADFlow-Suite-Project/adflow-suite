@@ -12,7 +12,7 @@ from app.core.errori import DatiNonValidi
 from app.core.orologio import adesso
 from app.moduli.accesso.service import richiede_ruolo, utente_corrente
 
-from . import bozza, service
+from . import archivio, bozza, service
 from .schemas import (
     CampagnaCrea,
     CampagnaDettaglio,
@@ -21,8 +21,10 @@ from .schemas import (
     FotoDettaglio,
     FotoStellaModifica,
     GruppoAggiorna,
+    GruppoArchivioCrea,
     GruppoCrea,
     GruppoDettaglio,
+    GruppoSintetico,
 )
 
 router = APIRouter(tags=["campagne"])
@@ -242,3 +244,82 @@ def riprova_campagna(
 ) -> CampagnaDettaglio:
     service.riprova_campagna(db, id, ora)
     return service.dettaglio_campagna(db, utente.id, utente.ruolo, id)
+
+
+@router.get("/archivio", response_model=list[GruppoSintetico])
+def elenca_archivio(
+    db: Annotated[Session, Depends(get_db)],
+    utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
+) -> list[GruppoSintetico]:
+    """Elenca i gruppi e le foto senza campagna dell'archivio della bottega (T2a-22, R-27, plan §3)."""
+    return archivio.elenca_archivio(db, utente.id)
+
+
+@router.post("/archivio/gruppi", response_model=GruppoSintetico, status_code=201)
+def crea_gruppo_archivio(
+    dati: GruppoArchivioCrea,
+    db: Annotated[Session, Depends(get_db)],
+    utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
+) -> GruppoSintetico:
+    """Crea un gruppo di foto senza campagna nell'archivio della bottega (T2a-22, plan §3)."""
+    return archivio.crea_gruppo_archivio(db, utente.id, dati)
+
+
+@router.post("/archivio/foto", response_model=FotoDettaglio, status_code=201)
+def carica_foto_archivio(
+    file: Annotated[UploadFile, File(...)],
+    db: Annotated[Session, Depends(get_db)],
+    utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
+    gruppo_id: Annotated[str | None, Form()] = None,
+) -> FotoDettaglio:
+    """Carica una foto nell'archivio della bottega associandola a un gruppo (T2a-22, R-13, CA-13)."""
+    if gruppo_id is None or not gruppo_id.strip():
+        raise DatiNonValidi("Indica il gruppo in cui caricare la foto.")
+    try:
+        gruppo = int(gruppo_id)
+    except ValueError:
+        raise DatiNonValidi("ID gruppo non valido.")
+
+    dimensione_max = DIMENSIONE_MAX_BYTE
+    letti = 0
+    blocchi = []
+    while True:
+        chunk = file.file.read(64 * 1024)
+        if not chunk:
+            break
+        letti += len(chunk)
+        if letti > dimensione_max:
+            raise DatiNonValidi(
+                "La dimensione del file supera il limite massimo di 10 MB."
+            )
+        blocchi.append(chunk)
+
+    contenuto = b"".join(blocchi)
+    if not contenuto:
+        raise DatiNonValidi("Il file caricato è vuoto.")
+
+    return archivio.carica_foto_archivio(
+        db=db, utente_id=utente.id, gruppo_id=gruppo, contenuto=contenuto
+    )
+
+
+@router.delete("/archivio/foto/{id}", status_code=204)
+def elimina_foto_archivio(
+    id: int,
+    db: Annotated[Session, Depends(get_db)],
+    utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
+) -> Response:
+    """Elimina una foto dall'archivio della bottega (T2a-22, plan §3)."""
+    archivio.elimina_foto_archivio(db=db, utente_id=utente.id, foto_id=id)
+    return Response(status_code=204)
+
+
+@router.delete("/archivio/gruppi/{id}", status_code=204)
+def elimina_gruppo_archivio(
+    id: int,
+    db: Annotated[Session, Depends(get_db)],
+    utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
+) -> Response:
+    """Elimina un gruppo dell'archivio con le sue foto (T2a-22, plan §3)."""
+    archivio.elimina_gruppo_archivio(db=db, utente_id=utente.id, gruppo_id=id)
+    return Response(status_code=204)
