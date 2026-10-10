@@ -126,7 +126,7 @@ Finché un endpoint non è su `main`, la pagina usa dati di esempio con la forma
 
 | ID | Task | Tocca | Leggi | Dipende da | Fatto quando | ☐ |
 |---|---|---|---|---|---|---|
-| T2a-31 | Foto d'archivio nel piano: analisi dei gruppi d'archivio non ancora analizzati; tra le foto disponibili di un canale anche quelle d'archivio mai uscite lì; riempitivo `archivio` prima della cartolina; le foto di un post si leggono con `campagne.service.foto_per_id()`; controllo del piano e provider finto aggiornati | `contenuti/piano.py`, `contenuti/generazione.py`, `adapters/ai/` | spec R-05, R-27, R-28; plan §4, §5, §6 | T2a-22 | CA-76 (generazione); CA-17 e CA-57 restano verdi; una foto d'archivio non esce due volte sullo stesso canale nella stessa campagna | ☐ |
+| T2a-31 | Foto d'archivio nel piano: analisi dei gruppi d'archivio non ancora analizzati; tra le foto disponibili di un canale anche quelle d'archivio mai uscite lì; riempitivo `archivio` prima della cartolina; le foto di un post si leggono con `campagne.service.foto_per_id()`; controllo del piano e provider finto aggiornati | `contenuti/piano.py`, `contenuti/generazione.py`, `adapters/ai/` | spec R-05, R-27, R-28; plan §4, §5, §6 | T2a-22 | CA-76 (generazione); CA-17 e CA-57 restano verdi; una foto d'archivio non esce due volte sullo stesso canale nella stessa campagna | ☑ |
 | T2a-32 | Logo nelle cartoline: il logo dello snapshot, se c'è, sopra il nome della bottega; senza logo la cartolina di oggi; un logo che non si legge non ferma la generazione | `contenuti/cartoline.py` | spec R-28, R-40; constitution §1 | T2a-12 | CA-77 (cartolina: il logo è quello dello snapshot; cambiato dopo l'invio non entra) | ☐ |
 
 ### Corsia 4 · Revisione e pubblicazione (Nilton)

@@ -4,9 +4,10 @@ Il job chiama ``passo()`` finché c'è lavoro, ogni volta in una transazione
 sua. Un passo guarda ciò che è già salvato e fa la prima cosa che manca:
 
 1. avvio: la campagna `inviata` diventa `in_generazione`;
-2. analisi: un gruppo di foto caricate non ancora analizzato;
+2. analisi: un gruppo di foto caricate non ancora analizzato, prima quelli
+   della campagna e poi, finché manca il piano, quelli dell'archivio (R-27);
 3. piano: piano dell'AI, controllo, righe `piano`, `uscita`, `post`;
-4. testi: un post senza versione, con la sua cartolina se è un riempitivo;
+4. testi: un post senza versione, con la sua cartolina se è una cartolina;
 5. fine: la campagna passa `in_revisione`.
 
 Per questo una nuova esecuzione, Riprova e Prosegui riprendono da sole dal
@@ -33,6 +34,7 @@ from app.adapters.ai import (
     ottieni_ai,
 )
 from app.core.config import leggi_impostazioni
+from app.core.orologio import adesso as ora_di_adesso
 from app.moduli.artigiani import service as artigiani
 from app.moduli.campagne import service as campagne
 
@@ -106,10 +108,34 @@ def _caricate(db: Session, campagna_id: int) -> list[Any]:
     return [gruppo for gruppo in gruppi if gruppo.origine == "caricate"]
 
 
-def _gruppo_da_analizzare(db: Session, campagna_id: int) -> Any | None:
-    for gruppo in _caricate(db, campagna_id):
-        if any(foto.analisi_ai is None for foto in gruppo.foto):
-            return gruppo
+def _archivio(db: Session, campagna: Any, adesso: datetime) -> dict[str, list[Any]]:
+    """Per ogni canale rimasto, le foto d'archivio che la bottega può usare lì."""
+    return {
+        canale: campagne.foto_di_archivio(db, campagna.profilo_id, canale, adesso)
+        for canale in _canali(campagna)
+    }
+
+
+def _da_analizzare(
+    db: Session, campagna: Any, adesso: datetime
+) -> tuple[Any, list[Any]] | None:
+    """Il primo gruppo con foto senza analisi, insieme a quelle foto.
+
+    Prima i gruppi della campagna, poi quelli dell'archivio: di questi solo
+    le foto che ``foto_di_archivio()`` restituisce, e solo finché manca il
+    piano, perché una foto arrivata in archivio dopo non serve più.
+    """
+    for gruppo in _caricate(db, campagna.id):
+        da_fare = [foto for foto in gruppo.foto if foto.analisi_ai is None]
+        if da_fare:
+            return gruppo, da_fare
+    if service.piano_corrente(db, campagna.id) is not None:
+        return None
+    for voci in _archivio(db, campagna, adesso).values():
+        da_fare = [voce for voce in voci if voce.foto.analisi_ai is None]
+        if da_fare:
+            gruppo = da_fare[0].gruppo
+            return gruppo, [v.foto for v in da_fare if v.gruppo.id == gruppo.id]
     return None
 
 
@@ -129,13 +155,13 @@ def _post_da_scrivere(db: Session, campagna: Any) -> Post | None:
     )
 
 
-def prossima_tappa(db: Session, campagna: Any) -> str | None:
+def prossima_tappa(db: Session, campagna: Any, adesso: datetime) -> str | None:
     """La prima tappa non ancora fatta; `None` se il job non ha nulla da fare."""
     if campagna.stato == "inviata":
         return AVVIO
     if campagna.stato != "in_generazione":
         return None
-    if _gruppo_da_analizzare(db, campagna.id) is not None:
+    if _da_analizzare(db, campagna, adesso) is not None:
         return ANALISI
     if service.piano_corrente(db, campagna.id) is None:
         return PIANO
@@ -151,19 +177,20 @@ def passo(db: Session, campagna_id: int, adesso: datetime) -> bool:
     salvato resta, anche se quello dopo fallisce (R-24).
     """
     campagna = campagne.campagna(db, campagna_id)
-    tappa = prossima_tappa(db, campagna)
+    tappa = prossima_tappa(db, campagna, adesso)
     if tappa is None:
         return False
     if tappa == AVVIO:
         campagne.cambia_stato(db, campagna, "in_generazione")
         return True
     if tappa == ANALISI:
-        _analizza(db, _gruppo_da_analizzare(db, campagna_id))
+        gruppo, da_fare = _da_analizzare(db, campagna, adesso)
+        _analizza(db, gruppo, da_fare, d_archivio=gruppo.campagna_id != campagna.id)
         return True
     if tappa == PIANO:
         return _pianifica(db, campagna, adesso)
     if tappa == TESTI:
-        _scrivi(db, campagna, _post_da_scrivere(db, campagna))
+        _scrivi(db, campagna, _post_da_scrivere(db, campagna), adesso)
         return True
     campagne.cambia_stato(db, campagna, "in_revisione")
     return False
@@ -172,23 +199,25 @@ def passo(db: Session, campagna_id: int, adesso: datetime) -> bool:
 # --- Analisi ------------------------------------------------------------------
 
 
-def _foto_ai(foto: Any) -> FotoAI:
+def _foto_ai(foto: Any, *, d_archivio: bool = False) -> FotoAI:
     analisi = foto.analisi_ai if isinstance(foto.analisi_ai, dict) else None
     return FotoAI(
         id=foto.id,
         file=foto.file,
         mime=foto.mime,
-        da_usare=bool(foto.da_usare),
+        # La stella vale per la campagna in cui l'artigiano l'ha messa (R-23).
+        da_usare=bool(foto.da_usare) and not d_archivio,
         analisi=analisi,
     )
 
 
-def _gruppo_ai(gruppo: Any, foto: list[Any]) -> GruppoAI:
+def _gruppo_ai(gruppo: Any, foto: list[Any], *, d_archivio: bool = False) -> GruppoAI:
     return GruppoAI(
         id=gruppo.id,
         descrizione=gruppo.descrizione,
-        da_usare_il=gruppo.da_usare_il,
-        foto=[_foto_ai(una) for una in foto],
+        da_usare_il=None if d_archivio else gruppo.da_usare_il,
+        foto=[_foto_ai(una, d_archivio=d_archivio) for una in foto],
+        archivio=d_archivio,
     )
 
 
@@ -196,19 +225,23 @@ def _non_idonea(motivo: str) -> dict[str, Any]:
     return dict.fromkeys(_CAMPI_ANALISI) | {"idonea": False, "motivo": motivo}
 
 
-def _analizza(db: Session, gruppo: Any) -> None:
+def _analizza(
+    db: Session, gruppo: Any, senza_analisi: list[Any], *, d_archivio: bool
+) -> None:
     """Analizza le foto del gruppo che non hanno ancora un'analisi (R-24).
 
     Un errore `richiesta` o `rifiuto` su una sola foto la rende non idonea,
     con il motivo, e l'analisi continua con le altre (R-35).
     """
-    da_fare = [foto for foto in gruppo.foto if foto.analisi_ai is None]
+    da_fare = list(senza_analisi)
     risultati: dict[int, dict[str, Any]] = {}
     with _nella_tappa(ANALISI):
         ai = ottieni_ai()
         while da_fare:
             try:
-                risposta = ai.analizza_gruppo(_gruppo_ai(gruppo, da_fare))
+                risposta = ai.analizza_gruppo(
+                    _gruppo_ai(gruppo, da_fare, d_archivio=d_archivio)
+                )
             except ErroreAI as errore:
                 ids = {foto.id for foto in da_fare}
                 if errore.tipo in ("richiesta", "rifiuto") and errore.foto_id in ids:
@@ -229,10 +262,10 @@ def _analizza(db: Session, gruppo: Any) -> None:
                 risultati[foto.id] = {c: analisi.get(c) for c in _CAMPI_ANALISI}
             break
 
-    _stelle_mai_doppioni(gruppo, risultati)
-    for foto in gruppo.foto:
-        if foto.id in risultati:
-            campagne.aggiorna_foto(db, foto.id, risultati[foto.id], foto.n_utilizzi)
+    if not d_archivio:
+        _stelle_mai_doppioni(gruppo, risultati)
+    for foto in senza_analisi:
+        campagne.aggiorna_foto(db, foto.id, risultati[foto.id], foto.n_utilizzi)
 
 
 def _stelle_mai_doppioni(gruppo: Any, risultati: dict[int, dict[str, Any]]) -> None:
@@ -270,6 +303,32 @@ def _snapshot(campagna: Any) -> dict[str, Any]:
     return fotografia if isinstance(fotografia, dict) else {}
 
 
+def _gruppi_di_archivio_ai(
+    archivio: dict[str, list[Any]], limiti: dict[str, Any]
+) -> list[GruppoAI]:
+    """I gruppi d'archivio per l'AI, con le sole foto che i limiti ammettono."""
+    ammesse = {
+        foto
+        for limite in limiti.values()
+        for foto in limite["foto_disponibili"] + limite["foto_riempitivo"]
+    }
+    gruppi: dict[int, Any] = {}
+    foto: dict[int, dict[int, Any]] = {}
+    for voci in archivio.values():
+        for voce in voci:
+            if voce.foto.id in ammesse:
+                gruppi[voce.gruppo.id] = voce.gruppo
+                foto.setdefault(voce.gruppo.id, {})[voce.foto.id] = voce.foto
+    return [
+        _gruppo_ai(
+            gruppi[gruppo_id],
+            [foto[gruppo_id][foto_id] for foto_id in sorted(foto[gruppo_id])],
+            d_archivio=True,
+        )
+        for gruppo_id in sorted(gruppi)
+    ]
+
+
 def _pianifica(db: Session, campagna: Any, adesso: datetime) -> bool:
     """Chiede il piano, lo controlla e lo salva con uscite e post.
 
@@ -279,15 +338,18 @@ def _pianifica(db: Session, campagna: Any, adesso: datetime) -> bool:
     (R-20): restituisce falso.
     """
     gruppi = _caricate(db, campagna.id)
+    archivio = _archivio(db, campagna, adesso)
     limiti = limiti_per_canale(
         _canali(campagna),
         artigiani.post_a_settimana(campagna.frequenza),
         campagna.inizio,
         campagna.fine,
         gruppi,
+        archivio,
     )
     margine = leggi_impostazioni().margine_slot_minuti
     gruppi_ai = [_gruppo_ai(gruppo, gruppo.foto) for gruppo in gruppi]
+    gruppi_ai += _gruppi_di_archivio_ai(archivio, limiti)
 
     with _nella_tappa(PIANO):
         ai = ottieni_ai()
@@ -311,6 +373,7 @@ def _pianifica(db: Session, campagna: Any, adesso: datetime) -> bool:
                 fine=campagna.fine,
                 adesso=adesso,
                 margine_minuti=margine,
+                archivio=archivio,
             )
             if not violazioni:
                 break
@@ -384,7 +447,22 @@ def _foto_del_piano(piano: Piano, numero_uscita: int, canale: str) -> list[int]:
     return []
 
 
-def _scrivi(db: Session, campagna: Any, post: Post) -> None:
+def _gruppo_dell_uscita(
+    db: Session, campagna: Any, uscita: Uscita, canale: str, adesso: datetime
+) -> Any | None:
+    """Il gruppo dell'uscita, della campagna o dell'archivio; `None` se non c'è."""
+    if uscita.gruppo_id is None:
+        return None
+    for gruppo in _caricate(db, campagna.id):
+        if gruppo.id == uscita.gruppo_id:
+            return gruppo
+    for voce in campagne.foto_di_archivio(db, campagna.profilo_id, canale, adesso):
+        if voce.gruppo.id == uscita.gruppo_id:
+            return voce.gruppo
+    return None
+
+
+def _scrivi(db: Session, campagna: Any, post: Post, adesso: datetime) -> None:
     """Scrive la versione 1 del post: cartolina se serve, testo, validatore.
 
     Un testo con blocchi o avvisi si fa riscrivere, al massimo 3 volte; poi
@@ -394,19 +472,17 @@ def _scrivi(db: Session, campagna: Any, post: Post) -> None:
     """
     uscita = db.get(Uscita, post.uscita_id)
     piano = service.piano_corrente(db, campagna.id)
-    foto_della_campagna = {
-        foto.id: foto for foto in campagne.foto_della_campagna(db, campagna.id)
-    }
     snapshot = _snapshot(campagna)
 
     if post.riempitivo == "cartolina":
         foto = [componi_cartolina(db, campagna, uscita.tema)]
     else:
+        # Con `foto_per_id()` si leggono anche le foto d'archivio (plan §6);
+        # l'ordine resta quello del piano.
         ids = _foto_del_piano(piano, uscita.numero, post.canale)
-        foto = [foto_della_campagna[uno] for uno in ids if uno in foto_della_campagna]
-    gruppo = next(
-        (g for g in _caricate(db, campagna.id) if g.id == uscita.gruppo_id), None
-    )
+        per_id = {una.id: una for una in campagne.foto_per_id(db, ids)}
+        foto = [per_id[uno] for uno in ids if uno in per_id]
+    gruppo = _gruppo_dell_uscita(db, campagna, uscita, post.canale, adesso)
     da_scrivere = PostAI(
         canale=post.canale,
         tema=uscita.tema,
@@ -507,7 +583,9 @@ def registra_errore(
         messaggio = (
             f"Errore imprevisto durante la generazione ({type(errore).__name__})."
         )
-        tappa = prossima_tappa(db, campagna) or AVVIO
+        # L'ora serve solo a cercare foto d'archivio senza analisi, che non
+        # sono mai uscite: per la tappa non cambia nulla quale ora si passa.
+        tappa = prossima_tappa(db, campagna, ora_di_adesso()) or AVVIO
     db.add(
         ErroreGenerazione(
             campagna_id=campagna_id,

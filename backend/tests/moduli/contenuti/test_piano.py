@@ -31,6 +31,7 @@ FINE = date(2030, 1, 20)  # 14 giorni
 ADESSO = datetime(2030, 1, 1, 9, tzinfo=timezone.utc)
 MARGINE = 15
 IDONEA = {"idonea": True, "simile_a": None}
+DUE_CANALI = ("facebook", "instagram")
 
 
 def _foto(id: int, *, idonea=True, simile_a=None, stella=False, analizzata=True):
@@ -78,8 +79,20 @@ def _piano(*uscite: dict) -> dict:
     return {"strategia": "Strategia di prova", "uscite": list(uscite)}
 
 
+def _voce(foto_id: int, *, mai_uscita: bool = True, gruppo_id: int = 9, **campi):
+    """Una foto d'archivio, come la dà ``campagne.service.foto_di_archivio()``."""
+    return SimpleNamespace(
+        foto=_foto(foto_id, **campi),
+        gruppo=_gruppo(gruppo_id, []),
+        mai_uscita=mai_uscita,
+    )
+
+
 def _piano_valido(limiti: dict, gruppo_id: int = 1) -> dict:
-    """Una foto per post finché ce ne sono, poi cartoline; un'uscita al giorno."""
+    """Una foto per post finché ce ne sono, poi i riempitivi; un'uscita al giorno.
+
+    I riempitivi: prima le foto d'archivio già uscite sul canale, poi cartoline.
+    """
     chiesti = max(limite["post_chiesti"] for limite in limiti.values())
     uscite = []
     for indice in range(chiesti):
@@ -88,8 +101,14 @@ def _piano_valido(limiti: dict, gruppo_id: int = 1) -> dict:
         for canale, limite in limiti.items():
             disponibili = limite["foto_disponibili"]
             foto = disponibili[indice : indice + 1]
+            campi = {}
+            if not foto:
+                manca = indice - len(disponibili)
+                foto = limite["foto_riempitivo"][manca : manca + 1]
+                if foto:
+                    campi["riempitivo"] = "archivio"
             con_foto = con_foto or bool(foto)
-            post.append(_post(canale, foto, giorno=indice + 1))
+            post.append(_post(canale, foto, giorno=indice + 1, **campi))
         uscite.append(
             _uscita(indice + 1, post, gruppo_id=gruppo_id if con_foto else None)
         )
@@ -102,7 +121,21 @@ def _limiti(n_foto: int, *, canali=("facebook", "instagram"), a_settimana: int =
     return limiti_per_canale(canali, a_settimana, INIZIO, FINE, gruppi), gruppi
 
 
-def _controlla(contenuto, limiti, gruppi, *, adesso=ADESSO):
+def _limiti_con_archivio(n_foto: int, *, mai_uscite=(), gia_uscite=()):
+    """Limiti su Instagram, gruppi e archivio: ``n_foto`` foto della campagna.
+
+    ``mai_uscite`` e ``gia_uscite`` sono gli id delle foto d'archivio, tutte
+    del gruppo 9.
+    """
+    gruppi = [_gruppo_di(n_foto)]
+    voci = [_voce(foto) for foto in mai_uscite]
+    voci += [_voce(foto, mai_uscita=False) for foto in gia_uscite]
+    archivio = {"instagram": voci}
+    limiti = limiti_per_canale(["instagram"], 3, INIZIO, FINE, gruppi, archivio)
+    return limiti, gruppi, archivio
+
+
+def _controlla(contenuto, limiti, gruppi, *, adesso=ADESSO, archivio=None):
     return controlla_piano(
         contenuto,
         limiti=limiti,
@@ -111,6 +144,7 @@ def _controlla(contenuto, limiti, gruppi, *, adesso=ADESSO):
         fine=FINE,
         adesso=adesso,
         margine_minuti=MARGINE,
+        archivio=archivio,
     )
 
 
@@ -230,6 +264,7 @@ def test_limiti_per_canale_riempitivi_solo_se_le_foto_non_bastano():
     assert poche["instagram"] == {
         "post_chiesti": 6,
         "foto_disponibili": [1, 2, 3, 4],
+        "foto_riempitivo": [],
         "riempitivi": 2,
     }
     assert poche["facebook"] == poche["instagram"]
@@ -249,6 +284,58 @@ def test_limiti_per_canale_senza_un_canale_tolto():
 def test_limiti_sono_dizionari_semplici():
     limiti, _ = _limiti(5)
     assert json.loads(json.dumps(limiti)) == limiti
+
+
+def test_ca76_limiti_foto_d_archivio_disponibili_solo_dove_non_sono_mai_uscite():
+    """CA-76, parte dei limiti: i limiti cambiano da un canale all'altro (R-27)."""
+    gruppi = [_gruppo_di(3)]
+    archivio = {
+        "facebook": [_voce(10), _voce(11, mai_uscita=False)],
+        "instagram": [_voce(10), _voce(11), _voce(12)],
+    }
+
+    limiti = limiti_per_canale(DUE_CANALI, 3, INIZIO, FINE, gruppi, archivio)
+
+    # su Facebook la 11 è già uscita: vale solo come riempitivo `archivio`
+    assert limiti["facebook"] == {
+        "post_chiesti": 6,
+        "foto_disponibili": [1, 2, 3, 10],
+        "foto_riempitivo": [11],
+        "riempitivi": 2,
+    }
+    assert limiti["instagram"] == {
+        "post_chiesti": 6,
+        "foto_disponibili": [1, 2, 3, 10, 11, 12],
+        "foto_riempitivo": [],
+        "riempitivi": 0,
+    }
+    assert json.loads(json.dumps(limiti)) == limiti
+
+
+def test_limiti_foto_d_archivio_non_idonee_doppioni_e_senza_analisi_restano_fuori():
+    archivio = {
+        "instagram": [
+            _voce(10, idonea=False),
+            _voce(11, simile_a=12),
+            _voce(12),
+            _voce(13, analizzata=False),
+            _voce(14, mai_uscita=False, simile_a=15),
+            _voce(15, mai_uscita=False),
+        ]
+    }
+
+    limiti = limiti_per_canale(["instagram"], 3, INIZIO, FINE, [], archivio)
+
+    assert limiti["instagram"]["foto_disponibili"] == [12]
+    assert limiti["instagram"]["foto_riempitivo"] == [15]
+
+
+def test_limiti_senza_archivio_per_un_canale():
+    """Un canale che l'archivio non nomina ha solo le foto della campagna."""
+    archivio = {"facebook": [_voce(10)]}
+    limiti = limiti_per_canale(DUE_CANALI, 3, INIZIO, FINE, [_gruppo_di(2)], archivio)
+    assert limiti["instagram"]["foto_disponibili"] == [1, 2]
+    assert limiti["facebook"]["foto_disponibili"] == [1, 2, 10]
 
 
 @pytest.mark.parametrize(
@@ -302,6 +389,15 @@ def test_piano_non_debole_per_un_gruppo_create_ai():
     gruppi = [_gruppo_di(8), _gruppo(2, [], origine="create_ai")]
     limiti = limiti_per_canale(["facebook"], 3, INIZIO, FINE, gruppi)
     assert piano_debole(limiti, gruppi) is False
+
+
+def test_piano_debole_conta_le_foto_d_archivio_mai_uscite_non_quelle_gia_uscite():
+    """R-20 con R-05: 2 foto su 6 post, la terza arriva dall'archivio."""
+    limiti, gruppi, _ = _limiti_con_archivio(2, mai_uscite=[10])
+    assert piano_debole(limiti, gruppi) is False
+
+    limiti, gruppi, _ = _limiti_con_archivio(2, gia_uscite=[10])
+    assert piano_debole(limiti, gruppi) is True
 
 
 # --- Controllo del piano ------------------------------------------------------
@@ -637,6 +733,121 @@ def test_regola_massimo_di_foto_per_post(canale):
     assert violazioni[0]["canale"] == canale
 
 
+def test_ca76_piano_valido_con_foto_d_archivio_riempitivi_archivio_e_cartolina():
+    """CA-76, parte del controllo: 2 foto, 1 d'archivio mai uscita, 2 già uscite."""
+    limiti, gruppi, archivio = _limiti_con_archivio(
+        2, mai_uscite=[10], gia_uscite=[20, 21]
+    )
+    contenuto = _piano_valido(limiti)
+    post = [uscita["post"][0] for uscita in contenuto["uscite"]]
+    assert [p["foto"] for p in post] == [[1], [2], [10], [20], [21], []]
+    assert [p["riempitivo"] for p in post] == [None] * 3 + ["archivio"] * 2 + [
+        "cartolina"
+    ]
+    contenuto["uscite"][2]["gruppo_id"] = 9  # il gruppo d'archivio
+
+    assert _controlla(contenuto, limiti, gruppi, archivio=archivio) == []
+    # senza l'archivio il controllo non conosce quel gruppo
+    assert _regole(_controlla(contenuto, limiti, gruppi)) == ["piano_malformato"]
+
+
+def test_la_stessa_foto_d_archivio_disponibile_su_un_canale_e_riempitivo_sull_altro():
+    gruppi = [_gruppo_di(5)]
+    archivio = {
+        "facebook": [_voce(10, mai_uscita=False)],
+        "instagram": [_voce(10)],
+    }
+    limiti = limiti_per_canale(DUE_CANALI, 3, INIZIO, FINE, gruppi, archivio)
+    contenuto = _piano_valido(limiti)
+    facebook, instagram = contenuto["uscite"][5]["post"]
+    assert (facebook["foto"], facebook["riempitivo"]) == ([10], "archivio")
+    assert (instagram["foto"], instagram["riempitivo"]) == ([10], None)
+
+    assert _controlla(contenuto, limiti, gruppi, archivio=archivio) == []
+
+
+def test_regola_riempitivi_una_cartolina_prima_di_finire_le_foto_d_archivio():
+    """R-28: la cartolina solo quando le foto d'archivio sono finite."""
+    limiti, gruppi, archivio = _limiti_con_archivio(3, gia_uscite=[20, 21])
+    contenuto = _piano_valido(limiti)
+    contenuto["uscite"][4] = _uscita(5, [_post("instagram", giorno=5)], gruppo_id=None)
+
+    violazioni = _controlla(contenuto, limiti, gruppi, archivio=archivio)
+
+    assert [(v["regola"], v["canale"]) for v in violazioni] == [
+        ("riempitivi", "instagram")
+    ]
+    assert "`archivio` devono essere 2" in violazioni[0]["messaggio"]
+    assert "sono 1" in violazioni[0]["messaggio"]
+
+
+def test_regola_riempitivi_un_riempitivo_archivio_dove_le_foto_bastano():
+    limiti, gruppi, archivio = _limiti_con_archivio(6, gia_uscite=[20])
+    contenuto = _piano_valido(limiti)
+    contenuto["uscite"][5]["post"][0] = _post(
+        "instagram", [20], giorno=6, riempitivo="archivio"
+    )
+
+    violazioni = _controlla(contenuto, limiti, gruppi, archivio=archivio)
+
+    assert _regole(violazioni) == ["riempitivi"]
+    assert "devono essere 0" in violazioni[0]["messaggio"]
+
+
+def test_regola_foto_gia_uscita_sul_canale_in_un_post_che_non_e_un_riempitivo():
+    """CA-76, parte del controllo: una foto già uscita lì torna solo come riempitivo."""
+    limiti, gruppi, archivio = _limiti_con_archivio(6, gia_uscite=[20])
+    contenuto = _piano_valido(limiti)
+    contenuto["uscite"][5]["post"][0]["foto"] = [20]
+
+    violazioni = _controlla(contenuto, limiti, gruppi, archivio=archivio)
+
+    assert violazioni == [
+        {
+            "regola": "foto_non_disponibile",
+            "canale": "instagram",
+            "messaggio": "Su instagram la foto 20 non è tra le foto disponibili.",
+        }
+    ]
+
+
+@pytest.mark.parametrize("estranea", [1, 10, 99])
+def test_regola_foto_non_disponibile_per_un_riempitivo_archivio(estranea):
+    """Una foto della campagna, una mai uscita e una sconosciuta non lo sono."""
+    limiti, gruppi, archivio = _limiti_con_archivio(
+        3, mai_uscite=[10], gia_uscite=[20, 21]
+    )
+    contenuto = _piano_valido(limiti)
+    assert contenuto["uscite"][5]["post"][0]["foto"] == [21]
+    contenuto["uscite"][5]["post"][0]["foto"] = [estranea]
+
+    violazioni = _controlla(contenuto, limiti, gruppi, archivio=archivio)
+
+    assert "foto_non_disponibile" in _regole(violazioni)
+    estranee = [v for v in violazioni if v["regola"] == "foto_non_disponibile"]
+    assert [v["messaggio"] for v in estranee] == [
+        f"Su instagram la foto {estranea} non è tra le foto d'archivio "
+        f"per i riempitivi."
+    ]
+
+
+def test_regola_foto_d_archivio_ripetuta_sullo_stesso_canale():
+    """Costituzione §1.9: vale anche per le foto d'archivio."""
+    limiti, gruppi, archivio = _limiti_con_archivio(4, gia_uscite=[20, 21])
+    contenuto = _piano_valido(limiti)
+    contenuto["uscite"][5]["post"][0]["foto"] = [20]
+
+    violazioni = _controlla(contenuto, limiti, gruppi, archivio=archivio)
+
+    assert violazioni == [
+        {
+            "regola": "foto_ripetuta",
+            "canale": "instagram",
+            "messaggio": "Su instagram la foto 20 compare 2 volte.",
+        }
+    ]
+
+
 def _cambia_post(**campi):
     def cambia(contenuto: dict) -> None:
         contenuto["uscite"][0]["post"][0].update(campi)
@@ -676,7 +887,9 @@ MALFORMATI = {
     "due post sullo stesso canale": _due_post_sullo_stesso_canale,
     "post senza canale": _cambia_post(canale=None),
     "formato sconosciuto": _cambia_post(formato="storia"),
-    "riempitivo non dello sprint 1": _cambia_post(riempitivo="archivio", foto=[]),
+    "archivio senza foto": _cambia_post(riempitivo="archivio", foto=[]),
+    "archivio con due foto": _cambia_post(riempitivo="archivio", foto=[1, 9]),
+    "archivio carosello": _cambia_post(riempitivo="archivio", formato="carosello"),
     "riempitivo sconosciuto": _cambia_post(riempitivo="meme", foto=[]),
     "cartolina con una foto": _cambia_post(riempitivo="cartolina"),
     "cartolina carosello": _cambia_post(

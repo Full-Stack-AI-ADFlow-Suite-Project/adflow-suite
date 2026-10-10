@@ -60,8 +60,9 @@ class AIFinto(AIAdapter):
 
     - Analisi: ogni foto è idonea e diversa dalle altre.
     - Piano: una foto per post, le foto con la stella per prime, tutte le foto
-      disponibili fino ai post chiesti, poi cartoline; date distribuite sul
-      periodo, Instagram il giorno dopo Facebook.
+      disponibili fino ai post chiesti, poi i riempitivi: prima le foto
+      d'archivio già uscite sul canale, poi le cartoline; date distribuite
+      sul periodo, Instagram il giorno dopo Facebook.
     - Testo: una frase con il tema e il nome della bottega, due hashtag.
 
     Il resto si chiede a comando: ``carosello=True``, ``comanda_analisi()``,
@@ -203,6 +204,13 @@ class AIFinto(AIAdapter):
                     continue
                 disponibili = foto_del_canale[canale]
                 foto = disponibili[indice : indice + 1]
+                riempitivo = None
+                if not foto:
+                    # Finite le foto disponibili: una foto d'archivio già
+                    # uscita sul canale, poi le cartoline (R-28).
+                    manca = indice - len(disponibili)
+                    foto = list(limite["foto_riempitivo"][manca : manca + 1])
+                    riempitivo = "archivio" if foto else "cartolina"
                 # Carosello a comando: solo dove non servono riempitivi (R-28)
                 # e avanza una foto, che altrimenti resterebbe fuori dal piano.
                 if (
@@ -223,7 +231,7 @@ class AIFinto(AIAdapter):
                         "canale": canale,
                         "formato": "carosello" if len(foto) > 1 else "singola",
                         "foto": foto,
-                        "riempitivo": None if foto else "cartolina",
+                        "riempitivo": riempitivo,
                         "data_ora": datetime.combine(
                             giorno, ORA_DI_USCITA, tzinfo=ROMA
                         ).isoformat(),

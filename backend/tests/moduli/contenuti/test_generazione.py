@@ -33,7 +33,13 @@ from app.moduli.contenuti.service import (
     uscite_della_campagna,
 )
 from tests.moduli.artigiani.fabbrica import profilo
-from tests.moduli.campagne.fabbrica import campagna_in_bozza, campagna_inviata, foto
+from tests.moduli.campagne.fabbrica import (
+    campagna_conclusa,
+    campagna_in_bozza,
+    campagna_inviata,
+    foto,
+    gruppo_di_archivio,
+)
 
 INIZIO = date(2030, 1, 7)
 FINE = date(2030, 1, 20)  # 14 giorni: con 3 post a settimana, 6 post chiesti
@@ -303,13 +309,13 @@ def test_le_tappe_in_ordine_un_passo_alla_volta(db, ai):
     viste = []
 
     while True:
-        viste.append(generazione.prossima_tappa(db, campagna))
+        viste.append(generazione.prossima_tappa(db, campagna, ADESSO))
         if not generazione.passo(db, campagna.id, ADESSO):
             break
         db.commit()
 
     assert viste == ["avvio", "analisi", "piano"] + ["testi"] * 6 + ["fine"]
-    assert generazione.prossima_tappa(db, campagna) is None
+    assert generazione.prossima_tappa(db, campagna, ADESSO) is None
     assert campagna.stato == "in_revisione"
 
 
@@ -470,6 +476,262 @@ def test_piano_non_valido_dopo_tre_riscritture_e_un_errore_di_risposta(db, ai):
     assert jobs.esegui_generazione(campagna.id, 2) is False
     assert campagna.stato == "in_revisione"
     assert len(_chiamate(ai, "analizza_gruppo")) == 1
+
+
+# --- Archivio della bottega (T2a-31, R-05, R-27, R-28) ------------------------
+
+
+def _conclusa(db, campagna) -> list:
+    """Le 4 foto, idonee, di una campagna conclusa della stessa bottega."""
+    chiusa = campagna_conclusa(db, profilo_id=campagna.profilo_id)
+    db.commit()
+    return campagne.foto_della_campagna(db, chiusa.id)
+
+
+def _uscita_da(immagine, **giorni_per_canale: int) -> None:
+    """Scrive sulla foto che è uscita su quei canali, tanti giorni fa."""
+    immagine.pubblicata_su = {
+        canale: (ADESSO - timedelta(days=giorni)).isoformat()
+        for canale, giorni in giorni_per_canale.items()
+    }
+
+
+def _foto_dei_post(db, campagna, canale: str) -> list[list[int]]:
+    return [_foto_del_post(p) for p in _post_del_canale(db, campagna, canale)]
+
+
+def test_ca76_archivio_mai_uscita_disponibile_recente_fuori_vecchia_riempitivo(db, ai):
+    """4 foto nuove e 6 post per canale: il resto arriva dall'archivio."""
+    campagna = _campagna(db, n_foto=4)
+    nuove = _foto_ids(db, campagna)
+    mai_su_instagram, recente, mai_uscita, recente_ovunque = _conclusa(db, campagna)
+    _uscita_da(mai_su_instagram, facebook=91)  # su Facebook da più di 90 giorni
+    _uscita_da(recente, facebook=31)
+    _uscita_da(recente_ovunque, facebook=31, instagram=31)
+    db.commit()
+
+    assert _job(campagna.id) == 1
+
+    assert campagna.stato == "in_revisione"
+    assert piano_corrente(db, campagna.id).debole is False
+    # Facebook: 5 foto disponibili; il sesto post è la foto uscita lì 91 giorni fa
+    facebook = _post_del_canale(db, campagna, "facebook")
+    assert [p.riempitivo for p in facebook] == [None] * 5 + ["archivio"]
+    assert _foto_dei_post(db, campagna, "facebook") == [[n] for n in nuove] + [
+        [mai_uscita.id],
+        [mai_su_instagram.id],
+    ]
+    # Instagram: le foto mai uscite lì bastano, nessun riempitivo
+    instagram = _post_del_canale(db, campagna, "instagram")
+    assert [p.riempitivo for p in instagram] == [None] * 6
+    assert _foto_dei_post(db, campagna, "instagram") == [[n] for n in nuove] + [
+        [mai_su_instagram.id],
+        [recente.id],
+    ]
+    assert {p.formato for p in facebook + instagram} == {"singola"}
+    assert all(p.versione_corrente.testo for p in facebook + instagram)
+    # una foto uscita da meno di 90 giorni lì non compare
+    usate_su_facebook = {
+        f
+        for foto_del_post in _foto_dei_post(db, campagna, "facebook")
+        for f in foto_del_post
+    }
+    assert recente.id not in usate_su_facebook
+    usate = {f for p in facebook + instagram for f in _foto_del_post(p)}
+    assert recente_ovunque.id not in usate
+    # le foto d'archivio contano i loro utilizzi, come le altre
+    assert (mai_su_instagram.n_utilizzi, recente.n_utilizzi) == (2, 1)
+    assert (mai_uscita.n_utilizzi, recente_ovunque.n_utilizzi) == (1, 0)
+    # nessuna cartolina: la campagna non ha foto sue oltre a quelle caricate
+    proprie = campagne.foto_della_campagna(db, campagna.id)
+    assert [f.origine for f in proprie] == ["caricata"] * 4
+
+
+def test_ca76_riempitivi_prima_la_foto_d_archivio_poi_la_cartolina(db, ai):
+    """Una sola foto già uscita da più di 90 giorni e 2 post che mancano."""
+    campagna = _campagna(db, n_foto=4)
+    nuove = _foto_ids(db, campagna)
+    vecchia, *recenti = _conclusa(db, campagna)
+    _uscita_da(vecchia, facebook=120, instagram=95)
+    for recente in recenti:
+        _uscita_da(recente, facebook=10, instagram=89)
+    db.commit()
+
+    _job(campagna.id)
+
+    assert campagna.stato == "in_revisione"
+    proprie = {f.id: f for f in campagne.foto_della_campagna(db, campagna.id)}
+    for canale in DUE_CANALI:
+        post = _post_del_canale(db, campagna, canale)
+        assert [p.riempitivo for p in post] == [None] * 4 + ["archivio", "cartolina"]
+        usate = [f for p in post for f in _foto_del_post(p)]
+        assert usate[:5] == nuove + [vecchia.id]
+        assert proprie[usate[5]].origine == "cartolina"
+        # nessuna foto due volte sullo stesso canale (costituzione §1.9)
+        assert len(set(usate)) == 6
+    uscite = uscite_della_campagna(db, campagna.id)
+    assert uscite[4].gruppo_id == vecchia.gruppo_id
+    assert uscite[5].gruppo_id is None
+
+
+def test_i_gruppi_d_archivio_senza_analisi_si_analizzano_prima_del_piano(
+    db, ai, monkeypatch
+):
+    """Foto caricate dal profilo, mai analizzate: l'analisi è una tappa (R-24)."""
+    campagna = _campagna(db, n_foto=4, canali=["instagram"])
+    mazzo = gruppo_di_archivio(db, profilo_id=campagna.profilo_id, n_foto=1)
+    nuova = foto(db, gruppo=mazzo)
+    scura = foto(db, gruppo=mazzo)
+    db.commit()
+    (gia_analizzata,) = [f.id for f in mazzo.foto if f.id not in (nuova.id, scura.id)]
+    ai.comanda_analisi(scura.id, idonea=False, motivo="Foto scura")
+    descrizioni = []
+    scrivi = ai.genera_post
+
+    def genera_post(snapshot, campagna_ai, post, scheda, **altro):
+        descrizioni.append(post.descrizione_gruppo)
+        return scrivi(snapshot, campagna_ai, post, scheda, **altro)
+
+    monkeypatch.setattr(ai, "genera_post", genera_post)
+
+    assert _job(campagna.id) == 1
+
+    assert campagna.stato == "in_revisione"
+    # un'analisi per il gruppo della campagna e una per quello d'archivio,
+    # con le sole foto che non l'avevano
+    analisi = _chiamate(ai, "analizza_gruppo")
+    assert len(analisi) == 2
+    assert (analisi[1]["gruppo"], analisi[1]["foto"]) == (
+        mazzo.id,
+        [nuova.id, scura.id],
+    )
+    assert nuova.analisi_ai["idonea"] is True
+    assert (scura.analisi_ai["idonea"], scura.analisi_ai["motivo"]) == (
+        False,
+        "Foto scura",
+    )
+    post = _post_del_canale(db, campagna, "instagram")
+    assert [p.riempitivo for p in post] == [None] * 6
+    assert [_foto_del_post(p) for p in post][4:] == [[gia_analizzata], [nuova.id]]
+    # tema e descrizione dei post con una foto d'archivio sono quelli del suo gruppo
+    assert uscite_della_campagna(db, campagna.id)[4].tema == mazzo.descrizione
+    assert descrizioni == ["Gruppo di prova"] * 4 + [mazzo.descrizione] * 2
+
+
+def test_ca50_riprova_non_rianalizza_le_foto_d_archivio(db, ai):
+    campagna = _campagna(db, canali=["instagram"])
+    mazzo = gruppo_di_archivio(db, profilo_id=campagna.profilo_id, n_foto=0)
+    foto(db, gruppo=mazzo)
+    db.commit()
+    ai.comanda_errore("pianifica_campagna", "temporaneo", volte=3)
+
+    assert _job(campagna.id) == 3
+
+    assert campagna.stato == "generazione_fallita"
+    assert len(_chiamate(ai, "analizza_gruppo")) == 2
+
+    _riprova(db, campagna)
+    assert _job(campagna.id) == 1
+
+    assert campagna.stato == "in_revisione"
+    assert len(_chiamate(ai, "analizza_gruppo")) == 2
+
+
+def test_una_foto_arrivata_in_archivio_dopo_il_piano_non_si_analizza(db, ai):
+    """Il piano è già salvato: la foto servirà alla prossima campagna."""
+    campagna = _campagna(db, n_foto=4, canali=["instagram"])
+    ai.comanda_errore("genera_post", "temporaneo", volte=1)
+    assert jobs.esegui_generazione(campagna.id, 1) is True
+    assert piano_corrente(db, campagna.id) is not None
+    mazzo = gruppo_di_archivio(db, profilo_id=campagna.profilo_id, n_foto=0)
+    tardiva = foto(db, gruppo=mazzo)
+    db.commit()
+
+    assert jobs.esegui_generazione(campagna.id, 2) is False
+
+    assert campagna.stato == "in_revisione"
+    assert len(_chiamate(ai, "analizza_gruppo")) == 1
+    assert tardiva.analisi_ai is None
+    post = _post_del_canale(db, campagna, "instagram")
+    assert [p.riempitivo for p in post] == [None] * 4 + ["cartolina"] * 2
+
+
+def test_errore_imprevisto_nell_analisi_dell_archivio_ha_la_tappa_analisi(
+    db, ai, monkeypatch
+):
+    campagna = _campagna(db, canali=["instagram"])
+    mazzo = gruppo_di_archivio(db, profilo_id=campagna.profilo_id, n_foto=0)
+    foto(db, gruppo=mazzo)
+    db.commit()
+    analizza = ai.analizza_gruppo
+
+    def si_rompe_con_l_archivio(gruppo):
+        if gruppo.archivio:
+            raise RuntimeError("x")
+        return analizza(gruppo)
+
+    monkeypatch.setattr(ai, "analizza_gruppo", si_rompe_con_l_archivio)
+
+    assert jobs.esegui_generazione(campagna.id, 1) is True
+
+    (errore,) = _errori(db, campagna)
+    assert (errore.tipo, errore.tappa) == ("temporaneo", "analisi")
+
+
+def test_piano_non_debole_grazie_alle_foto_d_archivio(db, ai):
+    """Come CA-49, ma l'archivio porta le foto disponibili alla metà dei post."""
+    campagna = _campagna(db, n_foto=4, canali=["instagram"])
+    ids = _foto_ids(db, campagna)
+    ai.comanda_analisi(ids[2], idonea=False, motivo="Foto scura")
+    ai.comanda_analisi(ids[3], idonea=False, motivo="Foto mossa")
+    gruppo_di_archivio(db, profilo_id=campagna.profilo_id, n_foto=1)
+    db.commit()
+
+    assert _job(campagna.id) == 1
+
+    assert campagna.stato == "in_revisione"
+    assert piano_corrente(db, campagna.id).debole is False
+    post = _post_del_canale(db, campagna, "instagram")
+    assert [p.riempitivo for p in post] == [None] * 3 + ["cartolina"] * 3
+
+
+def test_l_archivio_di_un_altra_bottega_non_entra_nel_piano(db, ai):
+    campagna = _campagna(db, n_foto=4, canali=["instagram"])
+    gruppo_di_archivio(db, n_foto=3)
+    db.commit()
+
+    _job(campagna.id)
+
+    post = _post_del_canale(db, campagna, "instagram")
+    assert [p.riempitivo for p in post] == [None] * 4 + ["cartolina"] * 2
+    assert len(_chiamate(ai, "analizza_gruppo")) == 1
+
+
+def test_la_stella_di_una_campagna_chiusa_non_vale_per_quella_nuova(db, ai):
+    """6 foto nuove per 6 post: la foto d'archivio con la stella non ne toglie una."""
+    campagna = _campagna(db, n_foto=6, canali=["instagram"])
+    nuove = _foto_ids(db, campagna)
+    vecchie = _conclusa(db, campagna)
+    vecchie[0].da_usare = True
+    db.commit()
+
+    _job(campagna.id)
+
+    assert campagna.stato == "in_revisione"
+    assert _foto_dei_post(db, campagna, "instagram") == [[n] for n in nuove]
+
+
+def test_un_canale_tolto_non_guarda_il_suo_archivio(db, ai):
+    campagna = _campagna(db, n_foto=4, canali_tolti=["facebook"])
+    vecchia, *_ = _conclusa(db, campagna)
+    _uscita_da(vecchia, facebook=200)
+    db.commit()
+
+    _job(campagna.id)
+
+    post = post_della_campagna(db, campagna.id)
+    assert {p.canale for p in post} == {"instagram"}
+    assert {p.riempitivo for p in post} == {None}
 
 
 # --- Testi --------------------------------------------------------------------

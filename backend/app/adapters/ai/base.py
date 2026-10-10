@@ -8,6 +8,9 @@ piano ha la forma che ``contenuti`` controlla (``piano.contenuto``):
                  "post": [{"canale": "facebook", "formato": "singola",
                            "foto": [12], "riempitivo": null,
                            "data_ora": "2030-01-07T10:00:00+01:00"}]}]}
+
+``riempitivo`` è vuoto, ``"archivio"`` (con una foto tra le
+``foto_riempitivo`` del canale) o ``"cartolina"`` (senza foto).
 """
 
 from abc import ABC, abstractmethod
@@ -49,12 +52,17 @@ class FotoAI:
 
 @dataclass
 class GruppoAI:
-    """Un gruppo di foto caricate, con la descrizione scritta dall'artigiano."""
+    """Un gruppo di foto caricate, con la descrizione scritta dall'artigiano.
+
+    Con ``archivio`` il gruppo viene dall'archivio della bottega (R-27): ha
+    solo le foto che la campagna può usare, senza stella e senza data.
+    """
 
     id: int
     descrizione: str | None
     da_usare_il: date | None = None
     foto: list[FotoAI] = field(default_factory=list)
+    archivio: bool = False
 
 
 @dataclass
@@ -140,9 +148,14 @@ class AIAdapter(ABC):
         Args:
             snapshot: la fotografia del profilo salvata all'invio (R-11).
             campagna: titolo, periodo, descrizione e obiettivo.
-            gruppi: i gruppi di foto caricate, già analizzati.
-            limiti: per canale ``post_chiesti``, ``foto_disponibili`` e
-                ``riempitivi``: il numero dei post non lo decide l'AI (R-05).
+            gruppi: i gruppi di foto caricate, già analizzati: quelli della
+                campagna e, dopo, quelli dell'archivio della bottega.
+            limiti: per canale ``post_chiesti``, ``foto_disponibili``,
+                ``foto_riempitivo`` e ``riempitivi``: il numero dei post non
+                lo decide l'AI (R-05). Le ``foto_riempitivo`` sono foto
+                d'archivio già uscite sul canale: servono solo per i
+                riempitivi ``archivio``, che vengono prima delle cartoline
+                (R-28).
             schede: la scheda di ogni canale (R-21).
             non_prima_di: nessun post può uscire prima di questo momento (R-08).
             piano_precedente, violazioni: nelle riscritture, il piano che non
