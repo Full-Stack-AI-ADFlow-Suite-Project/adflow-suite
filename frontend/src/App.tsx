@@ -3,6 +3,7 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { RichiedeRuolo } from "./auth";
 import { paginaIniziale, useAuth } from "./contesto-auth";
 import { Accesso } from "./pages/Accesso";
+import { Profilo, RichiedeProfilo } from "./pages/artigiano/profilo/Profilo";
 import { Campagna } from "./pages/artigiano/Campagna";
 import { DaApprovare } from "./pages/operatore/DaApprovare";
 import { VediCampagna } from "./pages/operatore/VediCampagna";
@@ -21,10 +22,15 @@ export default function App() {
         path="/campagna"
         element={
           <RichiedeRuolo ruoli={["artigiano"]}>
-            <Campagna />
+            <RichiedeProfilo>
+              <Campagna />
+            </RichiedeProfilo>
           </RichiedeRuolo>
         }
       />
+      <Route path="/profilo" element={<RichiedeRuolo ruoli={["artigiano"]}>
+        <Profilo />
+      </RichiedeRuolo>} />
       <Route
         path="/da-approvare"
         element={
