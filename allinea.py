@@ -296,10 +296,12 @@ def allinea_frontend() -> None:
             "node_modules presente (dopo un cambio di package.json: npm install)",
         )
         return
-    if shutil.which("npm") is None:
+    # Su Windows npm è un file .cmd: va lanciato con il percorso intero.
+    npm = shutil.which("npm")
+    if npm is None:
         passo("frontend", "manca npm: installa Node 22+")
         return
-    codice, uscita = esegui("npm", "install", dove=frontend)
+    codice, uscita = esegui(npm, "install", dove=frontend)
     passo(
         "frontend",
         "dipendenze installate" if codice == 0 else "errore",
