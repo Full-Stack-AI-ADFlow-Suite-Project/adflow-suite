@@ -62,6 +62,59 @@ class CampagnaCrea(BaseModel):
         return visti
 
 
+class CampagnaModifica(BaseModel):
+    """Payload per la modifica di una bozza di campagna (PATCH /campagne/{id}).
+
+    Tutti i campi sono opzionali. I campi non specificati mantengono il valore corrente.
+    """
+
+    titolo: str | None = Field(default=None, min_length=1, max_length=200)
+    inizio: date | None = None
+    fine: date | None = None
+    descrizione: str | None = Field(default=None, max_length=2000)
+    canali: list[str] | None = None
+
+    @field_validator("titolo")
+    @classmethod
+    def valida_titolo(cls, valore: str | None) -> str | None:
+        if valore is None:
+            return None
+        pulito = valore.strip()
+        if not pulito:
+            raise ValueError("Il titolo non può essere vuoto.")
+        if not testo_valido(pulito):
+            raise ValueError("Il titolo contiene caratteri non validi.")
+        return pulito
+
+    @field_validator("descrizione")
+    @classmethod
+    def valida_descrizione(cls, valore: str | None) -> str | None:
+        if valore is None:
+            return None
+        pulito = valore.strip()
+        if not pulito:
+            return None
+        if not testo_valido(pulito):
+            raise ValueError("La descrizione contiene caratteri non validi.")
+        return pulito
+
+    @field_validator("canali")
+    @classmethod
+    def valida_canali(cls, canali: list[str] | None) -> list[str] | None:
+        if canali is None:
+            return None
+        if not canali:
+            raise ValueError("Selezionare almeno un canale.")
+        visti = []
+        for c in canali:
+            c_norm = c.strip().lower()
+            if c_norm not in visti:
+                visti.append(c_norm)
+        if not visti:
+            raise ValueError("Selezionare almeno un canale.")
+        return visti
+
+
 class FotoSintetica(BaseModel):
     """Rappresentazione essenziale di una foto nel dettaglio della campagna."""
 
