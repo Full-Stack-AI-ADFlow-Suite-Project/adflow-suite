@@ -1,7 +1,8 @@
 """Cartoline: l'immagine dei post riempitivo, composta dal sistema (spec R-28).
 
 Una cartolina è un quadrato di 1080 px con il tema dell'uscita e il nome della
-bottega. Non passa dall'AI. Dalla 2a porterà anche il logo, se c'è.
+bottega. Non passa dall'AI. Se la bottega ha un logo, sta sopra il nome
+(R-40); senza logo, o con un logo che non si legge, c'è il solo nome.
 
 Il carattere è Lato Regular, in ``font/`` con la sua licenza (SIL OFL 1.1):
 quello incluso in Pillow non ha le lettere accentate.
@@ -13,7 +14,7 @@ from io import BytesIO
 from pathlib import Path
 from typing import Any
 
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 from sqlalchemy.orm import Session
 
 from app.adapters.archivio import ottieni_archivio
@@ -32,6 +33,10 @@ _CORPI_DEL_NOME = (54, 46, 40, 34)
 _MAX_RIGHE = 5
 _INTERLINEA = 1.25
 _FONT = Path(__file__).parent / "font" / "Lato-Regular.ttf"
+# Il riquadro in cui sta il logo, sopra il nome, e gli spazi intorno.
+_LOGO = (320, 160)
+_SOTTO_IL_LOGO = 28
+_SOPRA_IL_LOGO = 40
 
 
 @lru_cache(maxsize=None)
@@ -95,14 +100,22 @@ def _accorcia(
 
 
 def _componi_il_tema(
-    disegno: ImageDraw.ImageDraw, tema: str, larghezza: int
+    disegno: ImageDraw.ImageDraw,
+    tema: str,
+    larghezza: int,
+    altezza: int | None = None,
 ) -> tuple[ImageFont.FreeTypeFont, list[str]]:
-    """Il corpo più grande con cui il tema sta in poche righe; poi si taglia."""
+    """Il corpo più grande con cui il tema sta in poche righe; poi si taglia.
+
+    Con ``altezza`` le righe devono stare anche in quello spazio: è ciò che
+    resta al tema quando sotto c'è il logo.
+    """
     for corpo in _CORPI_DEL_TEMA:
         carattere = _carattere(corpo)
         righe = _righe(disegno, tema, carattere, larghezza)
         entra = all(disegno.textlength(r, font=carattere) <= larghezza for r in righe)
-        if entra and len(righe) <= _MAX_RIGHE:
+        alto = int(corpo * _INTERLINEA) * len(righe)
+        if entra and len(righe) <= _MAX_RIGHE and (altezza is None or alto <= altezza):
             return carattere, righe
     tagliate = [_accorcia(disegno, r, carattere, larghezza) for r in righe]
     if len(tagliate) > _MAX_RIGHE:
@@ -111,15 +124,37 @@ def _componi_il_tema(
     return carattere, tagliate
 
 
-def disegna_cartolina(nome_bottega: str | None, tema: str | None) -> bytes:
+def _logo_pronto(logo: bytes | None) -> Image.Image | None:
+    """Il logo rimpicciolito nel suo riquadro; `None` se manca o non si legge."""
+    if not logo:
+        return None
+    try:
+        with Image.open(BytesIO(logo)) as aperta:
+            pronto = ImageOps.exif_transpose(aperta).convert("RGBA")
+    except Exception:
+        # Qualunque errore di lettura vuol dire «non si legge»: la cartolina
+        # esce senza logo e la generazione continua (R-40).
+        return None
+    pronto.thumbnail(_LOGO, Image.Resampling.LANCZOS)
+    return pronto
+
+
+def disegna_cartolina(
+    nome_bottega: str | None, tema: str | None, logo: bytes | None = None
+) -> bytes:
     """Compone la cartolina e ne restituisce il file PNG, 1080 × 1080 px.
 
-    Funzione pura: lo stesso risultato a parità di testi. Un tema lungo si
-    rimpicciolisce e poi si taglia; senza tema o senza nome la cartolina esce
-    con ciò che c'è.
+    Funzione pura: lo stesso risultato a parità di testi e di logo. Un tema
+    lungo si rimpicciolisce e poi si taglia; senza tema o senza nome la
+    cartolina esce con ciò che c'è.
+
+    ``logo`` è il file del logo della bottega: sta sopra il nome, al posto
+    del trattino, e il tema si stringe nello spazio che resta. Senza logo, o
+    con un file che non è un'immagine, la cartolina è quella di sempre.
     """
     nome = _pulito(nome_bottega)
     tema = _pulito(tema)
+    marchio = _logo_pronto(logo)
     immagine = Image.new("RGB", (LATO, LATO), _SFONDO)
     disegno = ImageDraw.Draw(immagine)
     larghezza = LATO - 2 * _MARGINE
@@ -131,10 +166,22 @@ def disegna_cartolina(nome_bottega: str | None, tema: str | None) -> bytes:
         width=4,
     )
 
+    # Dove sta il nome; il logo gli sta sopra, anche se il nome manca.
+    y_nome = LATO - _MARGINE - 110 if tema else centro
+    if marchio is not None:
+        cima_del_logo = y_nome - _SOTTO_IL_LOGO - marchio.height
+        immagine.paste(marchio, (centro - marchio.width // 2, cima_del_logo), marchio)
+
     if tema:
-        carattere, righe = _componi_il_tema(disegno, tema, larghezza)
-        passo = int(carattere.size * _INTERLINEA)
-        y = centro - (passo * len(righe)) // 2 - (60 if nome else 0)
+        if marchio is not None:
+            spazio = cima_del_logo - _SOPRA_IL_LOGO - _MARGINE
+            carattere, righe = _componi_il_tema(disegno, tema, larghezza, spazio)
+            passo = int(carattere.size * _INTERLINEA)
+            y = _MARGINE + (spazio - passo * len(righe)) // 2
+        else:
+            carattere, righe = _componi_il_tema(disegno, tema, larghezza)
+            passo = int(carattere.size * _INTERLINEA)
+            y = centro - (passo * len(righe)) // 2 - (60 if nome else 0)
         for riga in righe:
             disegno.text(
                 (centro, y), riga, font=carattere, fill=_INCHIOSTRO, anchor="ma"
@@ -147,8 +194,11 @@ def disegna_cartolina(nome_bottega: str | None, tema: str | None) -> bytes:
             if disegno.textlength(nome, font=carattere) <= larghezza:
                 break
         nome = _accorcia(disegno, nome, carattere, larghezza)
-        y = LATO - _MARGINE - 110 if tema else centro
-        disegno.line((centro - 60, y - 36, centro + 60, y - 36), fill=_ACCENTO, width=4)
+        y = y_nome
+        if marchio is None:
+            disegno.line(
+                (centro - 60, y - 36, centro + 60, y - 36), fill=_ACCENTO, width=4
+            )
         disegno.text((centro, y), nome, font=carattere, fill=_ACCENTO, anchor="ma")
 
     file = BytesIO()
@@ -159,8 +209,9 @@ def disegna_cartolina(nome_bottega: str | None, tema: str | None) -> bytes:
 def componi_cartolina(db: Session, campagna: Any, tema: str | None) -> Any:
     """Crea la foto di un post `cartolina` e la restituisce, senza commit.
 
-    Il nome della bottega viene dalla fotografia del profilo salvata all'invio
-    (``campagna.profilo_snapshot``), mai dal profilo corrente. Il file va
+    Il nome e il logo della bottega vengono dalla fotografia del profilo
+    salvata all'invio (``campagna.profilo_snapshot``), mai dal profilo
+    corrente: un logo cambiato dopo l'invio non entra (R-40). Il file va
     nell'archivio con un nome generato dal server; la foto nasce senza gruppo,
     con origine ``cartolina`` (``campagne.service.aggiungi_foto()``).
 
@@ -169,9 +220,18 @@ def componi_cartolina(db: Session, campagna: Any, tema: str | None) -> Any:
     nell'archivio senza una foto: è un file orfano, innocuo.
     """
     snapshot = campagna.profilo_snapshot
-    nome = snapshot.get("nome") if isinstance(snapshot, dict) else None
+    snapshot = snapshot if isinstance(snapshot, dict) else {}
     archivio = ottieni_archivio()
-    file = archivio.salva(disegna_cartolina(nome, tema), ESTENSIONE)
+    logo = None
+    if snapshot.get("logo"):
+        try:
+            logo = archivio.leggi(snapshot["logo"])
+        except (OSError, ValueError):
+            # Il file non c'è o il nome non è valido: cartolina senza logo.
+            logo = None
+    file = archivio.salva(
+        disegna_cartolina(snapshot.get("nome"), tema, logo), ESTENSIONE
+    )
     try:
         return campagne.aggiungi_foto(
             db, campagna.id, "cartolina", file, MIME, LATO, LATO
