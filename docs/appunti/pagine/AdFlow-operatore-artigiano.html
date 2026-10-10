@@ -1,485 +1,455 @@
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Operatore · Artigiano</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --paper:#F6F3EC; --paper-raised:#FFFFFF; --ink:#201D17; --ink-soft:#6E6656; --ink-faint:#9C927D;
-    --accent:#2E6B5C; --accent-strong:#1D4A3F; --accent-soft:#DCEAE3; --accent-on-soft:#1D4A3F;
-    --line:#DDD5C2; --danger:#AE3B2C; --danger-soft:#F6E1DC; --danger-on-soft:#7A281C;
-    --warn:#8A6A1F; --warn-soft:#F3E7C9;
-    color-scheme: light;
-  }
-  @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]){
-      --paper:#1B1914; --paper-raised:#26231C; --ink:#EFEAE0; --ink-soft:#B7AE9B; --ink-faint:#837A68;
-      --accent:#7EC4AE; --accent-strong:#A9DCC9; --accent-soft:#22392F; --accent-on-soft:#A9DCC9;
-      --line:#3A362B; --danger:#E08776; --danger-soft:#3A2420; --danger-on-soft:#E08776;
-      --warn:#E4C878; --warn-soft:#3A331C;
-      color-scheme: dark;
-    }
-  }
-  :root[data-theme="dark"]{
-    --paper:#1B1914; --paper-raised:#26231C; --ink:#EFEAE0; --ink-soft:#B7AE9B; --ink-faint:#837A68;
-    --accent:#7EC4AE; --accent-strong:#A9DCC9; --accent-soft:#22392F; --accent-on-soft:#A9DCC9;
-    --line:#3A362B; --danger:#E08776; --danger-soft:#3A2420; --danger-on-soft:#E08776;
-    --warn:#E4C878; --warn-soft:#3A331C;
-    color-scheme: dark;
-  }
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Operatore · Artigiano</title>
+  <link rel="stylesheet" href="assets/adflow.css">
+</head>
+<body>
 
-  *{ box-sizing:border-box; }
-  body{ background:var(--paper); color:var(--ink); font-family:"IBM Plex Sans", system-ui, sans-serif; margin:0; }
-  h1,h2,h3{ font-family:"Fraunces", Georgia, serif; font-weight:600; text-wrap:balance; margin:0; }
-  a{ color:var(--accent-strong); }
-  .wrap{ max-width:1100px; margin-inline:auto; padding-inline:16px; }
-  .mono{ font-family:"IBM Plex Mono", monospace; }
+<div class="app-container">
+  <!-- Barra laterale -->
+  <aside class="app-sidebar">
+    <div class="sidebar-header">
+      <div class="brand-icon-wrapper">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+          <polyline points="2 17 12 22 22 17"></polyline>
+          <polyline points="2 12 12 17 22 12"></polyline>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>AdFlow</h1>
+        <span>Suite · Operatore</span>
+      </div>
+    </div>
 
-  /* Barra di navigazione comune alle tre pagine operatore */
-  .topbar{ background:var(--paper-raised); border-bottom:1px solid var(--line); }
-  .topbar .wrap{ display:flex; align-items:center; gap:22px; min-height:54px; flex-wrap:wrap; }
-  .brand{ font-family:"Fraunces", Georgia, serif; font-weight:600; font-size:17px; color:var(--ink); text-decoration:none; }
-  .brand small{ font-family:"IBM Plex Mono", monospace; font-size:11px; font-weight:400; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); margin-left:6px; }
-  .nav{ display:flex; gap:4px; flex:1; }
-  .nav a{ text-decoration:none; font-size:14px; color:var(--ink-soft); padding:7px 12px; border-radius:8px; }
-  .nav a.current{ background:var(--accent-soft); color:var(--accent-on-soft); font-weight:500; }
-  .user{ font-size:13px; color:var(--ink-soft); display:flex; gap:12px; align-items:center; }
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Piattaforma</div>
+      <a href="AdFlow-operatore-ingresso.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        <span>Dashboard</span>
+      </a>
+      <a href="AdFlow-operatore-campagna.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+        <span>Campagne</span>
+        <span class="nav-badge">4</span>
+      </a>
+      <a href="AdFlow-operatore-da-approvare.html" class="nav-link" style="padding-left: 36px; font-size: 12.5px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width: 15px; height: 15px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+        <span>Da approvare</span>
+      </a>
+      <a href="AdFlow-operatore-artigiano-campagne.html" class="nav-link" style="padding-left: 36px; font-size: 12.5px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width: 15px; height: 15px;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+        <span>Storico chiuse</span>
+      </a>
 
-  main{ padding-block:24px 48px; }
-  .crumb{ font-size:13px; margin-bottom:14px; }
-  .crumb a{ text-decoration:none; }
+      <div class="nav-section-label">Gestione</div>
+      <a href="AdFlow-operatore-elenco.html" class="nav-link active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        <span>Artigiani</span>
+        <span class="nav-badge">6</span>
+      </a>
+      <a href="AdFlow-operatore-metriche.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+        <span>Metriche</span>
+      </a>
 
-  .masthead{ display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap; margin-bottom:18px; }
-  .eyebrow{ font-family:"IBM Plex Mono", monospace; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); }
-  .masthead h1{ font-size:30px; margin-top:6px; }
-  .masthead p{ color:var(--ink-soft); font-size:14.5px; margin:6px 0 0; }
-  .jump{ display:flex; gap:8px; flex-wrap:wrap; }
-  .jump a{ font-size:13px; text-decoration:none; border:1px solid var(--line); background:var(--paper-raised); border-radius:20px; padding:6px 13px; }
-
-  .banner{ border-radius:10px; padding:12px 14px; font-size:13.5px; line-height:1.5; margin-bottom:22px; display:flex; gap:10px; align-items:flex-start; }
-  .banner.info{ background:var(--accent-soft); border:1px solid var(--accent); color:var(--accent-on-soft); }
-  .banner.warn{ background:var(--warn-soft); border:1px solid var(--warn); color:var(--warn); }
-  .banner .icon{ flex:none; font-family:"IBM Plex Mono", monospace; font-weight:500; }
-
-  .card{ background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:20px; }
-  .card .tab{ font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--accent-strong); letter-spacing:.06em; }
-  .card h3{ font-size:18px; margin-top:4px; margin-bottom:12px; }
-  .card .foot{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:14px; }
-  .note{ font-size:12.5px; color:var(--ink-faint); line-height:1.5; margin-top:10px; }
-
-  .top-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:16px; margin-bottom:34px; }
-
-  .rev-line{ display:flex; gap:10px; font-size:13.5px; padding:5px 0; border-top:1px solid var(--line); margin:0; }
-  .rev-line dt{ color:var(--ink-soft); flex:0 0 42%; margin:0; }
-  .rev-line dd{ margin:0; flex:1; min-width:0; overflow-wrap:anywhere; }
-  .empty{ color:var(--ink-faint); }
-
-  .badge{ display:inline-block; font-family:"IBM Plex Mono", monospace; font-size:11.5px; border-radius:20px; padding:2px 9px; border:1px solid var(--line); color:var(--ink-soft); background:var(--paper); white-space:nowrap; }
-  .badge.ok{ border-color:var(--accent); background:var(--accent-soft); color:var(--accent-on-soft); }
-  .badge.warn{ border-color:var(--warn); background:var(--warn-soft); color:var(--warn); }
-  .badge.danger{ border-color:var(--danger); background:var(--danger-soft); color:var(--danger-on-soft); }
-
-  .btn{ font-family:inherit; border-radius:8px; padding:8px 14px; font-size:13.5px; font-weight:500; border:1px solid var(--line); background:var(--paper-raised); color:var(--ink); display:inline-block; text-decoration:none; }
-  .btn.primary{ background:var(--accent); border-color:var(--accent); color:var(--paper-raised); }
-  .btn.quiet{ color:var(--ink-soft); }
-  .btn.danger{ color:var(--danger); }
-
-  .social-row{ display:flex; justify-content:space-between; align-items:center; gap:10px; padding:9px 0; border-top:1px solid var(--line); font-size:13.5px; }
-  .social-row .sub{ display:block; font-size:12px; color:var(--ink-faint); }
-
-  .section-head{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
-  .section-head h2{ font-size:24px; }
-  .section-head p{ margin:0; font-size:13.5px; color:var(--ink-soft); }
-  section{ scroll-margin-top:16px; }
-
-  .counts{ display:grid; grid-template-columns:repeat(3, 1fr); gap:10px; margin-bottom:18px; }
-  .count{ display:block; background:var(--paper-raised); border:1px solid var(--line); border-radius:10px; padding:12px 14px; text-decoration:none; color:var(--ink); }
-  .count b{ display:block; font-family:"IBM Plex Mono", monospace; font-weight:500; font-size:24px; }
-  .count span{ font-size:13px; color:var(--ink-soft); }
-  .count.attn{ border-color:var(--warn); background:var(--warn-soft); }
-  .count.attn span, .count.attn b{ color:var(--warn); }
-  @media (max-width:640px){ .counts{ grid-template-columns:repeat(2, 1fr); } }
-
-  .group{ margin-bottom:22px; }
-  .group-title{ display:flex; align-items:baseline; gap:10px; font-family:"IBM Plex Sans", sans-serif; font-size:15px; font-weight:600; margin:0 0 8px; }
-  .group-title .n{ font-family:"IBM Plex Mono", monospace; font-weight:400; font-size:13px; color:var(--ink-faint); }
-  .group-empty{ border:1px dashed var(--line); border-radius:12px; padding:14px 16px; font-size:13.5px; color:var(--ink-faint); }
-
-  .camp{ background:var(--paper-raised); border:1px solid var(--line); border-radius:12px; padding:16px 18px; display:grid; grid-template-columns:1fr auto; gap:14px 24px; margin-bottom:10px; }
-  .camp.attn{ border-left:4px solid var(--warn); }
-  .camp.lost{ border-left:4px solid var(--danger); }
-  .camp h3{ font-size:17px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-  .camp .meta{ font-size:13px; color:var(--ink-soft); margin-top:5px; display:flex; gap:6px 16px; flex-wrap:wrap; }
-  .camp .desc{ font-size:13px; color:var(--ink-soft); margin:8px 0 0; line-height:1.5; font-style:italic; }
-  .posts{ display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
-  .camp .next{ font-size:13px; margin-top:10px; }
-  .camp .actions{ display:flex; flex-direction:column; gap:8px; align-items:stretch; min-width:170px; }
-  .camp .actions .links{ display:flex; flex-direction:column; gap:4px; font-size:13px; margin-top:2px; }
-  @media (max-width:640px){
-    .camp{ grid-template-columns:1fr; }
-    .camp .actions{ flex-direction:row; flex-wrap:wrap; min-width:0; }
-  }
-
-  .profile-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:14px; }
-  .profile-grid .card{ padding:16px 18px; }
-  .profile-grid h3{ font-size:16px; margin-bottom:8px; }
-  .chips{ display:flex; flex-wrap:wrap; gap:5px; }
-  .chip{ border:1px solid var(--line); background:var(--paper); border-radius:20px; padding:2px 10px; font-size:12.5px; }
-  .diff{ font-family:"IBM Plex Mono", monospace; font-size:11px; color:var(--warn); margin-left:4px; }
-  .diff.block{ display:block; margin-left:0; margin-top:2px; }
-  .evento{ font-size:13px; padding:6px 0; }
-</style>
-<!-- fascia-mappa: stato della pagina statica e ritorno alla mappa. Non fa parte della schermata. -->
-<div style="border-bottom:1px solid var(--line); padding:8px 18px; background:var(--paper-raised); color:var(--ink-soft); font:12px/1.5 'IBM Plex Mono', ui-monospace, monospace; display:flex; flex-wrap:wrap; gap:2px 16px; justify-content:space-between;">
-  <a href="index.html" style="color:inherit;">← Mappa delle pagine</a>
-  <span>Pagina statica · <strong style="color:var(--ink); font-weight:500;">approvata</strong> · ADR-53 · ADR-54 · riallineata ad ADR-94, 95</span>
-</div>
-<!-- /fascia-mappa -->
-
-<!-- ============ Barra comune alle pagine operatore ============ -->
-<header class="topbar">
-  <div class="wrap">
-    <a class="brand" href="AdFlow-operatore-ingresso.html">AdFlow <small>Operatore</small></a>
-    <nav class="nav" aria-label="Sezioni operatore">
-      <a href="AdFlow-operatore-da-approvare.html">Da approvare</a>
-      <a href="AdFlow-operatore-elenco.html" class="current">Artigiani</a>
-      <a href="AdFlow-operatore-metriche.html">Metriche</a>
+      <div class="nav-section-label">Sistema</div>
+      <a href="index.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <span>Mappa Pagine</span>
+      </a>
     </nav>
-    <div class="user"><span>Laura Rossi · operatore</span><a href="AdFlow-login.html">Esci</a></div>
+
+    <div class="sidebar-footer">
+      <div class="user-profile-card">
+        <img src="assets/img/avatar-laura.jpg" alt="Laura Rossi" class="user-avatar" onerror="this.outerHTML='<div class=\'user-avatar placeholder\'>LR</div>'">
+        <div class="user-info">
+          <div class="user-name">Laura Rossi</div>
+          <div class="user-role">Operatore Consorzio</div>
+        </div>
+      </div>
+      <a href="AdFlow-campagna.html" class="role-switch-btn" title="Passa all'esperienza Artigiano">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+        <span>Vista Artigiano (Mario Bianchi)</span>
+      </a>
+    </div>
+  </aside>
+
+  <div class="app-main">
+    <!-- fascia-mappa: stato della pagina statica e ritorno alla mappa. Non fa parte della schermata. -->
+    <header class="app-topbar">
+      <div class="topbar-left">
+        <div class="stato-pagina">Pagina statica · <strong>approvata</strong> · ADR-53 · ADR-54 · riallineata ad ADR-94, 95 · stile: ADR-113</div>
+      </div>
+
+      <div class="topbar-right">
+        <a href="index.html" class="icon-btn" title="Mappa delle pagine">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        </a>
+        <a href="AdFlow-login.html" class="icon-btn" title="Esci">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        </a>
+      </div>
+    </header>
+    <!-- /fascia-mappa -->
+
+    <main class="content-wrapper">
+      <nav class="breadcrumb-trail">
+        <a href="AdFlow-operatore-ingresso.html">Dashboard</a>
+        <span class="breadcrumb-sep">/</span>
+        <a href="AdFlow-operatore-elenco.html">Artigiani</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">Falegnameria Bianchi</span>
+      </nav>
+
+      <div class="page-header">
+        <div class="page-title-group">
+          <div style="display: flex; align-items: center; gap: 12px;">
+            <img src="assets/img/bottega-logo.jpg" alt="" style="width: 44px; height: 44px; border-radius: 10px; object-fit: cover; border: 1px solid var(--border-hairline);">
+            <div>
+              <h1 class="page-title">Falegnameria Bianchi</h1>
+              <div style="font-size: 13px; color: var(--text-muted);">
+                Mario Bianchi · Bra (CN) · <code>ART-0042</code> · Legno e mobili
+              </div>
+            </div>
+          </div>
+          <span class="status-pill success">iscrizione attiva</span>
+        </div>
+        <div class="page-actions">
+          <a href="#campagne" class="btn btn-secondary">Campagne</a>
+          <a href="#profilo" class="btn btn-secondary">Profilo bottega</a>
+          <a href="AdFlow-operatore-metriche.html?artigiano=ART-0042" class="btn btn-secondary">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+            <span>Metriche di questa bottega →</span>
+          </a>
+        </div>
+      </div>
+
+      <!-- Anagrafica · account social · situazione -->
+      <div class="griglia-card">
+
+        <div class="surface-card">
+          <div class="surface-card-header">
+            <div>
+              <h3 class="surface-card-title">Dati di iscrizione</h3>
+              <span class="sotto">Anagrafica · gestita dall'operatore</span>
+            </div>
+          </div>
+          <div class="surface-card-body">
+            <dl class="dati-lista">
+              <div><dt>ID artigiano</dt><dd><code>ART-0042</code></dd></div>
+              <div><dt>Codice consorzio</dt><dd><code>CNS-2019-0117</code></dd></div>
+              <div><dt>Nome bottega</dt><dd>Falegnameria Bianchi</dd></div>
+              <div><dt>Referente</dt><dd><strong>Mario Bianchi</strong></dd></div>
+              <div><dt>Città</dt><dd>Bra (CN)</dd></div>
+              <div><dt>Email di accesso</dt><dd>mario@falegnameriabianchi.it</dd></div>
+              <div><dt>Telefono</dt><dd>0172 000 000</dd></div>
+              <div><dt>Iscrizione</dt><dd><span class="status-pill success piccola">attiva</span> dal 14/03/2019</dd></div>
+            </dl>
+            <button type="button" class="btn btn-secondary btn-sm" style="margin-top: 14px;">Modifica anagrafica</button>
+            <p class="nota-card">Dati fissi: li modifica solo l'operatore. Oggi inseriti a mano; in futuro importati dal sito del consorzio, dove l'artigiano è già iscritto (da decidere, ADR-38).</p>
+          </div>
+        </div>
+
+        <div class="surface-card">
+          <div class="surface-card-header">
+            <div>
+              <h3 class="surface-card-title">Pagine su cui si pubblica</h3>
+              <span class="sotto">Account social · collegamento dallo sprint 3</span>
+            </div>
+            <span class="status-pill review">1 da ricollegare</span>
+          </div>
+          <div class="surface-card-body" style="display: flex; flex-direction: column; gap: 12px;">
+            <div class="riga-social">
+              <div>
+                <strong>Facebook</strong>
+                <span class="sotto">Falegnameria Bianchi · permesso fino al 12/12/2026</span>
+              </div>
+              <span class="status-pill success">collegato</span>
+            </div>
+            <div class="riga-social errore">
+              <div>
+                <strong>Instagram</strong>
+                <span class="sotto">falegnameriabianchi · permesso scaduto il 28/09/2026</span>
+              </div>
+              <span class="status-pill danger">permesso scaduto</span>
+            </div>
+            <div style="display: flex; gap: 8px; margin-top: 4px;">
+              <button type="button" class="btn btn-primary btn-sm" style="flex: 1;">Ricollega Instagram</button>
+              <button type="button" class="btn btn-secondary btn-sm">Ricollega Facebook</button>
+            </div>
+            <p class="nota-card" style="margin-top: 0;">Si collega una volta, insieme all'artigiano. Senza account collegato l'artigiano non può scegliere quel canale in una campagna (ADR-57). Se il permesso scade dopo l'invio, alla prima pubblicazione su quel canale la campagna passa a "sospesa" (R-07). Nello sprint 1 gli account arrivano dal seed.</p>
+          </div>
+        </div>
+
+        <div class="surface-card">
+          <div class="surface-card-header">
+            <div>
+              <h3 class="surface-card-title">In breve</h3>
+              <span class="sotto">Situazione</span>
+            </div>
+          </div>
+          <div class="surface-card-body">
+            <dl class="dati-lista">
+              <div><dt>Bozza dell'artigiano</dt><dd style="color: var(--warning-text); font-weight: 600;">Campagna Novembre 2026 · 01/11–30/11 · 3 foto in 1 gruppo · ferma al passo 11</dd></div>
+              <div><dt>Profilo aggiornato</dt><dd>20/09/2026 <span class="diff">dopo l'invio di 1 campagna in corso</span></dd></div>
+              <div><dt>Campagne inviate</dt><dd><strong>6 dal 01/04/2026</strong></dd></div>
+              <div><dt>Archivio della bottega</dt><dd>41 foto dalle campagne chiuse · nessuna caricata dal profilo · logo assente</dd></div>
+              <div><dt>Post pubblicati</dt><dd>41 in totale · 3 falliti</dd></div>
+              <div><dt>Campagne non uscite</dt><dd>1 scaduta · 1 respinta</dd></div>
+            </dl>
+            <a href="AdFlow-operatore-metriche.html?artigiano=ART-0042" class="btn btn-secondary btn-sm" style="margin-top: 14px;">Vedi metriche →</a>
+            <p class="nota-card">La bozza è solo informativa: la compila e la invia l'artigiano. L'archivio sono le foto buone delle campagne chiuse, usate o no: su un canale dove non sono mai uscite valgono come nuove (ADR-83).</p>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Campagne dell'artigiano -->
+      <div class="surface-card" id="campagne" style="margin-bottom: 28px;">
+        <div class="surface-card-header">
+          <div>
+            <h3 class="surface-card-title">Campagne</h3>
+            <span class="sotto">Dalla più urgente alla più vecchia · per tutte un solo pulsante: Vedi campagna</span>
+          </div>
+          <div class="meta-actions">
+            <a href="AdFlow-operatore-artigiano-campagne.html" class="btn btn-secondary btn-sm">Tutte le campagne chiuse (4) →</a>
+          </div>
+        </div>
+        <div class="surface-card-body">
+
+          <div class="kpi-griglia">
+            <a href="#da-approvare" class="kpi attn"><div class="value">1</div><div class="title">Da approvare</div></a>
+            <a href="#in-corso" class="kpi"><div class="value">1</div><div class="title">In corso</div></a>
+            <a href="#storico" class="kpi"><div class="value">4</div><div class="title">Chiuse · qui le ultime 3</div></a>
+          </div>
+
+          <h4 class="titolo-sezione" id="da-approvare" style="font-size: 15px; margin-bottom: 10px;">Da approvare <span class="status-pill neutral piccola">1</span></h4>
+          <div class="surface-card riga-campagna bordo-attn" style="margin-bottom: 22px;">
+            <div>
+              <div class="titolo">
+                <h3>Campagna Ottobre 2026</h3>
+                <span class="status-pill review">in_revisione</span>
+                <span class="status-pill fb piccola">Facebook</span>
+                <span class="status-pill ig piccola">Instagram</span>
+              </div>
+              <div class="dati">
+                <span>01/10/2026 → 31/10/2026 · 31 giorni</span>
+                <span>3 post/settimana per canale</span>
+                <span>6 foto in 3 gruppi · 7 dall'archivio</span>
+                <span>Inviata il 25/09/2026</span>
+              </div>
+              <div class="dati">
+                <span class="status-pill neutral">26 post · 13 per canale</span>
+                <span class="status-pill review">26 da approvare</span>
+                <span class="status-pill danger">1 da rivedere</span>
+                <span class="status-pill review" style="white-space: normal;">5 riempitivi su Facebook, oltre uno ogni due foto nuove: 2 immagini chieste dall'artigiano, 2 foto già uscite, 1 cartolina</span>
+                <span class="status-pill neutral">5 rigenerazioni del testo usate</span>
+              </div>
+              <p class="citazione">"A ottobre voglio spingere i regali su misura per Natale, ho anche il mercatino il weekend del 6-7 dicembre da preparare."</p>
+              <div class="riquadro-nota"><strong>Entro quando:</strong> primo post da approvare giovedì 01/10 alle 18:30 · promemoria il 29/09</div>
+              <div class="riquadro-nota"><strong>Nota interna</strong> (27/09, L. Rossi): aspetto conferma delle date del mercatino.</div>
+            </div>
+            <div class="azioni">
+              <a href="AdFlow-operatore-campagna.html" class="btn btn-primary">Vedi campagna →</a>
+            </div>
+          </div>
+
+          <h4 class="titolo-sezione" id="in-corso" style="font-size: 15px; margin-bottom: 10px;">In corso <span class="status-pill neutral piccola">1</span></h4>
+          <div class="surface-card riga-campagna bordo-ok" style="margin-bottom: 22px;">
+            <div>
+              <div class="titolo">
+                <h3>Campagna Settembre 2026</h3>
+                <span class="status-pill success">attiva</span>
+                <span class="status-pill fb piccola">Facebook</span>
+              </div>
+              <div class="dati">
+                <span>01/09/2026 → 30/09/2026 · 30 giorni</span>
+                <span>3 post/settimana</span>
+                <span>4 foto in 2 gruppi · 8 dall'archivio</span>
+                <span>Approvata il 29/08/2026</span>
+              </div>
+              <div class="dati">
+                <span class="status-pill neutral">12 post</span>
+                <span class="status-pill success">10 pubblicati</span>
+                <span class="status-pill neutral">1 approvato</span>
+                <span class="status-pill danger">1 fallito</span>
+              </div>
+              <div class="riquadro-nota"><strong>Prossima pubblicazione:</strong> 29/09 ore 18:30 · Facebook</div>
+              <div class="riquadro-nota">Post non modificabili dopo l'approvazione: se uno non va, si sospende o si annulla la campagna</div>
+            </div>
+            <div class="azioni">
+              <a href="#" class="btn btn-secondary">Vedi campagna →</a>
+            </div>
+          </div>
+
+          <h4 class="titolo-sezione" id="storico" style="font-size: 15px; margin-bottom: 10px;">Storico <span class="status-pill neutral piccola">ultime 3 di 4</span></h4>
+          <div class="pila">
+            <div class="surface-card riga-campagna bordo-errore">
+              <div>
+                <div class="titolo">
+                  <h3>Campagna Agosto 2026</h3>
+                  <span class="status-pill danger">scaduta</span>
+                  <span class="status-pill fb piccola">Facebook</span>
+                </div>
+                <div class="dati">
+                  <span>01/08/2026 → 31/08/2026</span>
+                  <span>2 post/settimana</span>
+                  <span>8 foto in 2 gruppi</span>
+                  <span>Inviata il 27/07/2026</span>
+                  <span><strong>8 post</strong> · 8 scaduti</span>
+                </div>
+                <div class="riquadro-nota errore">Non approvata entro l'inizio (01/08 ore 00:00) · email all'artigiano inviata il 01/08</div>
+              </div>
+              <div class="azioni"><a href="#" class="btn btn-secondary btn-sm">Vedi campagna →</a></div>
+            </div>
+
+            <div class="surface-card riga-campagna bordo-ok">
+              <div>
+                <div class="titolo">
+                  <h3>Campagna Luglio 2026</h3>
+                  <span class="status-pill success">conclusa</span>
+                  <span class="status-pill fb piccola">Facebook</span>
+                </div>
+                <div class="dati" style="margin-bottom: 0;">
+                  <span>01/07/2026 → 31/07/2026</span>
+                  <span>3 post/settimana</span>
+                  <span>Approvata il 27/06/2026</span>
+                  <span><strong>13 post</strong> · 12 pubblicati · 1 fallito</span>
+                </div>
+              </div>
+              <div class="azioni"><a href="#" class="btn btn-secondary btn-sm">Vedi campagna →</a></div>
+            </div>
+
+            <div class="surface-card riga-campagna bordo-attn">
+              <div>
+                <div class="titolo">
+                  <h3>Campagna Luglio 2026 · primo invio</h3>
+                  <span class="status-pill danger">respinta</span>
+                  <span class="status-pill review">motivo: foto</span>
+                  <span class="status-pill fb piccola">Facebook</span>
+                </div>
+                <div class="dati">
+                  <span>01/07/2026 → 31/07/2026</span>
+                  <span>Respinta il 22/06/2026</span>
+                  <span><strong>13 post</strong> · 13 scartati</span>
+                </div>
+                <div class="riquadro-nota attn">Foto scattate male · 2 foto da rifare segnate. Richiesta di modifica: "Le foto del laboratorio sono troppo buie: ricaricale con più luce e aggiungi il tavolo finito."</div>
+              </div>
+              <div class="azioni"><a href="#" class="btn btn-secondary btn-sm">Vedi campagna →</a></div>
+            </div>
+          </div>
+
+          <div class="azioni-riga" style="margin-top: 16px;">
+            <a href="AdFlow-operatore-artigiano-campagne.html" class="btn btn-secondary">Tutte le campagne chiuse (4) →</a>
+            <span class="sotto">Scadute, concluse, annullate e respinte, dalla più recente.</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Profilo bottega in sola lettura -->
+      <div class="surface-card" id="profilo">
+        <div class="surface-card-header">
+          <div>
+            <h3 class="surface-card-title">Profilo bottega</h3>
+            <span class="sotto">Compilato dall'artigiano nella pagina Profilo bottega · sola lettura · aggiornato il 20/09/2026</span>
+          </div>
+          <span class="status-pill neutral">sola lettura</span>
+        </div>
+        <div class="surface-card-body">
+          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 24px 28px;">
+            <div>
+              <h4 class="titolo-sezione" style="font-size: 14px; margin-bottom: 8px;">01 · Identità · Chi è l'artigiano</h4>
+              <dl class="dati-lista sinistra">
+                <div><dt>Nome bottega *</dt><dd>Falegnameria Bianchi — mobili su misura <span class="diff">≠ anagrafica</span></dd></div>
+                <div><dt>Referente *</dt><dd>Mario Bianchi</dd></div>
+                <div><dt>Città *</dt><dd>Bra (CN)</dd></div>
+                <div><dt>Anni di attività</dt><dd>12 anni, dal 2014</dd></div>
+                <div><dt>Sito</dt><dd>www.falegnameriabianchi.it</dd></div>
+              </dl>
+            </div>
+            <div>
+              <h4 class="titolo-sezione" style="font-size: 14px; margin-bottom: 8px;">02 · Storia · La storia da raccontare</h4>
+              <dl class="dati-lista sinistra">
+                <div><dt>Cosa fa</dt><dd>Costruisco mobili su misura in legno massello, ogni pezzo è unico e nasce da un disegno condiviso con il cliente.</dd></div>
+                <div><dt>Come è nata</dt><dd>Ho imparato il mestiere da mio padre, ho aperto la bottega nel 2014 dopo anni come dipendente.</dd></div>
+                <div><dt>Valori</dt><dd><span class="status-pill neutral piccola">Artigianalità</span> <span class="status-pill neutral piccola">Tradizione</span></dd></div>
+              </dl>
+            </div>
+            <div>
+              <h4 class="titolo-sezione" style="font-size: 14px; margin-bottom: 8px;">03 · Prodotti · Cosa vende</h4>
+              <dl class="dati-lista sinistra">
+                <div><dt>Tipo di prodotto *</dt><dd>Legno e mobili</dd></div>
+                <div><dt>Gamma</dt><dd>Tavoli e sedie su misura, piccoli oggetti da regalo, restauro mobili antichi.</dd></div>
+                <div><dt>Fascia di prezzo</dt><dd>Media</dd></div>
+                <div><dt>Stagionalità</dt><dd>Presepi a Natale, regali laurea</dd></div>
+              </dl>
+            </div>
+            <div>
+              <h4 class="titolo-sezione" style="font-size: 14px; margin-bottom: 8px;">04 · Pubblico e obiettivo · Per chi lavora</h4>
+              <dl class="dati-lista sinistra">
+                <div><dt>Clienti ideali *</dt><dd>Coppie che stanno arredando casa, 30-50 anni, zona Cuneo e Torino.</dd></div>
+                <div><dt>Obiettivo *</dt><dd>Farmi conoscere</dd></div>
+                <div><dt>Zona</dt><dd>Provincia di Cuneo</dd></div>
+              </dl>
+            </div>
+            <div>
+              <h4 class="titolo-sezione" style="font-size: 14px; margin-bottom: 8px;">05 · Voce e vincoli · Come devono suonare i post</h4>
+              <dl class="dati-lista sinistra">
+                <div><dt>Tono</dt><dd>Caldo e familiare</dd></div>
+                <div><dt>Cortesia</dt><dd>Do sempre del tu</dd></div>
+                <div><dt>Cose da non dire mai</dt><dd>Niente prezzi dei concorrenti, niente sconti non autorizzati dal consorzio.</dd></div>
+              </dl>
+            </div>
+            <div>
+              <h4 class="titolo-sezione" style="font-size: 14px; margin-bottom: 8px;">06 · Presenza social · Dove è già presente</h4>
+              <dl class="dati-lista sinistra">
+                <div><dt>Canali attivi</dt><dd>Facebook</dd></div>
+                <div><dt>Profili</dt><dd>@falegnameriabianchi</dd></div>
+                <div><dt>Cosa funziona</dt><dd>I video brevi mentre lavoro il legno hanno sempre molte condivisioni.</dd></div>
+              </dl>
+            </div>
+            <div>
+              <h4 class="titolo-sezione" style="font-size: 14px; margin-bottom: 8px;">07 · Foto e contenuti · Cosa si può fotografare</h4>
+              <dl class="dati-lista sinistra">
+                <div><dt>Foto al mese</dt><dd>Tra 5 e 12</dd></div>
+                <div><dt>Chi scatta</dt><dd>Io stesso, con il telefono</dd></div>
+                <div><dt>Persone</dt><dd>A volte, sempre con consenso scritto</dd></div>
+              </dl>
+            </div>
+            <div>
+              <h4 class="titolo-sezione" style="font-size: 14px; margin-bottom: 8px;">08 · Calendario eventi · Date da tenere a mente</h4>
+              <dl class="dati-lista sinistra">
+                <div><dt>Eventi</dt><dd>Mercatino di Natale · 6-8 dicembre 2026 <span class="status-pill neutral piccola">fiera o mercatino</span></dd></div>
+                <div><dt>Chiusure</dt><dd>Ferie dal 10 al 24 agosto, chiuso la domenica.</dd></div>
+              </dl>
+            </div>
+            <div>
+              <h4 class="titolo-sezione" style="font-size: 14px; margin-bottom: 8px;">09 · Logistica · Come pubblicare</h4>
+              <dl class="dati-lista sinistra">
+                <div><dt>Canali *</dt><dd>Facebook, Instagram</dd></div>
+                <div><dt>Frequenza</dt><dd>3-4 a settimana <span class="diff">= 3 post a settimana per canale</span></dd></div>
+                <div><dt>Orari</dt><dd>La sera e nel weekend</dd></div>
+              </dl>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Note della pagina statica: non fanno parte della schermata -->
+      <div class="note-pagina">
+        <p><strong>Schema statico, non interattivo</strong> (v5.0, ADR-38, ADR-40…44, ADR-53 e ADR-54). Pagina dell'operatore dedicata a un artigiano, con dati di esempio (Falegnameria Bianchi, come nelle pagine Profilo e Campagna). Nessun pulsante funziona: è lo scheletro da cui costruire la pagina reale (sprint 3). Oggi è il 28/09/2026.</p>
+        <p><strong>Sezioni delle campagne (ADR-53).</strong> Da approvare: <code>inviata</code>, <code>in_generazione</code>, <code>piano_da_rivedere</code>, <code>generazione_fallita</code>, <code>in_revisione</code> · In corso: <code>attiva</code>, <code>sospesa</code> · Storico: le ultime campagne chiuse (<code>scaduta</code>, <code>conclusa</code>, <code>annullata</code>, <code>respinta</code>); le altre stanno in una pagina a parte, raggiunta dal pulsante in fondo. Approva, respingi (con motivo: foto o altro), la nota interna, la modifica a mano e gli interventi AI sui post (rigenera il testo, ritocca la foto: max 3 + 3 per post) stanno nella pagina <strong>Vedi campagna</strong>, con tutti i post e il calendario. In campagna attiva nessuna modifica ai post: si sospende o si annulla (ADR-44).</p>
+        <p>Esempio · sezione vuota: "Nessuna campagna da approvare. Le campagne arrivano qui appena l'artigiano le invia."</p>
+        <p><strong>Profilo bottega.</strong> Qui c'è il profilo di oggi. Ogni campagna inviata usa la fotografia del profilo salvata all'invio (ADR-24), visibile nella sua pagina Vedi campagna. I campi facoltativi vuoti si mostrano come —; * = obbligatorio.</p>
+      </div>
+
+    </main>
   </div>
-</header>
+</div>
 
-<main class="wrap">
-
-  <div class="banner warn">
-    <span class="icon">i</span>
-    <span><b>Schema statico, non interattivo</b> (v5.0, ADR-38, ADR-40…44, ADR-53 e ADR-54). Pagina dell'operatore dedicata a un artigiano, con dati di esempio (Falegnameria Bianchi, come nelle pagine Profilo e Campagna). Nessun pulsante funziona: è lo scheletro da cui costruire la pagina reale (sprint 3). Oggi è il 28/09/2026.</span>
-  </div>
-
-  <div class="crumb"><a href="AdFlow-operatore-elenco.html">← Elenco artigiani</a></div>
-
-  <div class="masthead">
-    <div>
-      <div class="eyebrow">Artigiano · ART-0042</div>
-      <h1>Falegnameria Bianchi</h1>
-      <p>Mario Bianchi · Bra (CN) · Legno e mobili</p>
-    </div>
-    <div class="jump">
-      <a href="#campagne">Campagne</a>
-      <a href="#profilo">Profilo bottega</a>
-      <a href="AdFlow-operatore-metriche.html?artigiano=ART-0042">Metriche di questa bottega →</a>
-    </div>
-  </div>
-
-  <!-- ============ Riga alta: anagrafica · account social · situazione ============ -->
-  <div class="top-grid">
-
-    <div class="card">
-      <div class="tab">Anagrafica · gestita dall'operatore</div>
-      <h3>Dati di iscrizione</h3>
-      <dl style="margin:0;">
-        <div class="rev-line"><dt>ID artigiano</dt><dd class="mono">ART-0042</dd></div>
-        <div class="rev-line"><dt>Codice consorzio</dt><dd class="mono">CNS-2019-0117</dd></div>
-        <div class="rev-line"><dt>Nome bottega</dt><dd>Falegnameria Bianchi</dd></div>
-        <div class="rev-line"><dt>Referente</dt><dd>Mario Bianchi</dd></div>
-        <div class="rev-line"><dt>Città</dt><dd>Bra (CN)</dd></div>
-        <div class="rev-line"><dt>Email di accesso</dt><dd>mario@falegnameriabianchi.it</dd></div>
-        <div class="rev-line"><dt>Telefono</dt><dd>0172 000 000</dd></div>
-        <div class="rev-line"><dt>Iscrizione</dt><dd><span class="badge ok">attiva</span> dal 14/03/2019</dd></div>
-      </dl>
-      <div class="foot"><button type="button" class="btn">Modifica anagrafica</button></div>
-      <p class="note">Dati fissi: li modifica solo l'operatore. Oggi inseriti a mano; in futuro importati dal sito del consorzio, dove l'artigiano è già iscritto (da decidere, ADR-38).</p>
-    </div>
-
-    <div class="card">
-      <div class="tab">Account social · collegamento dallo sprint 3</div>
-      <h3>Pagine su cui si pubblica</h3>
-      <div class="social-row">
-        <span>Facebook<span class="sub">Falegnameria Bianchi · permesso fino al 12/12/2026</span></span>
-        <span class="badge ok">collegato</span>
-      </div>
-      <div class="social-row">
-        <span>Instagram<span class="sub">falegnameriabianchi · permesso scaduto il 28/09/2026</span></span>
-        <span class="badge danger">permesso scaduto</span>
-      </div>
-      <div class="foot">
-        <button type="button" class="btn primary">Ricollega Instagram</button>
-        <button type="button" class="btn quiet">Ricollega Facebook</button>
-      </div>
-      <p class="note">Si collega una volta, insieme all'artigiano. Senza account collegato l'artigiano non può scegliere quel canale in una campagna (ADR-57). Se il permesso scade dopo l'invio, alla prima pubblicazione su quel canale la campagna passa a "sospesa" (R-07). Nello sprint 1 gli account arrivano dal seed.</p>
-    </div>
-
-    <div class="card">
-      <div class="tab">Situazione</div>
-      <h3>In breve</h3>
-      <dl style="margin:0;">
-        <div class="rev-line"><dt>Bozza dell'artigiano</dt><dd>Campagna Novembre 2026 · 01/11–30/11 · 3 foto in 1 gruppo · ferma al passo 11</dd></div>
-        <div class="rev-line"><dt>Profilo aggiornato</dt><dd>20/09/2026 <span class="diff block">dopo l'invio di 1 campagna in corso</span></dd></div>
-        <div class="rev-line"><dt>Campagne inviate</dt><dd>6 dal 01/04/2026</dd></div>
-        <div class="rev-line"><dt>Archivio della bottega</dt><dd>41 foto dalle campagne chiuse · nessuna caricata dal profilo · logo assente</dd></div>
-        <div class="rev-line"><dt>Post pubblicati</dt><dd>41 in totale · 3 falliti</dd></div>
-        <div class="rev-line"><dt>Campagne non uscite</dt><dd>1 scaduta · 1 respinta</dd></div>
-      </dl>
-      <div class="foot"><a class="btn" href="AdFlow-operatore-metriche.html?artigiano=ART-0042">Vedi metriche →</a></div>
-      <p class="note">La bozza è solo informativa: la compila e la invia l'artigiano. L'archivio sono le foto buone delle campagne chiuse, usate o no: su un canale dove non sono mai uscite valgono come nuove (ADR-83).</p>
-    </div>
-
-  </div>
-
-  <!-- ============ Campagne ============ -->
-  <section id="campagne">
-    <div class="section-head">
-      <h2>Campagne</h2>
-      <p>Dalla più urgente alla più vecchia · per tutte un solo pulsante: Vedi campagna</p>
-    </div>
-
-    <div class="banner info">
-      <span class="icon">i</span>
-      <span><b>Sezioni (ADR-53).</b> Da approvare: <span class="mono">inviata</span>, <span class="mono">in_generazione</span>, <span class="mono">piano_da_rivedere</span>, <span class="mono">generazione_fallita</span>, <span class="mono">in_revisione</span> · In corso: <span class="mono">attiva</span>, <span class="mono">sospesa</span> · Storico: le ultime campagne chiuse (<span class="mono">scaduta</span>, <span class="mono">conclusa</span>, <span class="mono">annullata</span>, <span class="mono">respinta</span>); le altre stanno in una pagina a parte, raggiunta dal pulsante in fondo. Approva, respingi (con motivo: foto o altro), la nota interna, la modifica a mano e gli interventi AI sui post (rigenera il testo, ritocca la foto: max 3 + 3 per post) stanno nella pagina <b>Vedi campagna</b>, con tutti i post e il calendario. In campagna attiva nessuna modifica ai post: si sospende o si annulla (ADR-44).</span>
-    </div>
-
-    <div class="counts">
-      <a class="count attn" href="#da-approvare"><b>1</b><span>Da approvare</span></a>
-      <a class="count" href="#in-corso"><b>1</b><span>In corso</span></a>
-      <a class="count" href="#storico"><b>4</b><span>Chiuse · qui le ultime 3</span></a>
-    </div>
-
-    <div class="group" id="da-approvare">
-      <h3 class="group-title">Da approvare <span class="n">1</span></h3>
-      <article class="camp attn">
-        <div>
-          <h3>Campagna Ottobre 2026 <span class="badge warn">in_revisione</span></h3>
-          <div class="meta">
-            <span>01/10/2026 → 31/10/2026 · 31 giorni</span>
-            <span>Facebook, Instagram</span>
-            <span>3 post/settimana per canale</span>
-            <span>6 foto in 3 gruppi · 7 dall'archivio</span>
-            <span>Inviata il 25/09/2026</span>
-          </div>
-          <div class="posts">
-            <span class="badge">26 post · 13 per canale</span>
-            <span class="badge warn">26 da approvare</span>
-            <span class="badge danger">1 da rivedere</span>
-            <span class="badge warn">5 riempitivi su Facebook, oltre uno ogni due foto nuove: 2 immagini chieste dall'artigiano, 2 foto già uscite, 1 cartolina</span>
-            <span class="badge">5 rigenerazioni del testo usate</span>
-          </div>
-          <p class="desc">"A ottobre voglio spingere i regali su misura per Natale, ho anche il mercatino il weekend del 6-7 dicembre da preparare."</p>
-          <div class="next"><b>Entro quando:</b> primo post da approvare giovedì 01/10 alle 18:30 · promemoria il 29/09</div>
-          <div class="next"><b>Nota interna</b> (27/09, L. Rossi): aspetto conferma delle date del mercatino.</div>
-        </div>
-        <div class="actions">
-          <a class="btn primary" href="AdFlow-operatore-campagna.html">Vedi campagna →</a>
-        </div>
-      </article>
-    </div>
-
-    <div class="group" id="in-corso">
-      <h3 class="group-title">In corso <span class="n">1</span></h3>
-      <article class="camp">
-        <div>
-          <h3>Campagna Settembre 2026 <span class="badge ok">attiva</span></h3>
-          <div class="meta">
-            <span>01/09/2026 → 30/09/2026 · 30 giorni</span>
-            <span>Facebook</span>
-            <span>3 post/settimana</span>
-            <span>4 foto in 2 gruppi · 8 dall'archivio</span>
-            <span>Approvata il 29/08/2026</span>
-          </div>
-          <div class="posts">
-            <span class="badge">12 post</span>
-            <span class="badge ok">10 pubblicati</span>
-            <span class="badge">1 approvato</span>
-            <span class="badge danger">1 fallito</span>
-          </div>
-          <div class="next"><b>Prossima pubblicazione:</b> 29/09 ore 18:30 · Facebook</div>
-          <div class="next"><b>Post non modificabili</b> dopo l'approvazione: se uno non va, si sospende o si annulla la campagna</div>
-        </div>
-        <div class="actions">
-          <a class="btn primary" href="#">Vedi campagna →</a>
-        </div>
-      </article>
-    </div>
-
-    <div class="group" id="storico">
-      <h3 class="group-title">Storico <span class="n">ultime 3 di 4</span></h3>
-      <article class="camp lost">
-        <div>
-          <h3>Campagna Agosto 2026 <span class="badge danger">scaduta</span></h3>
-          <div class="meta">
-            <span>01/08/2026 → 31/08/2026</span>
-            <span>Facebook</span>
-            <span>2 post/settimana</span>
-            <span>8 foto in 2 gruppi</span>
-            <span>Inviata il 27/07/2026</span>
-          </div>
-          <div class="posts">
-            <span class="badge">8 post</span>
-            <span class="badge danger">8 scaduti</span>
-          </div>
-          <div class="next"><b>Non approvata entro l'inizio</b> (01/08 ore 00:00) · email all'artigiano inviata il 01/08</div>
-        </div>
-        <div class="actions">
-          <a class="btn" href="#">Vedi campagna →</a>
-        </div>
-      </article>
-      <article class="camp">
-        <div>
-          <h3>Campagna Luglio 2026 <span class="badge">conclusa</span></h3>
-          <div class="meta">
-            <span>01/07/2026 → 31/07/2026</span>
-            <span>Facebook</span>
-            <span>3 post/settimana</span>
-            <span>Approvata il 27/06/2026</span>
-          </div>
-          <div class="posts">
-            <span class="badge">13 post</span>
-            <span class="badge ok">12 pubblicati</span>
-            <span class="badge danger">1 fallito</span>
-          </div>
-        </div>
-        <div class="actions">
-          <a class="btn" href="#">Vedi campagna →</a>
-        </div>
-      </article>
-      <article class="camp">
-        <div>
-          <h3>Campagna Luglio 2026 · primo invio <span class="badge danger">respinta</span> <span class="badge">motivo: foto</span></h3>
-          <div class="meta">
-            <span>01/07/2026 → 31/07/2026</span>
-            <span>Facebook</span>
-            <span>Respinta il 22/06/2026</span>
-          </div>
-          <div class="posts">
-            <span class="badge">13 post</span>
-            <span class="badge">13 scartati</span>
-          </div>
-          <p class="desc">Foto scattate male · 2 foto da rifare segnate. Richiesta di modifica: "Le foto del laboratorio sono troppo buie: ricaricale con più luce e aggiungi il tavolo finito."</p>
-        </div>
-        <div class="actions">
-          <a class="btn" href="#">Vedi campagna →</a>
-        </div>
-      </article>
-      <div style="display:flex; gap:12px; align-items:center; flex-wrap:wrap; margin-top:12px;">
-        <a class="btn" href="AdFlow-operatore-artigiano-campagne.html">Tutte le campagne chiuse (4) →</a>
-        <span class="note" style="margin:0;">Scadute, concluse, annullate e respinte, dalla più recente.</span>
-      </div>
-    </div>
-
-    <!-- Esempio di sezione vuota, per lo sviluppo -->
-    <div class="group">
-      <h3 class="group-title">Esempio · sezione vuota</h3>
-      <div class="group-empty">Nessuna campagna da approvare. Le campagne arrivano qui appena l'artigiano le invia.</div>
-    </div>
-  </section>
-
-  <!-- ============ Profilo bottega (passi 1–9, sola lettura) ============ -->
-  <section id="profilo" style="margin-top:36px;">
-    <div class="section-head">
-      <h2>Profilo bottega</h2>
-      <p>Compilato dall'artigiano nella pagina Profilo bottega · sola lettura · aggiornato il 20/09/2026</p>
-    </div>
-
-    <div class="banner info">
-      <span class="icon">i</span>
-      <span>Qui c'è il profilo <b>di oggi</b>. Ogni campagna inviata usa la fotografia del profilo salvata all'invio (ADR-24), visibile nella sua pagina Vedi campagna. I campi facoltativi vuoti si mostrano come <span class="empty">—</span>; * = obbligatorio.</span>
-    </div>
-
-    <div class="profile-grid">
-
-      <div class="card">
-        <div class="tab">01 · Identità</div>
-        <h3>Chi è l'artigiano</h3>
-        <dl style="margin:0;">
-          <div class="rev-line"><dt>Nome bottega *</dt><dd>Falegnameria Bianchi — mobili su misura <span class="diff">≠ anagrafica</span></dd></div>
-          <div class="rev-line"><dt>Referente *</dt><dd>Mario Bianchi</dd></div>
-          <div class="rev-line"><dt>Città *</dt><dd>Bra (CN)</dd></div>
-          <div class="rev-line"><dt>Anni di attività</dt><dd>12 anni, dal 2014</dd></div>
-          <div class="rev-line"><dt>Sito</dt><dd>www.falegnameriabianchi.it</dd></div>
-        </dl>
-      </div>
-
-      <div class="card">
-        <div class="tab">02 · Storia</div>
-        <h3>La storia da raccontare</h3>
-        <dl style="margin:0;">
-          <div class="rev-line"><dt>Cosa fa</dt><dd>Costruisco mobili su misura in legno massello, ogni pezzo è unico e nasce da un disegno condiviso con il cliente.</dd></div>
-          <div class="rev-line"><dt>Come è nata</dt><dd>Ho imparato il mestiere da mio padre, ho aperto la bottega nel 2014 dopo anni come dipendente.</dd></div>
-          <div class="rev-line"><dt>Valori</dt><dd><div class="chips"><span class="chip">Artigianalità</span><span class="chip">Tradizione</span></div></dd></div>
-        </dl>
-      </div>
-
-      <div class="card">
-        <div class="tab">03 · Prodotti</div>
-        <h3>Cosa vende</h3>
-        <dl style="margin:0;">
-          <div class="rev-line"><dt>Tipo di prodotto *</dt><dd>Legno e mobili</dd></div>
-          <div class="rev-line"><dt>Gamma</dt><dd>Tavoli e sedie su misura, piccoli oggetti da regalo, restauro mobili antichi.</dd></div>
-          <div class="rev-line"><dt>Fascia di prezzo</dt><dd>Media</dd></div>
-          <div class="rev-line"><dt>Stagionalità</dt><dd>Presepi a Natale, regali laurea</dd></div>
-        </dl>
-      </div>
-
-      <div class="card">
-        <div class="tab">04 · Pubblico e obiettivo</div>
-        <h3>Per chi lavora</h3>
-        <dl style="margin:0;">
-          <div class="rev-line"><dt>Clienti ideali *</dt><dd>Coppie che stanno arredando casa, 30-50 anni, zona Cuneo e Torino.</dd></div>
-          <div class="rev-line"><dt>Obiettivo *</dt><dd>Farmi conoscere</dd></div>
-          <div class="rev-line"><dt>Zona</dt><dd>Provincia di Cuneo</dd></div>
-        </dl>
-      </div>
-
-      <div class="card">
-        <div class="tab">05 · Voce e vincoli</div>
-        <h3>Come devono suonare i post</h3>
-        <dl style="margin:0;">
-          <div class="rev-line"><dt>Tono</dt><dd><div class="chips"><span class="chip">Caldo e familiare</span></div></dd></div>
-          <div class="rev-line"><dt>Cortesia</dt><dd>Do sempre del tu</dd></div>
-          <div class="rev-line"><dt>Cose da non dire mai</dt><dd>Niente prezzi dei concorrenti, niente sconti non autorizzati dal consorzio.</dd></div>
-        </dl>
-      </div>
-
-      <div class="card">
-        <div class="tab">06 · Presenza social</div>
-        <h3>Dove è già presente</h3>
-        <dl style="margin:0;">
-          <div class="rev-line"><dt>Canali attivi</dt><dd>Facebook</dd></div>
-          <div class="rev-line"><dt>Profili</dt><dd>@falegnameriabianchi</dd></div>
-          <div class="rev-line"><dt>Cosa funziona</dt><dd>I video brevi mentre lavoro il legno hanno sempre molte condivisioni.</dd></div>
-        </dl>
-      </div>
-
-      <div class="card">
-        <div class="tab">07 · Foto e contenuti</div>
-        <h3>Cosa si può fotografare</h3>
-        <dl style="margin:0;">
-          <div class="rev-line"><dt>Foto al mese</dt><dd>Tra 5 e 12</dd></div>
-          <div class="rev-line"><dt>Chi scatta</dt><dd>Io stesso, con il telefono</dd></div>
-          <div class="rev-line"><dt>Persone</dt><dd>A volte, sempre con consenso scritto</dd></div>
-        </dl>
-      </div>
-
-      <div class="card">
-        <div class="tab">08 · Calendario eventi</div>
-        <h3>Date da tenere a mente</h3>
-        <dl style="margin:0;">
-          <div class="rev-line"><dt>Eventi</dt><dd><div class="evento" style="padding-top:0;">Mercatino di Natale · 6-8 dicembre 2026 <span class="badge">fiera o mercatino</span></div></dd></div>
-          <div class="rev-line"><dt>Chiusure</dt><dd>Ferie dal 10 al 24 agosto, chiuso la domenica.</dd></div>
-        </dl>
-      </div>
-
-      <div class="card">
-        <div class="tab">09 · Logistica</div>
-        <h3>Come pubblicare</h3>
-        <dl style="margin:0;">
-          <div class="rev-line"><dt>Canali *</dt><dd>Facebook, Instagram</dd></div>
-          <div class="rev-line"><dt>Frequenza</dt><dd>3-4 a settimana <span class="empty">(= 3 post a settimana per canale)</span></dd></div>
-          <div class="rev-line"><dt>Orari</dt><dd>La sera e nel weekend</dd></div>
-        </dl>
-      </div>
-
-    </div>
-  </section>
-
-</main>
+</body>
+</html>

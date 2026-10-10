@@ -1,262 +1,230 @@
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Operatore · Artigiano · Campagne chiuse</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --paper:#F6F3EC; --paper-raised:#FFFFFF; --ink:#201D17; --ink-soft:#6E6656; --ink-faint:#9C927D;
-    --accent:#2E6B5C; --accent-strong:#1D4A3F; --accent-soft:#DCEAE3; --accent-on-soft:#1D4A3F;
-    --line:#DDD5C2; --danger:#AE3B2C; --danger-soft:#F6E1DC; --danger-on-soft:#7A281C;
-    --warn:#8A6A1F; --warn-soft:#F3E7C9;
-    color-scheme: light;
-  }
-  @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]){
-      --paper:#1B1914; --paper-raised:#26231C; --ink:#EFEAE0; --ink-soft:#B7AE9B; --ink-faint:#837A68;
-      --accent:#7EC4AE; --accent-strong:#A9DCC9; --accent-soft:#22392F; --accent-on-soft:#A9DCC9;
-      --line:#3A362B; --danger:#E08776; --danger-soft:#3A2420; --danger-on-soft:#E08776;
-      --warn:#E4C878; --warn-soft:#3A331C;
-      color-scheme: dark;
-    }
-  }
-  :root[data-theme="dark"]{
-    --paper:#1B1914; --paper-raised:#26231C; --ink:#EFEAE0; --ink-soft:#B7AE9B; --ink-faint:#837A68;
-    --accent:#7EC4AE; --accent-strong:#A9DCC9; --accent-soft:#22392F; --accent-on-soft:#A9DCC9;
-    --line:#3A362B; --danger:#E08776; --danger-soft:#3A2420; --danger-on-soft:#E08776;
-    --warn:#E4C878; --warn-soft:#3A331C;
-    color-scheme: dark;
-  }
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Operatore · Artigiano · Campagne chiuse</title>
+  <link rel="stylesheet" href="assets/adflow.css">
+</head>
+<body>
 
-  *{ box-sizing:border-box; }
-  body{ background:var(--paper); color:var(--ink); font-family:"IBM Plex Sans", system-ui, sans-serif; margin:0; }
-  h1,h2,h3{ font-family:"Fraunces", Georgia, serif; font-weight:600; text-wrap:balance; margin:0; }
-  a{ color:var(--accent-strong); }
-  .wrap{ max-width:1100px; margin-inline:auto; padding-inline:16px; }
-  .mono{ font-family:"IBM Plex Mono", monospace; }
+<div class="app-container">
+  <!-- Barra laterale -->
+  <aside class="app-sidebar">
+    <div class="sidebar-header">
+      <div class="brand-icon-wrapper">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+          <polyline points="2 17 12 22 22 17"></polyline>
+          <polyline points="2 12 12 17 22 12"></polyline>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>AdFlow</h1>
+        <span>Suite · Operatore</span>
+      </div>
+    </div>
 
-  /* Barra di navigazione comune alle tre pagine operatore */
-  .topbar{ background:var(--paper-raised); border-bottom:1px solid var(--line); }
-  .topbar .wrap{ display:flex; align-items:center; gap:22px; min-height:54px; flex-wrap:wrap; }
-  .brand{ font-family:"Fraunces", Georgia, serif; font-weight:600; font-size:17px; color:var(--ink); text-decoration:none; }
-  .brand small{ font-family:"IBM Plex Mono", monospace; font-size:11px; font-weight:400; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); margin-left:6px; }
-  .nav{ display:flex; gap:4px; flex:1; }
-  .nav a{ text-decoration:none; font-size:14px; color:var(--ink-soft); padding:7px 12px; border-radius:8px; }
-  .nav a.current{ background:var(--accent-soft); color:var(--accent-on-soft); font-weight:500; }
-  .user{ font-size:13px; color:var(--ink-soft); display:flex; gap:12px; align-items:center; }
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Piattaforma</div>
+      <a href="AdFlow-operatore-ingresso.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        <span>Dashboard</span>
+      </a>
+      <a href="AdFlow-operatore-campagna.html" class="nav-link active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+        <span>Campagne</span>
+        <span class="nav-badge">4</span>
+      </a>
+      <a href="AdFlow-operatore-da-approvare.html" class="nav-link" style="padding-left: 36px; font-size: 12.5px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width: 15px; height: 15px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+        <span>Da approvare</span>
+      </a>
+      <a href="AdFlow-operatore-artigiano-campagne.html" class="nav-link active" style="padding-left: 36px; font-size: 12.5px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width: 15px; height: 15px;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+        <span>Storico chiuse</span>
+      </a>
 
-  main{ padding-block:24px 48px; }
-  .crumb{ font-size:13px; margin-bottom:14px; }
-  .crumb a{ text-decoration:none; }
+      <div class="nav-section-label">Gestione</div>
+      <a href="AdFlow-operatore-elenco.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        <span>Artigiani</span>
+        <span class="nav-badge">6</span>
+      </a>
+      <a href="AdFlow-operatore-metriche.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+        <span>Metriche</span>
+      </a>
 
-  .masthead{ display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap; margin-bottom:18px; }
-  .eyebrow{ font-family:"IBM Plex Mono", monospace; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); }
-  .masthead h1{ font-size:30px; margin-top:6px; }
-  .masthead p{ color:var(--ink-soft); font-size:14.5px; margin:6px 0 0; }
-  .jump{ display:flex; gap:8px; flex-wrap:wrap; }
-  .jump a{ font-size:13px; text-decoration:none; border:1px solid var(--line); background:var(--paper-raised); border-radius:20px; padding:6px 13px; }
-
-  .banner{ border-radius:10px; padding:12px 14px; font-size:13.5px; line-height:1.5; margin-bottom:22px; display:flex; gap:10px; align-items:flex-start; }
-  .banner.info{ background:var(--accent-soft); border:1px solid var(--accent); color:var(--accent-on-soft); }
-  .banner.warn{ background:var(--warn-soft); border:1px solid var(--warn); color:var(--warn); }
-  .banner .icon{ flex:none; font-family:"IBM Plex Mono", monospace; font-weight:500; }
-
-  .card{ background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:20px; }
-  .card .tab{ font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--accent-strong); letter-spacing:.06em; }
-  .card h3{ font-size:18px; margin-top:4px; margin-bottom:12px; }
-  .card .foot{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:14px; }
-  .note{ font-size:12.5px; color:var(--ink-faint); line-height:1.5; margin-top:10px; }
-
-  .top-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:16px; margin-bottom:34px; }
-
-  .rev-line{ display:flex; gap:10px; font-size:13.5px; padding:5px 0; border-top:1px solid var(--line); margin:0; }
-  .rev-line dt{ color:var(--ink-soft); flex:0 0 42%; margin:0; }
-  .rev-line dd{ margin:0; flex:1; min-width:0; overflow-wrap:anywhere; }
-  .empty{ color:var(--ink-faint); }
-
-  .badge{ display:inline-block; font-family:"IBM Plex Mono", monospace; font-size:11.5px; border-radius:20px; padding:2px 9px; border:1px solid var(--line); color:var(--ink-soft); background:var(--paper); white-space:nowrap; }
-  .badge.ok{ border-color:var(--accent); background:var(--accent-soft); color:var(--accent-on-soft); }
-  .badge.warn{ border-color:var(--warn); background:var(--warn-soft); color:var(--warn); }
-  .badge.danger{ border-color:var(--danger); background:var(--danger-soft); color:var(--danger-on-soft); }
-
-  .btn{ font-family:inherit; border-radius:8px; padding:8px 14px; font-size:13.5px; font-weight:500; border:1px solid var(--line); background:var(--paper-raised); color:var(--ink); display:inline-block; text-decoration:none; }
-  .btn.primary{ background:var(--accent); border-color:var(--accent); color:var(--paper-raised); }
-  .btn.quiet{ color:var(--ink-soft); }
-  .btn.danger{ color:var(--danger); }
-
-  .social-row{ display:flex; justify-content:space-between; align-items:center; gap:10px; padding:9px 0; border-top:1px solid var(--line); font-size:13.5px; }
-  .social-row .sub{ display:block; font-size:12px; color:var(--ink-faint); }
-
-  .section-head{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
-  .section-head h2{ font-size:24px; }
-  .section-head p{ margin:0; font-size:13.5px; color:var(--ink-soft); }
-  section{ scroll-margin-top:16px; }
-
-  .counts{ display:grid; grid-template-columns:repeat(4, 1fr); gap:10px; margin-bottom:18px; }
-  .count{ display:block; background:var(--paper-raised); border:1px solid var(--line); border-radius:10px; padding:12px 14px; text-decoration:none; color:var(--ink); }
-  .count b{ display:block; font-family:"IBM Plex Mono", monospace; font-weight:500; font-size:24px; }
-  .count span{ font-size:13px; color:var(--ink-soft); }
-  .count.attn{ border-color:var(--warn); background:var(--warn-soft); }
-  .count.attn span, .count.attn b{ color:var(--warn); }
-  @media (max-width:640px){ .counts{ grid-template-columns:repeat(2, 1fr); } }
-
-  .group{ margin-bottom:22px; }
-  .group-title{ display:flex; align-items:baseline; gap:10px; font-family:"IBM Plex Sans", sans-serif; font-size:15px; font-weight:600; margin:0 0 8px; }
-  .group-title .n{ font-family:"IBM Plex Mono", monospace; font-weight:400; font-size:13px; color:var(--ink-faint); }
-  .group-empty{ border:1px dashed var(--line); border-radius:12px; padding:14px 16px; font-size:13.5px; color:var(--ink-faint); }
-
-  .camp{ background:var(--paper-raised); border:1px solid var(--line); border-radius:12px; padding:16px 18px; display:grid; grid-template-columns:1fr auto; gap:14px 24px; margin-bottom:10px; }
-  .camp.attn{ border-left:4px solid var(--warn); }
-  .camp.lost{ border-left:4px solid var(--danger); }
-  .camp h3{ font-size:17px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-  .camp .meta{ font-size:13px; color:var(--ink-soft); margin-top:5px; display:flex; gap:6px 16px; flex-wrap:wrap; }
-  .camp .desc{ font-size:13px; color:var(--ink-soft); margin:8px 0 0; line-height:1.5; font-style:italic; }
-  .posts{ display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
-  .camp .next{ font-size:13px; margin-top:10px; }
-  .camp .actions{ display:flex; flex-direction:column; gap:8px; align-items:stretch; min-width:170px; }
-  .camp .actions .links{ display:flex; flex-direction:column; gap:4px; font-size:13px; margin-top:2px; }
-  @media (max-width:640px){
-    .camp{ grid-template-columns:1fr; }
-    .camp .actions{ flex-direction:row; flex-wrap:wrap; min-width:0; }
-  }
-
-  .profile-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:14px; }
-  .profile-grid .card{ padding:16px 18px; }
-  .profile-grid h3{ font-size:16px; margin-bottom:8px; }
-  .chips{ display:flex; flex-wrap:wrap; gap:5px; }
-  .chip{ border:1px solid var(--line); background:var(--paper); border-radius:20px; padding:2px 10px; font-size:12.5px; }
-  .diff{ font-family:"IBM Plex Mono", monospace; font-size:11px; color:var(--warn); margin-left:4px; }
-  .diff.block{ display:block; margin-left:0; margin-top:2px; }
-  .evento{ font-size:13px; padding:6px 0; }
-
-  /* Domande aperte con la proposta di risposta */
-  .open li{ margin-bottom:14px; }
-  .proposta{ display:block; margin-top:5px; padding:8px 11px; border-left:3px solid var(--accent); background:var(--accent-soft); color:var(--accent-on-soft); border-radius:0 8px 8px 0; }
-  .open{ margin:0; padding-left:20px; font-size:13.5px; line-height:1.55; }
-</style>
-<!-- fascia-mappa: stato della pagina statica e ritorno alla mappa. Non fa parte della schermata. -->
-<div style="border-bottom:1px solid var(--line); padding:8px 18px; background:var(--paper-raised); color:var(--ink-soft); font:12px/1.5 'IBM Plex Mono', ui-monospace, monospace; display:flex; flex-wrap:wrap; gap:2px 16px; justify-content:space-between;">
-  <a href="index.html" style="color:inherit;">← Mappa delle pagine</a>
-  <span>Pagina statica · <strong style="color:var(--ink); font-weight:500;">approvata</strong> · ADR-53 · domande chiuse: ADR-108</span>
-</div>
-<!-- /fascia-mappa -->
-
-<header class="topbar">
-  <div class="wrap">
-    <a class="brand" href="AdFlow-operatore-ingresso.html">AdFlow <small>Operatore</small></a>
-    <nav class="nav" aria-label="Sezioni operatore">
-      <a href="AdFlow-operatore-da-approvare.html">Da approvare</a>
-      <a href="AdFlow-operatore-elenco.html" class="current">Artigiani</a>
-      <a href="AdFlow-operatore-metriche.html">Metriche</a>
+      <div class="nav-section-label">Sistema</div>
+      <a href="index.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <span>Mappa Pagine</span>
+      </a>
     </nav>
-    <div class="user"><span>Laura Rossi · operatore</span><a href="AdFlow-login.html">Esci</a></div>
-  </div>
-</header>
 
-<main class="wrap">
-
-  <div class="banner warn">
-    <span class="icon">i</span>
-    <span><b>Pagina statica, non interattiva.</b> Lo storico completo delle campagne di una bottega (ADR-53): nella pagina artigiano restano quelle da approvare, quelle in corso e le ultime chiuse; le altre stanno qui. Oggi è il 28/09/2026.</span>
-  </div>
-
-  <div class="crumb"><a href="AdFlow-operatore-artigiano.html">← Falegnameria Bianchi</a></div>
-
-  <div class="masthead">
-    <div>
-      <div class="eyebrow">Artigiano · ART-0042 · Storico</div>
-      <h1>Campagne chiuse</h1>
-      <p>Falegnameria Bianchi · 4 campagne chiuse dal 01/04/2026 · dalla più recente</p>
+    <div class="sidebar-footer">
+      <div class="user-profile-card">
+        <img src="assets/img/avatar-laura.jpg" alt="Laura Rossi" class="user-avatar" onerror="this.outerHTML='<div class=\'user-avatar placeholder\'>LR</div>'">
+        <div class="user-info">
+          <div class="user-name">Laura Rossi</div>
+          <div class="user-role">Operatore Consorzio</div>
+        </div>
+      </div>
+      <a href="AdFlow-campagna.html" class="role-switch-btn" title="Passa all'esperienza Artigiano">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+        <span>Vista Artigiano (Mario Bianchi)</span>
+      </a>
     </div>
-    <div class="jump">
-      <a href="#">Tutte · 4</a>
-      <a href="#">Concluse · 2</a>
-      <a href="#">Respinte · 1</a>
-      <a href="#">Scadute · 1</a>
-      <a href="#">Annullate · 0</a>
-    </div>
+  </aside>
+
+  <div class="app-main">
+    <!-- fascia-mappa: stato della pagina statica e ritorno alla mappa. Non fa parte della schermata. -->
+    <header class="app-topbar">
+      <div class="topbar-left">
+        <div class="stato-pagina">Pagina statica · <strong>approvata</strong> · ADR-53 · domande chiuse: ADR-108 · stile: ADR-113</div>
+      </div>
+
+      <div class="topbar-right">
+        <a href="index.html" class="icon-btn" title="Mappa delle pagine">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        </a>
+        <a href="AdFlow-login.html" class="icon-btn" title="Esci">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        </a>
+      </div>
+    </header>
+    <!-- /fascia-mappa -->
+
+    <main class="content-wrapper">
+      <nav class="breadcrumb-trail">
+        <a href="AdFlow-operatore-ingresso.html">Dashboard</a>
+        <span class="breadcrumb-sep">/</span>
+        <a href="AdFlow-operatore-elenco.html">Artigiani</a>
+        <span class="breadcrumb-sep">/</span>
+        <a href="AdFlow-operatore-artigiano.html">Falegnameria Bianchi</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">Campagne chiuse</span>
+      </nav>
+
+      <div class="page-header">
+        <div class="page-title-group">
+          <h1 class="page-title">Campagne chiuse</h1>
+          <span class="status-pill neutral">4 chiuse dal 01/04/2026</span>
+        </div>
+        <div class="page-actions">
+          <a href="AdFlow-operatore-artigiano.html" class="btn btn-secondary">← Falegnameria Bianchi</a>
+        </div>
+      </div>
+
+      <p class="lead">Falegnameria Bianchi · <code>ART-0042</code> · 4 campagne chiuse dal 01/04/2026 · dalla più recente</p>
+
+      <!-- Filtro per esito -->
+      <div class="surface-card" style="padding: 14px 18px; margin-bottom: 24px;">
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+          <a href="#" class="btn btn-primary btn-sm">Tutte · 4</a>
+          <a href="#" class="btn btn-secondary btn-sm">Concluse · 2</a>
+          <a href="#" class="btn btn-secondary btn-sm">Respinte · 1</a>
+          <a href="#" class="btn btn-secondary btn-sm">Scadute · 1</a>
+          <a href="#" class="btn btn-secondary btn-sm">Annullate · 0</a>
+        </div>
+      </div>
+
+      <div class="pila" id="storico">
+
+        <div class="surface-card riga-campagna bordo-errore">
+          <div>
+            <div class="titolo">
+              <h3>Campagna Agosto 2026</h3>
+              <span class="status-pill danger">scaduta</span>
+              <span class="status-pill fb piccola">Facebook</span>
+            </div>
+            <div class="dati">
+              <span>01/08/2026 → 31/08/2026</span>
+              <span>2 post/settimana</span>
+              <span>8 foto in 2 gruppi</span>
+              <span>Inviata il 27/07/2026</span>
+              <span><strong>8 post</strong> · 8 scaduti</span>
+            </div>
+            <div class="riquadro-nota errore">
+              Non approvata entro l'inizio (01/08 ore 00:00) · email all'artigiano inviata il 01/08
+            </div>
+          </div>
+          <div class="azioni">
+            <a href="#" class="btn btn-secondary btn-sm">Vedi campagna →</a>
+          </div>
+        </div>
+
+        <div class="surface-card riga-campagna bordo-ok">
+          <div>
+            <div class="titolo">
+              <h3>Campagna Luglio 2026</h3>
+              <span class="status-pill success">conclusa</span>
+              <span class="status-pill fb piccola">Facebook</span>
+            </div>
+            <div class="dati" style="margin-bottom: 0;">
+              <span>01/07/2026 → 31/07/2026</span>
+              <span>3 post/settimana</span>
+              <span>Approvata il 27/06/2026</span>
+              <span><strong>13 post</strong> · 12 pubblicati · 1 fallito</span>
+            </div>
+          </div>
+          <div class="azioni">
+            <a href="#" class="btn btn-secondary btn-sm">Vedi campagna →</a>
+          </div>
+        </div>
+
+        <div class="surface-card riga-campagna bordo-attn">
+          <div>
+            <div class="titolo">
+              <h3>Campagna Luglio 2026 · primo invio</h3>
+              <span class="status-pill danger">respinta</span>
+              <span class="status-pill review">motivo: foto</span>
+              <span class="status-pill fb piccola">Facebook</span>
+            </div>
+            <div class="dati">
+              <span>01/07/2026 → 31/07/2026</span>
+              <span>Respinta il 22/06/2026</span>
+              <span><strong>13 post</strong> · 13 scartati</span>
+            </div>
+            <div class="riquadro-nota attn">
+              Foto scattate male · 2 foto da rifare segnate. Richiesta di modifica: "Le foto del laboratorio sono troppo buie: ricaricale con più luce e aggiungi il tavolo finito."
+            </div>
+          </div>
+          <div class="azioni">
+            <a href="#" class="btn btn-secondary btn-sm">Vedi campagna →</a>
+          </div>
+        </div>
+
+        <div class="surface-card riga-campagna bordo-ok">
+          <div>
+            <div class="titolo">
+              <h3>Campagna Primavera 2026</h3>
+              <span class="status-pill success">conclusa</span>
+              <span class="status-pill fb piccola">Facebook</span>
+            </div>
+            <div class="dati" style="margin-bottom: 0;">
+              <span>01/04/2026 → 09/06/2026</span>
+              <span>2 post/settimana</span>
+              <span><strong>20 post</strong> · 19 pubblicati · 1 fallito</span>
+            </div>
+          </div>
+          <div class="azioni">
+            <a href="#" class="btn btn-secondary btn-sm">Vedi campagna →</a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Note della pagina statica: non fanno parte della schermata -->
+      <div class="note-pagina">
+        <p><strong>Pagina statica, non interattiva.</strong> Lo storico completo delle campagne di una bottega (ADR-53): nella pagina artigiano restano quelle da approvare, quelle in corso e le ultime chiuse; le altre stanno qui. Oggi è il 28/09/2026.</p>
+        <p>Esempio · filtro senza risultati: "Nessuna campagna annullata."</p>
+      </div>
+
+    </main>
   </div>
+</div>
 
-  <section id="campagne">
-      <article class="camp lost">
-        <div>
-          <h3>Campagna Agosto 2026 <span class="badge danger">scaduta</span></h3>
-          <div class="meta">
-            <span>01/08/2026 → 31/08/2026</span>
-            <span>Facebook</span>
-            <span>2 post/settimana</span>
-            <span>8 foto in 2 gruppi</span>
-            <span>Inviata il 27/07/2026</span>
-          </div>
-          <div class="posts">
-            <span class="badge">8 post</span>
-            <span class="badge danger">8 scaduti</span>
-          </div>
-          <div class="next"><b>Non approvata entro l'inizio</b> (01/08 ore 00:00) · email all'artigiano inviata il 01/08</div>
-        </div>
-        <div class="actions">
-          <a class="btn" href="#">Vedi campagna →</a>
-        </div>
-      </article>
-      <article class="camp">
-        <div>
-          <h3>Campagna Luglio 2026 <span class="badge">conclusa</span></h3>
-          <div class="meta">
-            <span>01/07/2026 → 31/07/2026</span>
-            <span>Facebook</span>
-            <span>3 post/settimana</span>
-            <span>Approvata il 27/06/2026</span>
-          </div>
-          <div class="posts">
-            <span class="badge">13 post</span>
-            <span class="badge ok">12 pubblicati</span>
-            <span class="badge danger">1 fallito</span>
-          </div>
-        </div>
-        <div class="actions">
-          <a class="btn" href="#">Vedi campagna →</a>
-        </div>
-      </article>
-      <article class="camp">
-        <div>
-          <h3>Campagna Luglio 2026 · primo invio <span class="badge danger">respinta</span> <span class="badge">motivo: foto</span></h3>
-          <div class="meta">
-            <span>01/07/2026 → 31/07/2026</span>
-            <span>Facebook</span>
-            <span>Respinta il 22/06/2026</span>
-          </div>
-          <div class="posts">
-            <span class="badge">13 post</span>
-            <span class="badge">13 scartati</span>
-          </div>
-          <p class="desc">Foto scattate male · 2 foto da rifare segnate. Richiesta di modifica: "Le foto del laboratorio sono troppo buie: ricaricale con più luce e aggiungi il tavolo finito."</p>
-        </div>
-        <div class="actions">
-          <a class="btn" href="#">Vedi campagna →</a>
-        </div>
-      </article>
-      <article class="camp">
-        <div>
-          <h3>Campagna Primavera 2026 <span class="badge">conclusa</span></h3>
-          <div class="meta">
-            <span>01/04/2026 → 09/06/2026</span>
-            <span>Facebook</span>
-            <span>2 post/settimana</span>
-          </div>
-          <div class="posts">
-            <span class="badge">20 post</span>
-            <span class="badge ok">19 pubblicati</span>
-            <span class="badge danger">1 fallito</span>
-          </div>
-        </div>
-        <div class="actions">
-          <a class="btn" href="#">Vedi campagna →</a>
-        </div>
-      </article>
-
-    <div class="group-empty" style="margin-top:14px;">Esempio · filtro senza risultati: "Nessuna campagna annullata."</div>
-  </section>
-
-
-</main>
+</body>
+</html>
