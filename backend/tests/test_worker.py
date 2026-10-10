@@ -2,6 +2,8 @@
 Test per il worker (worker.py).
 """
 
+import subprocess
+import sys
 from contextlib import nullcontext
 from datetime import datetime, timezone
 from unittest.mock import Mock
@@ -21,6 +23,21 @@ def pubblica_dovuti_finta(monkeypatch) -> Mock:
     )
     monkeypatch.setattr(worker, "pubblica_dovuti", finta)
     return finta
+
+
+def test_il_worker_carica_il_modello_intero():
+    """In un processo nuovo, come il worker vero: nei test le tabelle ci sono già tutte.
+
+    Senza una tabella a cui punta una chiave, il primo salvataggio di un job fallisce.
+    """
+    codice = (
+        "import app.worker; from app.core.db import Base; "
+        "caricate = set(Base.metadata.tables); import app.tabelle; "
+        "mancanti = set(Base.metadata.tables) - caricate; "
+        "assert not mancanti, sorted(mancanti)"
+    )
+    esito = subprocess.run([sys.executable, "-c", codice], capture_output=True)
+    assert esito.returncode == 0, esito.stderr.decode(errors="replace")[-500:]
 
 
 def test_tick_pubblicazione_registrato_ogni_minuto_senza_sovrapposizioni():
