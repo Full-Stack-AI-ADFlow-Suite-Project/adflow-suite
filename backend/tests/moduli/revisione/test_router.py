@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 import pytest
 from sqlalchemy import select
 
+from app.adapters.archivio import ArchivioFinto, usa_archivio
 from app.moduli.campagne.models import DecisioneCampagna, Foto
 from app.moduli.contenuti.models import ErroreGenerazione, Post
 from app.moduli.revisione.models import Approvazione
@@ -13,6 +14,7 @@ from tests.moduli.campagne.fabbrica import (
     campagna_in_revisione,
     campagna_inviata,
     foto,
+    gruppo_di_archivio,
 )
 from tests.moduli.contenuti.fabbrica import piano, post_da_approvare
 
@@ -134,6 +136,39 @@ def test_vedi_campagna_filtra_per_stato(db, client, utente_di_prova):
     ids_scartati = {p["post_id"] for u in solo_scartati for p in u["post"]}
     assert ids_tutti == {da_approvare.id, scartato.id}
     assert ids_scartati == {scartato.id}
+
+
+def test_vedi_campagna_mostra_il_riempitivo_archivio(db, client, utente_di_prova):
+    """Un post con riempitivo ``archivio`` mostra la sua foto d'archivio.
+
+    La foto non è della campagna (gruppo senza campagna): il post si vede
+    comunque in Vedi campagna e il file si apre all'operatore (R-27, T2a-41).
+    """
+    campagna = campagna_in_revisione(db)
+    mazzo = gruppo_di_archivio(db, profilo_id=campagna.profilo_id)
+    foto_archivio = mazzo.foto[0]
+    post = post_da_approvare(db, campagna_id=campagna.id, riempitivo="archivio")
+    [legame] = post.versione_corrente.legami_foto
+    legame.foto_id = foto_archivio.id
+    utente_di_prova("operatore")
+
+    dati = _dettaglio(client, campagna.id).json()
+    [post_visto] = [
+        p for u in dati["uscite"] for p in u["post"] if p["post_id"] == post.id
+    ]
+    assert post_visto["riempitivo"] == "archivio"
+    assert [f["foto_id"] for f in post_visto["versione_corrente"]["foto"]] == [
+        foto_archivio.id
+    ]
+    # La foto d'archivio usata dal post non finisce tra le "non usate".
+    non_usate = {f["foto_id"] for g in dati["foto_non_usate"] for f in g["foto"]}
+    assert foto_archivio.id not in non_usate
+
+    # E l'operatore ne apre il file, anche se non è una foto della campagna.
+    with usa_archivio(ArchivioFinto()) as finto:
+        finto._archivio[foto_archivio.file] = b"file-della-foto"
+        risposta = client.get(f"/api/foto/{foto_archivio.id}/file")
+    assert risposta.status_code == 200
 
 
 def test_vedi_campagna_permessi(db, client, utente_di_prova):

@@ -1,7 +1,7 @@
-"""Test del service di pubblicazione (T1-43): CA-36…39, CA-52, CA-57."""
+"""Test del service di pubblicazione (T1-43): CA-36…39, CA-52, CA-57, CA-76."""
 
 from collections.abc import Iterator
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 
 import pytest
 from sqlalchemy import select
@@ -9,10 +9,16 @@ from sqlalchemy import select
 from app.adapters.archivio import ArchivioFinto, usa_archivio
 from app.adapters.social import SocialFinto, usa_social
 from app.moduli.campagne import service as campagne
+from app.moduli.campagne.models import Foto
 from app.moduli.contenuti.models import VersionePostFoto
 from app.moduli.pubblicazione.models import Pubblicazione
 from app.moduli.pubblicazione.service import pubblica_dovuti
-from tests.moduli.campagne.fabbrica import campagna_attiva, foto
+from tests.moduli.campagne.fabbrica import (
+    campagna_attiva,
+    campagna_conclusa,
+    foto,
+    gruppo_di_archivio,
+)
 from tests.moduli.contenuti.fabbrica import post_approvato, post_da_approvare
 
 ADESSO = datetime(2020, 1, 1, 13, tzinfo=timezone.utc)
@@ -289,6 +295,96 @@ def test_file_mancante_nell_archivio_fallisce(db, social, archivio):
     db.refresh(post)
     assert post.stato == "fallito"
     assert social.pubblicazioni == []
+
+
+def test_ca76_foto_caricata_segnata_con_canale_e_data(db, social, archivio):
+    """Dopo l'ok la foto caricata porta canale e istante in UTC (CA-76, R-27)."""
+    campagna = campagna_attiva(db)
+    post = post_approvato(db, campagna_id=campagna.id, data_ora=PASSATO)
+    [legame] = post.versione_corrente.legami_foto
+    _archivia_foto(db, archivio, campagna.id)
+
+    pubblica_dovuti(db, ADESSO)
+
+    immagine = db.get(Foto, legame.foto_id)
+    assert immagine.pubblicata_su == {"instagram": ADESSO.isoformat()}
+
+
+def test_ca76_foto_d_archivio_di_campagna_chiusa_si_segna(db, social, archivio):
+    """La foto di una campagna conclusa si pubblica e si segna (CA-76)."""
+    campagna = campagna_attiva(db)
+    conclusa = campagna_conclusa(db, profilo_id=campagna.profilo_id)
+    vecchia = campagne.foto_della_campagna(db, conclusa.id)[0]
+    post = post_approvato(db, campagna_id=campagna.id, data_ora=PASSATO)
+    [legame] = post.versione_corrente.legami_foto
+    # Il post usa la foto d'archivio al posto di quella della campagna.
+    altra_id = legame.foto_id
+    legame.foto_id = vecchia.id
+    _archivia_foto(db, archivio, campagna.id)
+    archivio._archivio[vecchia.file] = b"foto-d-archivio"
+
+    pubblica_dovuti(db, ADESSO)
+
+    db.refresh(post)
+    assert post.stato == "pubblicato"
+    assert len(social.pubblicazioni) == 1
+    assert vecchia.pubblicata_su == {"instagram": ADESSO.isoformat()}
+    # La foto della campagna rimasta fuori dalla versione non si segna.
+    assert db.get(Foto, altra_id).pubblicata_su == {}
+
+
+def test_ca76_foto_di_gruppo_archivio_si_pubblica_e_si_segna(db, social, archivio):
+    """Anche una foto senza campagna (gruppo d'archivio) si pubblica (CA-76)."""
+    campagna = campagna_attiva(db)
+    mazzo = gruppo_di_archivio(db, profilo_id=campagna.profilo_id, n_foto=1)
+    [vecchia] = mazzo.foto
+    post = post_approvato(db, campagna_id=campagna.id, data_ora=PASSATO)
+    [legame] = post.versione_corrente.legami_foto
+    legame.foto_id = vecchia.id
+    _archivia_foto(db, archivio, campagna.id)
+    archivio._archivio[vecchia.file] = b"foto-d-archivio"
+
+    pubblica_dovuti(db, ADESSO)
+
+    db.refresh(post)
+    assert post.stato == "pubblicato"
+    assert vecchia.campagna_id is None
+    assert vecchia.pubblicata_su == {"instagram": ADESSO.isoformat()}
+
+
+def test_cartolina_pubblicata_non_segna_la_foto(db, social, archivio):
+    """La cartolina esce sul canale ma non è caricata: non si segna (R-27)."""
+    campagna = campagna_attiva(db)
+    post = post_approvato(
+        db, campagna_id=campagna.id, data_ora=PASSATO, riempitivo="cartolina"
+    )
+    cartolina = foto(db, campagna=campagna, origine="cartolina")
+    [legame] = post.versione_corrente.legami_foto
+    legame.foto_id = cartolina.id
+    _archivia_foto(db, archivio, campagna.id)
+
+    pubblica_dovuti(db, ADESSO)
+
+    db.refresh(post)
+    assert post.stato == "pubblicato"
+    assert len(social.pubblicazioni) == 1
+    db.refresh(cartolina)
+    assert cartolina.pubblicata_su == {}
+
+
+def test_ca36_due_tick_una_sola_scrittura_sulla_foto(db, social, archivio):
+    """Il secondo tick non ripubblica e non riscrive ``pubblicata_su``."""
+    campagna = campagna_attiva(db)
+    post = post_approvato(db, campagna_id=campagna.id, data_ora=PASSATO)
+    [legame] = post.versione_corrente.legami_foto
+    _archivia_foto(db, archivio, campagna.id)
+
+    pubblica_dovuti(db, ADESSO)
+    pubblica_dovuti(db, ADESSO + timedelta(hours=1))
+
+    immagine = db.get(Foto, legame.foto_id)
+    assert immagine.pubblicata_su == {"instagram": ADESSO.isoformat()}
+    assert len(social.pubblicazioni) == 1
 
 
 def test_ripresa_dopo_tentativo_rimasto_in_corso(db, social, archivio):

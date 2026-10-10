@@ -5,9 +5,10 @@ ha a disposizione (R-05); il controllo dice se un piano scritto dall'AI li
 rispetta (R-05, R-08, R-21, R-23, R-28). Nessuna funzione legge l'orologio o
 la configurazione: periodo, ora e margine arrivano da chi chiama.
 
-Gruppi e foto sono quelli di ``campagne.service.gruppi_della_campagna()``: si
-leggono, non si modificano. Il piano è il JSON come lo ha scritto l'AI
-(``piano.contenuto``):
+Gruppi e foto sono quelli di ``campagne.service.gruppi_della_campagna()``,
+l'archivio è, canale per canale, l'elenco di
+``campagne.service.foto_di_archivio()`` (R-27): si leggono, non si modificano.
+Il piano è il JSON come lo ha scritto l'AI (``piano.contenuto``):
 
     {"strategia": "...",
      "uscite": [{"numero": 1, "tema": "...", "gruppo_id": 3,
@@ -15,7 +16,8 @@ leggono, non si modificano. Il piano è il JSON come lo ha scritto l'AI
                            "foto": [12], "riempitivo": null,
                            "data_ora": "2030-01-07T10:00:00+01:00"}]}]}
 
-Un riempitivo non ha foto: la sua immagine nasce dopo il piano (R-28).
+Una cartolina non ha foto: la sua immagine nasce dopo il piano. Un riempitivo
+`archivio` ha la sua foto, una di quelle già uscite sul canale (R-28).
 """
 
 from collections import Counter
@@ -28,8 +30,8 @@ from app.moduli.campagne import service as campagne
 
 from .domain import FORMATI_POST, SCHEDE_CANALE
 
-# R-28: nello sprint 1 l'unico riempitivo che un piano può chiedere.
-RIEMPITIVI_DEL_PIANO = ("cartolina",)
+# R-28: i riempitivi che un piano può chiedere, in ordine di preferenza.
+RIEMPITIVI_DEL_PIANO = ("archivio", "cartolina")
 
 PIANO_MALFORMATO = "piano_malformato"
 POST_PER_CANALE = "post_per_canale"
@@ -60,6 +62,8 @@ class LimitiCanale(TypedDict):
 
     post_chiesti: int
     foto_disponibili: list[int]
+    # Foto d'archivio già uscite sul canale: solo per i riempitivi `archivio`.
+    foto_riempitivo: list[int]
     riempitivi: int
 
 
@@ -84,17 +88,22 @@ def _caricate(gruppi: Iterable[Any]) -> list[Any]:
     return [gruppo for gruppo in gruppi if gruppo.origine == "caricate"]
 
 
+def _senza_doppioni(foto: Any) -> bool:
+    """Idonea e senza `simile_a`: una foto non ancora analizzata non lo è."""
+    return _idonea(foto) and not _analisi(foto).get("simile_a")
+
+
 def foto_disponibili(gruppi: Iterable[Any]) -> list[int]:
     """Id delle foto caricate, idonee e senza `simile_a`, sommate sui gruppi (R-05).
 
-    Una foto non ancora analizzata non è disponibile. Nello sprint 1 le foto
-    disponibili sono le stesse su ogni canale: l'archivio arriva con la 2a.
+    Sono le foto della campagna, le stesse su ogni canale: quelle d'archivio,
+    che cambiano da un canale all'altro, le aggiunge ``limiti_per_canale()``.
     """
     return [
         foto.id
         for gruppo in _caricate(gruppi)
         for foto in gruppo.foto
-        if _idonea(foto) and not _analisi(foto).get("simile_a")
+        if _senza_doppioni(foto)
     ]
 
 
@@ -114,23 +123,37 @@ def limiti_per_canale(
     inizio: date,
     fine: date,
     gruppi: Iterable[Any],
+    archivio: Mapping[str, Iterable[Any]] | None = None,
 ) -> dict[str, LimitiCanale]:
     """Post chiesti, foto disponibili e riempitivi di ogni canale (R-05, R-28).
 
     ``canali`` sono quelli su cui la campagna esce ancora: un canale tolto non
     si passa. I post chiesti li calcola ``campagne.service.post_chiesti()``;
     i riempitivi sono i post chiesti che le foto non coprono.
+
+    ``archivio`` ha, per canale, le foto di
+    ``campagne.service.foto_di_archivio()``: quelle mai uscite lì si aggiungono
+    alle foto disponibili, dopo quelle della campagna; quelle già uscite vanno
+    in ``foto_riempitivo`` (R-27). Anche qui contano solo le foto idonee e
+    senza `simile_a`.
     """
     chiesti = campagne.post_chiesti(post_a_settimana, inizio, fine)
-    disponibili = foto_disponibili(gruppi)
-    return {
-        canale: LimitiCanale(
+    della_campagna = foto_disponibili(gruppi)
+    limiti = {}
+    for canale in canali:
+        voci = [
+            voce
+            for voce in (archivio or {}).get(canale, ())
+            if _senza_doppioni(voce.foto)
+        ]
+        disponibili = della_campagna + [v.foto.id for v in voci if v.mai_uscita]
+        limiti[canale] = LimitiCanale(
             post_chiesti=chiesti,
-            foto_disponibili=list(disponibili),
+            foto_disponibili=disponibili,
+            foto_riempitivo=[v.foto.id for v in voci if not v.mai_uscita],
             riempitivi=max(0, chiesti - len(disponibili)),
         )
-        for canale in canali
-    }
+    return limiti
 
 
 def piano_debole(limiti: Mapping[str, LimitiCanale], gruppi: Iterable[Any]) -> bool:
@@ -195,10 +218,15 @@ def _difetti_del_post(post: Any, dove: str) -> list[str]:
     if difetti:
         return difetti
 
-    if riempitivo is not None:
+    if riempitivo == "archivio":
+        if len(foto) != 1 or formato != "singola":
+            difetti.append(
+                f"{dove}: un riempitivo d'archivio è un post singolo, con una sola foto."
+            )
+    elif riempitivo is not None:
         if foto or formato != "singola":
             difetti.append(
-                f"{dove}: un riempitivo è un post singolo, senza foto del piano."
+                f"{dove}: una cartolina è un post singolo, senza foto del piano."
             )
     elif formato == "singola" and len(foto) != 1:
         difetti.append(f"{dove}: un post singolo ha una sola foto.")
@@ -238,7 +266,8 @@ def _difetti(contenuto: Any, gruppi_ammessi: set[int]) -> list[str]:
             _intero(gruppo_id) and gruppo_id in gruppi_ammessi
         ):
             difetti.append(
-                f"{dove}: il gruppo non è tra i gruppi di foto caricate della campagna."
+                f"{dove}: il gruppo non è tra i gruppi di foto caricate della "
+                f"campagna né tra quelli dell'archivio."
             )
         post = uscita.get("post")
         if not isinstance(post, list) or not post:
@@ -268,6 +297,7 @@ def controlla_piano(
     fine: date,
     adesso: datetime,
     margine_minuti: int,
+    archivio: Mapping[str, Iterable[Any]] | None = None,
 ) -> list[Violazione]:
     """Regole che il piano non rispetta; elenco vuoto se il piano è valido.
 
@@ -282,9 +312,14 @@ def controlla_piano(
         inizio, fine: il periodo della campagna, estremi compresi (Europe/Rome).
         adesso: l'ora di riferimento, con il fuso.
         margine_minuti: anticipo minimo di un post su ``adesso`` (R-08).
+        archivio: le foto d'archivio date a ``limiti_per_canale()``: un'uscita
+            può avere il gruppo di una di queste.
     """
     gruppi = list(gruppi)
-    difetti = _difetti(contenuto, {gruppo.id for gruppo in _caricate(gruppi)})
+    gruppi_ammessi = {gruppo.id for gruppo in _caricate(gruppi)} | {
+        voce.gruppo.id for voci in (archivio or {}).values() for voce in voci
+    }
+    difetti = _difetti(contenuto, gruppi_ammessi)
     if difetti:
         return [_violazione(PIANO_MALFORMATO, None, difetto) for difetto in difetti]
 
@@ -318,6 +353,19 @@ def controlla_piano(
                 f"sono {presenti}."
             )
             violazioni.append(_violazione(RIEMPITIVI, canale, messaggio))
+            continue
+        # R-28: una cartolina solo quando le foto d'archivio sono finite.
+        d_archivio = sum(
+            1 for _, p in del_canale[canale] if p["riempitivo"] == "archivio"
+        )
+        attesi = min(limite["riempitivi"], len(limite["foto_riempitivo"]))
+        if d_archivio != attesi:
+            messaggio = (
+                f"Su {canale} i riempitivi `archivio` devono essere {attesi}, "
+                f"perché le foto d'archivio vengono prima delle cartoline: "
+                f"sono {d_archivio}."
+            )
+            violazioni.append(_violazione(RIEMPITIVI, canale, messaggio))
 
     for canale in limiti:
         if canale not in con_riempitivi:
@@ -340,10 +388,22 @@ def controlla_piano(
                 violazioni.append(_violazione(FOTO_RIPETUTA, canale, messaggio))
 
     for canale, limite in limiti.items():
-        ammesse = set(limite["foto_disponibili"])
-        usate = dict.fromkeys(f for _, p in del_canale[canale] for f in p["foto"])
-        for foto in usate:
-            if foto not in ammesse:
+        disponibili = set(limite["foto_disponibili"])
+        di_riempitivo = set(limite["foto_riempitivo"])
+        # (foto, è di un riempitivo `archivio`), una volta sola
+        usate = dict.fromkeys(
+            (foto, p["riempitivo"] == "archivio")
+            for _, p in del_canale[canale]
+            for foto in p["foto"]
+        )
+        for foto, da_archivio in usate:
+            if da_archivio and foto not in di_riempitivo:
+                messaggio = (
+                    f"Su {canale} la foto {foto} non è tra le foto d'archivio "
+                    f"per i riempitivi."
+                )
+                violazioni.append(_violazione(FOTO_NON_DISPONIBILE, canale, messaggio))
+            elif not da_archivio and foto not in disponibili:
                 messaggio = f"Su {canale} la foto {foto} non è tra le foto disponibili."
                 violazioni.append(_violazione(FOTO_NON_DISPONIBILE, canale, messaggio))
 

@@ -113,7 +113,7 @@ Finché un endpoint non è su `main`, la pagina usa dati di esempio con la forma
 | ID | Task | Tocca | Leggi | Dipende da | Fatto quando | ☐ |
 |---|---|---|---|---|---|---|
 | T2a-11 | Profilo: `GET /profilo` (404 se assente) e `PUT /profilo` (crea o aggiorna; 422 per obbligatori mancanti e valori non ammessi); il salvataggio non tocca logo, account social e snapshot delle campagne. È la PR #46 | `artigiani/router.py`, `artigiani/profilo_schemas.py`, `artigiani/service.py` (funzioni nuove) | plan §2, §3; spec §2.1, R-10 | T1-12 | CA-07 (API); 404 senza profilo e lettura con profilo, per CA-05 e CA-06; il profilo salvato non cambia lo snapshot di una campagna inviata | ☑ |
-| T2a-12 | Logo: `PUT /profilo/logo` (multipart), `GET /profilo/logo`, `DELETE /profilo/logo`; controllo di tipo reale e peso; file nell'adattatore archivio con il nome del server; il file precedente non si elimina, perché lo usano gli snapshot; se il profilo non si salva il file nuovo si toglie | `artigiani/logo.py` (nuovo), `artigiani/router.py` | spec R-40; plan §3, §5; constitution §3 | T2a-01, T2a-11 | CA-78; CA-77 (profilo: logo sostituito, il file precedente si legge ancora); senza profilo → 404 | ☐ |
+| T2a-12 | Logo: `PUT /profilo/logo` (multipart), `GET /profilo/logo`, `DELETE /profilo/logo`; controllo di tipo reale e peso; file nell'adattatore archivio con il nome del server; il file precedente non si elimina, perché lo usano gli snapshot; se il profilo non si salva il file nuovo si toglie | `artigiani/logo.py` (nuovo), `artigiani/router.py` | spec R-40; plan §3, §5; constitution §3 | T2a-01, T2a-11 | CA-78; CA-77 (profilo: logo sostituito, il file precedente si legge ancora); senza profilo → 404 | ☑ |
 
 ### Corsia 2 · Campagne (Silvia)
 
@@ -126,14 +126,14 @@ Finché un endpoint non è su `main`, la pagina usa dati di esempio con la forma
 
 | ID | Task | Tocca | Leggi | Dipende da | Fatto quando | ☐ |
 |---|---|---|---|---|---|---|
-| T2a-31 | Foto d'archivio nel piano: analisi dei gruppi d'archivio non ancora analizzati; tra le foto disponibili di un canale anche quelle d'archivio mai uscite lì; riempitivo `archivio` prima della cartolina; le foto di un post si leggono con `campagne.service.foto_per_id()`; controllo del piano e provider finto aggiornati | `contenuti/piano.py`, `contenuti/generazione.py`, `adapters/ai/` | spec R-05, R-27, R-28; plan §4, §5, §6 | T2a-22 | CA-76 (generazione); CA-17 e CA-57 restano verdi; una foto d'archivio non esce due volte sullo stesso canale nella stessa campagna | ☐ |
-| T2a-32 | Logo nelle cartoline: il logo dello snapshot, se c'è, sopra il nome della bottega; senza logo la cartolina di oggi; un logo che non si legge non ferma la generazione | `contenuti/cartoline.py` | spec R-28, R-40; constitution §1 | T2a-12 | CA-77 (cartolina: il logo è quello dello snapshot; cambiato dopo l'invio non entra) | ☐ |
+| T2a-31 | Foto d'archivio nel piano: analisi dei gruppi d'archivio non ancora analizzati; tra le foto disponibili di un canale anche quelle d'archivio mai uscite lì; riempitivo `archivio` prima della cartolina; le foto di un post si leggono con `campagne.service.foto_per_id()`; controllo del piano e provider finto aggiornati | `contenuti/piano.py`, `contenuti/generazione.py`, `adapters/ai/` | spec R-05, R-27, R-28; plan §4, §5, §6 | T2a-22 | CA-76 (generazione); CA-17 e CA-57 restano verdi; una foto d'archivio non esce due volte sullo stesso canale nella stessa campagna | ☑ |
+| T2a-32 | Logo nelle cartoline: il logo dello snapshot, se c'è, sopra il nome della bottega; senza logo la cartolina di oggi; un logo che non si legge non ferma la generazione | `contenuti/cartoline.py` | spec R-28, R-40; constitution §1 | T2a-12 | CA-77 (cartolina: il logo è quello dello snapshot; cambiato dopo l'invio non entra) | ☑ |
 
 ### Corsia 4 · Revisione e pubblicazione (Nilton)
 
 | ID | Task | Tocca | Leggi | Dipende da | Fatto quando | ☐ |
 |---|---|---|---|---|---|---|
-| T2a-41 | Foto pubblicate per canale: dopo ogni `ok` la pubblicazione chiama `campagne.service.segna_pubblicata()` per le foto caricate del post, non per le cartoline; le foto delle versioni si leggono con `campagne.service.foto_per_id()`, così un post con una foto d'archivio si vede e si pubblica; Vedi campagna mostra il riempitivo `archivio` | `pubblicazione/service.py`, `revisione/service.py`, `revisione/schemas.py` | spec R-27, R-28; plan §3, §6 | T2a-22 | CA-76 (pubblicazione); due tick → una sola scrittura, CA-36 resta verde | ☐ |
+| T2a-41 | Foto pubblicate per canale: dopo ogni `ok` la pubblicazione chiama `campagne.service.segna_pubblicata()` per le foto caricate del post, non per le cartoline; le foto delle versioni si leggono con `campagne.service.foto_per_id()`, così un post con una foto d'archivio si vede e si pubblica; Vedi campagna mostra il riempitivo `archivio` | `pubblicazione/service.py`, `revisione/service.py`, `revisione/schemas.py` | spec R-27, R-28; plan §3, §6 | T2a-22 | CA-76 (pubblicazione); due tick → una sola scrittura, CA-36 resta verde | ☑ |
 
 ### Corsia 5 · Frontend (Angelo)
 

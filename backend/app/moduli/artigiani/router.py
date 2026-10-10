@@ -4,7 +4,7 @@ from datetime import datetime
 from collections.abc import Awaitable, Callable
 from typing import Annotated, Any
 
-from fastapi import APIRouter, Depends, Request, Response
+from fastapi import APIRouter, Depends, File, Request, Response, UploadFile
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
 from fastapi.routing import APIRoute
@@ -14,7 +14,7 @@ from app.core.db import get_db
 from app.core.orologio import adesso
 from app.moduli.accesso.service import richiede_ruolo
 
-from . import service
+from . import logo, service
 from .schemas import CanaleCollegato
 from .profilo_schemas import ProfiloScrittura, ProfiloPubblico
 
@@ -78,6 +78,38 @@ def salva_profilo(
 ) -> Any:
     response.headers["Cache-Control"] = "no-store"
     return service.salva_profilo_personale(db, utente.id, dati, ora)
+
+
+@profili.put("/profilo/logo", response_model=ProfiloPubblico)
+def salva_logo(
+    db: Annotated[Session, Depends(get_db, scope="function")],
+    utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
+    ora: Annotated[datetime, Depends(adesso)],
+    file: Annotated[UploadFile, File()],
+    response: Response,
+) -> Any:
+    dati = file.file.read(logo.MAX_BYTE + 1)
+    response.headers["Cache-Control"] = "no-store"
+    return logo.salva(db, utente.id, dati, ora)
+
+
+@profili.get("/profilo/logo")
+def leggi_logo(
+    db: Annotated[Session, Depends(get_db)],
+    utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
+) -> Response:
+    dati, mime = logo.leggi(db, utente.id)
+    return Response(dati, media_type=mime, headers={"Cache-Control": "no-store"})
+
+
+@profili.delete("/profilo/logo", status_code=204)
+def elimina_logo(
+    db: Annotated[Session, Depends(get_db, scope="function")],
+    utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
+    ora: Annotated[datetime, Depends(adesso)],
+) -> Response:
+    logo.elimina(db, utente.id, ora)
+    return Response(status_code=204)
 
 
 router.include_router(profili)

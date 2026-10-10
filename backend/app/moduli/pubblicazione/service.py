@@ -33,6 +33,9 @@ def pubblica_dovuti(
        (per una cartolina la sua immagine);
     3. registra l'esito: errore ``temporaneo`` lascia il tentativo
        ``in_corso`` per il tick successivo, fino a ``TENTATIVI_MAX``;
+       dopo un ``ok`` segna su ogni foto ``caricata`` del post il canale e
+       l'istante (``campagne.segna_pubblicata``, spec R-27) — le cartoline
+       non si segnano;
     4. alla fine, ogni campagna ``attiva`` con tutti i post chiusi passa a
        ``conclusa`` (R-34, tramite ``campagne.cambia_stato``).
 
@@ -78,13 +81,19 @@ def _pubblica_post(db: Session, post, adesso: datetime) -> None:
         return
 
     archivio = ottieni_archivio()
-    nomi = {
-        foto.id: foto.file
-        for foto in campagne.foto_della_campagna(db, post.campagna_id)
+    # Le foto di una versione possono venire dall'archivio della bottega
+    # (foto d'archivio e riempitivi ``archivio``, R-27/R-28):
+    # ``foto_della_campagna`` non le restituirebbe (plan §6).
+    foto_della_versione = {
+        una.id: una
+        for una in campagne.foto_per_id(
+            db, [legame.foto_id for legame in versione.legami_foto]
+        )
     }
     try:
         byte_foto = [
-            archivio.leggi(nomi[legame.foto_id]) for legame in versione.legami_foto
+            archivio.leggi(foto_della_versione[legame.foto_id].file)
+            for legame in versione.legami_foto
         ]
     except (KeyError, FileNotFoundError):
         _segna_errore(db, post, tentativo, "File della foto non trovato nell'archivio.")
@@ -94,6 +103,10 @@ def _pubblica_post(db: Session, post, adesso: datetime) -> None:
     if esito.ok:
         tentativo.stato = "ok"
         tentativo.id_esterno = esito.id_esterno
+        for legame in versione.legami_foto:
+            immagine = foto_della_versione[legame.foto_id]
+            if immagine.origine == "caricata":
+                campagne.segna_pubblicata(db, immagine.id, post.canale, adesso)
         contenuti.segna_esito(db, post, "pubblicato")
     elif esito.tipo_errore == "temporaneo" and tentativo.n_tentativo < TENTATIVI_MAX:
         pass  # resta in_corso: il prossimo tick riprova

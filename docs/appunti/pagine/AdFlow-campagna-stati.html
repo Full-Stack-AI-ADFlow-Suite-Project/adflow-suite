@@ -1,436 +1,465 @@
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Campagna · Stati</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --paper:#F6F3EC; --paper-raised:#FFFFFF; --ink:#201D17; --ink-soft:#6E6656; --ink-faint:#9C927D;
-    --accent:#2E6B5C; --accent-strong:#1D4A3F; --accent-soft:#DCEAE3; --accent-on-soft:#1D4A3F;
-    --line:#DDD5C2; --danger:#AE3B2C; --danger-soft:#F6E1DC; --danger-on-soft:#7A281C;
-    --warn:#8A6A1F; --warn-soft:#F3E7C9;
-    color-scheme: light;
-  }
-  @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]){
-      --paper:#1B1914; --paper-raised:#26231C; --ink:#EFEAE0; --ink-soft:#B7AE9B; --ink-faint:#837A68;
-      --accent:#7EC4AE; --accent-strong:#A9DCC9; --accent-soft:#22392F; --accent-on-soft:#A9DCC9;
-      --line:#3A362B; --danger:#E08776; --danger-soft:#3A2420; --danger-on-soft:#E08776;
-      --warn:#E4C878; --warn-soft:#3A331C;
-      color-scheme: dark;
-    }
-  }
-  :root[data-theme="dark"]{
-    --paper:#1B1914; --paper-raised:#26231C; --ink:#EFEAE0; --ink-soft:#B7AE9B; --ink-faint:#837A68;
-    --accent:#7EC4AE; --accent-strong:#A9DCC9; --accent-soft:#22392F; --accent-on-soft:#A9DCC9;
-    --line:#3A362B; --danger:#E08776; --danger-soft:#3A2420; --danger-on-soft:#E08776;
-    --warn:#E4C878; --warn-soft:#3A331C;
-    color-scheme: dark;
-  }
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Campagna · Stati</title>
+  <link rel="stylesheet" href="assets/adflow.css">
+</head>
+<body>
 
-  *{ box-sizing:border-box; }
-  body{ background:var(--paper); color:var(--ink); font-family:"IBM Plex Sans", system-ui, sans-serif; padding-inline:16px; padding-block:28px; margin:0; }
-  h1,h2,h3{ font-family:"Fraunces", Georgia, serif; font-weight:600; text-wrap:balance; margin:0; }
-  a{ color:var(--accent-strong); }
-  .wrap{ max-width:640px; margin-inline:auto; }
-  .mono{ font-family:"IBM Plex Mono", monospace; }
+<div class="app-container">
+  <!-- Left Sidebar (Artigiano Mode) -->
+  <aside class="app-sidebar">
+    <div class="sidebar-header">
+      <div class="brand-icon-wrapper" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%);">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>AdFlow</h1>
+        <span>Suite · Artigiano</span>
+      </div>
+    </div>
 
-  /* Proposta: barra dell'artigiano, oggi assente nei mockup Profilo e Campagna */
-  .userbar{ display:flex; gap:6px 16px; flex-wrap:wrap; align-items:center; font-size:13px; color:var(--ink-soft); border-bottom:1px solid var(--line); padding-bottom:12px; margin-bottom:22px; }
-  .userbar .brand{ font-family:"Fraunces", Georgia, serif; font-weight:600; font-size:17px; color:var(--ink); margin-right:auto; }
-  .userbar a{ text-decoration:none; }
-  .userbar a.current{ font-weight:600; }
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Area Bottega</div>
+      <a href="AdFlow-campagna.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+        <span>Nuova Campagna</span>
+      </a>
+      <a href="AdFlow-campagna-stati.html" class="nav-link active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        <span>Stati & Calendario</span>
+      </a>
+      <a href="AdFlow-profilo-bottega.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        <span>Profilo Bottega</span>
+      </a>
 
-  .masthead{ margin-bottom:18px; }
-  .eyebrow{ font-family:"IBM Plex Mono", monospace; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); }
-  .masthead h1{ font-size:28px; margin-top:6px; }
-  .masthead p{ color:var(--ink-soft); font-size:14.5px; line-height:1.55; margin:8px 0 0; max-width:60ch; }
+      <div class="nav-section-label">Riferimenti</div>
+      <a href="index.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <span>Mappa Pagine</span>
+      </a>
+    </nav>
 
-  .banner{ border-radius:10px; padding:12px 14px; font-size:13.5px; line-height:1.5; margin-bottom:22px; display:flex; gap:10px; align-items:flex-start; }
-  .banner.info{ background:var(--accent-soft); border:1px solid var(--accent); color:var(--accent-on-soft); }
-  .banner.warn{ background:var(--warn-soft); border:1px solid var(--warn); color:var(--warn); }
-  .banner.danger{ background:var(--danger-soft); border:1px solid var(--danger); color:var(--danger-on-soft); }
-  .banner .icon{ flex:none; font-family:"IBM Plex Mono", monospace; font-weight:500; }
+    <div class="sidebar-footer">
+      <div class="user-profile-card">
+        <img src="assets/img/bottega-logo.jpg" alt="Mario Bianchi" class="user-avatar" onerror="this.outerHTML='<div class=\'user-avatar placeholder\'>MB</div>'">
+        <div class="user-info">
+          <div class="user-name">Mario Bianchi</div>
+          <div class="user-role">Falegnameria Bianchi</div>
+        </div>
+      </div>
+      <a href="AdFlow-operatore-ingresso.html" class="role-switch-btn" title="Passa alla vista Operatore Consorzio">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+        <span>Vista Operatore (Laura Rossi)</span>
+      </a>
+    </div>
+  </aside>
 
-  .toc{ background:var(--paper-raised); border:1px solid var(--line); border-radius:12px; padding:16px 20px; margin-bottom:26px; }
-  .toc .tab{ font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--accent-strong); letter-spacing:.06em; }
-  .toc ol{ margin:10px 0 0; padding-left:20px; columns:2; column-gap:20px; }
-  .toc li{ font-size:13px; padding:2px 0; break-inside:avoid; }
-  .toc a{ text-decoration:none; }
-  @media (max-width:520px){ .toc ol{ columns:1; } }
+  <div class="app-main">
+    <!-- fascia-mappa: stato della pagina statica e ritorno alla mappa. Non fa parte della schermata. -->
+    <header class="app-topbar">
+      <div class="topbar-left">
+        <div class="stato-pagina">Pagina statica · <strong>approvata</strong> · ADR-55, ADR-68, ADR-87, ADR-88 · si fonde nella pagina Campagna · domande chiuse: ADR-104 · stile: ADR-113</div>
+      </div>
 
-  .card{ background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:22px; margin-bottom:18px; scroll-margin-top:16px; }
-  .card .tab{ font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--accent-strong); letter-spacing:.06em; }
-  .card h2{ font-size:21px; margin-top:4px; }
-  .card .hint{ color:var(--ink-soft); font-size:13.5px; line-height:1.5; margin-top:8px; margin-bottom:18px; }
-  .card .banner{ margin-bottom:16px; }
+      <div class="topbar-right">
+        <a href="index.html" class="icon-btn" title="Mappa delle pagine">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        </a>
+        <a href="AdFlow-login.html" class="icon-btn" title="Esci">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        </a>
+      </div>
+    </header>
+    <!-- /fascia-mappa -->
 
-  .badge{ display:inline-block; font-family:"IBM Plex Mono", monospace; font-size:11.5px; border-radius:20px; padding:2px 9px; border:1px solid var(--line); color:var(--ink-soft); background:var(--paper); white-space:nowrap; }
-  .badge.ok{ border-color:var(--accent); background:var(--accent-soft); color:var(--accent-on-soft); }
-  .badge.warn{ border-color:var(--warn); background:var(--warn-soft); color:var(--warn); }
-  .badge.danger{ border-color:var(--danger); background:var(--danger-soft); color:var(--danger-on-soft); }
+    <main class="content-wrapper">
+      <nav class="breadcrumb-trail">
+        <a href="AdFlow-campagna.html">Area Bottega</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">Campagna dopo l'invio · viste di stato</span>
+      </nav>
 
-  .rev-line{ display:flex; gap:10px; font-size:13.5px; padding:5px 0; border-top:1px solid var(--line); margin:0; }
-  .rev-line dt{ color:var(--ink-soft); flex:0 0 42%; margin:0; }
-  .rev-line dd{ margin:0; flex:1; min-width:0; }
+      <div class="page-header">
+        <div class="page-title-group">
+          <h1 class="page-title">Campagna · viste di stato</h1>
+          <span id="active-state-pill" class="status-pill review">piano_da_rivedere · in_revisione</span>
+        </div>
+        <div class="page-actions">
+          <a href="AdFlow-campagna.html#gate" class="btn btn-secondary">+ Nuova campagna</a>
+        </div>
+      </div>
 
-  .thumbs{ display:flex; flex-wrap:wrap; gap:8px; margin:12px 0; }
-  .thumb{ width:84px; height:84px; border-radius:8px; border:1px solid var(--line); background:var(--accent-soft); color:var(--accent-on-soft); flex:none;
-    display:flex; align-items:center; justify-content:center; font-family:"IBM Plex Mono", monospace; font-size:10px; text-align:center; padding:6px; }
-  .thumb.redo{ border:2px solid var(--danger); background:var(--danger-soft); color:var(--danger-on-soft); }
+      <p class="lead">
+        Dopo "Invia all'operatore" la pagina <a href="AdFlow-campagna.html">Campagna</a> non mostra più i passi 10–12: mostra una di queste viste, scelta dallo stato della campagna. L'artigiano vede l'esito del lavoro dell'operatore, mai il lavoro in corso.
+      </p>
 
-  .btn{ font-family:inherit; border-radius:8px; padding:10px 18px; font-size:14px; font-weight:500; border:1px solid var(--line); background:var(--paper-raised); color:var(--ink); display:inline-block; text-decoration:none; }
-  .btn.primary{ background:var(--accent); border-color:var(--accent); color:var(--paper-raised); }
-  .gate-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:18px; }
+      <!-- Scelta della vista: una per stato -->
+      <div class="surface-card" style="padding: 14px 18px; margin-bottom: 24px;">
+        <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;">
+          Viste per stato (ADR-104)
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;" id="scelta-stato">
+          <button type="button" class="btn btn-secondary btn-sm" data-vista="generazione" data-pill="info" data-testo="inviata · in_generazione">inviata · in_generazione</button>
+          <button type="button" class="btn btn-secondary btn-sm" data-vista="fallita" data-pill="danger" data-testo="generazione_fallita">generazione_fallita</button>
+          <button type="button" class="btn btn-primary btn-sm" data-vista="revisione" data-pill="review" data-testo="piano_da_rivedere · in_revisione">piano_da_rivedere · in_revisione</button>
+          <button type="button" class="btn btn-secondary btn-sm" data-vista="respinta" data-pill="danger" data-testo="respinta">respinta</button>
+          <button type="button" class="btn btn-secondary btn-sm" data-vista="scaduta" data-pill="danger" data-testo="scaduta">scaduta</button>
+          <button type="button" class="btn btn-secondary btn-sm" data-vista="attiva" data-pill="success" data-testo="attiva">attiva (calendario e metriche)</button>
+          <button type="button" class="btn btn-secondary btn-sm" data-vista="sospesa" data-pill="review" data-testo="sospesa · annullata">sospesa · annullata</button>
+          <button type="button" class="btn btn-secondary btn-sm" data-vista="conclusa" data-pill="success" data-testo="conclusa">conclusa</button>
+        </div>
+      </div>
 
-  .steps{ list-style:none; margin:0 0 16px; padding:0; font-size:13.5px; }
-  .steps li{ display:flex; gap:10px; padding:6px 0; border-top:1px solid var(--line); color:var(--ink-faint); }
-  .steps li.done{ color:var(--ink); }
-  .steps li.now{ color:var(--accent-strong); font-weight:500; }
-  .steps .mark{ font-family:"IBM Plex Mono", monospace; flex:none; width:18px; }
+      <!-- inviata · in_generazione -->
+      <div id="generazione" class="state-panel" style="display:none;">
+        <div class="surface-card bordo-primario" style="margin-bottom: 24px;">
+          <div class="surface-card-header">
+            <div>
+              <h3 class="surface-card-title">Campagna inviata</h3>
+              <span class="sotto">Stato · inviata · in_generazione</span>
+            </div>
+            <span class="status-pill info">Preparazione dei post</span>
+          </div>
+          <div class="surface-card-body">
+            <div class="avviso-box info">
+              <strong>Generazione dei post in corso…</strong> Stiamo preparando i post di "Campagna Ottobre 2026". Poi li rivede il consorzio: non devi fare nulla.
+            </div>
+            <div class="passi">
+              <div class="passo fatto"><div class="segno">✓</div>Inviata<span class="sotto">il 25/09/2026 alle 10:12</span></div>
+              <div class="passo ora"><div class="segno">●</div>Preparazione dei post<span class="sotto">in corso</span></div>
+              <div class="passo"><div class="segno">○</div>Revisione del consorzio</div>
+              <div class="passo"><div class="segno">○</div>Pubblicazione<span class="sotto">dal 01/10/2026</span></div>
+            </div>
+            <dl class="dati-lista sinistra">
+              <div><dt>Periodo</dt><dd>01/10/2026 → 31/10/2026</dd></div>
+              <div><dt>Canali</dt><dd>Facebook, Instagram</dd></div>
+              <div><dt>Ritmo scelto</dt><dd>3 post a settimana per canale · 13 per canale nel periodo</dd></div>
+              <div><dt>Foto</dt><dd>6 foto in 3 gruppi</dd></div>
+              <div><dt>Immagini da creare</dt><dd>2, in 1 gruppo</dd></div>
+              <div><dt>Dal tuo archivio</dt><dd>Le foto mai uscite su un canale, se le nuove non bastano</dd></div>
+            </dl>
+            <p class="nota-card">Dati e foto in sola lettura: dopo l'invio non si modificano.</p>
+            <p class="nota-card">Subito dopo l'invio (T1-52). I due stati hanno la stessa vista: per l'artigiano cambia solo l'attesa.</p>
+          </div>
+        </div>
+      </div>
 
-  /* Calendario del mese: una cella per giorno, un'etichetta per post */
-  .cal{ display:grid; grid-template-columns:repeat(7, 1fr); gap:4px; margin-top:12px; }
-  .cal .dow{ font-family:"IBM Plex Mono", monospace; font-size:10.5px; text-transform:uppercase; color:var(--ink-faint); text-align:center; padding-bottom:2px; }
-  .cal .day{ min-height:56px; border:1px solid var(--line); border-radius:8px; padding:4px; background:var(--paper); font-size:11px; color:var(--ink-faint); }
-  .cal .day.out{ border-style:dashed; background:none; }
-  .cal .day.today{ border-color:var(--accent); box-shadow:0 0 0 2px var(--accent-soft); }
-  .cal .p{ display:block; margin-top:4px; font-family:"IBM Plex Mono", monospace; font-size:10.5px; text-align:center; border-radius:6px; padding:2px 0; border:1px solid var(--line); color:var(--ink-soft); background:var(--paper-raised); }
-  .cal .p.ok{ border-color:var(--accent); background:var(--accent-soft); color:var(--accent-on-soft); }
-  .cal .p.fill{ border-style:dashed; }
-  .cal .p.danger{ border-color:var(--danger); background:var(--danger-soft); color:var(--danger-on-soft); }
-  .legend{ display:flex; gap:8px; flex-wrap:wrap; margin-top:12px; font-size:12.5px; color:var(--ink-soft); align-items:center; }
+      <!-- generazione_fallita -->
+      <div id="fallita" class="state-panel" style="display:none;">
+        <div class="surface-card bordo-errore" style="margin-bottom: 24px;">
+          <div class="surface-card-header">
+            <div>
+              <h3 class="surface-card-title">C'è stato un problema tecnico</h3>
+              <span class="sotto">Stato · generazione_fallita</span>
+            </div>
+            <span class="status-pill danger">In attesa del consorzio</span>
+          </div>
+          <div class="surface-card-body">
+            <div class="avviso-box errore">
+              <strong>Non siamo riusciti a preparare i post.</strong> Il problema è nostro, non della tua campagna: il consorzio la fa ripartire. Dati e foto sono al sicuro, non devi reinviarli.
+            </div>
+            <div class="passi">
+              <div class="passo fatto"><div class="segno">✓</div>Inviata<span class="sotto">il 25/09/2026 alle 10:12</span></div>
+              <div class="passo fermo"><div class="segno">!</div>Preparazione dei post<span class="sotto">in attesa del consorzio</span></div>
+              <div class="passo"><div class="segno">○</div>Revisione del consorzio</div>
+              <div class="passo"><div class="segno">○</div>Pubblicazione<span class="sotto">dal 01/10/2026</span></div>
+            </div>
+            <p class="nota-card">L'artigiano non ha un pulsante: la Riprova è dell'operatore (R-09).</p>
+          </div>
+        </div>
+      </div>
 
-  .post{ border-top:1px solid var(--line); padding:12px 0; display:grid; grid-template-columns:64px 1fr; gap:12px; }
-  .post .thumb{ width:64px; height:64px; font-size:9px; }
-  .post .when{ font-size:12.5px; color:var(--ink-soft); display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-  .post p{ font-size:13.5px; line-height:1.5; margin:5px 0 0; }
-  .post .nums{ display:flex; gap:6px 16px; flex-wrap:wrap; font-size:12.5px; color:var(--ink-soft); margin-top:6px; }
-  .post .nums b{ font-family:"IBM Plex Mono", monospace; font-weight:500; color:var(--ink); }
+      <!-- piano_da_rivedere · in_revisione -->
+      <div id="revisione" class="state-panel">
+        <div class="surface-card bordo-attn" style="margin-bottom: 24px;">
+          <div class="surface-card-header">
+            <div>
+              <h3 class="surface-card-title">Il consorzio sta rivedendo i post</h3>
+              <span class="sotto">Stato · piano_da_rivedere · in_revisione</span>
+            </div>
+            <span class="status-pill review">Revisione del consorzio</span>
+          </div>
+          <div class="surface-card-body">
+            <div class="avviso-box info">
+              I post sono pronti e li sta controllando un operatore. Ti scriviamo per email appena c'è una decisione. La campagna parte il <strong>01/10/2026</strong>.
+            </div>
+            <div class="passi">
+              <div class="passo fatto"><div class="segno">✓</div>Inviata<span class="sotto">il 25/09/2026 alle 10:12</span></div>
+              <div class="passo fatto"><div class="segno">✓</div>Post preparati</div>
+              <div class="passo ora"><div class="segno">●</div>Revisione del consorzio<span class="sotto">in corso</span></div>
+              <div class="passo"><div class="segno">○</div>Pubblicazione<span class="sotto">dal 01/10/2026</span></div>
+            </div>
+            <p class="nota-card">Nessun piano e nessun post visibile (spec §4, CA-31). In <code>piano_da_rivedere</code> la vista è la stessa: per l'artigiano il consorzio sta controllando. Le note interne degli operatori l'artigiano non le vede (ADR-94).</p>
+          </div>
+        </div>
+      </div>
 
-  .stat-row{ display:flex; gap:8px 18px; flex-wrap:wrap; margin:12px 0 4px; }
-  .stat-row .stat{ font-size:13px; color:var(--ink-soft); }
-  .stat-row .stat b{ color:var(--ink); font-family:"IBM Plex Mono", monospace; font-weight:500; }
+      <!-- respinta -->
+      <div id="respinta" class="state-panel" style="display:none;">
+        <div class="surface-card bordo-attn" style="margin-bottom: 24px;">
+          <div class="surface-card-header">
+            <div>
+              <h3 class="surface-card-title">La campagna non è stata approvata</h3>
+              <span class="sotto">Stato · respinta</span>
+            </div>
+            <span class="status-pill danger">Respinta il 22/06/2026</span>
+          </div>
+          <div class="surface-card-body">
+            <div class="avviso-box attn">
+              <strong>Motivo: foto scattate male.</strong> Richiesta del consorzio: "Le foto del laboratorio sono troppo buie: ricaricale con più luce e aggiungi il tavolo finito."
+            </div>
+            <h4 class="titolo-sezione" style="font-size: 14px; margin-bottom: 10px;">Foto da rifare (2 su 6)</h4>
+            <div class="foto-griglia">
+              <div class="foto piccola rifare">laboratorio-1.jpg</div>
+              <div class="foto piccola rifare">laboratorio-2.jpg</div>
+              <div class="foto piccola">tavolo-rovere-01.jpg</div>
+              <div class="foto piccola">tavolo-rovere-02.jpg</div>
+              <div class="foto piccola">sedie-01.jpg</div>
+              <div class="foto piccola">sedie-02.jpg</div>
+            </div>
+            <dl class="dati-lista sinistra" style="margin-bottom: 16px;">
+              <div><dt>Campagna</dt><dd>Campagna Luglio 2026 · 01/07 → 31/07/2026</dd></div>
+              <div><dt>Respinta il</dt><dd>22/06/2026</dd></div>
+            </dl>
+            <a href="AdFlow-campagna.html#gate" class="btn btn-primary">Crea una nuova campagna →</a>
+            <p class="nota-card">Variante con motivo "altro": solo la nota, senza le foto segnate.</p>
+            <p class="nota-card">Motivo, nota e foto da rifare: gli stessi dell'email e dell'avviso nel Bentornato. La campagna è chiusa (R-15): se ne crea una nuova, con foto e testi da inserire di nuovo.</p>
+          </div>
+        </div>
+      </div>
 
-  .open{ margin:12px 0 0; padding-left:20px; font-size:13.5px; line-height:1.55; }
-  .open li{ margin-bottom:6px; }
+      <!-- scaduta -->
+      <div id="scaduta" class="state-panel" style="display:none;">
+        <div class="surface-card bordo-errore" style="margin-bottom: 24px;">
+          <div class="surface-card-header">
+            <div>
+              <h3 class="surface-card-title">La campagna non è partita</h3>
+              <span class="sotto">Stato · scaduta</span>
+            </div>
+            <span class="status-pill danger">Scaduta</span>
+          </div>
+          <div class="surface-card-body">
+            <div class="avviso-box attn">
+              <strong>La campagna non è stata approvata in tempo.</strong> "Campagna Agosto 2026" doveva partire il 01/08/2026 e il consorzio non è riuscito ad approvarla prima. Nessun post è stato pubblicato. Le foto restano nel tuo archivio: le usiamo nella prossima campagna.
+            </div>
+            <a href="AdFlow-campagna.html#gate" class="btn btn-primary">Crea una nuova campagna →</a>
+            <p class="nota-card">Scadenza morbida (R-06, ADR-95): i post scadono uno per uno quando passa la loro data, e la campagna scade quando ne restano da approvare meno della metà di quelli chiesti; senza piano, alle 00:00 del giorno di inizio. Chiusa: se ne crea una nuova.</p>
+          </div>
+        </div>
+      </div>
 
-  /* Domande aperte con la proposta di risposta */
-  .open li{ margin-bottom:14px; }
-  .proposta{ display:block; margin-top:5px; padding:8px 11px; border-left:3px solid var(--accent); background:var(--accent-soft); color:var(--accent-on-soft); border-radius:0 8px 8px 0; }
-</style>
-<!-- fascia-mappa: stato della pagina statica e ritorno alla mappa. Non fa parte della schermata. -->
-<div style="max-width:640px; margin:0 auto 18px; border:1px solid var(--line); border-radius:10px; padding:8px 14px; background:var(--paper-raised); color:var(--ink-soft); font:12px/1.5 'IBM Plex Mono', ui-monospace, monospace; display:flex; flex-wrap:wrap; gap:2px 16px; justify-content:space-between;">
-  <a href="index.html" style="color:inherit;">← Mappa delle pagine</a>
-  <span>Pagina statica · <strong style="color:var(--ink); font-weight:500;">approvata</strong> · ADR-55, ADR-68, ADR-87, ADR-88 · si fonde nella pagina Campagna · domande chiuse: ADR-104</span>
+      <!-- attiva -->
+      <div id="attiva" class="state-panel" style="display:none;">
+        <div class="surface-card bordo-ok" style="margin-bottom: 24px;">
+          <div class="surface-card-header">
+            <div>
+              <h3 class="surface-card-title">Campagna Ottobre 2026</h3>
+              <span class="sotto">Stato · attiva</span>
+            </div>
+            <span class="status-pill success">in corso · 10 pubblicati su 26</span>
+          </div>
+          <div class="surface-card-body">
+            <div class="avviso-box info">
+              <strong>Il piano di questa campagna.</strong> Sedici temi in ottobre: il tavolo in rovere, le sedie su misura, il laboratorio, le porte aperte del 17 e alcuni lavori dal tuo archivio. Ogni tema esce prima su Facebook, con un testo che racconta, e il giorno dopo su Instagram, con la foto in primo piano e poche righe. Su Instagram non avevi mai pubblicato: lì anche le foto d'archivio sono nuove.
+            </div>
+
+            <div class="kpi-griglia">
+              <div class="kpi"><div class="title">Copertura</div><div class="value">8.260</div></div>
+              <div class="kpi"><div class="title">Like</div><div class="value primario">636</div></div>
+              <div class="kpi"><div class="title">Commenti</div><div class="value">74</div></div>
+              <div class="kpi"><div class="title">Salvataggi</div><div class="value">42</div></div>
+            </div>
+            <dl class="dati-lista sinistra" style="margin-bottom: 20px;">
+              <div><dt>Post</dt><dd><strong>26</strong> post · <strong>10</strong> pubblicati · <strong>15</strong> in programma · <strong>1</strong> non pubblicato</dd></div>
+              <div><dt>Canali e foto</dt><dd>Facebook <strong>13</strong> · Instagram <strong>13</strong> · Con foto nuove <strong>21</strong> · Riempitivi <strong>5</strong></dd></div>
+            </dl>
+
+            <h4 class="titolo-sezione" style="font-size: 15px; margin-bottom: 12px;">Calendario · ottobre 2026</h4>
+            <div class="cal-mese" aria-label="Ottobre 2026">
+              <div class="dow">Lun</div><div class="dow">Mar</div><div class="dow">Mer</div><div class="dow">Gio</div><div class="dow">Ven</div><div class="dow">Sab</div><div class="dow">Dom</div>
+              <div class="giorno fuori">28</div>
+              <div class="giorno fuori">29</div>
+              <div class="giorno fuori">30</div>
+              <div class="giorno">1<span class="status-pill success">FB</span></div>
+              <div class="giorno">2<span class="status-pill success">IG</span></div>
+              <div class="giorno">3<span class="status-pill success">FB</span></div>
+              <div class="giorno">4<span class="status-pill success">IG</span></div>
+              <div class="giorno">5</div>
+              <div class="giorno">6<span class="status-pill success">FB</span></div>
+              <div class="giorno">7<span class="status-pill success">IG</span></div>
+              <div class="giorno">8<span class="status-pill success">FB</span></div>
+              <div class="giorno">9<span class="status-pill danger">IG</span></div>
+              <div class="giorno">10<span class="status-pill success">FB</span></div>
+              <div class="giorno">11<span class="status-pill success">IG</span></div>
+              <div class="giorno">12</div>
+              <div class="giorno">13<span class="status-pill success">FB</span></div>
+              <div class="giorno oggi">14<span class="status-pill neutral">IG</span></div>
+              <div class="giorno">15<span class="status-pill neutral tratteggio">FB</span></div>
+              <div class="giorno">16<span class="status-pill neutral">IG</span></div>
+              <div class="giorno">17<span class="status-pill neutral">FB</span></div>
+              <div class="giorno">18<span class="status-pill neutral">IG</span></div>
+              <div class="giorno">19</div>
+              <div class="giorno">20<span class="status-pill neutral tratteggio">FB</span></div>
+              <div class="giorno">21<span class="status-pill neutral">IG</span></div>
+              <div class="giorno">22<span class="status-pill neutral">FB</span></div>
+              <div class="giorno">23<span class="status-pill neutral">IG</span></div>
+              <div class="giorno">24<span class="status-pill neutral tratteggio">FB</span></div>
+              <div class="giorno">25<span class="status-pill neutral">IG</span></div>
+              <div class="giorno">26</div>
+              <div class="giorno">27<span class="status-pill neutral tratteggio">FB</span></div>
+              <div class="giorno">28<span class="status-pill neutral">IG</span></div>
+              <div class="giorno">29<span class="status-pill neutral tratteggio">FB</span></div>
+              <div class="giorno">30<span class="status-pill neutral">IG</span></div>
+              <div class="giorno">31</div>
+              <div class="giorno fuori">1</div>
+            </div>
+            <div class="legenda-riga">
+              <span class="status-pill success piccola">pubblicato</span>
+              <span class="status-pill neutral piccola">in programma</span>
+              <span class="status-pill danger piccola">non pubblicato</span>
+              <span class="status-pill neutral tratteggio piccola">riempitivo</span>
+              <span>FB = Facebook · IG = Instagram · bordo verde = oggi · riempitivo = foto già uscita, cartolina o immagine creata</span>
+            </div>
+
+            <h4 class="titolo-sezione" style="font-size: 15px; margin: 22px 0 4px;">Elenco dei post</h4>
+            <div class="post-riga">
+              <div class="foto piccola">laboratorio-2.jpg</div>
+              <div>
+                <div class="quando"><span>14/10 ore 12:30 · Instagram</span><span class="status-pill neutral piccola">in programma</span></div>
+                <p>"Il banco, la luce del mattino, i trucioli: qui prende forma ogni pezzo…" #laboratorio #fattoamano</p>
+              </div>
+            </div>
+            <div class="post-riga">
+              <div class="foto piccola">cartolina</div>
+              <div>
+                <div class="quando"><span>15/10 ore 18:30 · Facebook</span><span class="status-pill neutral piccola">in programma</span><span class="status-pill neutral tratteggio piccola">cartolina</span></div>
+                <p>"Sabato 17 ottobre la bottega è aperta a tutti: vieni a vedere come nasce un tavolo, dalle 10 alle 18…" #porteaperte #bra</p>
+              </div>
+            </div>
+            <div class="post-riga">
+              <div class="foto piccola">libreria-ciliegio.jpg</div>
+              <div>
+                <div class="quando"><span>20/10 ore 18:30 · Facebook</span><span class="status-pill neutral piccola">in programma</span><span class="status-pill neutral tratteggio piccola">foto d'archivio</span></div>
+                <p>"A maggio l'abbiamo consegnata, oggi è piena di libri: una libreria in ciliegio si giudica dopo qualche mese…" #sumisura #ciliegio</p>
+                <div class="numeri"><span>Già uscita su Facebook il 12/05/2026, con un altro testo.</span></div>
+              </div>
+            </div>
+            <div class="post-riga">
+              <div class="foto piccola">immagine creata</div>
+              <div>
+                <div class="quando"><span>24/10 ore 18:30 · Facebook</span><span class="status-pill neutral piccola">in programma</span><span class="status-pill neutral tratteggio piccola">immagine creata · su tua richiesta</span></div>
+                <p>"Un tagliere in rovere sulla tavola di Natale: se vuoi regalarne uno con un nome inciso, è il momento di ordinarlo…" #regalidinatale #sumisura</p>
+                <div class="numeri"><span>Dalla tua richiesta: "Un tagliere in rovere su una tavola apparecchiata per Natale, luce calda, qualche rametto di abete."</span></div>
+              </div>
+            </div>
+            <div class="post-riga">
+              <div class="foto piccola">laboratorio-2.jpg</div>
+              <div>
+                <div class="quando"><span>13/10 ore 18:30 · Facebook</span><span class="status-pill success piccola">pubblicato</span></div>
+                <p>"Chi entra in laboratorio chiede sempre la stessa cosa: quanto ci vuole per un tavolo? Dipende dal legno, e dalla pazienza…" #falegnameria #bra</p>
+                <div class="numeri"><span>Copertura <b>1.020</b></span><span>Like <b>88</b></span><span>Commenti <b>9</b></span><span>Salvataggi <b>6</b></span></div>
+              </div>
+            </div>
+            <div class="post-riga">
+              <div class="foto piccola">mani-sgorbia.jpg</div>
+              <div>
+                <div class="quando"><span>09/10 ore 12:30 · Instagram</span><span class="status-pill danger piccola">non pubblicato</span></div>
+                <p>"Ogni nodo del legno racconta una stagione…"</p>
+                <div class="numeri"><span>Non è stato possibile pubblicarlo. Il consorzio è già stato avvisato.</span></div>
+              </div>
+            </div>
+
+            <p class="nota-card">Le metriche (copertura, like, commenti, salvataggi) arrivano con lo sprint 4 e compaiono solo sui post pubblicati. I riempitivi arrivano a tappe (ADR-88): cartoline dallo sprint 1, foto d'archivio dalla 2a, immagini create quando la loro creazione sarà costruita.</p>
+            <p class="nota-card">Il piano approvato: la strategia in breve e il calendario in sola lettura dei post approvati, pubblicati o falliti, letti da <code>GET /campagne/{id}/calendario</code> (ADR-78). Se il consorzio ha tolto un canale, qui compare una riga con la sua nota (ADR-76). Il piano si vede solo da qui in poi, dopo l'approvazione (ADR-68). Mai post da approvare, scartati o scaduti. Esempio con oggi = 14/10/2026.</p>
+            <p class="nota-card">I numeri dell'esempio (ADR-81…84). Ritmo scelto: 3 a settimana per canale, 13 post per canale in ottobre. Escono sempre tutti. Su Facebook: 6 con le foto nuove, 2 con foto d'archivio mai uscite e 5 riempitivi, nell'ordine in cui il piano li usa: le 2 immagini che l'artigiano ha chiesto, 2 foto già uscite in primavera, 1 cartolina per le porte aperte del 17. Su Instagram: 6 con le foto nuove e 7 con foto d'archivio, perché lì la bottega non aveva mai pubblicato e tutto l'archivio è nuovo.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- sospesa · annullata -->
+      <div id="sospesa" class="state-panel" style="display:none;">
+        <div class="surface-card bordo-attn" style="margin-bottom: 24px;">
+          <div class="surface-card-header">
+            <div>
+              <h3 class="surface-card-title">Pubblicazioni ferme</h3>
+              <span class="sotto">Stato · sospesa · annullata</span>
+            </div>
+            <span class="status-pill review">Ferma</span>
+          </div>
+          <div class="surface-card-body">
+            <div class="avviso-box attn">
+              <strong>Sospesa.</strong> Le pubblicazioni sono ferme perché il permesso della pagina Instagram è scaduto. Contatta il consorzio per ricollegarla: i post in programma ripartono dopo.
+            </div>
+            <div class="avviso-box errore">
+              <strong>Annullata.</strong> Il consorzio ha fermato la campagna il 12/10/2026: i post in programma non usciranno. Quelli già pubblicati restano nel calendario.
+            </div>
+            <p class="nota-card">Sotto l'avviso resta il calendario della vista "attiva", in sola lettura. L'email parte solo per la sospensione automatica, quando una pagina social va ricollegata; un post fallito o annullato si legge "non pubblicato" (ADR-104). Se la campagna è stata approvata dopo l'inizio, la vista attiva dice quanti post non sono usciti (ADR-95).</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- conclusa -->
+      <div id="conclusa" class="state-panel" style="display:none;">
+        <div class="surface-card bordo-ok" style="margin-bottom: 24px;">
+          <div class="surface-card-header">
+            <div>
+              <h3 class="surface-card-title">Campagna Settembre 2026</h3>
+              <span class="sotto">Stato · conclusa</span>
+            </div>
+            <span class="status-pill success">conclusa</span>
+          </div>
+          <div class="surface-card-body">
+            <div class="kpi-griglia">
+              <div class="kpi"><div class="title">Copertura</div><div class="value">9.870</div></div>
+              <div class="kpi"><div class="title">Like</div><div class="value primario">704</div></div>
+              <div class="kpi"><div class="title">Commenti</div><div class="value">86</div></div>
+              <div class="kpi"><div class="title">Salvataggi</div><div class="value">47</div></div>
+            </div>
+            <dl class="dati-lista sinistra" style="margin-bottom: 16px;">
+              <div><dt>Post</dt><dd><strong>12</strong> post · <strong>11</strong> pubblicati · <strong>1</strong> non pubblicato</dd></div>
+            </dl>
+            <a href="AdFlow-campagna.html#gate" class="btn btn-primary">Crea una nuova campagna →</a>
+            <p class="nota-card">Stesso calendario e stesso elenco della vista "attiva", tutti pubblicati o non pubblicati, con i totali. Da qui si riparte. Nell'esempio 12 post su 12 chiesti: 4 con le foto di settembre e 8 con le foto della campagna di agosto, scaduta, che in archivio non erano mai uscite (ADR-83).</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Note della pagina statica: non fanno parte della schermata -->
+      <div class="note-pagina">
+        <p><strong>Pagina statica.</strong> I pulsanti in alto mostrano una vista alla volta, con dati di esempio (Falegnameria Bianchi); nient'altro è interattivo. Le viste si fondono nella pagina Campagna: una campagna alla volta, con una riga di scelta in cima quando ce n'è più di una e l'elenco delle campagne passate in fondo (ADR-104). La barra laterale è la stessa nelle pagine Profilo e Campagna.</p>
+      </div>
+
+    </main>
+  </div>
 </div>
-<!-- /fascia-mappa -->
 
-<div class="wrap">
-
-  <div class="userbar">
-    <span class="brand">AdFlow</span>
-    <a href="AdFlow-campagna.html" class="current">Campagna</a>
-    <a href="AdFlow-profilo-bottega.html">Profilo bottega</a>
-    <span>Mario Bianchi</span>
-    <a href="AdFlow-login.html">Esci</a>
-  </div>
-
-  <div class="masthead">
-    <div class="eyebrow">AdFlow Suite · Campagna dopo l'invio</div>
-    <h1>Campagna · viste di stato</h1>
-    <p>Dopo "Invia all'operatore" la pagina <a href="AdFlow-campagna.html">Campagna</a> non mostra più i passi 10–12: mostra una di queste viste, scelta dallo stato della campagna. L'artigiano vede l'esito del lavoro dell'operatore, mai il lavoro in corso.</p>
-  </div>
-
-  <div class="banner warn">
-    <span class="icon">i</span>
-    <span><b>Pagina statica, non interattiva.</b> Tutte le viste una sotto l'altra, con dati di esempio (Falegnameria Bianchi). Si fondono nella pagina Campagna: una campagna alla volta, con una riga di scelta in cima quando ce n'è più di una e l'elenco delle campagne passate in fondo (ADR-104). La barra in alto (Campagna, Profilo bottega, Esci) è confermata e va portata nelle pagine Profilo e Campagna.</span>
-  </div>
-
-  <nav class="toc">
-    <div class="tab">Viste per stato</div>
-    <ol>
-      <li><a href="#generazione">inviata · in_generazione</a></li>
-      <li><a href="#fallita">generazione_fallita</a></li>
-      <li><a href="#revisione">piano_da_rivedere · in_revisione</a></li>
-      <li><a href="#respinta">respinta</a></li>
-      <li><a href="#scaduta">scaduta</a></li>
-      <li><a href="#attiva">attiva (calendario e metriche)</a></li>
-      <li><a href="#sospesa">sospesa · annullata</a></li>
-      <li><a href="#conclusa">conclusa</a></li>
-    </ol>
-  </nav>
-
-  <!-- ============ inviata / in_generazione ============ -->
-  <div class="card" id="generazione">
-    <div class="tab">Stato · inviata · in_generazione</div>
-    <h2>Campagna inviata</h2>
-    <p class="hint">Subito dopo l'invio (T1-52). I due stati hanno la stessa vista: per l'artigiano cambia solo l'attesa.</p>
-    <div class="banner info">
-      <span class="icon">i</span>
-      <span><b>Generazione dei post in corso…</b> Stiamo preparando i post di "Campagna Ottobre 2026". Poi li rivede il consorzio: non devi fare nulla.</span>
-    </div>
-    <ul class="steps">
-      <li class="done"><span class="mark">✓</span>Inviata il 25/09/2026 alle 10:12</li>
-      <li class="now"><span class="mark">●</span>Preparazione dei post</li>
-      <li><span class="mark">○</span>Revisione del consorzio</li>
-      <li><span class="mark">○</span>Pubblicazione dal 01/10/2026</li>
-    </ul>
-    <dl style="margin:0;">
-      <div class="rev-line"><dt>Periodo</dt><dd>01/10/2026 → 31/10/2026</dd></div>
-      <div class="rev-line"><dt>Canali</dt><dd>Facebook, Instagram</dd></div>
-      <div class="rev-line"><dt>Ritmo scelto</dt><dd>3 post a settimana per canale · 13 per canale nel periodo</dd></div>
-      <div class="rev-line"><dt>Foto</dt><dd>6 foto in 3 gruppi</dd></div>
-      <div class="rev-line"><dt>Immagini da creare</dt><dd>2, in 1 gruppo</dd></div>
-      <div class="rev-line"><dt>Dal tuo archivio</dt><dd>Le foto mai uscite su un canale, se le nuove non bastano</dd></div>
-    </dl>
-    <p class="hint" style="margin-bottom:0;">Dati e foto in sola lettura: dopo l'invio non si modificano.</p>
-  </div>
-
-  <!-- ============ generazione_fallita ============ -->
-  <div class="card" id="fallita">
-    <div class="tab">Stato · generazione_fallita</div>
-    <h2>C'è stato un problema tecnico</h2>
-    <p class="hint">L'artigiano non ha un pulsante: la Riprova è dell'operatore (R-09).</p>
-    <div class="banner warn">
-      <span class="icon">!</span>
-      <span><b>Non siamo riusciti a preparare i post.</b> Il problema è nostro, non della tua campagna: il consorzio la fa ripartire. Dati e foto sono al sicuro, non devi reinviarli.</span>
-    </div>
-    <ul class="steps" style="margin-bottom:0;">
-      <li class="done"><span class="mark">✓</span>Inviata il 25/09/2026 alle 10:12</li>
-      <li class="now"><span class="mark">!</span>Preparazione dei post · in attesa del consorzio</li>
-      <li><span class="mark">○</span>Revisione del consorzio</li>
-      <li><span class="mark">○</span>Pubblicazione dal 01/10/2026</li>
-    </ul>
-  </div>
-
-  <!-- ============ in_revisione ============ -->
-  <div class="card" id="revisione">
-    <div class="tab">Stato · piano_da_rivedere · in_revisione</div>
-    <h2>Il consorzio sta rivedendo i post</h2>
-    <p class="hint">Nessun piano e nessun post visibile (spec §4, CA-31). In piano_da_rivedere la vista è la stessa: per l'artigiano il consorzio sta controllando. Le note interne degli operatori l'artigiano non le vede (ADR-94).</p>
-    <div class="banner info">
-      <span class="icon">i</span>
-      <span>I post sono pronti e li sta controllando un operatore. Ti scriviamo per email appena c'è una decisione. La campagna parte il <b>01/10/2026</b>.</span>
-    </div>
-    <ul class="steps" style="margin-bottom:0;">
-      <li class="done"><span class="mark">✓</span>Inviata il 25/09/2026 alle 10:12</li>
-      <li class="done"><span class="mark">✓</span>Post preparati</li>
-      <li class="now"><span class="mark">●</span>Revisione del consorzio</li>
-      <li><span class="mark">○</span>Pubblicazione dal 01/10/2026</li>
-    </ul>
-  </div>
-
-  <!-- ============ respinta ============ -->
-  <div class="card" id="respinta">
-    <div class="tab">Stato · respinta</div>
-    <h2>La campagna non è stata approvata</h2>
-    <p class="hint">Motivo, nota e foto da rifare: gli stessi dell'email e dell'avviso nel Bentornato. La campagna è chiusa (R-15): se ne crea una nuova, con foto e testi da inserire di nuovo.</p>
-    <div class="banner danger">
-      <span class="icon">!</span>
-      <span><b>Motivo: foto scattate male.</b> Richiesta del consorzio: "Le foto del laboratorio sono troppo buie: ricaricale con più luce e aggiungi il tavolo finito."</span>
-    </div>
-    <div style="font-size:13px;font-weight:500;">Foto da rifare (2 su 6)</div>
-    <div class="thumbs">
-      <div class="thumb redo">laboratorio-1.jpg</div>
-      <div class="thumb redo">laboratorio-2.jpg</div>
-      <div class="thumb">tavolo-rovere-01.jpg</div>
-      <div class="thumb">tavolo-rovere-02.jpg</div>
-      <div class="thumb">sedie-01.jpg</div>
-      <div class="thumb">sedie-02.jpg</div>
-    </div>
-    <dl style="margin:0;">
-      <div class="rev-line"><dt>Campagna</dt><dd>Campagna Luglio 2026 · 01/07 → 31/07/2026</dd></div>
-      <div class="rev-line"><dt>Respinta il</dt><dd>22/06/2026</dd></div>
-    </dl>
-    <div class="gate-actions">
-      <a class="btn primary" href="AdFlow-campagna.html#gate">Crea una nuova campagna →</a>
-    </div>
-    <p class="hint" style="margin-bottom:0;">Variante con motivo "altro": solo la nota, senza le foto segnate.</p>
-  </div>
-
-  <!-- ============ scaduta ============ -->
-  <div class="card" id="scaduta">
-    <div class="tab">Stato · scaduta</div>
-    <h2>La campagna non è partita</h2>
-    <p class="hint">Scadenza morbida (R-06, ADR-95): i post scadono uno per uno quando passa la loro data, e la campagna scade quando ne restano da approvare meno della metà di quelli chiesti; senza piano, alle 00:00 del giorno di inizio. Chiusa: se ne crea una nuova.</p>
-    <div class="banner warn">
-      <span class="icon">!</span>
-      <span><b>La campagna non è stata approvata in tempo.</b> "Campagna Agosto 2026" doveva partire il 01/08/2026 e il consorzio non è riuscito ad approvarla prima. Nessun post è stato pubblicato. Le foto restano nel tuo archivio: le usiamo nella prossima campagna.</span>
-    </div>
-    <div class="gate-actions" style="margin-top:0;">
-      <a class="btn primary" href="AdFlow-campagna.html#gate">Crea una nuova campagna →</a>
-    </div>
-  </div>
-
-  <!-- ============ attiva ============ -->
-  <div class="card" id="attiva">
-    <div class="tab">Stato · attiva</div>
-    <h2>Campagna Ottobre 2026 <span class="badge ok">in corso</span></h2>
-    <p class="hint">Il piano approvato: la strategia in breve e il calendario in sola lettura dei post approvati, pubblicati o falliti, letti da GET /campagne/{id}/calendario (ADR-78). Se il consorzio ha tolto un canale, qui compare una riga con la sua nota (ADR-76). Il piano si vede solo da qui in poi, dopo l'approvazione (ADR-68). Mai post da approvare, scartati o scaduti. Esempio con oggi = 14/10/2026.</p>
-    <p class="hint">I numeri dell'esempio (ADR-81…84). Ritmo scelto: 3 a settimana per canale, 13 post per canale in ottobre. Escono sempre tutti. Su Facebook: 6 con le foto nuove, 2 con foto d'archivio mai uscite e 5 riempitivi, nell'ordine in cui il piano li usa: le 2 immagini che l'artigiano ha chiesto, 2 foto già uscite in primavera, 1 cartolina per le porte aperte del 17. Su Instagram: 6 con le foto nuove e 7 con foto d'archivio, perché lì la bottega non aveva mai pubblicato e tutto l'archivio è nuovo.</p>
-
-    <div class="banner info">
-      <span class="icon">i</span>
-      <span><b>Il piano di questa campagna.</b> Sedici temi in ottobre: il tavolo in rovere, le sedie su misura, il laboratorio, le porte aperte del 17 e alcuni lavori dal tuo archivio. Ogni tema esce prima su Facebook, con un testo che racconta, e il giorno dopo su Instagram, con la foto in primo piano e poche righe. Su Instagram non avevi mai pubblicato: lì anche le foto d'archivio sono nuove.</span>
-    </div>
-
-    <div class="stat-row">
-      <span class="stat"><b>26</b> post</span>
-      <span class="stat"><b>10</b> pubblicati</span>
-      <span class="stat"><b>15</b> in programma</span>
-      <span class="stat"><b>1</b> non pubblicato</span>
-    </div>
-    <div class="stat-row" style="margin-top:0;">
-      <span class="stat">Facebook <b>13</b></span>
-      <span class="stat">Instagram <b>13</b></span>
-      <span class="stat">Con foto nuove <b>21</b></span>
-      <span class="stat">Riempitivi <b>5</b></span>
-    </div>
-    <div class="stat-row" style="margin-top:0;">
-      <span class="stat">Copertura <b>8.260</b></span>
-      <span class="stat">Like <b>636</b></span>
-      <span class="stat">Commenti <b>74</b></span>
-      <span class="stat">Salvataggi <b>42</b></span>
-    </div>
-
-    <div class="cal" aria-label="Ottobre 2026">
-      <div class="dow">lun</div><div class="dow">mar</div><div class="dow">mer</div><div class="dow">gio</div><div class="dow">ven</div><div class="dow">sab</div><div class="dow">dom</div>
-
-      <div class="day out"></div>
-      <div class="day out"></div>
-      <div class="day out"></div>
-      <div class="day">1<span class="p ok">FB</span></div>
-      <div class="day">2<span class="p ok">IG</span></div>
-      <div class="day">3<span class="p ok">FB</span></div>
-      <div class="day">4<span class="p ok">IG</span></div>
-
-      <div class="day">5</div>
-      <div class="day">6<span class="p ok">FB</span></div>
-      <div class="day">7<span class="p ok">IG</span></div>
-      <div class="day">8<span class="p ok">FB</span></div>
-      <div class="day">9<span class="p danger">IG</span></div>
-      <div class="day">10<span class="p ok">FB</span></div>
-      <div class="day">11<span class="p ok">IG</span></div>
-
-      <div class="day">12</div>
-      <div class="day">13<span class="p ok">FB</span></div>
-      <div class="day today">14<span class="p">IG</span></div>
-      <div class="day">15<span class="p fill">FB</span></div>
-      <div class="day">16<span class="p">IG</span></div>
-      <div class="day">17<span class="p">FB</span></div>
-      <div class="day">18<span class="p">IG</span></div>
-
-      <div class="day">19</div>
-      <div class="day">20<span class="p fill">FB</span></div>
-      <div class="day">21<span class="p">IG</span></div>
-      <div class="day">22<span class="p">FB</span></div>
-      <div class="day">23<span class="p">IG</span></div>
-      <div class="day">24<span class="p fill">FB</span></div>
-      <div class="day">25<span class="p">IG</span></div>
-
-      <div class="day">26</div>
-      <div class="day">27<span class="p fill">FB</span></div>
-      <div class="day">28<span class="p">IG</span></div>
-      <div class="day">29<span class="p fill">FB</span></div>
-      <div class="day">30<span class="p">IG</span></div>
-      <div class="day">31</div>
-      <div class="day out"></div>
-    </div>
-    <div class="legend">
-      <span class="badge ok">pubblicato</span>
-      <span class="badge">in programma</span>
-      <span class="badge danger">non pubblicato</span>
-      <span class="badge" style="border-style:dashed;">riempitivo</span>
-      <span>FB = Facebook · IG = Instagram · bordo verde = oggi · riempitivo = foto già uscita, cartolina o immagine creata</span>
-    </div>
-
-    <div style="margin-top:18px;font-size:13px;font-weight:500;">Elenco dei post</div>
-    <div class="post" style="margin-top:8px;">
-      <div class="thumb">laboratorio-2.jpg</div>
-      <div>
-        <div class="when"><span>14/10 ore 12:30 · Instagram</span><span class="badge">in programma</span></div>
-        <p>"Il banco, la luce del mattino, i trucioli: qui prende forma ogni pezzo…" #laboratorio #fattoamano</p>
-      </div>
-    </div>
-    <div class="post">
-      <div class="thumb">cartolina</div>
-      <div>
-        <div class="when"><span>15/10 ore 18:30 · Facebook</span><span class="badge">in programma</span><span class="badge" style="border-style:dashed;">cartolina</span></div>
-        <p>"Sabato 17 ottobre la bottega è aperta a tutti: vieni a vedere come nasce un tavolo, dalle 10 alle 18…" #porteaperte #bra</p>
-      </div>
-    </div>
-    <div class="post">
-      <div class="thumb">libreria-ciliegio.jpg</div>
-      <div>
-        <div class="when"><span>20/10 ore 18:30 · Facebook</span><span class="badge">in programma</span><span class="badge" style="border-style:dashed;">foto d'archivio</span></div>
-        <p>"A maggio l'abbiamo consegnata, oggi è piena di libri: una libreria in ciliegio si giudica dopo qualche mese…" #sumisura #ciliegio</p>
-        <div class="nums"><span>Già uscita su Facebook il 12/05/2026, con un altro testo.</span></div>
-      </div>
-    </div>
-    <div class="post">
-      <div class="thumb">immagine creata</div>
-      <div>
-        <div class="when"><span>24/10 ore 18:30 · Facebook</span><span class="badge">in programma</span><span class="badge" style="border-style:dashed;">immagine creata · su tua richiesta</span></div>
-        <p>"Un tagliere in rovere sulla tavola di Natale: se vuoi regalarne uno con un nome inciso, è il momento di ordinarlo…" #regalidinatale #sumisura</p>
-        <div class="nums"><span>Dalla tua richiesta: "Un tagliere in rovere su una tavola apparecchiata per Natale, luce calda, qualche rametto di abete."</span></div>
-      </div>
-    </div>
-    <div class="post">
-      <div class="thumb">laboratorio-2.jpg</div>
-      <div>
-        <div class="when"><span>13/10 ore 18:30 · Facebook</span><span class="badge ok">pubblicato</span></div>
-        <p>"Chi entra in laboratorio chiede sempre la stessa cosa: quanto ci vuole per un tavolo? Dipende dal legno, e dalla pazienza…" #falegnameria #bra</p>
-        <div class="nums"><span>Copertura <b>1.020</b></span><span>Like <b>88</b></span><span>Commenti <b>9</b></span><span>Salvataggi <b>6</b></span></div>
-      </div>
-    </div>
-    <div class="post">
-      <div class="thumb">mani-sgorbia.jpg</div>
-      <div>
-        <div class="when"><span>09/10 ore 12:30 · Instagram</span><span class="badge danger">non pubblicato</span></div>
-        <p>"Ogni nodo del legno racconta una stagione…"</p>
-        <div class="nums"><span>Non è stato possibile pubblicarlo. Il consorzio è già stato avvisato.</span></div>
-      </div>
-    </div>
-    <p class="hint" style="margin:12px 0 0;">Le metriche (copertura, like, commenti, salvataggi) arrivano con lo sprint 4 e compaiono solo sui post pubblicati. I riempitivi arrivano a tappe (ADR-88): cartoline dallo sprint 1, foto d'archivio dalla 2a, immagini create quando la loro creazione sarà costruita.</p>
-  </div>
-
-  <!-- ============ sospesa / annullata ============ -->
-  <div class="card" id="sospesa">
-    <div class="tab">Stato · sospesa · annullata</div>
-    <h2>Pubblicazioni ferme</h2>
-    <p class="hint">Sotto l'avviso resta il calendario della vista "attiva", in sola lettura. L'email parte solo per la sospensione automatica, quando una pagina social va ricollegata; un post fallito o annullato si legge "non pubblicato" (ADR-104). Se la campagna è stata approvata dopo l'inizio, la vista attiva dice quanti post non sono usciti (ADR-95).</p>
-    <div class="banner warn">
-      <span class="icon">!</span>
-      <span><b>Sospesa.</b> Le pubblicazioni sono ferme perché il permesso della pagina Instagram è scaduto. Contatta il consorzio per ricollegarla: i post in programma ripartono dopo.</span>
-    </div>
-    <div class="banner warn" style="margin-bottom:0;">
-      <span class="icon">!</span>
-      <span><b>Annullata.</b> Il consorzio ha fermato la campagna il 12/10/2026: i post in programma non usciranno. Quelli già pubblicati restano nel calendario.</span>
-    </div>
-  </div>
-
-  <!-- ============ conclusa ============ -->
-  <div class="card" id="conclusa">
-    <div class="tab">Stato · conclusa</div>
-    <h2>Campagna Settembre 2026 <span class="badge">conclusa</span></h2>
-    <p class="hint">Stesso calendario e stesso elenco della vista "attiva", tutti pubblicati o non pubblicati, con i totali. Da qui si riparte. Nell'esempio 12 post su 12 chiesti: 4 con le foto di settembre e 8 con le foto della campagna di agosto, scaduta, che in archivio non erano mai uscite (ADR-83).</p>
-    <div class="stat-row">
-      <span class="stat"><b>12</b> post</span>
-      <span class="stat"><b>11</b> pubblicati</span>
-      <span class="stat"><b>1</b> non pubblicato</span>
-    </div>
-    <div class="stat-row" style="margin-top:0;">
-      <span class="stat">Copertura <b>9.870</b></span>
-      <span class="stat">Like <b>704</b></span>
-      <span class="stat">Commenti <b>86</b></span>
-      <span class="stat">Salvataggi <b>47</b></span>
-    </div>
-    <div class="gate-actions">
-      <a class="btn primary" href="AdFlow-campagna.html#gate">Crea una nuova campagna →</a>
-    </div>
-  </div>
-
-
-</div>
+<script>
+  // Una vista alla volta: la sceglie un pulsante o l'ancora dell'indirizzo (#attiva, #respinta…)
+  function mostraVista(id) {
+    const scelto = document.querySelector('#scelta-stato [data-vista="' + id + '"]');
+    if (!scelto) return;
+    document.querySelectorAll('.state-panel').forEach(p => { p.style.display = p.id === id ? 'block' : 'none'; });
+    document.querySelectorAll('#scelta-stato .btn').forEach(b => {
+      b.classList.toggle('btn-primary', b === scelto);
+      b.classList.toggle('btn-secondary', b !== scelto);
+    });
+    const pill = document.getElementById('active-state-pill');
+    pill.textContent = scelto.dataset.testo;
+    pill.className = 'status-pill ' + scelto.dataset.pill;
+  }
+  document.querySelectorAll('#scelta-stato .btn').forEach(b => b.addEventListener('click', () => mostraVista(b.dataset.vista)));
+  const daAncora = () => mostraVista(location.hash.replace('#', ''));
+  window.addEventListener('hashchange', daAncora);
+  daAncora();
+</script>
+</body>
+</html>

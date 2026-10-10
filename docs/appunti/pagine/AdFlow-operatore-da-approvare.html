@@ -1,297 +1,259 @@
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Operatore · Campagne da approvare</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --paper:#F6F3EC; --paper-raised:#FFFFFF; --ink:#201D17; --ink-soft:#6E6656; --ink-faint:#9C927D;
-    --accent:#2E6B5C; --accent-strong:#1D4A3F; --accent-soft:#DCEAE3; --accent-on-soft:#1D4A3F;
-    --line:#DDD5C2; --danger:#AE3B2C; --danger-soft:#F6E1DC; --danger-on-soft:#7A281C;
-    --warn:#8A6A1F; --warn-soft:#F3E7C9;
-    color-scheme: light;
-  }
-  @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]){
-      --paper:#1B1914; --paper-raised:#26231C; --ink:#EFEAE0; --ink-soft:#B7AE9B; --ink-faint:#837A68;
-      --accent:#7EC4AE; --accent-strong:#A9DCC9; --accent-soft:#22392F; --accent-on-soft:#A9DCC9;
-      --line:#3A362B; --danger:#E08776; --danger-soft:#3A2420; --danger-on-soft:#E08776;
-      --warn:#E4C878; --warn-soft:#3A331C;
-      color-scheme: dark;
-    }
-  }
-  :root[data-theme="dark"]{
-    --paper:#1B1914; --paper-raised:#26231C; --ink:#EFEAE0; --ink-soft:#B7AE9B; --ink-faint:#837A68;
-    --accent:#7EC4AE; --accent-strong:#A9DCC9; --accent-soft:#22392F; --accent-on-soft:#A9DCC9;
-    --line:#3A362B; --danger:#E08776; --danger-soft:#3A2420; --danger-on-soft:#E08776;
-    --warn:#E4C878; --warn-soft:#3A331C;
-    color-scheme: dark;
-  }
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Operatore · Campagne da approvare</title>
+  <link rel="stylesheet" href="assets/adflow.css">
+</head>
+<body>
 
-  *{ box-sizing:border-box; }
-  body{ background:var(--paper); color:var(--ink); font-family:"IBM Plex Sans", system-ui, sans-serif; margin:0; }
-  h1,h2,h3{ font-family:"Fraunces", Georgia, serif; font-weight:600; text-wrap:balance; margin:0; }
-  a{ color:var(--accent-strong); }
-  .wrap{ max-width:1100px; margin-inline:auto; padding-inline:16px; }
-  .mono{ font-family:"IBM Plex Mono", monospace; }
+<div class="app-container">
+  <!-- Barra laterale -->
+  <aside class="app-sidebar">
+    <div class="sidebar-header">
+      <div class="brand-icon-wrapper">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+          <polyline points="2 17 12 22 22 17"></polyline>
+          <polyline points="2 12 12 17 22 12"></polyline>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>AdFlow</h1>
+        <span>Suite · Operatore</span>
+      </div>
+    </div>
 
-  /* Barra di navigazione comune alle pagine operatore */
-  .topbar{ background:var(--paper-raised); border-bottom:1px solid var(--line); }
-  .topbar .wrap{ display:flex; align-items:center; gap:22px; min-height:54px; flex-wrap:wrap; }
-  .brand{ font-family:"Fraunces", Georgia, serif; font-weight:600; font-size:17px; color:var(--ink); text-decoration:none; }
-  .brand small{ font-family:"IBM Plex Mono", monospace; font-size:11px; font-weight:400; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); margin-left:6px; }
-  .nav{ display:flex; gap:4px; flex:1; }
-  .nav a{ text-decoration:none; font-size:14px; color:var(--ink-soft); padding:7px 12px; border-radius:8px; }
-  .nav a.current{ background:var(--accent-soft); color:var(--accent-on-soft); font-weight:500; }
-  .user{ font-size:13px; color:var(--ink-soft); display:flex; gap:12px; align-items:center; }
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Piattaforma</div>
+      <a href="AdFlow-operatore-ingresso.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        <span>Dashboard</span>
+      </a>
+      <a href="AdFlow-operatore-campagna.html" class="nav-link active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+        <span>Campagne</span>
+        <span class="nav-badge">4</span>
+      </a>
+      <a href="AdFlow-operatore-da-approvare.html" class="nav-link active" style="padding-left: 36px; font-size: 12.5px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width: 15px; height: 15px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+        <span>Da approvare</span>
+      </a>
+      <a href="AdFlow-operatore-artigiano-campagne.html" class="nav-link" style="padding-left: 36px; font-size: 12.5px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width: 15px; height: 15px;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+        <span>Storico chiuse</span>
+      </a>
 
-  main{ padding-block:24px 48px; }
+      <div class="nav-section-label">Gestione</div>
+      <a href="AdFlow-operatore-elenco.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        <span>Artigiani</span>
+        <span class="nav-badge">6</span>
+      </a>
+      <a href="AdFlow-operatore-metriche.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+        <span>Metriche</span>
+      </a>
 
-  .masthead{ display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap; margin-bottom:18px; }
-  .eyebrow{ font-family:"IBM Plex Mono", monospace; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); }
-  .masthead h1{ font-size:30px; margin-top:6px; }
-  .masthead p{ color:var(--ink-soft); font-size:14.5px; margin:6px 0 0; }
-
-  .banner{ border-radius:10px; padding:12px 14px; font-size:13.5px; line-height:1.5; margin-bottom:22px; display:flex; gap:10px; align-items:flex-start; }
-  .banner.info{ background:var(--accent-soft); border:1px solid var(--accent); color:var(--accent-on-soft); }
-  .banner.warn{ background:var(--warn-soft); border:1px solid var(--warn); color:var(--warn); }
-  .banner .icon{ flex:none; font-family:"IBM Plex Mono", monospace; font-weight:500; }
-
-  .card{ background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:20px; }
-  .card .tab{ font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--accent-strong); letter-spacing:.06em; }
-  .card h3{ font-size:18px; margin-top:4px; margin-bottom:12px; }
-  .card .foot{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:14px; }
-  .note{ font-size:12.5px; color:var(--ink-faint); line-height:1.5; margin-top:10px; }
-
-  .badge{ display:inline-block; font-family:"IBM Plex Mono", monospace; font-size:11.5px; border-radius:20px; padding:2px 9px; border:1px solid var(--line); color:var(--ink-soft); background:var(--paper); white-space:nowrap; }
-  .badge.ok{ border-color:var(--accent); background:var(--accent-soft); color:var(--accent-on-soft); }
-  .badge.warn{ border-color:var(--warn); background:var(--warn-soft); color:var(--warn); }
-  .badge.danger{ border-color:var(--danger); background:var(--danger-soft); color:var(--danger-on-soft); }
-
-  .btn{ font-family:inherit; border-radius:8px; padding:8px 14px; font-size:13.5px; font-weight:500; border:1px solid var(--line); background:var(--paper-raised); color:var(--ink); display:inline-block; text-decoration:none; }
-  .btn.primary{ background:var(--accent); border-color:var(--accent); color:var(--paper-raised); }
-  .btn.quiet{ color:var(--ink-soft); }
-
-  .section-head{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
-  .section-head h2{ font-size:24px; }
-  .section-head p{ margin:0; font-size:13.5px; color:var(--ink-soft); }
-  section{ scroll-margin-top:16px; margin-bottom:36px; }
-
-  .group-empty{ border:1px dashed var(--line); border-radius:12px; padding:14px 16px; font-size:13.5px; color:var(--ink-faint); }
-
-  .camp{ background:var(--paper-raised); border:1px solid var(--line); border-radius:12px; padding:16px 18px; display:grid; grid-template-columns:1fr auto; gap:14px 24px; margin-bottom:10px; }
-  .camp.attn{ border-left:4px solid var(--warn); }
-  .camp.lost{ border-left:4px solid var(--danger); }
-  .camp .who{ font-size:13px; color:var(--ink-soft); }
-  .camp .who a{ text-decoration:none; font-weight:500; }
-  .camp h3{ font-size:17px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:3px; }
-  .camp .meta{ font-size:13px; color:var(--ink-soft); margin-top:5px; display:flex; gap:6px 16px; flex-wrap:wrap; }
-  .posts{ display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
-  .camp .next{ font-size:13px; margin-top:10px; }
-  .camp .actions{ display:flex; flex-direction:column; gap:8px; align-items:stretch; min-width:170px; }
-  @media (max-width:640px){
-    .camp{ grid-template-columns:1fr; }
-    .camp .actions{ flex-direction:row; flex-wrap:wrap; min-width:0; }
-  }
-
-  .tools{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
-  .tools input[type=search], .tools select{ font-family:inherit; font-size:14px; color:var(--ink); background:var(--paper-raised); border:1px solid var(--line); border-radius:8px; padding:8px 11px; }
-  .tools input[type=search]{ flex:1; min-width:200px; }
-  .tools .spacer{ flex:1; }
-
-  .table-wrap{ overflow-x:auto; background:var(--paper-raised); border:1px solid var(--line); border-radius:12px; }
-  table{ border-collapse:collapse; width:100%; font-size:13.5px; min-width:820px; }
-  th{ text-align:left; font-family:"IBM Plex Mono", monospace; font-weight:400; font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-faint); padding:10px 14px; border-bottom:1px solid var(--line); white-space:nowrap; }
-  td{ padding:11px 14px; border-top:1px solid var(--line); vertical-align:top; }
-  tbody tr:first-child td{ border-top:none; }
-  td .sub{ display:block; font-size:12px; color:var(--ink-faint); }
-  td a.name{ font-weight:500; text-decoration:none; }
-  td.num{ font-family:"IBM Plex Mono", monospace; }
-
-  /* Finestra "Nuovo artigiano", mostrata aperta sotto l'elenco */
-  .dialog{ max-width:560px; background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:22px; box-shadow:0 10px 30px rgba(0,0,0,.12); }
-  .dialog h3{ font-size:20px; }
-  .dialog .hint{ color:var(--ink-soft); font-size:13.5px; line-height:1.5; margin:8px 0 18px; }
-  .field{ margin-bottom:14px; }
-  .field label{ display:block; font-size:13px; font-weight:500; margin-bottom:6px; }
-  .field .desc{ font-size:12.5px; color:var(--ink-faint); margin-top:5px; }
-  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-  @media (max-width:560px){ .row2{ grid-template-columns:1fr; } }
-  .dialog input, .dialog select{ width:100%; font-family:inherit; font-size:14.5px; color:var(--ink); background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:9px 11px; }
-  .dialog .foot{ display:flex; gap:10px; justify-content:flex-end; margin-top:18px; }
-
-  .open{ margin:0; padding-left:20px; font-size:13.5px; line-height:1.55; }
-  .open li{ margin-bottom:6px; }
-
-  .crumb{ font-size:13px; margin-bottom:14px; }
-  .crumb a{ text-decoration:none; }
-
-  /* Domande aperte con la proposta di risposta */
-  .open li{ margin-bottom:14px; }
-  .proposta{ display:block; margin-top:5px; padding:8px 11px; border-left:3px solid var(--accent); background:var(--accent-soft); color:var(--accent-on-soft); border-radius:0 8px 8px 0; }
-
-  /* Pagina di ingresso: le tre porte e gli avvisi */
-  .porte{ display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:14px; margin-bottom:34px; }
-  .porta{ display:flex; flex-direction:column; gap:6px; background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:20px; text-decoration:none; color:var(--ink); }
-  .porta.attn{ border-color:var(--warn); }
-  .porta b{ font-family:"IBM Plex Mono", monospace; font-weight:500; font-size:32px; line-height:1; }
-  .porta h2{ font-size:20px; }
-  .porta p{ margin:0; font-size:13.5px; color:var(--ink-soft); line-height:1.5; }
-  .porta .vai{ margin-top:auto; padding-top:10px; font-size:13.5px; font-weight:500; color:var(--accent-strong); }
-  .avvisi{ list-style:none; margin:0; padding:0; background:var(--paper-raised); border:1px solid var(--line); border-radius:12px; }
-  .avvisi li{ display:flex; gap:10px 16px; align-items:baseline; justify-content:space-between; flex-wrap:wrap; padding:12px 16px; border-top:1px solid var(--line); font-size:13.5px; }
-  .avvisi li:first-child{ border-top:none; }
-  .avvisi .cosa{ flex:1 1 320px; }
-  .avvisi .cosa .sub{ display:block; font-size:12.5px; color:var(--ink-faint); margin-top:2px; }
-  .avvisi a{ text-decoration:none; font-weight:500; white-space:nowrap; }
-
-  /* Nuovo artigiano: modulo e conferma */
-  .dialog{ box-shadow:none; }
-  .due{ display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:18px; align-items:start; margin-bottom:36px; }
-  .segreto{ font-family:"IBM Plex Mono", monospace; font-size:17px; background:var(--paper); border:1px dashed var(--line); border-radius:8px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
-</style>
-<!-- fascia-mappa: stato della pagina statica e ritorno alla mappa. Non fa parte della schermata. -->
-<div style="border-bottom:1px solid var(--line); padding:8px 18px; background:var(--paper-raised); color:var(--ink-soft); font:12px/1.5 'IBM Plex Mono', ui-monospace, monospace; display:flex; flex-wrap:wrap; gap:2px 16px; justify-content:space-between;">
-  <a href="index.html" style="color:inherit;">← Mappa delle pagine</a>
-  <span>Pagina statica · <strong style="color:var(--ink); font-weight:500;">approvata</strong> · ADR-54 · domande chiuse: ADR-106</span>
-</div>
-<!-- /fascia-mappa -->
-
-<!-- ============ Barra comune alle pagine operatore ============ -->
-<header class="topbar">
-  <div class="wrap">
-    <a class="brand" href="AdFlow-operatore-ingresso.html">AdFlow <small>Operatore</small></a>
-    <nav class="nav" aria-label="Sezioni operatore">
-      <a href="AdFlow-operatore-da-approvare.html" class="current">Da approvare</a>
-      <a href="AdFlow-operatore-elenco.html">Artigiani</a>
-      <a href="AdFlow-operatore-metriche.html">Metriche</a>
+      <div class="nav-section-label">Sistema</div>
+      <a href="index.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <span>Mappa Pagine</span>
+      </a>
     </nav>
-    <div class="user"><span>Laura Rossi · operatore</span><a href="AdFlow-login.html">Esci</a></div>
-  </div>
-</header>
 
-<main class="wrap">
-
-  <div class="banner warn">
-    <span class="icon">i</span>
-    <span><b>Pagina statica, non interattiva.</b> Le campagne da approvare di tutti gli artigiani. È la pagina dello sprint 1 (T1-53, con <span class="mono">GET /campagne?stato=</span>, con lo stato ripetuto). Oggi è il 28/09/2026.</span>
-  </div>
-
-  <div class="crumb"><a href="AdFlow-operatore-ingresso.html">← Ingresso</a></div>
-
-  <div class="masthead">
-    <div>
-      <div class="eyebrow">Operatore · Tutti gli artigiani</div>
-      <h1>Campagne da approvare</h1>
-      <p>Dalla più urgente: in cima quella con il primo post da approvare più vicino. Si decide sempre in Vedi campagna.</p>
+    <div class="sidebar-footer">
+      <div class="user-profile-card">
+        <img src="assets/img/avatar-laura.jpg" alt="Laura Rossi" class="user-avatar" onerror="this.outerHTML='<div class=\'user-avatar placeholder\'>LR</div>'">
+        <div class="user-info">
+          <div class="user-name">Laura Rossi</div>
+          <div class="user-role">Operatore Consorzio</div>
+        </div>
+      </div>
+      <a href="AdFlow-campagna.html" class="role-switch-btn" title="Passa all'esperienza Artigiano">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+        <span>Vista Artigiano (Mario Bianchi)</span>
+      </a>
     </div>
+  </aside>
+
+  <div class="app-main">
+    <!-- fascia-mappa: stato della pagina statica e ritorno alla mappa. Non fa parte della schermata. -->
+    <header class="app-topbar">
+      <div class="topbar-left">
+        <div class="stato-pagina">Pagina statica · <strong>approvata</strong> · ADR-54 · domande chiuse: ADR-106 · stile: ADR-113</div>
+      </div>
+
+      <div class="topbar-right">
+        <a href="index.html" class="icon-btn" title="Mappa delle pagine">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        </a>
+        <a href="AdFlow-login.html" class="icon-btn" title="Esci">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        </a>
+      </div>
+    </header>
+    <!-- /fascia-mappa -->
+
+    <main class="content-wrapper">
+      <nav class="breadcrumb-trail">
+        <a href="AdFlow-operatore-ingresso.html">Dashboard</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">Campagne da approvare</span>
+      </nav>
+
+      <div class="page-header">
+        <div class="page-title-group">
+          <h1 class="page-title">Campagne da approvare</h1>
+          <span class="status-pill review">4 di tutti gli artigiani</span>
+        </div>
+        <div class="page-actions">
+          <select class="form-select" style="width: auto; font-size: 13px;" aria-label="Filtra per stato">
+            <option>Stato: tutti (4)</option>
+            <option>in_revisione (2)</option>
+            <option>in_generazione (1)</option>
+            <option>generazione_fallita (1)</option>
+            <option>piano_da_rivedere (0)</option>
+            <option>inviata (0)</option>
+          </select>
+        </div>
+      </div>
+
+      <p class="lead">
+        Dalla più urgente: in cima quella con il primo post da approvare più vicino. Si decide sempre in Vedi campagna.
+      </p>
+
+      <div class="pila" id="da-approvare">
+
+        <div class="surface-card riga-campagna bordo-attn">
+          <div>
+            <div class="chi">
+              <a href="AdFlow-operatore-artigiano.html">Falegnameria Bianchi</a>
+              <span>· Bra (CN) ·</span>
+              <code>ART-0042</code>
+            </div>
+            <div class="titolo">
+              <h2>Campagna Ottobre 2026</h2>
+              <span class="status-pill review">in_revisione</span>
+              <span class="status-pill fb">Facebook</span>
+              <span class="status-pill ig">Instagram</span>
+            </div>
+            <div class="dati">
+              <span><strong>Periodo:</strong> 01/10/2026 → 31/10/2026</span>
+              <span><strong>Inviata il</strong> 25/09/2026</span>
+              <span><strong>Post:</strong> 26 · 5 riempitivi su Facebook · 1 da rivedere</span>
+              <span><strong>Storico:</strong> 6 campagne inviate · l'ultima chiusa: scaduta ad agosto · una respinta per le foto a luglio</span>
+            </div>
+            <div class="riquadro-nota">
+              <strong>Entro quando:</strong> primo post da approvare giovedì 01/10 alle 18:30 · promemoria il 29/09
+            </div>
+            <div class="riquadro-nota">
+              <strong>Nota interna</strong> (27/09, L. Rossi): aspetto conferma delle date del mercatino.
+            </div>
+          </div>
+          <div class="azioni">
+            <a href="AdFlow-operatore-campagna.html" class="btn btn-primary">Vedi campagna →</a>
+            <a href="AdFlow-operatore-artigiano.html" class="btn btn-secondary btn-sm">Pagina artigiano</a>
+          </div>
+        </div>
+
+        <div class="surface-card riga-campagna bordo-errore">
+          <div>
+            <div class="chi">
+              <a href="#">Ceramiche Olivero</a>
+              <span>· Mondovì (CN) ·</span>
+              <code>ART-0017</code>
+            </div>
+            <div class="titolo">
+              <h2>Autunno in tavola</h2>
+              <span class="status-pill danger">generazione_fallita</span>
+              <span class="status-pill ig">Instagram</span>
+            </div>
+            <div class="dati">
+              <span><strong>Periodo:</strong> 05/10/2026 → 01/11/2026</span>
+              <span><strong>Inviata il</strong> 27/09/2026</span>
+              <span><strong>Storico:</strong> 3 campagne inviate · tutte concluse</span>
+            </div>
+            <div class="riquadro-nota errore">
+              Errore temporaneo dell'AI dopo 3 esecuzioni · Riprova in Vedi campagna · entro il 05/10 alle 00:00: senza piano la campagna scade all'inizio
+            </div>
+          </div>
+          <div class="azioni">
+            <a href="#" class="btn btn-primary">Vedi campagna →</a>
+            <a href="#" class="btn btn-secondary btn-sm">Pagina artigiano</a>
+          </div>
+        </div>
+
+        <div class="surface-card riga-campagna bordo-primario">
+          <div>
+            <div class="chi">
+              <a href="#">Pelletteria Ferrero</a>
+              <span>· Alba (CN) ·</span>
+              <code>ART-0031</code>
+            </div>
+            <div class="titolo">
+              <h2>Borse d'inverno</h2>
+              <span class="status-pill info">in_generazione</span>
+              <span class="status-pill fb">Facebook</span>
+              <span class="status-pill ig">Instagram</span>
+            </div>
+            <div class="dati">
+              <span><strong>Periodo:</strong> 12/10/2026 → 08/11/2026</span>
+              <span><strong>Inviata il</strong> 28/09/2026</span>
+              <span><strong>Storico:</strong> prima campagna di questa bottega</span>
+            </div>
+            <div class="riquadro-nota">
+              Generazione dei post in corso · entro il 12/10 alle 00:00
+            </div>
+          </div>
+          <div class="azioni">
+            <a href="#" class="btn btn-primary">Vedi campagna →</a>
+            <a href="#" class="btn btn-secondary btn-sm">Pagina artigiano</a>
+          </div>
+        </div>
+
+        <div class="surface-card riga-campagna bordo-attn">
+          <div>
+            <div class="chi">
+              <a href="#">Tessitura Gallo</a>
+              <span>· Saluzzo (CN) ·</span>
+              <code>ART-0008</code>
+            </div>
+            <div class="titolo">
+              <h2>Sciarpe e plaid</h2>
+              <span class="status-pill review">in_revisione</span>
+              <span class="status-pill fb">Facebook</span>
+            </div>
+            <div class="dati">
+              <span><strong>Periodo:</strong> 15/10/2026 → 15/11/2026</span>
+              <span><strong>Inviata il</strong> 26/09/2026</span>
+              <span><strong>Post:</strong> 9 · 9 da approvare</span>
+              <span><strong>Storico:</strong> 4 campagne inviate · 1 in corso</span>
+            </div>
+            <div class="riquadro-nota">
+              <strong>Entro quando:</strong> primo post da approvare il 15/10 alle 18:30
+            </div>
+          </div>
+          <div class="azioni">
+            <a href="#" class="btn btn-primary">Vedi campagna →</a>
+            <a href="#" class="btn btn-secondary btn-sm">Pagina artigiano</a>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Note della pagina statica: non fanno parte della schermata -->
+      <div class="note-pagina">
+        <p><strong>Pagina statica, non interattiva.</strong> Le campagne da approvare di tutti gli artigiani. È la pagina dello sprint 1 (T1-53, con <code>GET /campagne?stato=</code>, con lo stato ripetuto). Oggi è il 28/09/2026.</p>
+        <p>Stati mostrati: <code>inviata</code>, <code>in_generazione</code>, <code>piano_da_rivedere</code>, <code>generazione_fallita</code>, <code>in_revisione</code>. Sono gli stessi della sezione "Da approvare" della pagina artigiano (spec §4). Da ogni riga due strade: <strong>Vedi campagna</strong> per decidere, <strong>Pagina artigiano</strong> per lo storico della bottega. Riprova sta solo in Vedi campagna. Il codice ART e la traccia dello storico arrivano dallo sprint 3, con l'anagrafica: nello sprint 1 la riga porta bottega e città (ADR-106).</p>
+        <p>"Entro quando" segue la scadenza morbida (ADR-95): con un piano, ogni post da approvare scade quando passa la sua data, e la campagna scade quando ne restano meno della metà; senza piano scade alle 00:00 del giorno di inizio.</p>
+        <p>Esempio · pagina vuota: "Nessuna campagna da approvare. Le campagne arrivano qui appena un artigiano le invia."</p>
+      </div>
+
+    </main>
   </div>
+</div>
 
-  <section id="da-approvare">
-    <div class="banner info">
-      <span class="icon">i</span>
-      <span>Stati mostrati: <span class="mono">inviata</span>, <span class="mono">in_generazione</span>, <span class="mono">piano_da_rivedere</span>, <span class="mono">generazione_fallita</span>, <span class="mono">in_revisione</span>. Sono gli stessi della sezione "Da approvare" della pagina artigiano (spec §4). Da ogni riga due strade: <b>Vedi campagna</b> per decidere, <b>Pagina artigiano</b> per lo storico della bottega. Riprova sta solo in Vedi campagna. Il codice ART e la traccia dello storico arrivano dallo sprint 3, con l'anagrafica: nello sprint 1 la riga porta bottega e città (ADR-106).</span>
-    </div>
-
-    <div class="tools">
-      <select aria-label="Filtra per stato">
-        <option>Stato: tutti (4)</option>
-        <option>in_revisione (2)</option>
-        <option>in_generazione (1)</option>
-        <option>generazione_fallita (1)</option>
-        <option>piano_da_rivedere (0)</option>
-        <option>inviata (0)</option>
-      </select>
-      <span class="spacer"></span>
-    </div>
-
-    <article class="camp attn">
-      <div>
-        <div class="who"><a href="AdFlow-operatore-artigiano.html">Falegnameria Bianchi</a> · Bra (CN) · <span class="mono">ART-0042</span></div>
-        <h3>Campagna Ottobre 2026 <span class="badge warn">in_revisione</span></h3>
-        <div class="meta">
-          <span>01/10/2026 → 31/10/2026</span>
-          <span>Facebook, Instagram</span>
-          <span>Inviata il 25/09/2026</span>
-        </div>
-        <div class="posts">
-          <span class="badge">26 post</span>
-          <span class="badge warn">5 riempitivi su Facebook</span>
-          <span class="badge danger">1 da rivedere</span>
-        </div>
-        <div class="next"><b>Storico:</b> 6 campagne inviate · l'ultima chiusa: scaduta ad agosto · una respinta per le foto a luglio</div>
-        <div class="next"><b>Entro quando:</b> primo post da approvare giovedì 01/10 alle 18:30 · promemoria il 29/09</div>
-        <div class="next"><b>Nota interna</b> (27/09, L. Rossi): aspetto conferma delle date del mercatino.</div>
-      </div>
-      <div class="actions">
-        <a class="btn primary" href="AdFlow-operatore-campagna.html">Vedi campagna →</a>
-        <a class="btn quiet" href="AdFlow-operatore-artigiano.html">Pagina artigiano</a>
-      </div>
-    </article>
-
-    <article class="camp lost">
-      <div>
-        <div class="who"><a href="#">Ceramiche Olivero</a> · Mondovì (CN) · <span class="mono">ART-0017</span></div>
-        <h3>Autunno in tavola <span class="badge danger">generazione_fallita</span></h3>
-        <div class="meta">
-          <span>05/10/2026 → 01/11/2026</span>
-          <span>Instagram</span>
-          <span>Inviata il 27/09/2026</span>
-        </div>
-        <div class="next"><b>Storico:</b> 3 campagne inviate · tutte concluse</div>
-        <div class="next"><b>Errore temporaneo dell'AI</b> dopo 3 esecuzioni · Riprova in Vedi campagna · <b>entro</b> il 05/10 alle 00:00: senza piano la campagna scade all'inizio</div>
-      </div>
-      <div class="actions">
-        <a class="btn primary" href="#">Vedi campagna →</a>
-        <a class="btn quiet" href="#">Pagina artigiano</a>
-      </div>
-    </article>
-
-    <article class="camp">
-      <div>
-        <div class="who"><a href="#">Pelletteria Ferrero</a> · Alba (CN) · <span class="mono">ART-0031</span></div>
-        <h3>Borse d'inverno <span class="badge">in_generazione</span></h3>
-        <div class="meta">
-          <span>12/10/2026 → 08/11/2026</span>
-          <span>Facebook, Instagram</span>
-          <span>Inviata il 28/09/2026</span>
-        </div>
-        <div class="next"><b>Storico:</b> Prima campagna di questa bottega</div>
-        <div class="next"><b>Generazione dei post in corso</b> · <b>entro</b> il 12/10 alle 00:00</div>
-      </div>
-      <div class="actions">
-        <a class="btn" href="#">Vedi campagna →</a>
-        <a class="btn quiet" href="#">Pagina artigiano</a>
-      </div>
-    </article>
-
-    <article class="camp">
-      <div>
-        <div class="who"><a href="#">Tessitura Gallo</a> · Saluzzo (CN) · <span class="mono">ART-0008</span></div>
-        <h3>Sciarpe e plaid <span class="badge warn">in_revisione</span></h3>
-        <div class="meta">
-          <span>15/10/2026 → 15/11/2026</span>
-          <span>Facebook</span>
-          <span>Inviata il 26/09/2026</span>
-        </div>
-        <div class="posts">
-          <span class="badge">9 post</span>
-          <span class="badge warn">9 da approvare</span>
-        </div>
-        <div class="next"><b>Storico:</b> 4 campagne inviate · 1 in corso</div>
-        <div class="next"><b>Entro quando:</b> primo post da approvare il 15/10 alle 18:30</div>
-      </div>
-      <div class="actions">
-        <a class="btn primary" href="#">Vedi campagna →</a>
-        <a class="btn quiet" href="#">Pagina artigiano</a>
-      </div>
-    </article>
-
-
-    <p class="note" style="margin-top:14px;">"Entro quando" segue la scadenza morbida (ADR-95): con un piano, ogni post da approvare scade quando passa la sua data, e la campagna scade quando ne restano meno della metà; senza piano scade alle 00:00 del giorno di inizio.</p>
-    <div class="group-empty" style="margin-top:14px;">Esempio · pagina vuota: "Nessuna campagna da approvare. Le campagne arrivano qui appena un artigiano le invia."</div>
-  </section>
-
-
-</main>
+</body>
+</html>
