@@ -16,24 +16,31 @@ npm run dev
 L'app si apre su http://localhost:5173. Le chiamate `/api` vanno in proxy
 verso il backend su http://localhost:8000 (`vite.config.ts`).
 
-## Dati di esempio
+## API vere e dati di esempio
 
-Di default le pagine usano i dati di esempio di `src/api/esempi/`, con la
-forma delle API di plan §3: servono finché non si passa alle API vere
-(T1-07). Utenti di esempio, password `prova`:
+Di default le pagine chiamano le API vere: serve il backend avviato
+(`uv run uvicorn app.main:app --reload` da `backend/`), con il worker per la
+generazione e la pubblicazione e gli utenti del seed (README della radice).
+
+Fa eccezione il riassunto del profilo nella pagina Campagna: `GET /profilo`
+arriva con lo sprint 2a, fino ad allora resta quello di esempio
+(`PROFILO_SU_MAIN` in `src/api/artigiani.ts`).
+
+Per lavorare a una pagina senza il backend ci sono i dati di esempio di
+`src/api/esempi/`, con la forma delle API di plan §3. Si accendono con un file
+`frontend/.env.local` (non va in git) che contiene:
+
+```
+VITE_USA_ESEMPI=1
+```
+
+Utenti di esempio, password `prova`:
 
 | Email | Ruolo | Pagina di partenza |
 |---|---|---|
 | `mario@falegnameriabianchi.it` | artigiano | `/campagna` |
 | `laura@consorzio.example` | operatore | `/da-approvare` |
 | `admin@consorzio.example` | admin | `/da-approvare` |
-
-Per usare le API vere (backend avviato con
-`uv run uvicorn app.main:app --reload` da `backend/`):
-
-```bash
-VITE_USA_ESEMPI=0 npm run dev
-```
 
 ## Controlli
 

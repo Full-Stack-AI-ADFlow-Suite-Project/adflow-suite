@@ -12,6 +12,7 @@ import type {
   FotoSintetica,
   GruppoCrea,
   GruppoSintetico,
+  ProfiloSnapshot,
 } from "../campagne";
 import {
   canaliEsempio,
@@ -199,9 +200,25 @@ function f(
   };
 }
 
+/** La fotografia come la salva l'invio: i nomi delle colonne del profilo. */
+function fotografia(profiloId: number): ProfiloSnapshot {
+  const b = profiliEsempio[profiloId];
+  return {
+    nome: b.bottega,
+    referente: b.referente,
+    citta: b.citta,
+    tipo_prodotto: b.tipo_prodotto,
+    obiettivo: b.obiettivo,
+    frequenza: b.frequenza,
+    tono: [b.tono],
+    clienti_ideali: b.clienti,
+    vincoli: b.da_non_dire,
+  };
+}
+
 /** Le campagne delle altre botteghe, per la pagina dell'operatore (T1-53). */
 function semiOperatore(): CampagnaDettaglio[] {
-  const snap = (profiloId: number) => ({ ...profiliEsempio[profiloId] });
+  const snap = fotografia;
   return [
     {
       id: 10,
@@ -715,7 +732,7 @@ export const esempiCampagne = {
       throw new ApiErrore(409, "Un canale della campagna non è collegato.");
     c.stato = "inviata";
     c.inviata_il = new Date().toISOString();
-    c.profilo_snapshot = { ...profiliEsempio[1] };
+    c.profilo_snapshot = fotografia(1);
     salva(campagne);
     return conAvvisi(c);
   },

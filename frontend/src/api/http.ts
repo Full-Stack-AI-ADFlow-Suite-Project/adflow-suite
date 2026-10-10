@@ -15,6 +15,22 @@ export class ApiErrore extends Error {
   }
 }
 
+/**
+ * Il messaggio di un errore: `detail` è una frase in italiano; quando è lo
+ * schema a rifiutare i dati FastAPI manda un elenco, di cui si legge il primo.
+ */
+export function leggiDettaglio(dati: unknown): string {
+  const detail = (dati as { detail?: unknown } | null)?.detail;
+  if (typeof detail === "string") return detail;
+  if (Array.isArray(detail)) {
+    const msg = (detail[0] as { msg?: unknown } | undefined)?.msg;
+    if (typeof msg === "string" && msg.startsWith("Value error, "))
+      return msg.slice("Value error, ".length);
+    return "Dati non validi.";
+  }
+  return "Errore inatteso.";
+}
+
 type Gestore401 = () => void;
 let gestore401: Gestore401 | null = null;
 
@@ -46,10 +62,8 @@ export async function richiesta<T>(
   }
   if (risposta.status === 204) return undefined as T;
   if (!risposta.ok) {
-    const dati = (await risposta.json().catch(() => null)) as {
-      detail?: string;
-    } | null;
-    throw new ApiErrore(risposta.status, dati?.detail ?? "Errore inatteso.");
+    const dati: unknown = await risposta.json().catch(() => null);
+    throw new ApiErrore(risposta.status, leggiDettaglio(dati));
   }
   return (await risposta.json()) as T;
 }

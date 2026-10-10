@@ -69,8 +69,7 @@ export function VediCampagna() {
   }, [carica]);
 
   const bottega =
-    campagna?.profilo_snapshot?.bottega ??
-    (campagna ? "" : BOTTEGA_SCONOSCIUTA);
+    campagna?.profilo_snapshot?.nome ?? (campagna ? "" : BOTTEGA_SCONOSCIUTA);
   const citta = campagna?.profilo_snapshot?.citta ?? null;
   const postTotali = vista?.uscite.reduce((n, u) => n + u.post.length, 0) ?? 0;
 
