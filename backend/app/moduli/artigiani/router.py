@@ -81,14 +81,14 @@ def salva_profilo(
 
 
 @profili.put("/profilo/logo", response_model=ProfiloPubblico)
-async def salva_logo(
+def salva_logo(
     db: Annotated[Session, Depends(get_db, scope="function")],
     utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
     ora: Annotated[datetime, Depends(adesso)],
     file: Annotated[UploadFile, File()],
     response: Response,
 ) -> Any:
-    dati = await file.read(logo.MAX_BYTE + 1)
+    dati = file.file.read(logo.MAX_BYTE + 1)
     response.headers["Cache-Control"] = "no-store"
     return logo.salva(db, utente.id, dati, ora)
 
