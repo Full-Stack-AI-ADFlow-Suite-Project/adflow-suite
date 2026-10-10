@@ -80,10 +80,7 @@ export function Campagna() {
   return (
     <Guscio
       titolo="Campagna"
-      nav={[
-        { label: "Campagna", attivo: true },
-        { label: "Profilo bottega", disabilitato: true },
-      ]}
+      nav={[{ label: "Campagna", attivo: true }, { label: "Profilo bottega" }]}
     >
       {vista === null || profilo === null ? (
         <Center py="xl">

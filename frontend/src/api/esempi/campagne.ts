@@ -7,6 +7,7 @@
 import { ApiErrore } from "../http";
 import type {
   CampagnaCrea,
+  CampagnaModifica,
   CampagnaDettaglio,
   CampagnaElencoItem,
   FotoSintetica,
@@ -608,6 +609,128 @@ export const esempiCampagne = {
       avvisi: [],
     };
     campagne.push(c);
+    salva(campagne);
+    return conAvvisi(c);
+  },
+
+  async modifica(
+    id: number,
+    dati: CampagnaModifica,
+  ): Promise<CampagnaDettaglio> {
+    const campagne = carica();
+    const c = trova(campagne, id);
+    soloBozza(c);
+
+    const nuovoTitolo =
+      dati.titolo !== undefined && dati.titolo !== null
+        ? dati.titolo.trim()
+        : c.titolo;
+    const nuovaDescrizione =
+      dati.descrizione !== undefined
+        ? dati.descrizione?.trim() || null
+        : c.descrizione;
+    const nuovoInizio =
+      dati.inizio !== undefined && dati.inizio !== null
+        ? dati.inizio
+        : c.inizio;
+    const nuovoFine =
+      dati.fine !== undefined && dati.fine !== null ? dati.fine : c.fine;
+    const nuoviCanali =
+      dati.canali !== undefined && dati.canali !== null
+        ? dati.canali
+        : c.canali ?? [];
+
+    if (!nuovoTitolo) {
+      throw new ApiErrore(422, "Il titolo non può essere vuoto.");
+    }
+    if (!nuoviCanali.length) {
+      throw new ApiErrore(422, "Selezionare almeno un canale.");
+    }
+
+    // R-22, CA-48: solo canali con account collegato
+    const collegati = canaliEsempio
+      .filter((k) => k.collegato)
+      .map((k) => k.canale);
+    const nonCollegati = nuoviCanali.filter((ch) => !collegati.includes(ch));
+    if (nonCollegati.length > 0) {
+      throw new ApiErrore(
+        422,
+        `I seguenti canali non sono collegati: ${nonCollegati.join(", ")}.`,
+      );
+    }
+
+    // R-08, CA-09: inizio >= oggi + 3 giorni
+    const oggi = new Date();
+    oggi.setHours(0, 0, 0, 0);
+    const anticipoMinimo = 3;
+    const dataMinima = new Date(oggi);
+    dataMinima.setDate(dataMinima.getDate() + anticipoMinimo);
+    const inizioData = new Date(nuovoInizio + "T00:00:00");
+    if (inizioData < dataMinima) {
+      throw new ApiErrore(
+        422,
+        `La data di inizio deve essere ad almeno ${anticipoMinimo} giorni da oggi.`,
+      );
+    }
+
+    // R-08, CA-10: fine > inizio e durata tra 7 e 92 giorni
+    const fineData = new Date(nuovoFine + "T00:00:00");
+    if (fineData <= inizioData) {
+      throw new ApiErrore(
+        422,
+        "La data di fine deve essere successiva alla data di inizio.",
+      );
+    }
+    const durata =
+      Math.round((fineData.getTime() - inizioData.getTime()) / 86400000) + 1;
+    if (durata < 7) {
+      throw new ApiErrore(
+        422,
+        "La durata della campagna deve essere di almeno 7 giorni.",
+      );
+    }
+    if (durata > 92) {
+      throw new ApiErrore(
+        422,
+        "La durata della campagna non può superare 92 giorni.",
+      );
+    }
+
+    // R-12, CA-12: campagne non chiuse non sovrapposte
+    const STATI_CHIUSI = ["annullata", "conclusa", "respinta", "scaduta"];
+    const sovrapposta = campagne.find(
+      (altra) =>
+        altra.id !== c.id &&
+        altra.profilo_id === c.profilo_id &&
+        !STATI_CHIUSI.includes(altra.stato) &&
+        altra.inizio <= nuovoFine &&
+        altra.fine >= nuovoInizio,
+    );
+    if (sovrapposta) {
+      throw new ApiErrore(
+        409,
+        "Il periodo si sovrappone a una campagna già esistente.",
+      );
+    }
+
+    // R-13, T2a-21: se la data di un gruppo esce dal nuovo periodo -> 422
+    for (const g of c.gruppi) {
+      if (g.da_usare_il) {
+        if (g.da_usare_il < nuovoInizio || g.da_usare_il > nuovoFine) {
+          throw new ApiErrore(
+            422,
+            `La data di utilizzo del gruppo (${g.da_usare_il}) esce dal nuovo periodo della campagna.`,
+          );
+        }
+      }
+    }
+
+    c.titolo = nuovoTitolo;
+    c.descrizione = nuovaDescrizione;
+    c.inizio = nuovoInizio;
+    c.fine = nuovoFine;
+    c.canali = nuoviCanali;
+
     salva(campagne);
     return conAvvisi(c);
   },

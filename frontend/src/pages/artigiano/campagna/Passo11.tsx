@@ -51,10 +51,12 @@ export function Passo11({
   campagna,
   onCambiata,
   onAvanti,
+  onIndietro,
 }: {
   campagna: CampagnaDettaglio;
   onCambiata: (c: CampagnaDettaglio) => Promise<void>;
   onAvanti: () => void;
+  onIndietro?: () => void;
 }) {
   const [errore, setErrore] = useState("");
   const nFoto = campagna.gruppi.reduce((n, g) => n + g.foto.length, 0);
@@ -75,6 +77,24 @@ export function Passo11({
 
   return (
     <Paper withBorder radius="md" p="xl">
+      {onIndietro && (
+        <Text
+          size="sm"
+          c="verde"
+          td="underline"
+          mb="xs"
+          component="button"
+          onClick={onIndietro}
+          style={{
+            background: "none",
+            border: "none",
+            cursor: "pointer",
+            padding: 0,
+          }}
+        >
+          ← Modifica dati campagna
+        </Text>
+      )}
       <Text ff="monospace" size="xs" c="verde">
         11 · FOTO DELLA CAMPAGNA
       </Text>
@@ -126,7 +146,14 @@ export function Passo11({
           </Text>
         </Group>
         <Divider />
-        <Group justify="flex-end">
+        <Group justify="space-between">
+          {onIndietro ? (
+            <Button variant="default" onClick={onIndietro}>
+              ← Torna a dati e canali
+            </Button>
+          ) : (
+            <div />
+          )}
           <Button color="verde" onClick={onAvanti}>
             Vai al riepilogo →
           </Button>
