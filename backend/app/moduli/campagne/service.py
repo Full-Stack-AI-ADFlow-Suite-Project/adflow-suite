@@ -1,11 +1,11 @@
 """Logica del modulo campagne: l'unica parte che gli altri moduli possono importare."""
 
-from collections.abc import Callable
+from collections.abc import Callable, Iterable
 from copy import deepcopy
 from datetime import date, datetime, timedelta
 import json
 import logging
-from typing import Any
+from typing import Any, NamedTuple
 
 from sqlalchemy import event, func, select, text
 from sqlalchemy.orm import Session, selectinload
@@ -292,6 +292,93 @@ def post_chiesti(post_a_settimana: int, inizio: date, fine: date) -> int:
     """
     giorni = (fine - inizio).days + 1
     return max(0, post_a_settimana * giorni // 7)
+
+
+class FotoDiArchivio(NamedTuple):
+    """Una foto dell'archivio della bottega, vista da un canale (spec R-27).
+
+    ``gruppo`` è il gruppo della foto, con la descrizione che serve all'AI.
+    ``mai_uscita`` è vero se sul canale la foto non è mai stata pubblicata:
+    allora conta tra le foto disponibili (R-05). Se è falso la foto è uscita
+    lì da almeno 90 giorni e torna solo come riempitivo ``archivio`` (R-28).
+    """
+
+    foto: Foto
+    gruppo: GruppoFoto
+    mai_uscita: bool
+
+
+def foto_di_archivio(
+    db: Session,
+    profilo_id: int,
+    canale: str,
+    adesso: datetime,
+) -> list[FotoDiArchivio]:
+    """Le foto dell'archivio della bottega che si possono usare su un canale.
+
+    Usata da ``contenuti`` per il piano (plan §6). Sono le foto ``caricata``
+    del profilo che stanno in una campagna chiusa oppure in un gruppo senza
+    campagna (spec R-27), ordinate per gruppo e per id. Restano fuori:
+
+    - le foto non idonee e quelle segnate in una decisione ``respinta``;
+    - le foto uscite sul canale da meno di 90 giorni (``adesso`` meno
+      l'ultima pubblicazione lì).
+
+    Una foto non ancora analizzata (``analisi_ai`` vuota) è compresa, con
+    ``mai_uscita`` vero: la generazione la analizza prima del piano e poi
+    richiama la funzione. Chi chiama usa solo le foto restituite, non tutte
+    quelle di ``gruppo.foto``.
+
+    Args:
+        db: sessione del database (aperta e chiusa dal chiamante).
+        profilo_id: il profilo della bottega; uno che non esiste non ha foto.
+        canale: il canale per cui si chiedono le foto.
+        adesso: l'ora di riferimento, con il fuso, per i 90 giorni.
+
+    Returns:
+        Lista di ``FotoDiArchivio``, vuota se l'archivio non ha foto adatte.
+    """
+    raise NotImplementedError("T2a-22")
+
+
+def segna_pubblicata(
+    db: Session,
+    foto_id: int,
+    canale: str,
+    quando: datetime,
+) -> None:
+    """Scrive sulla foto che è uscita su un canale (``foto.pubblicata_su``).
+
+    Usata da ``pubblicazione`` dopo ogni ``ok``, per le foto caricate del post
+    (plan §6, spec R-27). Salva ``quando`` in UTC, in formato ISO 8601, sotto
+    la chiave del canale: gli altri canali restano come sono. Vale l'ultima
+    pubblicazione: un istante precedente a quello già scritto non lo
+    sostituisce, così richiamarla con gli stessi dati non cambia nulla.
+
+    Args:
+        db: sessione del database (aperta e chiusa dal chiamante).
+        foto_id: chiave primaria della foto.
+        canale: il canale su cui è uscita.
+        quando: l'istante della pubblicazione, con il fuso.
+
+    Raises:
+        NonTrovato: se non esiste nessuna foto con quell'id.
+    """
+    raise NotImplementedError("T2a-22")
+
+
+def foto_per_id(db: Session, ids: Iterable[int]) -> list[Foto]:
+    """Le foto con gli id indicati, di qualunque campagna, ordinate per id.
+
+    Usata da ``contenuti``, ``revisione`` e ``pubblicazione`` per le foto di
+    una versione (plan §6): dalla 2a un post può avere una foto d'archivio,
+    che ``foto_della_campagna()`` non restituisce. Un id che non esiste non
+    dà errore: la foto manca dall'elenco.
+    """
+    cercati = set(ids)
+    if not cercati:
+        return []
+    return list(db.scalars(select(Foto).where(Foto.id.in_(cercati)).order_by(Foto.id)))
 
 
 def crea_bozza(
