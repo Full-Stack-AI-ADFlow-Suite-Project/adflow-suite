@@ -5,6 +5,7 @@ Test per la coda dei job (core/coda.py).
 import asyncio
 from collections.abc import Iterator
 from contextlib import suppress
+from datetime import datetime, timedelta, timezone
 
 import procrastinate
 import pytest
@@ -68,6 +69,16 @@ def test_accoda_scrive_nome_e_argomenti(coda):
     assert job["task_name"] == "genera_campagna"
     assert job["args"] == {"campagna_id": 123}
     assert job["status"] == "todo"
+
+
+def test_il_job_parte_dopo_che_chi_accoda_ha_salvato(coda, monkeypatch):
+    """Fuori dai test il job non è subito eseguibile: prima salva chi l'ha accodato."""
+    monkeypatch.setattr(modulo_coda, "ATTESA_PARTENZA_SECONDI", 3)
+    prima = datetime.now(timezone.utc)
+
+    job_id = accoda(GENERA_CAMPAGNA, campagna_id=123)
+
+    assert coda.jobs[job_id]["scheduled_at"] >= prima + timedelta(seconds=3)
 
 
 def test_accoda_nome_non_valido(coda):

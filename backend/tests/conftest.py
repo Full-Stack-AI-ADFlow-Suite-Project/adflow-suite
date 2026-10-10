@@ -54,11 +54,13 @@ def db(motore_test: Engine) -> Iterator[Session]:
 
 
 @pytest.fixture(autouse=True)
-def coda() -> Iterator[InMemoryConnector]:
+def coda(monkeypatch) -> Iterator[InMemoryConnector]:
     """Coda in memoria in ogni test: `accoda()` non tocca nessun database.
 
-    I job accodati si leggono in `coda.jobs` (id → nome, argomenti, stato).
+    I job accodati si leggono in `coda.jobs` (id → nome, argomenti, stato) e
+    partono subito: nei test nessuno aspetta.
     """
+    monkeypatch.setattr(modulo_coda, "ATTESA_PARTENZA_SECONDI", 0)
     connettore = InMemoryConnector()
     with modulo_coda.app.replace_connector(connettore):
         yield connettore

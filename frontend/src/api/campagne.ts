@@ -2,7 +2,7 @@
  * Modulo campagne (plan §3): bozza, gruppi di foto, invio.
  * I tipi rispecchiano backend/app/moduli/campagne/schemas.py e domain.py.
  */
-import { ApiErrore, richiesta } from "./http";
+import { ApiErrore, leggiDettaglio, richiesta } from "./http";
 import { esempiCampagne, USA_ESEMPI } from "./esempi/campagne";
 
 export type StatoCampagna =
@@ -67,17 +67,20 @@ export interface CampagnaDettaglio {
   } | null;
 }
 
-/** La fotografia del profilo com'era all'invio (R-11). Backend: dict libero. */
+/**
+ * La fotografia del profilo com'era all'invio (R-11): le colonne di
+ * profilo_bottega (artigiani/models.py). Qui quelle che le pagine leggono.
+ */
 export interface ProfiloSnapshot {
-  bottega?: string;
+  nome?: string;
   referente?: string;
   citta?: string;
   tipo_prodotto?: string;
   obiettivo?: string;
-  frequenza?: string;
-  tono?: string;
-  clienti?: string;
-  da_non_dire?: string;
+  frequenza?: string | null;
+  tono?: string[] | null;
+  clienti_ideali?: string;
+  vincoli?: string | null;
 }
 
 /** DecisioneSintetica di schemas.py: le decisioni dell'operatore. */
@@ -186,10 +189,8 @@ export async function caricaFoto(
   });
   if (risposta.status === 401) throw new ApiErrore(401, "Sessione scaduta.");
   if (!risposta.ok) {
-    const dati = (await risposta.json().catch(() => null)) as {
-      detail?: string;
-    } | null;
-    throw new ApiErrore(risposta.status, dati?.detail ?? "Errore inatteso.");
+    const dati: unknown = await risposta.json().catch(() => null);
+    throw new ApiErrore(risposta.status, leggiDettaglio(dati));
   }
   return (await risposta.json()) as FotoSintetica;
 }

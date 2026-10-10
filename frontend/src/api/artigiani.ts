@@ -28,7 +28,10 @@ export function canali(): Promise<CanaleCollegato[]> {
   return richiesta<CanaleCollegato[]>("GET", "/canali");
 }
 
+/** GET /profilo arriva con la 2a: il passaggio alle API vere è di T2a-07. */
+const PROFILO_SU_MAIN = false;
+
 export function profilo(): Promise<ProfiloBottega> {
-  if (USA_ESEMPI) return Promise.resolve(profiloEsempio);
+  if (USA_ESEMPI || !PROFILO_SU_MAIN) return Promise.resolve(profiloEsempio);
   return richiesta<ProfiloBottega>("GET", "/profilo");
 }

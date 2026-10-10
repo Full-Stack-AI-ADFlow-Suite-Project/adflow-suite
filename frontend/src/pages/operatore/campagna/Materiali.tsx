@@ -217,7 +217,7 @@ export function Materiali({
                   <Text span c="dimmed">
                     Bottega:{" "}
                   </Text>
-                  {snap.bottega} · {snap.citta ?? "—"}
+                  {snap.nome} · {snap.citta ?? "—"}
                 </Text>
                 <Text size="sm">
                   <Text span c="dimmed">
@@ -241,20 +241,20 @@ export function Materiali({
                   <Text span c="dimmed">
                     Clienti:{" "}
                   </Text>
-                  {snap.clienti ?? "—"}
+                  {snap.clienti_ideali ?? "—"}
                 </Text>
                 <Text size="sm">
                   <Text span c="dimmed">
                     Tono:{" "}
                   </Text>
-                  {snap.tono}
+                  {(snap.tono ?? []).join(", ") || "—"}
                 </Text>
-                {snap.da_non_dire && (
+                {snap.vincoli && (
                   <Text size="sm">
                     <Text span c="dimmed">
                       Da non dire:{" "}
                     </Text>
-                    {snap.da_non_dire}
+                    {snap.vincoli}
                   </Text>
                 )}
               </Stack>

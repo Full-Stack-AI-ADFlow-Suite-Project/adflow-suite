@@ -35,6 +35,8 @@ class Impostazioni(BaseSettings):
                 raise ValueError(
                     "Configurazione di sicurezza non valida in produzione."
                 )
+            if self.orologio_giorni_avanti:
+                raise ValueError("In produzione l'orologio non si sposta.")
         return self
 
     archivio_foto_dir: str = "./archivio_foto"
@@ -48,6 +50,8 @@ class Impostazioni(BaseSettings):
 
     anticipo_minimo_giorni: int = 3
     margine_slot_minuti: int = 15
+    # Solo per le prove a mano: `adesso()` va avanti di questi giorni (converge §3)
+    orologio_giorni_avanti: int = Field(default=0, ge=0, le=366)
 
     sessione_artigiano_giorni: int = Field(default=7, ge=1)
     sessione_operatore_ore: int = Field(default=12, ge=1)

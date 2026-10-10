@@ -1,5 +1,7 @@
 """Worker Procrastinate: registra i job dei moduli e il tick di pubblicazione."""
 
+# Il modello intero: un job salva righe con chiavi verso tabelle di altri moduli.
+from app import tabelle  # noqa: F401
 from app.core.coda import TICK_PUBBLICAZIONE, app
 from app.core.db import transazione
 from app.core.orologio import adesso
