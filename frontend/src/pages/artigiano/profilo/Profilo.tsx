@@ -37,6 +37,7 @@ import {
   SCELTE,
   type DatiProfilo,
 } from "../../../api/artigiani";
+import { Passo7 } from "./passo7";
 
 const DESCRIZIONI_PASSI = [
   "I dati anagrafici della bottega, per intestare correttamente profilo e campagne.",
@@ -103,6 +104,7 @@ export function Profilo() {
   const naviga = useNavigate();
   const { utente } = useAuth();
   const [dati, setDati] = useState<DatiProfilo | null>(null);
+  const [logo, setLogo] = useState<string | null>(null);
   const [passo, setPasso] = useState(0);
   const [errori, setErrori] = useState<Record<string, string>>({});
   const [errore, setErrore] = useState("");
@@ -117,6 +119,7 @@ export function Profilo() {
       .then((p) => {
         if (attivo) {
           setDati(p ? datiScrittura(p) : profiloVuoto());
+          setLogo(p?.logo ?? null);
           setErrore("");
         }
       })
@@ -205,28 +208,6 @@ export function Profilo() {
       error={errori[campo]}
       clearable={!required}
       onChange={(v) => cambia(campo, required ? v ?? "" : v)}
-    />
-  );
-
-  const policy = (
-    campo: "quantita_mese" | "chi_scatta" | "persone",
-    label: string,
-  ) => (
-    <Select
-      label={label}
-      data={SCELTE[campo]}
-      clearable
-      value={
-        typeof dati?.foto_policy?.[campo] === "string"
-          ? (dati.foto_policy[campo] as string)
-          : null
-      }
-      onChange={(v) => {
-        const p = { ...dati?.foto_policy };
-        if (v) p[campo] = v;
-        else delete p[campo];
-        cambia("foto_policy", Object.keys(p).length ? p : null);
-      }}
     />
   );
 
@@ -461,22 +442,13 @@ export function Profilo() {
                 )}
 
                 {passo === 6 && (
-                  <>
-                    <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
-                      {policy(
-                        "quantita_mese",
-                        "Quante fotografie puoi fornire al mese?",
-                      )}
-                      {policy("chi_scatta", "Chi scatta le fotografie?")}
-                      {policy("persone", "Persone riconoscibili nelle foto")}
-                    </SimpleGrid>
-                    <Alert color="blue" variant="light">
-                      <Text size="sm">
-                        Logo e archivio della bottega saranno disponibili qui
-                        nel prossimo passaggio.
-                      </Text>
-                    </Alert>
-                  </>
+                  <Passo7
+                    dati={dati}
+                    cambia={cambia}
+                    scelte={SCELTE}
+                    logo={logo}
+                    onLogoCambiato={setLogo}
+                  />
                 )}
 
                 {passo === 7 && (
