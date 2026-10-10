@@ -64,6 +64,9 @@ export function Passo10({
   const [descrizione, setDescrizione] = useState("");
   const [errori, setErrori] = useState<Record<string, string>>({});
   const [inCorso, setInCorso] = useState(false);
+  // L'errore del server riguarda i dati inviati: se cambiano, non vale più.
+  const [inviati, setInviati] = useState("");
+  const dati = JSON.stringify([titolo, inizio, fine, scelti, descrizione]);
 
   useEffect(() => {
     apiCanali()
@@ -100,6 +103,7 @@ export function Passo10({
     evento.preventDefault();
     if (!valida()) return;
     setInCorso(true);
+    setInviati(dati);
     await onContinua({
       titolo: titolo.trim(),
       inizio,
@@ -224,7 +228,7 @@ export function Passo10({
           error={errori.descrizione}
           onChange={(e) => setDescrizione(e.currentTarget.value)}
         />
-        {errore && (
+        {errore && inviati === dati && (
           <Alert color="red" variant="light">
             {errore}
           </Alert>

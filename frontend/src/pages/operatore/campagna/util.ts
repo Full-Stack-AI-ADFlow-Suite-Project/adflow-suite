@@ -24,6 +24,31 @@ export const NOME_CANALE: Record<string, string> = {
   instagram: "Instagram",
 };
 
+/** I valori di artigiani/domain.py, come li legge una persona. */
+export const NOME_OBIETTIVO: Record<string, string> = {
+  vendere: "Vendere di più",
+  negozio: "Portare persone in bottega",
+  notorieta: "Farmi conoscere",
+  fidelizzare: "Mantenere il rapporto con i clienti",
+};
+
+export const NOME_TIPO_PRODOTTO: Record<string, string> = {
+  legno_mobili: "Legno e mobili",
+  ceramica_vetro: "Ceramica e vetro",
+  gioielli_metalli: "Gioielli e metalli",
+  tessile_pelle: "Tessuti e pelle",
+  alimentare: "Alimentare",
+  altro: "Altro",
+};
+
+/** Il nome di un codice; il codice stesso se non è tra quelli noti. */
+export function nomeDi(
+  nomi: Record<string, string>,
+  codice: string | null | undefined,
+): string {
+  return codice ? nomi[codice] ?? codice : "—";
+}
+
 export function data(s: string): string {
   const x = D(s);
   return `${p2(x.getDate())}/${p2(x.getMonth() + 1)}/${x.getFullYear()}`;

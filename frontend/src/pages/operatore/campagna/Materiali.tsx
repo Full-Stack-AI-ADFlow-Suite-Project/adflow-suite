@@ -18,7 +18,13 @@ import {
 
 import type { CampagnaDettaglio } from "../../../api/campagne";
 import type { VediCampagna } from "../../../api/revisione";
-import { data, NOME_CANALE } from "./util";
+import {
+  data,
+  NOME_CANALE,
+  NOME_OBIETTIVO,
+  NOME_TIPO_PRODOTTO,
+  nomeDi,
+} from "./util";
 
 const FREQUENZE: Record<string, string> = {
   f1_2: "1–2 post a settimana",
@@ -201,7 +207,7 @@ export function Materiali({
               <Text span c="dimmed">
                 Obiettivo:{" "}
               </Text>
-              {campagna.obiettivo ?? "—"}
+              {nomeDi(NOME_OBIETTIVO, campagna.obiettivo)}
             </Text>
           </Stack>
         </Card>
@@ -229,13 +235,13 @@ export function Materiali({
                   <Text span c="dimmed">
                     Che cosa fa:{" "}
                   </Text>
-                  {snap.tipo_prodotto}
+                  {nomeDi(NOME_TIPO_PRODOTTO, snap.tipo_prodotto)}
                 </Text>
                 <Text size="sm">
                   <Text span c="dimmed">
                     Obiettivo:{" "}
                   </Text>
-                  {snap.obiettivo}
+                  {nomeDi(NOME_OBIETTIVO, snap.obiettivo)}
                 </Text>
                 <Text size="sm">
                   <Text span c="dimmed">
