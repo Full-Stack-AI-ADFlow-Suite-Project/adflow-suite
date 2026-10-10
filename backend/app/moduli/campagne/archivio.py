@@ -6,17 +6,17 @@ from sqlalchemy.orm import Session
 from app.adapters.archivio import ottieni_archivio
 from app.core.errori import DatiNonValidi, NonTrovato, StatoNonValido
 from app.moduli.artigiani import service as artigiani_service
-from app.moduli.campagne.immagini import (
+from .immagini import (
     MAX_FOTO_PER_GRUPPO,
     analizza_e_valida_immagine,
 )
-from app.moduli.campagne.models import Foto, GruppoFoto
-from app.moduli.campagne.schemas import (
+from .models import Foto, GruppoFoto
+from .schemas import (
     FotoDettaglio,
     GruppoArchivioCrea,
     GruppoSintetico,
 )
-from app.moduli.campagne.service import _al_termine_transazione
+from .service import _al_termine_transazione
 
 
 def elenca_archivio(db: Session, utente_id: int) -> list[GruppoSintetico]:

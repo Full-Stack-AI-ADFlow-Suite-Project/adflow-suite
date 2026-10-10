@@ -634,11 +634,11 @@ def test_api_delete_archivio_gruppi_vincoli(
 
 
 # ==============================================================================
-# Test di Deep Debug, Sicurezza (Defense in Depth) e Robustezza
+# Test di Sicurezza (Defense in Depth), Robustezza e Concorrenza
 # ==============================================================================
 
 
-def test_debug_ca76_foto_di_archivio_case_insensitive_e_spazi(db: Session):
+def test_ca76_foto_di_archivio_case_insensitive_e_spazi(db: Session):
     """Verifica resilienza a maiuscole e spazi sui canali in foto_di_archivio e segna_pubblicata."""
     bottega = profilo(db)
     mazzo = gruppo_di_archivio(db, profilo_id=bottega.id, n_foto=1)
@@ -660,7 +660,7 @@ def test_debug_ca76_foto_di_archivio_case_insensitive_e_spazi(db: Session):
     assert risultati[0].mai_uscita is False
 
 
-def test_debug_api_post_archivio_foto_gruppo_id_invalido_o_assente(
+def test_api_post_archivio_foto_gruppo_id_invalido_o_assente(
     client: TestClient, utente_di_prova, db: Session
 ):
     """Verifica che gruppo_id alfanumerico, vuoto o omesso risponda sempre 422."""
@@ -693,7 +693,7 @@ def test_debug_api_post_archivio_foto_gruppo_id_invalido_o_assente(
     assert r3.status_code == 422
 
 
-def test_debug_api_post_archivio_foto_file_vuoto_da_422(
+def test_api_post_archivio_foto_file_vuoto_da_422(
     client: TestClient, utente_di_prova, db: Session
 ):
     """Verifica che un file di 0 byte venga rifiutato con 422."""
@@ -709,7 +709,7 @@ def test_debug_api_post_archivio_foto_file_vuoto_da_422(
     assert r.status_code == 422
 
 
-def test_debug_api_post_archivio_foto_non_immagine_o_decompression_bomb(
+def test_api_post_archivio_foto_non_immagine_o_decompression_bomb(
     client: TestClient, utente_di_prova, db: Session
 ):
     """Verifica controlli di sicurezza (Defense in Depth): anti-spoofing e anti-decompression bomb."""
@@ -735,7 +735,7 @@ def test_debug_api_post_archivio_foto_non_immagine_o_decompression_bomb(
     assert r_bomb.status_code == 422
 
 
-def test_debug_api_delete_foto_o_gruppo_con_campagna_da_404(
+def test_api_delete_foto_o_gruppo_con_campagna_da_404(
     client: TestClient, utente_di_prova, db: Session
 ):
     """Verifica che foto o gruppi con campagna non siano manipolabili tramite gli endpoint /archivio (404)."""
@@ -754,7 +754,7 @@ def test_debug_api_delete_foto_o_gruppo_con_campagna_da_404(
     assert r_gruppo.status_code == 404
 
 
-def test_debug_api_risorse_inesistenti_da_404(
+def test_api_risorse_inesistenti_da_404(
     client: TestClient, utente_di_prova, db: Session
 ):
     """Verifica che id inesistenti su download e delete restituiscano coerentemente 404."""
@@ -766,7 +766,7 @@ def test_debug_api_risorse_inesistenti_da_404(
     assert client.get("/api/foto/999999/file").status_code == 404
 
 
-def test_debug_concorrenza_upload_archivio_limite_20_foto(motore_test, tmp_path: Path):
+def test_concorrenza_upload_archivio_limite_20_foto(motore_test, tmp_path: Path):
     """Verifica che il row-lock su GruppoFoto e l'advisory lock prevengano race condition: con 19 foto d'archivio, solo 1 su 2 thread concorrenti entra."""
     from concurrent.futures import ThreadPoolExecutor
     from sqlalchemy import text
@@ -857,3 +857,14 @@ def test_debug_concorrenza_upload_archivio_limite_20_foto(motore_test, tmp_path:
                     text("DELETE FROM profilo_bottega WHERE id = :pid"),
                     {"pid": prof_id},
                 )
+
+
+def test_segna_pubblicata_normalizza_in_utc_se_fuso_diverso(db: Session):
+    """Verifica che segna_pubblicata converta in UTC qualsiasi datetime aware con offset non UTC (es. +02:00)."""
+    f = foto(db)
+    tz_piu_due = timezone(timedelta(hours=2))
+    ora_piu_due = datetime(2030, 5, 10, 14, 0, tzinfo=tz_piu_due)
+    campagne_service.segna_pubblicata(db, f.id, "instagram", ora_piu_due)
+    db.expire(f)
+    assert f.pubblicata_su["instagram"] == "2030-05-10T12:00:00+00:00"
+    assert datetime.fromisoformat(f.pubblicata_su["instagram"]).tzinfo == timezone.utc

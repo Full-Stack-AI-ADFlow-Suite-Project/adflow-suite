@@ -429,12 +429,20 @@ def segna_pubblicata(
     if foto is None:
         raise NonTrovato("Foto non trovata.")
 
-    quando_utc = quando if quando.tzinfo else quando.replace(tzinfo=timezone.utc)
+    quando_utc = (
+        quando.astimezone(timezone.utc)
+        if quando.tzinfo
+        else quando.replace(tzinfo=timezone.utc)
+    )
     pub = dict(foto.pubblicata_su or {})
     canale_norm = canale.strip().lower()
     if canale_norm in pub:
         prec_dt = datetime.fromisoformat(pub[canale_norm])
-        prec_utc = prec_dt if prec_dt.tzinfo else prec_dt.replace(tzinfo=timezone.utc)
+        prec_utc = (
+            prec_dt.astimezone(timezone.utc)
+            if prec_dt.tzinfo
+            else prec_dt.replace(tzinfo=timezone.utc)
+        )
         if quando_utc <= prec_utc:
             return
 
