@@ -78,10 +78,7 @@ export function Campagna() {
   }, [carica]);
 
   return (
-    <Guscio
-      titolo="Campagna"
-      nav={[{ label: "Campagna", attivo: true }, { label: "Profilo bottega" }]}
-    >
+    <Guscio titolo="Campagna">
       {vista === null || profilo === null ? (
         <Center py="xl">
           <Loader color="verde" />

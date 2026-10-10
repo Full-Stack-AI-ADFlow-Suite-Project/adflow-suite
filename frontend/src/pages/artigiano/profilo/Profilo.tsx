@@ -227,10 +227,7 @@ export function Profilo() {
     );
 
   return (
-    <Guscio
-      titolo="Profilo bottega"
-      nav={[{ label: "Campagna" }, { label: "Profilo bottega", attivo: true }]}
-    >
+    <Guscio titolo="Profilo bottega">
       <Group gap="xs" mb="sm">
         <Anchor component={Link} to="/campagna" size="sm">
           Area Bottega

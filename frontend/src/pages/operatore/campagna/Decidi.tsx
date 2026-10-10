@@ -146,8 +146,8 @@ export function Decidi({
             Generazione fallita
           </Title>
           <Text size="sm" c="dimmed">
-            Si è fermata alla terza esecuzione. Riprova riparte da dove si era
-            fermata: ciò che è salvato non si rifà.
+            La generazione si è fermata. Riprova riparte da dove si era fermata:
+            ciò che è salvato non si rifà.
           </Text>
           {e && (
             <Stack gap={0} mt={4}>

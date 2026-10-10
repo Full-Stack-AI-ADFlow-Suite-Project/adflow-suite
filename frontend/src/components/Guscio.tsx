@@ -28,7 +28,11 @@ function vociDelRuolo(ruolo: Ruolo, percorso: string): VoceNav[] {
   if (ruolo === "artigiano")
     return [
       { label: "Campagna", to: "/campagna", attivo: percorso === "/campagna" },
-      { label: "Profilo bottega", disabilitato: true },
+      {
+        label: "Profilo bottega",
+        to: "/profilo",
+        attivo: percorso === "/profilo",
+      },
     ];
   return [
     {
