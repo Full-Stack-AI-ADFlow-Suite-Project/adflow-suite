@@ -18,7 +18,16 @@ import {
 
 import type { CampagnaDettaglio } from "../../../api/campagne";
 import type { VediCampagna } from "../../../api/revisione";
+import { SCELTE } from "../../../api/artigiani";
 import { data, NOME_CANALE } from "./util";
+
+function etichetta(
+  campo: "tipo_prodotto" | "obiettivo",
+  valore: string | null | undefined,
+): string {
+  if (!valore) return "—";
+  return SCELTE[campo]?.find((o) => o.value === valore)?.label ?? valore;
+}
 
 const FREQUENZE: Record<string, string> = {
   f1_2: "1–2 post a settimana",
@@ -201,7 +210,7 @@ export function Materiali({
               <Text span c="dimmed">
                 Obiettivo:{" "}
               </Text>
-              {campagna.obiettivo ?? "—"}
+              {etichetta("obiettivo", campagna.obiettivo)}
             </Text>
           </Stack>
         </Card>
@@ -229,13 +238,13 @@ export function Materiali({
                   <Text span c="dimmed">
                     Che cosa fa:{" "}
                   </Text>
-                  {snap.tipo_prodotto}
+                  {etichetta("tipo_prodotto", snap.tipo_prodotto)}
                 </Text>
                 <Text size="sm">
                   <Text span c="dimmed">
                     Obiettivo:{" "}
                   </Text>
-                  {snap.obiettivo}
+                  {etichetta("obiettivo", snap.obiettivo)}
                 </Text>
                 <Text size="sm">
                   <Text span c="dimmed">
