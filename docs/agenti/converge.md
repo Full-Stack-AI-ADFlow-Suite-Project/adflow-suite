@@ -56,3 +56,15 @@ Come al §3: su `main` pulito, da database vuoto, comandi del §1 verdi, tutti i
 Il percorso a mano di ogni sprint lo scrive qui il suo task di apertura (T2a-01, T2b-01, T3-01), insieme alle firme: così chi lavora sa fin dall'inizio che cosa verrà provato alla fine. Ogni percorso riparte da quello dello sprint prima e aggiunge le cose nuove e le loro prove negative.
 
 Ciò che la chiusura trova rotto torna alla corsia proprietaria come una PR piccola: la chiusura non corregge il codice degli altri.
+
+### Sprint 2a (T2a-07)
+
+Da database vuoto, con AI e social finti:
+
+1. seed → avvio di API, worker, frontend. Un artigiano nuovo (`crea-utente`, senza profilo) entra e arriva alla pagina Profilo, passo 1 (CA-05); al passo 9 con un obbligatorio vuoto non salva e lo indica (CA-07); completato, salva e arriva alla pagina Campagna. Non ha canali collegati (il collegamento è dello sprint 3): il resto si fa con l'artigiano del seed;
+2. artigiano del seed: entra → Bentornato; "Va bene così" porta al passo 10 senza salvare il profilo, "Modifica" apre la pagina Profilo (CA-06);
+3. passo 7 del profilo: carica il logo, lo sostituisce, lo rivede; archivio: un gruppo con la descrizione e 2 foto. Prove negative: logo che è un PDF, logo oltre 2 MB, logo con il lato corto sotto 300 px → rifiutati con il motivo (CA-78); foto d'archivio con il lato corto sotto 1080 px e gruppo senza descrizione → rifiutati;
+4. campagna A, come al §3 passo 2 (7 giorni, inizio tra 4 giorni, Facebook e Instagram, 4 foto in 2 gruppi): esce e rientra → passo 10 con dati, canali, gruppi e foto (CA-08); cambia titolo e fine; una data di gruppo fuori dal nuovo periodo → rifiutata; invio → in_revisione; l'operatore approva; data di test avanti di 12 giorni → pubblicata e conclusa. Nel database ogni foto uscita porta canale e istante (`select id, pubblicata_su from foto`), le cartoline no (CA-76);
+5. campagna B, 4 settimane con 4 foto nuove, inviata con l'errore di configurazione dell'AI del §3 passo 6 → generazione fallita; l'artigiano cambia il nome della bottega e il logo; torna l'AI finta, Riprova → in_revisione. Vedi campagna: 12 post per canale, con le foto nuove, le foto d'archivio mai uscite su quel canale (quelle del passo 3 e quelle di A che lì non sono uscite) e, per i post che mancano, cartoline con il logo e il nome di prima dell'invio (CA-16, CA-77); nessuna foto di A sul canale dove è appena uscita; nessuna foto due volte sullo stesso canale. L'operatore approva;
+6. data di test avanti di 110 giorni: B si conclude. Campagna C, 4 settimane con 4 foto nuove → tra i riempitivi ci sono post `archivio` con le foto di A, uscite da più di 90 giorni, prima delle cartoline, e Vedi campagna li mostra come tali; una foto uscita su un canale da meno di 90 giorni lì non compare (CA-76);
+7. prove negative: quelle del §3 passo 6, e in più modifica di una campagna non in bozza, archivio di un altro artigiano, eliminazione di una foto d'archivio già usata in un post → rifiutate.
