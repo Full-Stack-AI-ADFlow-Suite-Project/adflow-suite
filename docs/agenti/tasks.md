@@ -133,7 +133,7 @@ Finché un endpoint non è su `main`, la pagina usa dati di esempio con la forma
 
 | ID | Task | Tocca | Leggi | Dipende da | Fatto quando | ☐ |
 |---|---|---|---|---|---|---|
-| T2a-41 | Foto pubblicate per canale: dopo ogni `ok` la pubblicazione chiama `campagne.service.segna_pubblicata()` per le foto caricate del post, non per le cartoline; le foto delle versioni si leggono con `campagne.service.foto_per_id()`, così un post con una foto d'archivio si vede e si pubblica; Vedi campagna mostra il riempitivo `archivio` | `pubblicazione/service.py`, `revisione/service.py`, `revisione/schemas.py` | spec R-27, R-28; plan §3, §6 | T2a-22 | CA-76 (pubblicazione); due tick → una sola scrittura, CA-36 resta verde | ☐ |
+| T2a-41 | Foto pubblicate per canale: dopo ogni `ok` la pubblicazione chiama `campagne.service.segna_pubblicata()` per le foto caricate del post, non per le cartoline; le foto delle versioni si leggono con `campagne.service.foto_per_id()`, così un post con una foto d'archivio si vede e si pubblica; Vedi campagna mostra il riempitivo `archivio` | `pubblicazione/service.py`, `revisione/service.py`, `revisione/schemas.py` | spec R-27, R-28; plan §3, §6 | T2a-22 | CA-76 (pubblicazione); due tick → una sola scrittura, CA-36 resta verde | ☑ |
 
 ### Corsia 5 · Frontend (Angelo)
 
