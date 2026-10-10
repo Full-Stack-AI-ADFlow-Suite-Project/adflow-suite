@@ -29,7 +29,7 @@ def modifica_bozza(
     """
     profilo = artigiani_service.profilo_di(db, utente_id)
     if profilo is None:
-        raise DatiNonValidi("Profilo bottega non trovato.")
+        raise NonTrovato("Campagna non trovata.")
 
     # Concorrenza atomica: lock di transazione sull'artigiano per serializzare richieste concorrenti (Regola 4)
     db.execute(text("SELECT pg_advisory_xact_lock(:chiave)"), {"chiave": profilo.id})
