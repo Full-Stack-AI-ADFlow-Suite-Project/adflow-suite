@@ -21,6 +21,10 @@ app = procrastinate.App(
 )
 _apertura = Lock()
 
+# Chi accoda salva alla fine della sua richiesta: un job partito prima troverebbe
+# lo stato vecchio e non farebbe nulla. Per questo parte qualche secondo dopo.
+ATTESA_PARTENZA_SECONDI = 3
+
 # I nomi fanno parte del contratto tra i moduli; manteniamo le costanti T1-02.
 GENERA_CAMPAGNA = "genera_campagna"
 TICK_PUBBLICAZIONE = "tick_pubblicazione"
@@ -56,12 +60,14 @@ _NOMI_JOB = {
 def accoda(nome: str, **kwargs: Any) -> int:
     """Accoda un job per nome senza importare il modulo destinatario.
 
-    Restituisce l'id del job. Il job parte quando lo prende il worker.
+    Restituisce l'id del job. Il worker lo prende dopo `ATTESA_PARTENZA_SECONDI`,
+    quando chi l'ha accodato ha salvato.
     """
     if nome not in _NOMI_JOB:
         raise ValueError(f"Nome job non valido: {nome}")
 
-    job = app.configure_task(nome)
+    attesa = {"seconds": ATTESA_PARTENZA_SECONDI} if ATTESA_PARTENZA_SECONDI else None
+    job = app.configure_task(nome, schedule_in=attesa)
     try:
         return job.defer(**kwargs)
     except procrastinate.exceptions.AppNotOpen:
