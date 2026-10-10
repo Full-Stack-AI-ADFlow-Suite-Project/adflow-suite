@@ -9,9 +9,9 @@ from app.core.config import leggi_impostazioni
 from app.core.errori import DatiNonValidi, NonTrovato, StatoNonValido
 from app.core.orologio import ROMA
 from app.moduli.artigiani import service as artigiani_service
-from app.moduli.campagne.domain import BOZZA, STATI_CHIUSI
-from app.moduli.campagne.models import Campagna, GruppoFoto
-from app.moduli.campagne.schemas import CampagnaModifica
+from .domain import BOZZA, STATI_CHIUSI
+from .models import Campagna, GruppoFoto
+from .schemas import CampagnaModifica
 
 
 def modifica_bozza(
