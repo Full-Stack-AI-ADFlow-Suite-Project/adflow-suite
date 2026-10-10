@@ -8,11 +8,15 @@ import "./index.css";
 
 import App from "./App.tsx";
 import { AuthProvider } from "./auth.tsx";
-import { tema } from "./tema.ts";
+import { tema, variabili } from "./tema.ts";
 
 createRoot(document.getElementById("root")!).render(
   <StrictMode>
-    <MantineProvider theme={tema} defaultColorScheme="auto">
+    <MantineProvider
+      theme={tema}
+      cssVariablesResolver={variabili}
+      forceColorScheme="light"
+    >
       <BrowserRouter>
         <AuthProvider>
           <App />
