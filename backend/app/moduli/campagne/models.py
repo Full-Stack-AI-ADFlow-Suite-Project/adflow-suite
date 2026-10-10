@@ -1,4 +1,4 @@
-"""Tabelle dello sprint 1 (plan §2)."""
+"""Tabelle del modulo campagne (plan §2)."""
 from datetime import date, datetime
 from typing import Any
 
@@ -80,6 +80,10 @@ class Foto(Base):
     )
     n_utilizzi: Mapped[int] = mapped_column(
         Integer, nullable=False, server_default=text("0")
+    )
+    # {canale: istante ISO 8601 in UTC dell'ultima pubblicazione} (spec R-27)
+    pubblicata_su: Mapped[dict[str, str]] = mapped_column(
+        JSONB, nullable=False, server_default=text("'{}'::jsonb")
     )
 
 

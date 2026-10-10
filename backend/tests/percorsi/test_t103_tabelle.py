@@ -79,6 +79,11 @@ def test_upgrade_downgrade_completo_e_ultimo_passaggio(motore_test):
     command.upgrade(config, "head")
     command.downgrade(config, "-1")
     with motore_test.connect() as conn:
+        colonne = {c["name"] for c in inspect(conn).get_columns("foto")}
+        assert "pubblicata_su" not in colonne
+        assert "limite_login" in inspect(conn).get_table_names()
+    command.downgrade(config, "-1")
+    with motore_test.connect() as conn:
         assert "limite_login" not in inspect(conn).get_table_names()
         assert TABELLE_NUOVE_008 <= set(inspect(conn).get_table_names())
     command.downgrade(config, "-1")
@@ -96,7 +101,7 @@ def test_upgrade_downgrade_completo_e_ultimo_passaggio(motore_test):
             set(inspect(conn).get_table_names()) - {"alembic_version"}
             == TABELLE | TABELLE_CODA
         )
-        assert conn.scalar(text("select version_num from alembic_version")) == "009"
+        assert conn.scalar(text("select version_num from alembic_version")) == "010"
         contesto = MigrationContext.configure(conn, opts={"include_name": del_modello})
         assert compare_metadata(contesto, metadata) == []
 
