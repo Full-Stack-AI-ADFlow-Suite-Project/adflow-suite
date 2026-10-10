@@ -1,264 +1,233 @@
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Operatore · Nuovo artigiano</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --paper:#F6F3EC; --paper-raised:#FFFFFF; --ink:#201D17; --ink-soft:#6E6656; --ink-faint:#9C927D;
-    --accent:#2E6B5C; --accent-strong:#1D4A3F; --accent-soft:#DCEAE3; --accent-on-soft:#1D4A3F;
-    --line:#DDD5C2; --danger:#AE3B2C; --danger-soft:#F6E1DC; --danger-on-soft:#7A281C;
-    --warn:#8A6A1F; --warn-soft:#F3E7C9;
-    color-scheme: light;
-  }
-  @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]){
-      --paper:#1B1914; --paper-raised:#26231C; --ink:#EFEAE0; --ink-soft:#B7AE9B; --ink-faint:#837A68;
-      --accent:#7EC4AE; --accent-strong:#A9DCC9; --accent-soft:#22392F; --accent-on-soft:#A9DCC9;
-      --line:#3A362B; --danger:#E08776; --danger-soft:#3A2420; --danger-on-soft:#E08776;
-      --warn:#E4C878; --warn-soft:#3A331C;
-      color-scheme: dark;
-    }
-  }
-  :root[data-theme="dark"]{
-    --paper:#1B1914; --paper-raised:#26231C; --ink:#EFEAE0; --ink-soft:#B7AE9B; --ink-faint:#837A68;
-    --accent:#7EC4AE; --accent-strong:#A9DCC9; --accent-soft:#22392F; --accent-on-soft:#A9DCC9;
-    --line:#3A362B; --danger:#E08776; --danger-soft:#3A2420; --danger-on-soft:#E08776;
-    --warn:#E4C878; --warn-soft:#3A331C;
-    color-scheme: dark;
-  }
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Operatore · Nuovo artigiano</title>
+  <link rel="stylesheet" href="assets/adflow.css">
+</head>
+<body>
 
-  *{ box-sizing:border-box; }
-  body{ background:var(--paper); color:var(--ink); font-family:"IBM Plex Sans", system-ui, sans-serif; margin:0; }
-  h1,h2,h3{ font-family:"Fraunces", Georgia, serif; font-weight:600; text-wrap:balance; margin:0; }
-  a{ color:var(--accent-strong); }
-  .wrap{ max-width:1100px; margin-inline:auto; padding-inline:16px; }
-  .mono{ font-family:"IBM Plex Mono", monospace; }
+<div class="app-container">
+  <!-- Barra laterale -->
+  <aside class="app-sidebar">
+    <div class="sidebar-header">
+      <div class="brand-icon-wrapper">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+          <polyline points="2 17 12 22 22 17"></polyline>
+          <polyline points="2 12 12 17 22 12"></polyline>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>AdFlow</h1>
+        <span>Suite · Operatore</span>
+      </div>
+    </div>
 
-  /* Barra di navigazione comune alle pagine operatore */
-  .topbar{ background:var(--paper-raised); border-bottom:1px solid var(--line); }
-  .topbar .wrap{ display:flex; align-items:center; gap:22px; min-height:54px; flex-wrap:wrap; }
-  .brand{ font-family:"Fraunces", Georgia, serif; font-weight:600; font-size:17px; color:var(--ink); text-decoration:none; }
-  .brand small{ font-family:"IBM Plex Mono", monospace; font-size:11px; font-weight:400; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); margin-left:6px; }
-  .nav{ display:flex; gap:4px; flex:1; }
-  .nav a{ text-decoration:none; font-size:14px; color:var(--ink-soft); padding:7px 12px; border-radius:8px; }
-  .nav a.current{ background:var(--accent-soft); color:var(--accent-on-soft); font-weight:500; }
-  .user{ font-size:13px; color:var(--ink-soft); display:flex; gap:12px; align-items:center; }
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Piattaforma</div>
+      <a href="AdFlow-operatore-ingresso.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        <span>Dashboard</span>
+      </a>
+      <a href="AdFlow-operatore-campagna.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+        <span>Campagne</span>
+        <span class="nav-badge">4</span>
+      </a>
+      <a href="AdFlow-operatore-da-approvare.html" class="nav-link" style="padding-left: 36px; font-size: 12.5px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width: 15px; height: 15px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+        <span>Da approvare</span>
+      </a>
+      <a href="AdFlow-operatore-artigiano-campagne.html" class="nav-link" style="padding-left: 36px; font-size: 12.5px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width: 15px; height: 15px;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+        <span>Storico chiuse</span>
+      </a>
 
-  main{ padding-block:24px 48px; }
+      <div class="nav-section-label">Gestione</div>
+      <a href="AdFlow-operatore-elenco.html" class="nav-link active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        <span>Artigiani</span>
+        <span class="nav-badge">6</span>
+      </a>
+      <a href="AdFlow-operatore-metriche.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+        <span>Metriche</span>
+      </a>
 
-  .masthead{ display:flex; justify-content:space-between; align-items:flex-end; gap:16px; flex-wrap:wrap; margin-bottom:18px; }
-  .eyebrow{ font-family:"IBM Plex Mono", monospace; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); }
-  .masthead h1{ font-size:30px; margin-top:6px; }
-  .masthead p{ color:var(--ink-soft); font-size:14.5px; margin:6px 0 0; }
-
-  .banner{ border-radius:10px; padding:12px 14px; font-size:13.5px; line-height:1.5; margin-bottom:22px; display:flex; gap:10px; align-items:flex-start; }
-  .banner.info{ background:var(--accent-soft); border:1px solid var(--accent); color:var(--accent-on-soft); }
-  .banner.warn{ background:var(--warn-soft); border:1px solid var(--warn); color:var(--warn); }
-  .banner .icon{ flex:none; font-family:"IBM Plex Mono", monospace; font-weight:500; }
-
-  .card{ background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:20px; }
-  .card .tab{ font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--accent-strong); letter-spacing:.06em; }
-  .card h3{ font-size:18px; margin-top:4px; margin-bottom:12px; }
-  .card .foot{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-top:14px; }
-  .note{ font-size:12.5px; color:var(--ink-faint); line-height:1.5; margin-top:10px; }
-
-  .badge{ display:inline-block; font-family:"IBM Plex Mono", monospace; font-size:11.5px; border-radius:20px; padding:2px 9px; border:1px solid var(--line); color:var(--ink-soft); background:var(--paper); white-space:nowrap; }
-  .badge.ok{ border-color:var(--accent); background:var(--accent-soft); color:var(--accent-on-soft); }
-  .badge.warn{ border-color:var(--warn); background:var(--warn-soft); color:var(--warn); }
-  .badge.danger{ border-color:var(--danger); background:var(--danger-soft); color:var(--danger-on-soft); }
-
-  .btn{ font-family:inherit; border-radius:8px; padding:8px 14px; font-size:13.5px; font-weight:500; border:1px solid var(--line); background:var(--paper-raised); color:var(--ink); display:inline-block; text-decoration:none; }
-  .btn.primary{ background:var(--accent); border-color:var(--accent); color:var(--paper-raised); }
-  .btn.quiet{ color:var(--ink-soft); }
-
-  .section-head{ display:flex; justify-content:space-between; align-items:baseline; gap:12px; flex-wrap:wrap; margin-bottom:12px; }
-  .section-head h2{ font-size:24px; }
-  .section-head p{ margin:0; font-size:13.5px; color:var(--ink-soft); }
-  section{ scroll-margin-top:16px; margin-bottom:36px; }
-
-  .group-empty{ border:1px dashed var(--line); border-radius:12px; padding:14px 16px; font-size:13.5px; color:var(--ink-faint); }
-
-  .camp{ background:var(--paper-raised); border:1px solid var(--line); border-radius:12px; padding:16px 18px; display:grid; grid-template-columns:1fr auto; gap:14px 24px; margin-bottom:10px; }
-  .camp.attn{ border-left:4px solid var(--warn); }
-  .camp.lost{ border-left:4px solid var(--danger); }
-  .camp .who{ font-size:13px; color:var(--ink-soft); }
-  .camp .who a{ text-decoration:none; font-weight:500; }
-  .camp h3{ font-size:17px; display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-top:3px; }
-  .camp .meta{ font-size:13px; color:var(--ink-soft); margin-top:5px; display:flex; gap:6px 16px; flex-wrap:wrap; }
-  .posts{ display:flex; gap:6px; flex-wrap:wrap; margin-top:10px; }
-  .camp .next{ font-size:13px; margin-top:10px; }
-  .camp .actions{ display:flex; flex-direction:column; gap:8px; align-items:stretch; min-width:170px; }
-  @media (max-width:640px){
-    .camp{ grid-template-columns:1fr; }
-    .camp .actions{ flex-direction:row; flex-wrap:wrap; min-width:0; }
-  }
-
-  .tools{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; margin-bottom:14px; }
-  .tools input[type=search], .tools select{ font-family:inherit; font-size:14px; color:var(--ink); background:var(--paper-raised); border:1px solid var(--line); border-radius:8px; padding:8px 11px; }
-  .tools input[type=search]{ flex:1; min-width:200px; }
-  .tools .spacer{ flex:1; }
-
-  .table-wrap{ overflow-x:auto; background:var(--paper-raised); border:1px solid var(--line); border-radius:12px; }
-  table{ border-collapse:collapse; width:100%; font-size:13.5px; min-width:820px; }
-  th{ text-align:left; font-family:"IBM Plex Mono", monospace; font-weight:400; font-size:11.5px; letter-spacing:.06em; text-transform:uppercase; color:var(--ink-faint); padding:10px 14px; border-bottom:1px solid var(--line); white-space:nowrap; }
-  td{ padding:11px 14px; border-top:1px solid var(--line); vertical-align:top; }
-  tbody tr:first-child td{ border-top:none; }
-  td .sub{ display:block; font-size:12px; color:var(--ink-faint); }
-  td a.name{ font-weight:500; text-decoration:none; }
-  td.num{ font-family:"IBM Plex Mono", monospace; }
-
-  /* Finestra "Nuovo artigiano", mostrata aperta sotto l'elenco */
-  .dialog{ max-width:560px; background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:22px; box-shadow:0 10px 30px rgba(0,0,0,.12); }
-  .dialog h3{ font-size:20px; }
-  .dialog .hint{ color:var(--ink-soft); font-size:13.5px; line-height:1.5; margin:8px 0 18px; }
-  .field{ margin-bottom:14px; }
-  .field label{ display:block; font-size:13px; font-weight:500; margin-bottom:6px; }
-  .field .desc{ font-size:12.5px; color:var(--ink-faint); margin-top:5px; }
-  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-  @media (max-width:560px){ .row2{ grid-template-columns:1fr; } }
-  .dialog input, .dialog select{ width:100%; font-family:inherit; font-size:14.5px; color:var(--ink); background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:9px 11px; }
-  .dialog .foot{ display:flex; gap:10px; justify-content:flex-end; margin-top:18px; }
-
-  .open{ margin:0; padding-left:20px; font-size:13.5px; line-height:1.55; }
-  .open li{ margin-bottom:6px; }
-
-  .crumb{ font-size:13px; margin-bottom:14px; }
-  .crumb a{ text-decoration:none; }
-
-  /* Domande aperte con la proposta di risposta */
-  .open li{ margin-bottom:14px; }
-  .proposta{ display:block; margin-top:5px; padding:8px 11px; border-left:3px solid var(--accent); background:var(--accent-soft); color:var(--accent-on-soft); border-radius:0 8px 8px 0; }
-
-  /* Pagina di ingresso: le tre porte e gli avvisi */
-  .porte{ display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:14px; margin-bottom:34px; }
-  .porta{ display:flex; flex-direction:column; gap:6px; background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:20px; text-decoration:none; color:var(--ink); }
-  .porta.attn{ border-color:var(--warn); }
-  .porta b{ font-family:"IBM Plex Mono", monospace; font-weight:500; font-size:32px; line-height:1; }
-  .porta h2{ font-size:20px; }
-  .porta p{ margin:0; font-size:13.5px; color:var(--ink-soft); line-height:1.5; }
-  .porta .vai{ margin-top:auto; padding-top:10px; font-size:13.5px; font-weight:500; color:var(--accent-strong); }
-  .avvisi{ list-style:none; margin:0; padding:0; background:var(--paper-raised); border:1px solid var(--line); border-radius:12px; }
-  .avvisi li{ display:flex; gap:10px 16px; align-items:baseline; justify-content:space-between; flex-wrap:wrap; padding:12px 16px; border-top:1px solid var(--line); font-size:13.5px; }
-  .avvisi li:first-child{ border-top:none; }
-  .avvisi .cosa{ flex:1 1 320px; }
-  .avvisi .cosa .sub{ display:block; font-size:12.5px; color:var(--ink-faint); margin-top:2px; }
-  .avvisi a{ text-decoration:none; font-weight:500; white-space:nowrap; }
-
-  /* Nuovo artigiano: modulo e conferma */
-  .dialog{ box-shadow:none; }
-  .due{ display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:18px; align-items:start; margin-bottom:36px; }
-  .segreto{ font-family:"IBM Plex Mono", monospace; font-size:17px; background:var(--paper); border:1px dashed var(--line); border-radius:8px; padding:10px 12px; display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; }
-</style>
-<!-- fascia-mappa: stato della pagina statica e ritorno alla mappa. Non fa parte della schermata. -->
-<div style="border-bottom:1px solid var(--line); padding:8px 18px; background:var(--paper-raised); color:var(--ink-soft); font:12px/1.5 'IBM Plex Mono', ui-monospace, monospace; display:flex; flex-wrap:wrap; gap:2px 16px; justify-content:space-between;">
-  <a href="index.html" style="color:inherit;">← Mappa delle pagine</a>
-  <span>Pagina statica · <strong style="color:var(--ink); font-weight:500;">approvata</strong> · ADR-54 · domande chiuse: ADR-103</span>
-</div>
-<!-- /fascia-mappa -->
-
-<!-- ============ Barra comune alle pagine operatore ============ -->
-<header class="topbar">
-  <div class="wrap">
-    <a class="brand" href="AdFlow-operatore-ingresso.html">AdFlow <small>Operatore</small></a>
-    <nav class="nav" aria-label="Sezioni operatore">
-      <a href="AdFlow-operatore-da-approvare.html">Da approvare</a>
-      <a href="AdFlow-operatore-elenco.html" class="current">Artigiani</a>
-      <a href="AdFlow-operatore-metriche.html">Metriche</a>
+      <div class="nav-section-label">Sistema</div>
+      <a href="index.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <span>Mappa Pagine</span>
+      </a>
     </nav>
-    <div class="user"><span>Laura Rossi · operatore</span><a href="AdFlow-login.html">Esci</a></div>
-  </div>
-</header>
 
-<main class="wrap">
-
-  <div class="banner warn">
-    <span class="icon">i</span>
-    <span><b>Pagina statica, non interattiva.</b> Prima era una finestra sopra l'elenco; ora è una pagina (ADR-54). A sinistra il modulo, a destra ciò che l'operatore vedrebbe dopo "Crea artigiano": con la password provvisoria mostrata una sola volta (ADR-103). Sprint 3, <span class="mono">POST /artigiani</span>.</span>
-  </div>
-
-  <div class="crumb"><a href="AdFlow-operatore-elenco.html">← Artigiani</a></div>
-
-  <div class="masthead">
-    <div>
-      <div class="eyebrow">Operatore · Anagrafica</div>
-      <h1>Nuovo artigiano</h1>
-      <p>Crea l'account di accesso e l'anagrafica. Il profilo bottega lo compila poi l'artigiano al primo accesso.</p>
+    <div class="sidebar-footer">
+      <div class="user-profile-card">
+        <img src="assets/img/avatar-laura.jpg" alt="Laura Rossi" class="user-avatar" onerror="this.outerHTML='<div class=\'user-avatar placeholder\'>LR</div>'">
+        <div class="user-info">
+          <div class="user-name">Laura Rossi</div>
+          <div class="user-role">Operatore Consorzio</div>
+        </div>
+      </div>
+      <a href="AdFlow-campagna.html" class="role-switch-btn" title="Passa all'esperienza Artigiano">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+        <span>Vista Artigiano (Mario Bianchi)</span>
+      </a>
     </div>
+  </aside>
+
+  <div class="app-main">
+    <!-- fascia-mappa: stato della pagina statica e ritorno alla mappa. Non fa parte della schermata. -->
+    <header class="app-topbar">
+      <div class="topbar-left">
+        <div class="stato-pagina">Pagina statica · <strong>approvata</strong> · ADR-54 · domande chiuse: ADR-103 · stile: ADR-113</div>
+      </div>
+
+      <div class="topbar-right">
+        <a href="index.html" class="icon-btn" title="Mappa delle pagine">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        </a>
+        <a href="AdFlow-login.html" class="icon-btn" title="Esci">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        </a>
+      </div>
+    </header>
+    <!-- /fascia-mappa -->
+
+    <main class="content-wrapper">
+      <nav class="breadcrumb-trail">
+        <a href="AdFlow-operatore-ingresso.html">Dashboard</a>
+        <span class="breadcrumb-sep">/</span>
+        <a href="AdFlow-operatore-elenco.html">Artigiani</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">Nuovo artigiano</span>
+      </nav>
+
+      <div class="page-header">
+        <div class="page-title-group">
+          <h1 class="page-title">Nuovo artigiano</h1>
+          <span class="status-pill neutral">Account di accesso e anagrafica</span>
+        </div>
+      </div>
+
+      <p class="lead">
+        Crea l'account di accesso e l'anagrafica. Il profilo bottega lo compila poi l'artigiano al primo accesso.
+      </p>
+
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)); gap: 24px; align-items: start;">
+
+        <!-- Il modulo -->
+        <div class="surface-card">
+          <div class="surface-card-header">
+            <div>
+              <h3 class="surface-card-title">Dati della bottega</h3>
+              <span class="sotto">Anagrafica · gestita dall'operatore</span>
+            </div>
+            <span class="status-pill review">* obbligatorio</span>
+          </div>
+          <div class="surface-card-body">
+            <form>
+              <div class="griglia-2">
+                <div class="form-group">
+                  <label class="form-label" for="na-nome">Nome bottega *</label>
+                  <input type="text" id="na-nome" class="form-input" placeholder="Falegnameria Bianchi">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="na-ref">Referente *</label>
+                  <input type="text" id="na-ref" class="form-input" placeholder="Mario Bianchi">
+                </div>
+              </div>
+
+              <div class="griglia-2">
+                <div class="form-group">
+                  <label class="form-label" for="na-citta">Città *</label>
+                  <input type="text" id="na-citta" class="form-input" placeholder="Bra (CN)">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="na-tel">Telefono</label>
+                  <input type="text" id="na-tel" class="form-input" placeholder="0172 000 000">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="na-email">Email di accesso *</label>
+                <input type="email" id="na-email" class="form-input" placeholder="mario@falegnameriabianchi.it">
+                <div class="form-hint">È il nome utente dell'artigiano nella pagina di accesso.</div>
+              </div>
+
+              <div class="griglia-2">
+                <div class="form-group">
+                  <label class="form-label" for="na-cns">Codice consorzio *</label>
+                  <input type="text" id="na-cns" class="form-input" placeholder="CNS-2019-0117">
+                </div>
+                <div class="form-group">
+                  <label class="form-label" for="na-data">Iscritto dal</label>
+                  <input type="date" id="na-data" class="form-input">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" for="na-stato">Stato dell'iscrizione</label>
+                <select id="na-stato" class="form-select">
+                  <option>attiva</option>
+                  <option>sospesa</option>
+                </select>
+                <div class="form-hint">Il codice artigiano (<code>ART-0052</code>) lo assegna il sistema al salvataggio.</div>
+              </div>
+
+              <div class="azioni-riga fine" style="margin-top: 10px;">
+                <a href="AdFlow-operatore-elenco.html" class="btn btn-secondary">Annulla</a>
+                <button type="button" class="btn btn-primary">Crea artigiano</button>
+              </div>
+            </form>
+          </div>
+        </div>
+
+        <!-- Dopo il salvataggio -->
+        <div class="surface-card">
+          <div class="surface-card-header">
+            <div>
+              <h3 class="surface-card-title">Artigiano creato</h3>
+              <span class="sotto">Dopo il salvataggio</span>
+            </div>
+            <span class="status-pill success">Creato</span>
+          </div>
+          <div class="surface-card-body">
+            <div class="avviso-box ok" style="margin-bottom: 20px;">
+              ✓ <strong>Falegnameria Rossetti</strong> · <code>ART-0052</code> · accesso con mario@falegnameriarossetti.it
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Password provvisoria</label>
+              <div style="display: flex; gap: 8px; align-items: center; background: var(--bg-surface-subtle); border: 1px dashed var(--border-hairline); padding: 10px 14px; border-radius: var(--radius-md);">
+                <code style="font-size: 16px; font-weight: 700; color: var(--primary); flex: 1;">rovere-4821-fiume</code>
+                <button type="button" class="btn btn-secondary btn-sm">Copia</button>
+              </div>
+              <div class="form-hint" style="margin-top: 8px;">
+                Si vede solo adesso: dalla al referente a voce o per telefono. Al primo accesso l'artigiano ne sceglie una sua.
+              </div>
+            </div>
+
+            <div style="display: flex; flex-direction: column; gap: 10px; margin-top: 24px;">
+              <a href="AdFlow-operatore-artigiano.html" class="btn btn-primary" style="width: 100%;">Vai alla pagina artigiano →</a>
+              <a href="AdFlow-operatore-nuovo-artigiano.html" class="btn btn-secondary" style="width: 100%;">Aggiungine un altro</a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Note della pagina statica: non fanno parte della schermata -->
+      <div class="note-pagina">
+        <p><strong>Pagina statica, non interattiva.</strong> Prima era una finestra sopra l'elenco; ora è una pagina (ADR-54). A sinistra il modulo, a destra ciò che l'operatore vedrebbe dopo "Crea artigiano": con la password provvisoria mostrata una sola volta (ADR-103). Sprint 3, <code>POST /artigiani</code>.</p>
+        <p>Esempio di errore sul modulo: "Esiste già un utente con questa email."</p>
+      </div>
+
+    </main>
   </div>
+</div>
 
-  <div class="due">
-    <div class="dialog">
-      <div class="eyebrow">Anagrafica · gestita dall'operatore</div>
-      <h3>Dati della bottega</h3>
-      <p class="hint">Crea l'account di accesso e l'anagrafica (<span class="mono">POST /artigiani</span>). Il profilo bottega lo compila poi l'artigiano al primo accesso.</p>
-
-      <div class="row2">
-        <div class="field">
-          <label for="na-nome">Nome bottega *</label>
-          <input type="text" id="na-nome" placeholder="Falegnameria Bianchi">
-        </div>
-        <div class="field">
-          <label for="na-ref">Referente *</label>
-          <input type="text" id="na-ref" placeholder="Mario Bianchi">
-        </div>
-      </div>
-      <div class="row2">
-        <div class="field">
-          <label for="na-citta">Città *</label>
-          <input type="text" id="na-citta" placeholder="Bra (CN)">
-        </div>
-        <div class="field">
-          <label for="na-tel">Telefono</label>
-          <input type="text" id="na-tel" placeholder="0172 000 000">
-        </div>
-      </div>
-      <div class="field">
-        <label for="na-email">Email di accesso *</label>
-        <input type="email" id="na-email" placeholder="mario@falegnameriabianchi.it">
-        <div class="desc">È il nome utente dell'artigiano nella pagina di accesso.</div>
-      </div>
-      <div class="row2">
-        <div class="field">
-          <label for="na-cns">Codice consorzio *</label>
-          <input type="text" id="na-cns" placeholder="CNS-2019-0117">
-        </div>
-        <div class="field">
-          <label for="na-data">Iscritto dal</label>
-          <input type="date" id="na-data">
-        </div>
-      </div>
-      <div class="field">
-        <label for="na-stato">Stato dell'iscrizione</label>
-        <select id="na-stato"><option>attiva</option><option>sospesa</option></select>
-      </div>
-      <p class="note" style="margin-top:0;">Il codice artigiano (<span class="mono">ART-0052</span>) lo assegna il sistema al salvataggio.</p>
-      <div class="foot">
-        <a class="btn quiet" href="AdFlow-operatore-elenco.html">Annulla</a>
-        <button type="button" class="btn primary">Crea artigiano</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="tab">Dopo il salvataggio</div>
-      <h3>Artigiano creato</h3>
-      <div class="banner info" style="margin-bottom:14px;">
-        <span class="icon">✓</span>
-        <span><b>Falegnameria Rossetti</b> · <span class="mono">ART-0052</span> · accesso con mario@falegnameriarossetti.it</span>
-      </div>
-      <div class="field">
-        <label>Password provvisoria</label>
-        <div class="segreto"><span>rovere-4821-fiume</span><button type="button" class="btn">Copia</button></div>
-        <div class="desc">Si vede solo adesso: dalla al referente a voce o per telefono. Al primo accesso l'artigiano ne sceglie una sua.</div>
-      </div>
-      <div class="foot">
-        <a class="btn primary" href="AdFlow-operatore-artigiano.html">Vai alla pagina artigiano →</a>
-        <a class="btn quiet" href="AdFlow-operatore-nuovo-artigiano.html">Aggiungine un altro</a>
-      </div>
-      <p class="note">Esempio di errore sul modulo: "Esiste già un utente con questa email."</p>
-    </div>
-  </div>
-
-
-</main>
+</body>
+</html>

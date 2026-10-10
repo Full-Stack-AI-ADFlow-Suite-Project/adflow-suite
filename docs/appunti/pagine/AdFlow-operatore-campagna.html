@@ -1,341 +1,199 @@
-<title>Operatore · Vedi campagna</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-  /* Layout: barra operatore, testata campagna, barra delle decisioni, piano, poi schede (uscite · calendario · foto e profilo). Stessi token delle altre pagine statiche di AdFlow. */
-  :root{
-    --paper:#F6F3EC; --paper-raised:#FFFFFF; --ink:#201D17; --ink-soft:#6E6656; --ink-faint:#9C927D;
-    --accent:#2E6B5C; --accent-strong:#1D4A3F; --accent-soft:#DCEAE3; --accent-on-soft:#1D4A3F;
-    --line:#DDD5C2; --danger:#AE3B2C; --danger-soft:#F6E1DC; --danger-on-soft:#7A281C;
-    --warn:#8A6A1F; --warn-soft:#F3E7C9;
-    --fb:#1B5FC1; --fb-soft:#E3ECFA; --ig:#A82C6A; --ig-soft:#F8E3EE;
-    --social-bg:#FFFFFF; --social-ink:#1C1E21; --social-soft:#65676B; --social-line:#E4E6EB; --social-link:#0A58B8; --social-hole:#EEF0F3;
-    color-scheme: light;
-  }
-  @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]){
-      --paper:#1B1914; --paper-raised:#26231C; --ink:#EFEAE0; --ink-soft:#B7AE9B; --ink-faint:#837A68;
-      --accent:#7EC4AE; --accent-strong:#A9DCC9; --accent-soft:#22392F; --accent-on-soft:#A9DCC9;
-      --line:#3A362B; --danger:#E08776; --danger-soft:#3A2420; --danger-on-soft:#E08776;
-      --warn:#E4C878; --warn-soft:#3A331C;
-      --fb:#8DB4F2; --fb-soft:#1E2B40; --ig:#EE94BF; --ig-soft:#3B2130;
-      --social-bg:#242526; --social-ink:#E4E6EB; --social-soft:#B0B3B8; --social-line:#3A3B3C; --social-link:#7FB0F5; --social-hole:#303236;
-      color-scheme: dark;
-    }
-  }
-  :root[data-theme="dark"]{
-    --paper:#1B1914; --paper-raised:#26231C; --ink:#EFEAE0; --ink-soft:#B7AE9B; --ink-faint:#837A68;
-    --accent:#7EC4AE; --accent-strong:#A9DCC9; --accent-soft:#22392F; --accent-on-soft:#A9DCC9;
-    --line:#3A362B; --danger:#E08776; --danger-soft:#3A2420; --danger-on-soft:#E08776;
-    --warn:#E4C878; --warn-soft:#3A331C;
-    --fb:#8DB4F2; --fb-soft:#1E2B40; --ig:#EE94BF; --ig-soft:#3B2130;
-    --social-bg:#242526; --social-ink:#E4E6EB; --social-soft:#B0B3B8; --social-line:#3A3B3C; --social-link:#7FB0F5; --social-hole:#303236;
-    color-scheme: dark;
-  }
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Operatore · Vedi campagna</title>
+  <link rel="stylesheet" href="assets/adflow.css">
+</head>
+<body class="pg-vedi-campagna">
 
-  *{ box-sizing:border-box; }
-  body{ background:var(--paper); color:var(--ink); font-family:"IBM Plex Sans", system-ui, sans-serif; margin:0; font-size:14px; line-height:1.5; }
-  h1,h2,h3{ font-family:"Fraunces", Georgia, serif; font-weight:600; text-wrap:balance; margin:0; }
-  a{ color:var(--accent-strong); }
-  p{ margin:0; }
-  .wrap{ max-width:1100px; margin-inline:auto; padding-inline:16px; }
-  .mono{ font-family:"IBM Plex Mono", ui-monospace, monospace; }
-  :focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
-
-  .topbar{ background:var(--paper-raised); border-bottom:1px solid var(--line); }
-  .topbar .wrap{ display:flex; align-items:center; gap:8px 22px; min-height:54px; flex-wrap:wrap; }
-  .brand{ font-family:"Fraunces", Georgia, serif; font-weight:600; font-size:17px; color:var(--ink); text-decoration:none; }
-  .brand small{ font-family:"IBM Plex Mono", monospace; font-size:11px; font-weight:400; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); margin-left:6px; }
-  .nav{ display:flex; gap:4px; flex:1; }
-  .nav a{ text-decoration:none; font-size:14px; color:var(--ink-soft); padding:7px 12px; border-radius:8px; }
-  .nav a.current{ background:var(--accent-soft); color:var(--accent-on-soft); font-weight:500; }
-  .user{ font-size:13px; color:var(--ink-soft); }
-
-  main{ padding-block:24px 56px; display:flex; flex-direction:column; gap:18px; }
-  .crumb{ font-size:13px; color:var(--ink-soft); }
-
-  .banner{ border-radius:10px; padding:12px 14px; font-size:13.5px; display:flex; gap:10px; align-items:flex-start; }
-  .banner > span:last-child{ min-width:0; }
-  .banner.warn{ background:var(--warn-soft); border:1px solid var(--warn); color:var(--warn); }
-  .banner .icon{ flex:none; font-family:"IBM Plex Mono", monospace; font-weight:500; }
-  .banner .demo{ display:flex; gap:8px; flex-wrap:wrap; margin-top:8px; }
-
-  .masthead{ display:flex; flex-direction:column; gap:6px; }
-  .eyebrow{ font-family:"IBM Plex Mono", monospace; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); }
-  .masthead h1{ font-size:30px; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-  .meta{ font-size:13px; color:var(--ink-soft); display:flex; gap:4px 16px; flex-wrap:wrap; }
-
-  .badge{ display:inline-block; font-family:"IBM Plex Mono", monospace; font-size:11.5px; font-weight:400; border-radius:20px; padding:2px 9px; border:1px solid var(--line); color:var(--ink-soft); background:var(--paper); white-space:nowrap; }
-  .badge.ok{ border-color:var(--accent); background:var(--accent-soft); color:var(--accent-on-soft); }
-  .badge.warn{ border-color:var(--warn); background:var(--warn-soft); color:var(--warn); }
-  .badge.danger{ border-color:var(--danger); background:var(--danger-soft); color:var(--danger-on-soft); }
-  .badge.fb{ border-color:var(--fb); background:var(--fb-soft); color:var(--fb); }
-  .badge.ig{ border-color:var(--ig); background:var(--ig-soft); color:var(--ig); }
-
-  .btn{ font-family:inherit; cursor:pointer; border-radius:8px; padding:8px 14px; font-size:13.5px; font-weight:500; border:1px solid var(--line); background:var(--paper-raised); color:var(--ink); }
-  .btn:hover:not(:disabled){ border-color:var(--ink-faint); }
-  .btn.primary{ background:var(--accent); border-color:var(--accent); color:var(--paper-raised); }
-  .btn.danger{ color:var(--danger); border-color:var(--danger); }
-  .btn.on{ background:var(--accent-soft); border-color:var(--accent); color:var(--accent-on-soft); }
-  .btn.small{ padding:5px 10px; font-size:12.5px; }
-  .btn:disabled{ opacity:.45; cursor:not-allowed; }
-  .link-btn{ font:inherit; cursor:pointer; background:none; border:none; color:var(--accent-strong); padding:0; text-decoration:underline; }
-
-  /* Barra delle decisioni sulla campagna */
-  .decidi{ background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:18px 20px; display:flex; flex-direction:column; gap:14px; scroll-margin-top:12px; }
-  .decidi-top{ display:flex; justify-content:space-between; gap:14px 24px; flex-wrap:wrap; align-items:flex-start; }
-  .decidi h2{ font-size:19px; }
-  .decidi .sub{ font-size:13px; color:var(--ink-soft); }
-  .conti{ display:flex; gap:6px; flex-wrap:wrap; margin-top:8px; }
-  .decidi-btns{ display:flex; gap:8px; flex-wrap:wrap; }
-  .blocchi{ font-size:13px; color:var(--ink-soft); display:flex; flex-direction:column; gap:3px; }
-  .blocchi:empty{ display:none; }
-  .blocchi b{ color:var(--danger); font-weight:500; }
-  .form{ border-top:1px solid var(--line); padding-top:14px; display:flex; flex-direction:column; gap:10px; }
-  .form h3{ font-family:"IBM Plex Sans", sans-serif; font-size:14px; font-weight:600; }
-  .form label, .panel label{ font-size:13px; font-weight:500; display:block; margin-bottom:4px; }
-  .form .hint{ font-size:12.5px; color:var(--ink-soft); }
-  textarea, input[type=text]{ width:100%; font-family:inherit; font-size:14px; color:var(--ink); background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:8px 10px; line-height:1.45; }
-  textarea{ min-height:68px; resize:vertical; }
-  textarea:focus, input[type=text]:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
-  select{ font-family:inherit; font-size:13.5px; color:var(--ink); background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:6px 8px; max-width:100%; }
-  .choice-grid{ display:flex; flex-wrap:wrap; gap:8px; }
-  .choice{ border:1px solid var(--line); border-radius:20px; padding:6px 12px; font-size:13px; background:var(--paper); display:inline-flex; align-items:center; gap:6px; cursor:pointer; font-weight:400 !important; margin:0 !important; }
-  .choice input{ accent-color:var(--accent); margin:0; }
-  .errore{ color:var(--danger); font-size:12.5px; }
-  .row{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-  .email{ border:1px solid var(--line); border-radius:10px; background:var(--paper); padding:12px 14px; font-size:13px; display:flex; flex-direction:column; gap:4px; }
-  .email .mono{ font-size:12px; color:var(--ink-soft); }
-  details.email summary{ cursor:pointer; color:var(--accent-strong); }
-  details.email > span, details.email > b{ display:block; margin-top:4px; }
-  .arretrato{ display:flex; gap:8px 12px; flex-wrap:wrap; align-items:center; font-size:13px; padding:6px 0; border-top:1px solid var(--line); }
-  .arretrato span{ flex:1 1 220px; min-width:0; }
-
-  /* Schede */
-  .tabs{ display:flex; gap:4px; flex-wrap:wrap; border-bottom:1px solid var(--line); }
-  .tabs button{ font:inherit; font-size:14px; cursor:pointer; background:none; border:none; border-bottom:2px solid transparent; padding:9px 12px; color:var(--ink-soft); margin-bottom:-1px; }
-  .tabs button[aria-selected="true"]{ color:var(--ink); border-bottom-color:var(--accent); font-weight:500; }
-  .tabs .n{ font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--ink-faint); margin-left:4px; }
-  .pane{ display:flex; flex-direction:column; gap:16px; }
-  [hidden]{ display:none !important; }
-  .intro{ font-size:13.5px; color:var(--ink-soft); max-width:75ch; }
-
-  .legenda{ border:1px dashed var(--line); border-radius:12px; padding:12px 14px; font-size:13px; color:var(--ink-soft); display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 250px), 1fr)); gap:8px 20px; }
-  .legenda b{ color:var(--ink); font-weight:600; }
-
-  /* Griglia dei post */
-  .posts{ display:grid; grid-template-columns:repeat(auto-fill, minmax(min(100%, 400px), 1fr)); gap:16px; align-items:start; }
-  .post{ background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:14px; display:flex; flex-direction:column; gap:10px; min-width:0; scroll-margin-top:12px; }
-  .post.blocca{ border-color:var(--danger); }
-  .post.vista{ border-color:var(--accent); }
-  .post.tolto{ border-style:dashed; }
-  .post.tolto .social{ opacity:.45; }
-  .post.flash{ box-shadow:0 0 0 3px var(--accent-soft); }
-  .post-head{ display:flex; gap:6px 8px; flex-wrap:wrap; align-items:center; }
-  .post-head .num{ font-size:12px; color:var(--accent-strong); letter-spacing:.06em; }
-  .post-head .when{ font-size:13px; font-weight:500; margin-right:auto; }
-  .post-meta{ font-size:11.5px; color:var(--ink-faint); display:flex; gap:2px 12px; flex-wrap:wrap; }
-  .post-meta .pieno{ color:var(--danger); }
-  .avviso{ border-radius:8px; padding:8px 10px; font-size:12.5px; }
-  .avviso.danger{ background:var(--danger-soft); color:var(--danger-on-soft); }
-  .avviso.warn{ background:var(--warn-soft); color:var(--warn); }
-  .avviso.quiet{ background:var(--paper); border:1px dashed var(--line); color:var(--ink-soft); }
-  .avviso ul{ margin:4px 0 0; padding-left:18px; }
-  .post-actions{ display:flex; gap:8px; flex-wrap:wrap; }
-  .post-actions .btn{ flex:1 1 auto; text-align:center; }
-  .panel{ border:1px solid var(--line); border-radius:10px; background:var(--paper); padding:12px; display:flex; flex-direction:column; gap:12px; }
-  .motivo{ display:flex; flex-direction:column; gap:6px; padding-bottom:12px; border-bottom:1px solid var(--line); }
-  .motivo h4{ margin:0; font-size:13.5px; font-weight:600; }
-  .motivo p, .panel > p{ font-size:12.5px; color:var(--ink-soft); }
-  .panel textarea{ min-height:44px; font-size:13px; }
-  details.storico{ font-size:12.5px; }
-  details.storico summary{ cursor:pointer; color:var(--accent-strong); }
-  .vers{ border-top:1px solid var(--line); padding:8px 0; display:flex; flex-direction:column; gap:3px; }
-  .vers .t{ color:var(--ink-soft); }
-  .vers.cur .t{ color:var(--ink); }
-  .attesa{ display:flex; gap:8px; align-items:center; font-size:13px; color:var(--warn); }
-  .giro{ width:14px; height:14px; border-radius:50%; border:2px solid var(--warn); border-top-color:transparent; animation:giro 0.9s linear infinite; flex:none; }
-  @keyframes giro{ to{ transform:rotate(360deg); } }
-  @media (prefers-reduced-motion: reduce){ .giro{ animation:none; } }
-
-  /* Anteprime social */
-  .social{ background:var(--social-bg); color:var(--social-ink); border:1px solid var(--social-line); border-radius:10px; overflow:hidden; font-family:system-ui, -apple-system, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; font-size:14px; line-height:1.4; }
-  .s-head{ display:flex; gap:10px; align-items:center; padding:10px 12px; }
-  .avatar{ width:38px; height:38px; border-radius:50%; background:var(--accent); color:var(--social-bg); display:flex; align-items:center; justify-content:center; font-weight:600; font-size:14px; flex:none; }
-  .s-name{ font-weight:600; font-size:14px; }
-  .s-sub{ font-size:12px; color:var(--social-soft); }
-  .s-text{ padding:0 12px 10px; overflow-wrap:anywhere; }
-  .s-text .tag{ color:var(--social-link); }
-  .shot{ position:relative; width:100%; max-width:100%; background:var(--social-hole); display:flex; align-items:center; justify-content:center; overflow:hidden; }
-  .shot img{ width:100%; height:100%; object-fit:cover; display:block; }
-  .shot .ph{ text-align:center; padding:14px; font-family:"IBM Plex Mono", monospace; font-size:11.5px; color:var(--social-soft); border:1.5px dashed var(--social-soft); border-radius:8px; margin:14px; max-width:260px; }
-  .shot .ph b{ display:block; color:var(--social-ink); font-weight:500; margin-bottom:4px; overflow-wrap:anywhere; }
-  .shot-tag{ position:absolute; left:8px; bottom:8px; font-family:"IBM Plex Mono", monospace; font-size:10.5px; background:var(--social-bg); color:var(--social-soft); border:1px solid var(--social-line); border-radius:4px; padding:1px 6px; }
-  .fb-bar{ display:flex; border-top:1px solid var(--social-line); margin:0 12px; padding:6px 0; color:var(--social-soft); font-size:13px; font-weight:600; }
-  .fb-bar span{ flex:1; text-align:center; }
-  .ig .avatar{ width:32px; height:32px; font-size:12px; box-shadow:0 0 0 2px var(--social-bg), 0 0 0 3.5px var(--ig); }
-  .ig-icons{ display:flex; gap:14px; padding:10px 12px 6px; color:var(--social-ink); }
-  .ig-icons svg{ width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.8; stroke-linecap:round; stroke-linejoin:round; }
-  .ig-icons .last{ margin-left:auto; }
-  .ig .s-text b{ font-weight:600; }
-  .ig-date{ padding:0 12px 12px; font-size:11px; color:var(--social-soft); text-transform:uppercase; letter-spacing:.02em; }
-
-  /* Calendario */
-  .cal-scroll{ overflow-x:auto; }
-  .cal{ display:grid; grid-template-columns:repeat(7, minmax(92px, 1fr)); gap:6px; min-width:680px; }
-  .cal .dow{ font-family:"IBM Plex Mono", monospace; font-size:11px; text-transform:uppercase; letter-spacing:.08em; color:var(--ink-faint); padding:0 4px; }
-  .cal .day{ background:var(--paper-raised); border:1px solid var(--line); border-radius:8px; min-height:84px; padding:6px; display:flex; flex-direction:column; gap:4px; }
-  .cal .day.oggi{ border-color:var(--accent); }
-  .cal .day .d{ font-family:"IBM Plex Mono", monospace; font-size:11.5px; color:var(--ink-faint); font-variant-numeric:tabular-nums; }
-  .cal .slot{ font:inherit; font-size:11.5px; text-align:left; cursor:pointer; border-radius:6px; padding:3px 6px; border:1px solid var(--line); background:var(--paper); color:var(--ink); }
-  .cal .slot.fb{ border-color:var(--fb); background:var(--fb-soft); color:var(--fb); }
-  .cal .slot.ig{ border-color:var(--ig); background:var(--ig-soft); color:var(--ig); }
-  .cal .slot.blocca{ outline:2px solid var(--danger); outline-offset:-1px; }
-  .cal .slot.tolto{ text-decoration:line-through; opacity:.55; }
-
-  /* Materiali */
-  .cols{ display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 320px), 1fr)); gap:16px; align-items:start; }
-  .card{ background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:16px 18px; min-width:0; }
-  .card .tab{ font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--accent-strong); letter-spacing:.06em; }
-  .card h3{ font-size:17px; margin:4px 0 10px; }
-  .rev-line{ display:flex; gap:10px; font-size:13.5px; padding:5px 0; border-top:1px solid var(--line); margin:0; }
-  .rev-line dt{ color:var(--ink-soft); flex:0 0 38%; margin:0; }
-  .rev-line dd{ margin:0; flex:1; min-width:0; overflow-wrap:anywhere; }
-  .foto-riga{ display:grid; grid-template-columns:84px 1fr; gap:12px; padding:10px 0; border-top:1px solid var(--line); font-size:13px; }
-  .foto-riga .mini{ width:84px; height:84px; border-radius:8px; overflow:hidden; border:1px dashed var(--ink-faint); background:var(--paper); display:flex; align-items:center; justify-content:center; font-family:"IBM Plex Mono", monospace; font-size:10px; color:var(--ink-faint); text-align:center; }
-  .foto-riga .mini img{ width:100%; height:100%; object-fit:cover; }
-  .foto-riga .info{ min-width:0; display:flex; flex-direction:column; gap:4px; align-items:flex-start; }
-  .foto-riga .nome{ font-family:"IBM Plex Mono", monospace; font-size:12.5px; overflow-wrap:anywhere; }
-  .foto-riga input[type=file]{ font-size:12px; max-width:100%; }
-  .note{ font-size:12.5px; color:var(--ink-faint); margin-top:10px; }
-
-  /* Uscite: un tema, con i post dei canali affiancati */
-  .uscite{ display:flex; flex-direction:column; gap:16px; }
-  .uscita{ background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:14px; display:flex; flex-direction:column; gap:12px; min-width:0; scroll-margin-top:12px; }
-  .uscita-head{ display:flex; gap:6px 10px; flex-wrap:wrap; align-items:baseline; }
-  .uscita-head .num{ font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--accent-strong); letter-spacing:.06em; }
-  .uscita-head h3{ font-size:18px; flex:1 1 260px; min-width:0; }
-  .uscita-head .da{ font-size:12.5px; color:var(--ink-soft); }
-  .varianti{ display:grid; grid-template-columns:repeat(auto-fit, minmax(min(100%, 340px), 1fr)); gap:14px; align-items:start; }
-  .uscita .post{ background:var(--paper); border-radius:10px; padding:12px; }
-
-  /* Cartolina: il riempitivo composto dal sistema */
-  .shot.cartolina{ background:var(--accent-strong); color:var(--paper-raised); flex-direction:column; gap:10px; padding:28px; text-align:center; }
-  .cartolina .bottega{ font-family:"Fraunces", Georgia, serif; font-size:22px; font-weight:600; }
-  .cartolina .tema{ font-size:15px; max-width:26ch; line-height:1.35; }
-
-  /* Piano, prove ed extra */
-  #piano summary, details.sprint summary{ cursor:pointer; display:flex; gap:10px; align-items:center; flex-wrap:wrap; }
-  #piano summary .tab{ font-size:13px; }
-  #piano h3{ margin-top:12px; }
-  details.sprint summary{ font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--accent-strong); letter-spacing:.06em; }
-  details.prova{ margin-top:8px; font-size:13px; }
-  details.prova summary{ cursor:pointer; font-weight:500; }
-  details.prova ul{ margin:6px 0 0; padding-left:18px; }
-  details.prova li{ margin-bottom:3px; }
-  .banner .demo{ align-items:center; }
-  .decidi dl{ font-size:13.5px; }
-  input[type=datetime-local]{ font-family:inherit; font-size:13.5px; color:var(--ink); background:var(--paper); border:1px solid var(--line); border-radius:8px; padding:5px 8px; max-width:100%; }
-</style>
-<!-- fascia-mappa: stato della pagina statica e ritorno alla mappa. Non fa parte della schermata. -->
-<div style="border-bottom:1px solid var(--line); padding:8px 18px; background:var(--paper-raised); color:var(--ink-soft); font:12px/1.5 'IBM Plex Mono', ui-monospace, monospace; display:flex; flex-wrap:wrap; gap:2px 16px; justify-content:space-between;">
-  <a href="index.html" style="color:inherit;">← Mappa delle pagine</a>
-  <span>Pagina statica · <strong style="color:var(--ink); font-weight:500;">approvata</strong> · ADR-101, ADR-111 · decisioni ADR-89…100</span>
-</div>
-<!-- /fascia-mappa -->
-
-<header class="topbar">
-  <div class="wrap">
-    <a class="brand" href="AdFlow-operatore-ingresso.html">AdFlow <small>Operatore</small></a>
-    <nav class="nav" aria-label="Sezioni operatore">
-      <a href="AdFlow-operatore-da-approvare.html" class="current">Da approvare</a>
-      <a href="AdFlow-operatore-elenco.html">Artigiani</a>
-      <a href="AdFlow-operatore-metriche.html">Metriche</a>
-    </nav>
-    <div class="user">Laura Rossi · operatore</div>
-  </div>
-</header>
-
-<main class="wrap">
-
-  <div class="banner warn">
-    <span class="icon">i</span>
-    <span>
-      <b>Pagina statica interattiva.</b> Dati di esempio, AI simulata, niente si salva. Segue il modello a uscite e le decisioni del 07/10/2026 (ADR-89…101): un post non si toglie, si sistema; gli avvisi del controllo non bloccano; la scadenza è morbida. Nell'esempio oggi è <b id="oggi"></b>.
-      <span class="demo">
-        <label for="scenario" style="font-weight:500;">La campagna arriva in</label>
-        <select id="scenario" data-scen aria-label="Stato di partenza dell'esempio">
-          <option value="in_revisione">in_revisione</option>
-          <option value="piano_da_rivedere">piano_da_rivedere (piano debole)</option>
-          <option value="generazione_fallita">generazione_fallita (errore su Instagram)</option>
-          <option value="in_generazione">in_generazione (senza piano)</option>
-        </select>
-        <button type="button" class="btn small" data-act="reset">Ricomincia da capo</button>
-        <button type="button" class="btn small" data-act="avanza" id="btn-avanza"></button>
-      </span>
-      <details class="prova"><summary>Da provare</summary>
-        <ul>
-          <li>Uscita 5, Facebook: la data è sbagliata (sabato 22 invece di 21). Correggila con <b>Modifica</b>: non consuma cicli.</li>
-          <li>Uscita 3, Instagram: il controllo ha trovato un <b>blocco</b> (un prezzo). Finché resta, la campagna non si approva.</li>
-          <li>Uscita 2, Instagram: troppi hashtag. È un <b>avviso</b>: si vede e non blocca.</li>
-          <li>Uscita 4, Instagram: i 3 cicli AI sono finiti. Resta la modifica a mano.</li>
-          <li>Avanza il tempo senza approvare: scadono i singoli post, poi la campagna quando ne restano meno della metà.</li>
-          <li>Approva, poi avanza il tempo: un post fallisce e si può <b>riprogrammare</b>. Sospendi, avanza, Riattiva: scegli che cosa fare degli arretrati.</li>
-        </ul>
-      </details>
-    </span>
-  </div>
-
-  <div class="crumb">← <a href="AdFlow-operatore-da-approvare.html">Campagne da approvare</a> · <a href="AdFlow-operatore-artigiano.html">Falegnameria Bianchi (ART-0042)</a></div>
-
-  <div class="masthead">
-    <div class="eyebrow">Vedi campagna · Falegnameria Bianchi</div>
-    <h1>Natale su misura <span id="stato-camp"></span></h1>
-    <div class="meta" id="meta"></div>
-  </div>
-
-  <section class="decidi" id="decidi" aria-label="Decisione sulla campagna"></section>
-
-  <section class="card" id="piano" aria-label="Piano editoriale"></section>
-
-  <div class="tabs" role="tablist">
-    <button type="button" role="tab" data-tab="uscite" aria-selected="true">Uscite <span class="n" id="n-uscite"></span></button>
-    <button type="button" role="tab" data-tab="calendario" aria-selected="false">Calendario</button>
-    <button type="button" role="tab" data-tab="materiali" aria-selected="false">Foto e profilo</button>
-  </div>
-
-  <section class="pane" id="tab-uscite">
-    <div class="legenda">
-      <span><b>Va bene</b>: spunta sul post, con chi l'ha messa. Non lo approva: si approva la campagna. Si azzera a ogni nuova versione.</span>
-      <span><b>Modifica</b>: scrivi tu testo e hashtag. Nasce una versione a tuo nome, ripassa il controllo, non consuma cicli AI.</span>
-      <span><b>Fai riscrivere all'AI</b>: da zero o da un testo proposto, con le stesse foto. 3 cicli per post.</span>
-      <span><b>Foto e data</b>: ritocca, cambia la foto con un'altra del gruppo, sposta il post. Dallo sprint 3.</span>
+<div class="app-container">
+  <!-- Barra laterale -->
+  <aside class="app-sidebar">
+    <div class="sidebar-header">
+      <div class="brand-icon-wrapper">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+          <polyline points="2 17 12 22 22 17"></polyline>
+          <polyline points="2 12 12 17 22 12"></polyline>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>AdFlow</h1>
+        <span>Suite · Operatore</span>
+      </div>
     </div>
-    <div class="uscite" id="uscite"></div>
-    <p><a href="#decidi">↑ Torna alla decisione sulla campagna</a></p>
-  </section>
 
-  <section class="pane" id="tab-calendario" hidden>
-    <p class="intro">Due settimane, 6 post chiesti per canale. Ogni tema esce su Facebook la sera e su Instagram la mattina dopo: lo sfasamento lo ha scelto il piano. Tocca un post per aprirlo nell'elenco. I post scartati, scaduti o annullati restano visibili, barrati.</p>
-    <div class="cal-scroll"><div class="cal" id="cal"></div></div>
-  </section>
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Piattaforma</div>
+      <a href="AdFlow-operatore-ingresso.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        <span>Dashboard</span>
+      </a>
+      <a href="AdFlow-operatore-campagna.html" class="nav-link active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
+        <span>Campagne</span>
+        <span class="nav-badge">4</span>
+      </a>
+      <a href="AdFlow-operatore-da-approvare.html" class="nav-link" style="padding-left: 36px; font-size: 12.5px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width: 15px; height: 15px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
+        <span>Da approvare</span>
+      </a>
+      <a href="AdFlow-operatore-artigiano-campagne.html" class="nav-link" style="padding-left: 36px; font-size: 12.5px;">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width: 15px; height: 15px;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+        <span>Storico chiuse</span>
+      </a>
 
-  <section class="pane" id="tab-materiali" hidden>
-    <div class="cols" id="materiali"></div>
-  </section>
+      <div class="nav-section-label">Gestione</div>
+      <a href="AdFlow-operatore-elenco.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        <span>Artigiani</span>
+        <span class="nav-badge">6</span>
+      </a>
+      <a href="AdFlow-operatore-metriche.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
+        <span>Metriche</span>
+      </a>
 
-  <details class="card sprint">
-    <summary>Che cosa arriva in quale sprint</summary>
-    <dl style="margin:10px 0 0">
-      <div class="rev-line"><dt>Sprint 1 (T1-53)</dt><dd>Il piano, l'elenco per uscite con i post dei canali affiancati e l'etichetta dei riempitivi, la scheda Foto e profilo, Approva, Prosegui, Riprova.</dd></div>
-      <div class="rev-line"><dt>Sprint 2b</dt><dd>Modifica a mano, riscrittura dell'AI con i suoi cicli, spunta "va bene", blocchi e avvisi del controllo, intervento in corso, nota interna, Togli il canale, Respingi, scadenza morbida, Sospendi, Riattiva con gli arretrati, Annulla, Riprogramma un post fallito, motivo dell'errore accanto a Riprova.</dd></div>
-      <div class="rev-line"><dt>Sprint 3</dt><dd>Ritocco della foto e scelta della versione, Cambia foto, Sposta, calendario, ritaglio unico per anteprima e pubblicazione.</dd></div>
-      <div class="rev-line"><dt>Non esiste</dt><dd>Togliere un post o un'uscita, fermare un singolo post dopo l'approvazione, una soglia minima di post per approvare (ADR-90).</dd></div>
-    </dl>
-  </details>
+      <div class="nav-section-label">Sistema</div>
+      <a href="index.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <span>Mappa Pagine</span>
+      </a>
+    </nav>
 
-</main>
+    <div class="sidebar-footer">
+      <div class="user-profile-card">
+        <img src="assets/img/avatar-laura.jpg" alt="Laura Rossi" class="user-avatar" onerror="this.outerHTML='<div class=\'user-avatar placeholder\'>LR</div>'">
+        <div class="user-info">
+          <div class="user-name">Laura Rossi</div>
+          <div class="user-role">Operatore Consorzio</div>
+        </div>
+      </div>
+      <a href="AdFlow-campagna.html" class="role-switch-btn" title="Passa all'esperienza Artigiano">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+        <span>Vista Artigiano (Mario Bianchi)</span>
+      </a>
+    </div>
+  </aside>
+
+  <div class="app-main">
+    <!-- Topbar -->
+    <!-- fascia-mappa: stato della pagina statica e ritorno alla mappa. Non fa parte della schermata. -->
+    <header class="app-topbar">
+      <div class="topbar-left">
+        <div class="stato-pagina">Pagina statica · <strong>approvata</strong> · ADR-101, ADR-111 · decisioni ADR-89…100 · stile: ADR-113</div>
+      </div>
+
+      <div class="topbar-right">
+        <a href="index.html" class="icon-btn" title="Mappa delle pagine">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        </a>
+        <button class="icon-btn" onclick="showToast('Guida operativa ADR-111 aperta')" title="Aiuto">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+        </button>
+        <a href="AdFlow-login.html" class="icon-btn" title="Esci">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        </a>
+      </div>
+    </header>
+    <!-- /fascia-mappa -->
+
+    <!-- Content Workspace -->
+    <main class="content-wrapper">
+      <nav class="breadcrumb-trail">
+        <a href="AdFlow-operatore-ingresso.html">Dashboard</a>
+        <span class="breadcrumb-sep">/</span>
+        <a href="AdFlow-operatore-da-approvare.html">Campagne da approvare</a>
+        <span class="breadcrumb-sep">/</span>
+        <a href="AdFlow-operatore-artigiano.html">Falegnameria Bianchi (ART-0042)</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">Vedi campagna</span>
+      </nav>
+
+      <div class="page-header">
+        <div class="page-title-group">
+          <h1 class="page-title">Natale su misura</h1>
+          <span id="stato-camp"></span>
+        </div>
+      </div>
+
+      <!-- Dati della campagna -->
+      <div class="info-summary-card" id="meta"></div>
+
+      <!-- Prova della pagina: non fa parte della schermata -->
+      <div class="surface-card" style="padding: 14px 18px;">
+        <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;">
+          Pagina statica interattiva · prova
+        </div>
+        <p class="testo-card" style="font-size: 13px; margin-bottom: 10px;">Dati di esempio, AI simulata, niente si salva. Segue il modello a uscite e le decisioni del 07/10/2026 (ADR-89…101): un post non si toglie, si sistema; gli avvisi del controllo non bloccano; la scadenza è morbida. Nell'esempio oggi è <b id="oggi"></b>.</p>
+        <div class="demo">
+          <label for="scenario" style="font-size: 13px; font-weight: 600;">La campagna arriva in</label>
+          <select id="scenario" data-scen aria-label="Stato di partenza dell'esempio">
+            <option value="in_revisione">in_revisione</option>
+            <option value="piano_da_rivedere">piano_da_rivedere (piano debole)</option>
+            <option value="generazione_fallita">generazione_fallita (errore su Instagram)</option>
+            <option value="in_generazione">in_generazione (senza piano)</option>
+          </select>
+          <button type="button" class="btn small" data-act="reset">Ricomincia da capo</button>
+          <button type="button" class="btn small" data-act="avanza" id="btn-avanza"></button>
+        </div>
+        <details class="prova"><summary>Da provare</summary>
+          <ul>
+            <li>Uscita 5, Facebook: la data è sbagliata (sabato 22 invece di 21). Correggila con <b>Modifica</b>: non consuma cicli.</li>
+            <li>Uscita 3, Instagram: il controllo ha trovato un <b>blocco</b> (un prezzo). Finché resta, la campagna non si approva.</li>
+            <li>Uscita 2, Instagram: troppi hashtag. È un <b>avviso</b>: si vede e non blocca.</li>
+            <li>Uscita 4, Instagram: i 3 cicli AI sono finiti. Resta la modifica a mano.</li>
+            <li>Avanza il tempo senza approvare: scadono i singoli post, poi la campagna quando ne restano meno della metà.</li>
+            <li>Approva, poi avanza il tempo: un post fallisce e si può <b>riprogrammare</b>. Sospendi, avanza, Riattiva: scegli che cosa fare degli arretrati.</li>
+          </ul>
+        </details>
+      </div>
+
+      <section class="decidi" id="decidi" aria-label="Decisione sulla campagna"></section>
+
+      <section class="surface-card card" id="piano" aria-label="Piano editoriale"></section>
+
+      <div class="tabs-nav" role="tablist">
+        <button type="button" class="tab-btn" role="tab" data-tab="uscite" aria-selected="true">Uscite <span class="n" id="n-uscite"></span></button>
+        <button type="button" class="tab-btn" role="tab" data-tab="calendario" aria-selected="false">Calendario</button>
+        <button type="button" class="tab-btn" role="tab" data-tab="materiali" aria-selected="false">Foto e profilo</button>
+      </div>
+
+      <section class="pane" id="tab-uscite">
+        <div class="legenda">
+          <span><b>Va bene</b>: spunta sul post, con chi l'ha messa. Non lo approva: si approva la campagna. Si azzera a ogni nuova versione.</span>
+          <span><b>Modifica</b>: scrivi tu testo e hashtag. Nasce una versione a tuo nome, ripassa il controllo, non consuma cicli AI.</span>
+          <span><b>Fai riscrivere all'AI</b>: da zero o da un testo proposto, con le stesse foto. 3 cicli per post.</span>
+          <span><b>Foto e data</b>: ritocca, cambia la foto con un'altra del gruppo, sposta il post. Dallo sprint 3.</span>
+        </div>
+        <div class="uscite" id="uscite"></div>
+        <p><a href="#decidi">↑ Torna alla decisione sulla campagna</a></p>
+      </section>
+
+      <section class="pane" id="tab-calendario" hidden>
+        <p class="intro">Due settimane, 6 post chiesti per canale. Ogni tema esce su Facebook la sera e su Instagram la mattina dopo: lo sfasamento lo ha scelto il piano. Tocca un post per aprirlo nell'elenco. I post scartati, scaduti o annullati restano visibili, barrati.</p>
+        <div class="surface-card" style="padding: 16px;"><div class="cal-scroll"><div class="cal" id="cal"></div></div></div>
+      </section>
+
+      <section class="pane" id="tab-materiali" hidden>
+        <div class="cols" id="materiali"></div>
+      </section>
+
+      <details class="surface-card card sprint">
+        <summary>Che cosa arriva in quale sprint</summary>
+        <dl style="margin: 10px 0 0;">
+          <div class="rev-line"><dt>Sprint 1 (T1-53)</dt><dd>Il piano, l'elenco per uscite con i post dei canali affiancati e l'etichetta dei riempitivi, la scheda Foto e profilo, Approva, Prosegui, Riprova.</dd></div>
+          <div class="rev-line"><dt>Sprint 2b</dt><dd>Modifica a mano, riscrittura dell'AI con i suoi cicli, spunta "va bene", blocchi e avvisi del controllo, intervento in corso, nota interna, Togli il canale, Respingi, scadenza morbida, Sospendi, Riattiva con gli arretrati, Annulla, Riprogramma un post fallito, motivo dell'errore accanto a Riprova.</dd></div>
+          <div class="rev-line"><dt>Sprint 3</dt><dd>Ritocco della foto e scelta della versione, Cambia foto, Sposta, calendario, ritaglio unico per anteprima e pubblicazione.</dd></div>
+          <div class="rev-line"><dt>Non esiste</dt><dd>Togliere un post o un'uscita, fermare un singolo post dopo l'approvazione, una soglia minima di post per approvare (ADR-90).</dd></div>
+        </dl>
+      </details>
+
+    </main>
+  </div>
+</div>
 
 <script>
 (function(){
@@ -391,11 +249,11 @@ const GRUPPI = {
   2:{ descr:'Taglieri da regalo, io al lavoro in laboratorio e la bottega: sabato 21 novembre teniamo le porte aperte.', il:'2026-11-21' }
 };
 const FOTO0 = {
-  f1:{ file:'tavolo-rovere-01.jpg', gruppo:1, stella:true, cosa:'Tavolo in rovere finito, intero, luce naturale da sinistra', idonea:true, punteggio:9, motivo:'Soggetto chiaro, buona luce.' },
-  f2:{ file:'tavolo-rovere-02.jpg', gruppo:1, cosa:'Dettaglio del piano: venature e incastro della gamba', idonea:true, punteggio:8, motivo:'Dettaglio nitido, sfondo pulito.' },
+  f1:{ file:'tavolo-rovere-01.jpg', src:'assets/img/fb-tavolo.jpg', gruppo:1, stella:true, cosa:'Tavolo in rovere finito, intero, luce naturale da sinistra', idonea:true, punteggio:9, motivo:'Soggetto chiaro, buona luce.' },
+  f2:{ file:'tavolo-rovere-02.jpg', src:'assets/img/ig-dettaglio.jpg', gruppo:1, cosa:'Dettaglio del piano: venature e incastro della gamba', idonea:true, punteggio:8, motivo:'Dettaglio nitido, sfondo pulito.' },
   f3:{ file:'tavolo-rovere-03.jpg', gruppo:1, cosa:'Tavolo in rovere, stessa inquadratura un passo più indietro', idonea:true, simileA:'f1', punteggio:7, motivo:'Quasi uguale a tavolo-rovere-01.jpg, che ha la stella: il doppione è questa.' },
-  f4:{ file:'taglieri-01.jpg', gruppo:2, cosa:'Quattro taglieri in noce e ciliegio su sfondo chiaro', idonea:true, punteggio:8, motivo:'Composizione ordinata, buona luce.' },
-  f5:{ file:'laboratorio-mani-01.jpg', gruppo:2, cosa:'Mani al lavoro con la sgorbia sul banco', idonea:true, punteggio:6, motivo:'Luce un po’ scarsa, ma il gesto si legge bene.' },
+  f4:{ file:'taglieri-01.jpg', src:'assets/img/ig-taglieri.jpg', gruppo:2, cosa:'Quattro taglieri in noce e ciliegio su sfondo chiaro', idonea:true, punteggio:8, motivo:'Composizione ordinata, buona luce.' },
+  f5:{ file:'laboratorio-mani-01.jpg', src:'assets/img/fb-falegname.jpg', gruppo:2, cosa:'Mani al lavoro con la sgorbia sul banco', idonea:true, punteggio:6, motivo:'Luce un po’ scarsa, ma il gesto si legge bene.' },
   f6:{ file:'laboratorio-mani-02.jpg', gruppo:2, cosa:'Mani al lavoro, scatto in movimento', idonea:false, punteggio:2, motivo:'Mossa: il soggetto non si legge.' },
   f7:{ file:'bottega-esterno-01.jpg', gruppo:2, cosa:'La vetrina della bottega con la porta aperta', idonea:true, punteggio:7, motivo:'Luce morbida, insegna leggibile.' }
 };
@@ -565,22 +423,22 @@ function shot(p, v){
 function anteprima(p){
   const v = cur(p);
   if (!v) return `<div class="avviso quiet"><b>Testo non ancora scritto.</b> ${stato() === 'piano_da_rivedere' ? 'Il piano è fermo prima dei testi: arrivano con Prosegui.' : 'La generazione si è fermata prima di questo post.'}</div>${shot(p, null)}`;
-  const tags = v.tag.map(h => `<span class="tag">${esc(h)}</span>`).join(' ');
+  const tags = `<span class="social-hashtag">${v.tag.map(esc).join(' ')}</span>`;
   if (p.canale === 'facebook'){
-    return `<div class="social fb" aria-label="Anteprima Facebook">
-      <div class="s-head"><span class="avatar">B</span><div><div class="s-name">Falegnameria Bianchi</div><div class="s-sub">${lunga(p.quando)} · Pubblico</div></div></div>
-      <div class="s-text">${righe(v.testo)}<br><br>${tags}</div>
-      ${shot(p, v)}
-      <div class="fb-bar"><span>Mi piace</span><span>Commenta</span><span>Condividi</span></div>
-    </div>`;
+    return `<div class="social-preview-card" aria-label="Anteprima Facebook"><div class="fb-post-mockup">
+      <div class="fb-post-author"><img src="assets/img/bottega-logo.jpg" alt="" class="fb-author-img"><div><div class="fb-author-name">Falegnameria Bianchi</div><div class="fb-author-time">${lunga(p.quando)} · Pubblico</div></div></div>
+      <div class="fb-post-text">${righe(v.testo)}<br><br>${tags}</div>
+      <div class="fb-post-media">${shot(p, v)}</div>
+      <div class="fb-post-engagement"><span class="fb-action-btn">Mi piace</span><span class="fb-action-btn">Commenta</span><span class="fb-action-btn">Condividi</span></div>
+    </div></div>`;
   }
   const x = D(p.quando);
-  return `<div class="social ig" aria-label="Anteprima Instagram">
-    <div class="s-head"><span class="avatar">B</span><div><div class="s-name">falegnameriabianchi</div><div class="s-sub">Bra</div></div></div>
-    ${shot(p, v)}
-    <div class="s-text" style="padding-top:10px"><b>falegnameriabianchi</b> ${righe(v.testo)}<br><br>${tags}</div>
+  return `<div class="social-preview-card" aria-label="Anteprima Instagram"><div class="ig-post-mockup">
+    <div class="ig-post-author"><div class="ig-author-left"><div class="ig-avatar-ring"><img src="assets/img/bottega-logo.jpg" alt=""></div><div><div class="ig-author-handle">falegnameriabianchi</div><div class="ig-author-loc">Bra</div></div></div></div>
+    <div class="ig-post-media">${shot(p, v)}</div>
+    <div class="ig-caption"><strong>falegnameriabianchi</strong> ${righe(v.testo)}<br><br>${tags}</div>
     <div class="ig-date">${x.getDate()} ${MESI[x.getMonth()]}</div>
-  </div>`;
+  </div></div>`;
 }
 
 /* ---------- Pannelli di un post ---------- */
@@ -641,14 +499,14 @@ function pannelloFoto(p){
            <textarea id="nota-ritocco-${p.id}" placeholder="Nota per l'AI (facoltativa): es. meno contrasto"></textarea>
            <div class="row"><button type="button" class="btn small" data-act="ritocca" data-id="${p.id}">Ritocca</button></div>`}
       ${opz.length ? `<div class="row"><select id="scelta-foto-${p.id}" aria-label="Versione della foto">${opz.join('')}</select>
-        <button type="button" class="btn small" data-act="scegli-foto" data-id="${p.id}">Usa questa versione</button><span class="mono" style="font-size:11.5px;color:var(--ink-faint)">non consuma cicli</span></div>` : ''}
+        <button type="button" class="btn small" data-act="scegli-foto" data-id="${p.id}">Usa questa versione</button><span class="mono" style="font-size:11.5px;color:var(--text-muted)">non consuma cicli</span></div>` : ''}
     </div>
     <div class="motivo">
       <h4>Foto sbagliata per questo post</h4>
       ${alt.length
         ? `<p>Cambiala con un'altra foto idonea dello stesso gruppo, non ancora uscita su ${NOME[p.canale]}. Il testo resta: rileggilo.</p>
            <div class="row"><select id="cambia-${p.id}" aria-label="Foto del gruppo">${alt.map(k => `<option value="${k}">${esc(S.foto[k].file)} · ${S.foto[k].punteggio}/10</option>`).join('')}</select>
-           <button type="button" class="btn small" data-act="cambia-foto" data-id="${p.id}">Cambia foto</button><span class="mono" style="font-size:11.5px;color:var(--ink-faint)">non consuma cicli</span></div>`
+           <button type="button" class="btn small" data-act="cambia-foto" data-id="${p.id}">Cambia foto</button><span class="mono" style="font-size:11.5px;color:var(--text-muted)">non consuma cicli</span></div>`
         : `<p>Nel gruppo ${f.gruppo} non c'è un'altra foto idonea ancora libera su ${NOME[p.canale]}. Se le foto buone sono poche, la strada è Respingi con motivo "foto".</p>`}
     </div>
     ${sposta}
@@ -790,7 +648,7 @@ function renderPiano(){
   box.innerHTML = `<details ${c.stato === 'piano_da_rivedere' || c.stato === 'in_revisione' ? 'open' : ''}>
     <summary><span class="tab">Piano editoriale · n. 1</span> ${c.debole ? '<span class="badge danger">piano debole</span>' : '<span class="badge ok">controllo passato</span>'}</summary>
     <h3>La strategia</h3>
-    <p style="font-size:13.5px;color:var(--ink-soft);max-width:80ch">${c.debole
+    <p style="font-size:13.5px;color:var(--text-secondary);max-width:80ch">${c.debole
       ? 'Due sole foto si possono usare: il tavolo finito e i taglieri. Il piano le mette nella prima settimana e copre gli altri post con cartoline: il rovere, il su misura, le porte aperte del 21 e gli ordini di Natale. Ogni tema esce su Facebook la sera e su Instagram la mattina dopo.'
       : 'Sei temi in due settimane: prima il tavolo in rovere, intero e da vicino, poi i taglieri da regalo e il lavoro al banco; nella seconda settimana le porte aperte di sabato 21 e, per chiudere, una cartolina sugli ordini di Natale. Ogni tema esce su Facebook la sera, con un testo che racconta, e su Instagram la mattina dopo, con la foto in primo piano.'}</p>
     <dl style="margin:10px 0 0">
@@ -865,7 +723,7 @@ function conti(){
 function entroQuando(){
   const da = daApprovare().map(p => p.quando).sort(), soglia = chiesti() / 2;
   if (!da.length) return '';
-  return `<p class="sub"><b style="color:var(--ink)">Entro quando: il primo post da approvare è ${breve(da[0])}.</b> Ogni post scade quando passa la sua data; la campagna scade se ne restano meno di ${soglia} su ${chiesti()} chiesti. Promemoria 48 ore prima dell'inizio (${giorno('2026-11-07')}).</p>`;
+  return `<p class="sub"><b style="color:var(--text-main)">Entro quando: il primo post da approvare è ${breve(da[0])}.</b> Ogni post scade quando passa la sua data; la campagna scade se ne restano meno di ${soglia} su ${chiesti()} chiesti. Promemoria 48 ore prima dell'inizio (${giorno('2026-11-07')}).</p>`;
 }
 function renderBarra(){
   const c = S.camp, da = daApprovare(), riv = daRivedere(), corso = S.post.filter(p => p.inCorso);
@@ -912,8 +770,8 @@ function renderBarra(){
     if (ui.form === 'approva' && !blocca){
       h += `<div class="form"><h3>Approvi ${da.length} post?</h3>
         <p class="hint">La campagna diventa attiva e i post escono da soli alle date stabilite. Dopo, il contenuto non si modifica più e non si interviene sul singolo post: si sospende o si annulla la campagna.</p>
-        ${senzaSpunta ? `<p class="hint" style="color:var(--warn)">${senzaSpunta} post non hanno la spunta "Va bene": vengono approvati lo stesso.</p>` : ''}
-        ${conAvvisi ? `<p class="hint" style="color:var(--warn)">${conAvvisi} post hanno avvisi del controllo: escono così come sono.</p>` : ''}
+        ${senzaSpunta ? `<p class="hint" style="color:var(--warning-text)">${senzaSpunta} post non hanno la spunta "Va bene": vengono approvati lo stesso.</p>` : ''}
+        ${conAvvisi ? `<p class="hint" style="color:var(--warning-text)">${conAvvisi} post hanno avvisi del controllo: escono così come sono.</p>` : ''}
         <div class="row"><button type="button" class="btn primary" data-act="approva">Conferma: approva ${da.length} post</button><button type="button" class="btn" data-act="form" data-form="">Annulla</button></div></div>`;
     } else h += forms();
   } else if (c.stato === 'attiva' || c.stato === 'sospesa'){
@@ -952,7 +810,7 @@ function renderBarra(){
       <span>Motivo: ${d.motivo === 'foto' ? 'foto scattate male' : 'altro'}</span>
       <span>Richiesta di modifica: "${esc(d.nota)}"</span>
       ${d.foto.length ? `<span>Foto da rifare (in miniatura): ${d.foto.map(k => esc(S.foto[k].file)).join(', ')}</span>` : ''}
-      <span style="color:var(--ink-soft)">Le stesse informazioni compaiono nel Bentornato della pagina Campagna.</span></div>${notaUltima()}`;
+      <span style="color:var(--text-secondary)">Le stesse informazioni compaiono nel Bentornato della pagina Campagna.</span></div>${notaUltima()}`;
   } else if (c.stato === 'scaduta'){
     h = `<div class="decidi-top"><div><h2>Campagna scaduta</h2><p class="sub">${esc(c.perche)} I post rimasti sono scaduti e l'artigiano ha ricevuto l'email "La campagna non è stata approvata in tempo".</p>${conti()}</div></div>${notaUltima()}`;
   } else if (c.stato === 'conclusa'){
@@ -992,28 +850,28 @@ function renderMateriali(){
         <div class="info"><span class="nome">${f.stella ? '★ ' : ''}${esc(f.file)}</span>
           <span>${esc(f.cosa)}</span>
           <span>${esito}</span>
-          ${c.senzaPiano ? '' : `<span style="color:var(--ink-soft)">Analisi AI: ${f.punteggio}/10 · ${esc(f.motivo)}</span>`}
-          <label for="up-${k}" style="font-size:12px;color:var(--ink-soft)">Carica una foto per l'anteprima:</label>
+          ${c.senzaPiano ? '' : `<span style="color:var(--text-secondary)">Analisi AI: ${f.punteggio}/10 · ${esc(f.motivo)}</span>`}
+          <label for="up-${k}" style="font-size:12px;color:var(--text-secondary)">Carica una foto per l'anteprima:</label>
           <input type="file" id="up-${k}" accept="image/*" data-up="${k}">
         </div></div>`; }).join('');
     return `<div class="card"><div class="tab">Gruppo ${n} · foto caricate · sola lettura</div>
       <h3>"${esc(g.descr)}"</h3>
-      ${g.il ? `<p style="font-size:13px;color:var(--ink-soft)">Da usare verso ${giorno(g.il)}: è un'indicazione per il piano, il controllo non la verifica.</p>` : ''}
+      ${g.il ? `<p style="font-size:13px;color:var(--text-secondary)">Da usare verso ${giorno(g.il)}: è un'indicazione per il piano, il controllo non la verifica.</p>` : ''}
       ${foto}</div>`; }).join('');
   const cartoline = Object.keys(S.foto).filter(k => S.foto[k].cartolina);
   const dec = c.decisioni.length
     ? c.decisioni.map(d => `<div class="rev-line"><dt>${esc(d.quando)}</dt><dd><b>${esc(d.esito)}</b>${d.motivo ? ' · motivo: ' + esc(d.motivo) : ''}${d.canale ? ' · ' + NOME[d.canale] : ''}${d.nota ? ' · "' + esc(d.nota) + '"' : ''}${d.foto && d.foto.length ? ' · foto: ' + d.foto.map(k => esc(S.foto[k].file)).join(', ') : ''} · ${IO}</dd></div>`).join('')
-    : '<p style="font-size:13px;color:var(--ink-faint)">Nessuna decisione e nessuna nota finora.</p>';
+    : '<p style="font-size:13px;color:var(--text-muted)">Nessuna decisione e nessuna nota finora.</p>';
   el('materiali').innerHTML = `
     <div style="display:flex;flex-direction:column;gap:16px;min-width:0">${gruppi}
       ${c.senzaPiano ? '' : `<div class="card"><div class="tab">Riempitivi</div><h3>${cartoline.length} ${cartoline.length === 1 ? 'cartolina' : 'cartoline'} composte dal sistema</h3>
-        <p style="font-size:13px;color:var(--ink-soft)">Coprono i post chiesti che le foto disponibili non coprono. Immagine quadrata con il nome della bottega e il tema dell'uscita, senza AI; ognuna ha il suo testo.</p>
+        <p style="font-size:13px;color:var(--text-secondary)">Coprono i post chiesti che le foto disponibili non coprono. Immagine quadrata con il nome della bottega e il tema dell'uscita, senza AI; ognuna ha il suo testo.</p>
         ${cartoline.map(k => `<div class="rev-line"><dt>${esc(S.foto[k].file)}</dt><dd>${esc(S.foto[k].tema)} · ${usi(k).join(', ')}</dd></div>`).join('')}</div>`}
       <p class="note">Le foto caricate qui restano solo nel tuo browser e servono a riempire le anteprime. Il ritaglio dell'anteprima è quello che esce: una sola funzione per canale (ADR-100), dallo sprint 3.</p>
     </div>
     <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
       <div class="card"><div class="tab">Campagna</div><h3>Che cosa ha chiesto l'artigiano</h3>
-        <p style="font-size:13.5px;font-style:italic;color:var(--ink-soft)">"A novembre voglio spingere i regali su misura per Natale. Sabato 21 teniamo le porte aperte in bottega: vorrei che se ne parlasse nella seconda settimana."</p>
+        <p style="font-size:13.5px;font-style:italic;color:var(--text-secondary)">"A novembre voglio spingere i regali su misura per Natale. Sabato 21 teniamo le porte aperte in bottega: vorrei che se ne parlasse nella seconda settimana."</p>
         <dl style="margin:10px 0 0">
           <div class="rev-line"><dt>Canali dichiarati</dt><dd>Facebook, Instagram</dd></div>
           <div class="rev-line"><dt>Frequenza</dt><dd>3 a settimana per canale: ${PER_CANALE} post per canale in 14 giorni</dd></div>
@@ -1219,3 +1077,5 @@ const h = location.hash.replace('#', '');
 if (TAB.includes(h)) mostra(h);
 })();
 </script>
+</body>
+</html>

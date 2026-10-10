@@ -1,347 +1,389 @@
-<title>Campagna</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,400;9..144,500;9..144,600&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
-<style>
-  :root{
-    --paper:#F6F3EC; --paper-raised:#FFFFFF; --ink:#201D17; --ink-soft:#6E6656; --ink-faint:#9C927D;
-    --accent:#2E6B5C; --accent-strong:#1D4A3F; --accent-soft:#DCEAE3; --accent-on-soft:#1D4A3F;
-    --line:#DDD5C2; --danger:#AE3B2C; --danger-soft:#F6E1DC; --danger-on-soft:#7A281C;
-    --warn:#8A6A1F; --warn-soft:#F3E7C9;
-    color-scheme: light;
-  }
-  @media (prefers-color-scheme: dark){
-    :root:not([data-theme="light"]){
-      --paper:#1B1914; --paper-raised:#26231C; --ink:#EFEAE0; --ink-soft:#B7AE9B; --ink-faint:#837A68;
-      --accent:#7EC4AE; --accent-strong:#A9DCC9; --accent-soft:#22392F; --accent-on-soft:#A9DCC9;
-      --line:#3A362B; --danger:#E08776; --danger-soft:#3A2420; --danger-on-soft:#E08776;
-      --warn:#E4C878; --warn-soft:#3A331C;
-      color-scheme: dark;
-    }
-  }
-  :root[data-theme="dark"]{
-    --paper:#1B1914; --paper-raised:#26231C; --ink:#EFEAE0; --ink-soft:#B7AE9B; --ink-faint:#837A68;
-    --accent:#7EC4AE; --accent-strong:#A9DCC9; --accent-soft:#22392F; --accent-on-soft:#A9DCC9;
-    --line:#3A362B; --danger:#E08776; --danger-soft:#3A2420; --danger-on-soft:#E08776;
-    --warn:#E4C878; --warn-soft:#3A331C;
-    color-scheme: dark;
-  }
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Campagna</title>
+  <link rel="stylesheet" href="assets/adflow.css">
+</head>
+<body>
 
-  *{ box-sizing:border-box; }
-  body{ background:var(--paper); color:var(--ink); font-family:"IBM Plex Sans", system-ui, sans-serif; padding-inline:16px; padding-block:28px; }
-  h1,h2,h3{ font-family:"Fraunces", Georgia, serif; font-weight:600; text-wrap:balance; margin:0; }
-  a{ color:var(--accent-strong); }
-  .wrap{ max-width:640px; margin-inline:auto; }
+<div class="app-container">
+  <!-- Left Sidebar (Artigiano Mode) -->
+  <aside class="app-sidebar">
+    <div class="sidebar-header">
+      <div class="brand-icon-wrapper" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%);">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polygon points="10 8 16 12 10 16 10 8"></polygon>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>AdFlow</h1>
+        <span>Suite · Artigiano</span>
+      </div>
+    </div>
 
-  .masthead{ margin-bottom:18px; }
-  .eyebrow{ font-family:"IBM Plex Mono", monospace; font-size:12px; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-faint); }
-  .masthead h1{ font-size:28px; margin-top:6px; }
-  .masthead p{ color:var(--ink-soft); font-size:14.5px; line-height:1.55; margin-top:8px; max-width:60ch; }
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Area Bottega</div>
+      <a href="AdFlow-campagna.html" class="nav-link active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+        <span>Nuova Campagna</span>
+      </a>
+      <a href="AdFlow-campagna-stati.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        <span>Stati & Calendario</span>
+      </a>
+      <a href="AdFlow-profilo-bottega.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        <span>Profilo Bottega</span>
+      </a>
 
-  .banner{ border-radius:10px; padding:12px 14px; font-size:13.5px; margin-bottom:22px; display:flex; gap:10px; align-items:flex-start; }
-  .banner.info{ background:var(--accent-soft); border:1px solid var(--accent); color:var(--accent-on-soft); }
-  .banner.warn{ background:var(--warn-soft); border:1px solid var(--warn); color:var(--warn); }
-  .banner .icon{ flex:none; font-family:"IBM Plex Mono", monospace; font-weight:500; }
+      <div class="nav-section-label">Riferimenti</div>
+      <a href="index.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <span>Mappa Pagine</span>
+      </a>
+    </nav>
 
-  .toc{ background:var(--paper-raised); border:1px solid var(--line); border-radius:12px; padding:16px 20px; margin-bottom:26px; }
-  .toc .tab{ font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--accent-strong); letter-spacing:.06em; }
-  .toc ol{ margin:10px 0 0; padding-left:20px; columns:2; column-gap:20px; }
-  .toc li{ font-size:13px; padding:2px 0; break-inside:avoid; }
-  .toc a{ text-decoration:none; }
-  .toc a:hover{ text-decoration:underline; }
-  @media (max-width:520px){ .toc ol{ columns:1; } }
+    <div class="sidebar-footer">
+      <div class="user-profile-card">
+        <img src="assets/img/bottega-logo.jpg" alt="Mario Bianchi" class="user-avatar" onerror="this.outerHTML='<div class=\'user-avatar placeholder\'>MB</div>'">
+        <div class="user-info">
+          <div class="user-name">Mario Bianchi</div>
+          <div class="user-role">Falegnameria Bianchi</div>
+        </div>
+      </div>
+      <a href="AdFlow-operatore-ingresso.html" class="role-switch-btn" title="Passa alla vista Operatore Consorzio">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+        <span>Vista Operatore (Laura Rossi)</span>
+      </a>
+    </div>
+  </aside>
 
-  .card{ background:var(--paper-raised); border:1px solid var(--line); border-radius:14px; padding:22px; margin-bottom:18px; scroll-margin-top:16px; }
-  .card .tab{ font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--accent-strong); letter-spacing:.06em; }
-  .card h2{ font-size:21px; margin-top:4px; }
-  .card .hint{ color:var(--ink-soft); font-size:13.5px; line-height:1.5; margin-top:8px; margin-bottom:18px; }
+  <div class="app-main">
+    <!-- fascia-mappa: stato della pagina statica e ritorno alla mappa. Non fa parte della schermata. -->
+    <header class="app-topbar">
+      <div class="topbar-left">
+        <div class="stato-pagina">Pagina statica · <strong>approvata</strong> · ADR-47 · canali, gruppi e immagini AI: ADR-57, 59, 60, 61, 70 · presenza costante: ADR-81…88 · stile: ADR-113</div>
+      </div>
 
-  .field{ margin-bottom:16px; }
-  .field:last-child{ margin-bottom:0; }
-  .field label, .field legend{ display:block; font-size:13px; font-weight:500; margin-bottom:6px; padding:0; }
-  .field .desc{ font-size:12.5px; color:var(--ink-faint); margin-bottom:6px; }
-  .row2{ display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-  @media (max-width:560px){ .row2{ grid-template-columns:1fr; } }
+      <div class="topbar-right">
+        <a href="index.html" class="icon-btn" title="Mappa delle pagine">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        </a>
+        <a href="AdFlow-login.html" class="icon-btn" title="Esci">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        </a>
+      </div>
+    </header>
+    <!-- /fascia-mappa -->
 
-  input[type=text], input[type=date], select, textarea{
-    width:100%; font-family:inherit; font-size:14.5px; color:var(--ink); background:var(--paper);
-    border:1px solid var(--line); border-radius:8px; padding:9px 11px; line-height:1.4;
-  }
-  textarea{ min-height:76px; resize:vertical; }
-  input:focus, select:focus, textarea:focus{ outline:none; border-color:var(--accent); box-shadow:0 0 0 3px var(--accent-soft); }
-  .err{ color:var(--danger); font-size:12.5px; margin-top:5px; display:none; }
-  .choice-grid{ display:flex; flex-wrap:wrap; gap:8px; }
-  .choice{ border:1px solid var(--line); border-radius:20px; padding:7px 13px; font-size:13.5px; user-select:none; background:var(--paper); display:inline-flex; align-items:center; gap:6px; }
-  .choice input{ accent-color:var(--accent); margin:0; }
-  .choice.checked{ border-color:var(--accent); background:var(--accent-soft); color:var(--accent-on-soft); }
+    <main class="content-wrapper">
+      <nav class="breadcrumb-trail">
+        <a href="AdFlow-campagna.html">Area Bottega</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">Campagna (sezioni 10–12)</span>
+      </nav>
 
-  .chip-row{ display:flex; flex-wrap:wrap; gap:8px; margin-top:8px; }
-  .chip{ border:1px solid var(--line); background:var(--paper); border-radius:20px; padding:6px 13px; font-size:13px; color:var(--ink-soft); }
-  .chip.chosen{ border-color:var(--accent); color:var(--accent-strong); background:var(--accent-soft); }
+      <div class="page-header">
+        <div class="page-title-group">
+          <h1 class="page-title">Campagna</h1>
+          <span class="status-pill neutral">Pagina 2 di 2 · prima dell'invio</span>
+        </div>
+        <div class="page-actions">
+          <a href="AdFlow-campagna-stati.html" class="btn btn-secondary">Dopo l'invio: le viste di stato →</a>
+        </div>
+      </div>
 
-  .evento{ border:1px solid var(--line); border-radius:10px; padding:14px; margin-bottom:12px; background:var(--paper); }
-  .evento-head{ display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
-  .evento-head span{ font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--ink-faint); }
-  .icon-btn{ background:none; border:none; color:var(--ink-faint); font-size:18px; line-height:1; padding:2px 6px; }
-  .add-btn{ width:100%; border:1px dashed var(--line); border-radius:10px; padding:12px; background:none; color:var(--accent-strong); font-size:14px; font-weight:500; }
-  .empty-note{ color:var(--ink-faint); font-size:13px; margin-bottom:12px; }
+      <p class="lead">
+        Ogni volta che serve un nuovo periodo di pubblicazioni: durata, canali, descrizione e foto a gruppi (sezioni 10 e 11), poi il riepilogo con un unico invio all'operatore. Il profilo si compila nella pagina <a href="AdFlow-profilo-bottega.html">Profilo bottega</a> (sezioni 1–9).
+      </p>
 
-  .gruppo{ border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:14px; background:var(--paper); }
-  .gruppo-head{ display:flex; justify-content:space-between; align-items:baseline; margin-bottom:10px; }
-  .gruppo-head .tag{ font-family:"IBM Plex Mono", monospace; font-size:12px; color:var(--ink-faint); }
-  .gruppo-head .rm{ background:none; border:none; color:var(--ink-faint); font-size:13px; text-decoration:underline; }
-  .thumbs{ display:flex; flex-wrap:wrap; gap:8px; margin-bottom:12px; }
-  .thumb{ position:relative; width:84px; height:84px; border-radius:8px; overflow:hidden; border:1px solid var(--line); background:var(--accent-soft); color:var(--accent-on-soft); flex:none;
-    display:flex; align-items:center; justify-content:center; font-family:"IBM Plex Mono", monospace; font-size:10px; text-align:center; padding:6px; }
-  .thumb .rm-x{ position:absolute; top:2px; right:2px; width:20px; height:20px; border-radius:50%; background:rgba(0,0,0,.4); color:#fff; border:none; font-size:13px; line-height:1; }
-  .thumb .star{ position:absolute; top:2px; left:2px; width:20px; height:20px; border-radius:50%; background:rgba(0,0,0,.4); color:#fff; border:none; font-size:12px; line-height:1; padding:0; }
-  .thumb .star.on{ background:var(--warn); }
-  .add-thumb{ width:84px; height:84px; border-radius:8px; border:1px dashed var(--line); background:none; color:var(--ink-faint); font-size:22px; flex:none; display:flex; align-items:center; justify-content:center; }
-  .stat-row{ display:flex; gap:18px; flex-wrap:wrap; margin-top:14px; }
-  .stat-row .stat{ font-size:13px; color:var(--ink-soft); }
-  .stat-row .stat b{ color:var(--ink); font-family:"IBM Plex Mono", monospace; font-weight:500; }
+      <!-- Bentornato -->
+      <div class="surface-card bordo-ok" id="gate" style="margin-bottom: 24px;">
+        <div class="surface-card-header">
+          <div>
+            <h3 class="surface-card-title">Bentornato, Mario</h3>
+            <span class="sotto">La pagina Campagna si apre con questo riepilogo del profilo già salvato. Chi non ha ancora un profilo viene portato prima alla pagina Profilo bottega.</span>
+          </div>
+          <span class="status-pill success">Profilo salvato</span>
+        </div>
+        <div class="surface-card-body">
+          <div class="avviso-box attn">
+            <strong>Solo se l'ultima campagna è stata respinta.</strong> Il consorzio non ha approvato "Campagna Luglio 2026". Motivo: <strong>foto scattate male</strong>. Richiesta di modifica: "Le foto del laboratorio sono troppo buie: ricaricale con più luce e aggiungi il tavolo finito." Foto da rifare (segnate dall'operatore, nell'email come miniature): <code>laboratorio-1.jpg</code>, <code>laboratorio-2.jpg</code>. Tienine conto nella nuova campagna: foto e testi vanno inseriti di nuovo (ADR-40).
+          </div>
+          <dl class="dati-lista sinistra" style="margin-bottom: 16px;">
+            <div><dt>Bottega</dt><dd>Falegnameria Bianchi</dd></div>
+            <div><dt>Referente</dt><dd>Mario Bianchi</dd></div>
+            <div><dt>Tipo di prodotto</dt><dd>Legno e mobili</dd></div>
+            <div><dt>Obiettivo</dt><dd>Farmi conoscere</dd></div>
+            <div><dt>Canali preferiti</dt><dd>Facebook, Instagram</dd></div>
+          </dl>
+          <div class="azioni-riga">
+            <button type="button" class="btn btn-primary">Va bene così, vai alla campagna →</button>
+            <a href="AdFlow-profilo-bottega.html" class="btn btn-secondary">Voglio modificare il profilo</a>
+            <a href="AdFlow-profilo-bottega.html" style="font-size: 13px;">Vedi tutte le risposte</a>
+          </div>
+        </div>
+      </div>
 
-  .btn{ font-family:inherit; border-radius:8px; padding:10px 18px; font-size:14px; font-weight:500; border:1px solid var(--line); background:var(--paper-raised); color:var(--ink); display:inline-block; text-decoration:none; }
-  .btn.primary{ background:var(--accent); border-color:var(--accent); color:var(--paper-raised); }
-  .gate-actions{ display:flex; gap:10px; flex-wrap:wrap; margin-top:20px; }
-  .link-btn{ background:none; border:none; color:var(--accent-strong); font-size:13px; padding:0; text-decoration:underline; }
+      <!-- 10 · Durata e canali -->
+      <div class="surface-card" id="s10" style="margin-bottom: 24px;">
+        <div class="surface-card-header">
+          <div>
+            <h3 class="surface-card-title">10 · Durata e canali · Di che campagna si tratta</h3>
+            <span class="sotto">Ogni volta che si arriva fin qui si sta preparando un nuovo periodo di pubblicazioni: nome, inizio, fine e i canali su cui esce.</span>
+          </div>
+          <span class="status-pill fb">Sezione 10</span>
+        </div>
+        <div class="surface-card-body">
+          <div class="form-group">
+            <label class="form-label" for="camp_nome">Nome della campagna *</label>
+            <input type="text" id="camp_nome" class="form-input" value="Campagna Ottobre 2026">
+          </div>
 
-  .rev-group{ margin-bottom:16px; }
-  .rev-group h3{ font-size:14px; font-family:"IBM Plex Sans"; font-weight:600; margin-bottom:6px; }
-  .rev-line{ display:flex; gap:10px; font-size:13.5px; padding:5px 0; border-top:1px solid var(--line); }
-  .rev-line dt{ color:var(--ink-soft); flex:0 0 42%; margin:0; }
-  .rev-line dd{ margin:0; flex:1; }
+          <div class="griglia-2">
+            <div class="form-group">
+              <label class="form-label" for="camp_inizio">Inizio *</label>
+              <input type="date" id="camp_inizio" class="form-input" value="2026-10-01">
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="camp_fine">Fine *</label>
+              <input type="date" id="camp_fine" class="form-input" value="2026-10-31">
+            </div>
+          </div>
+          <div class="form-group">
+            <div class="form-hint" style="margin: 0 0 8px;">L'inizio deve cadere almeno 3 giorni dopo oggi: il consorzio deve avere il tempo di approvare i post prima che partano. La campagna dura almeno 7 giorni e al massimo 3 mesi.</div>
+            <div class="scelte">
+              <span class="scelta">2 settimane</span>
+              <span class="scelta attiva">1 mese</span>
+              <span class="scelta">2 mesi</span>
+            </div>
+          </div>
 
-  .final-actions{ text-align:center; margin-top:8px; }
-</style>
-<!-- fascia-mappa: stato della pagina statica e ritorno alla mappa. Non fa parte della schermata. -->
-<div style="max-width:640px; margin:0 auto 18px; border:1px solid var(--line); border-radius:10px; padding:8px 14px; background:var(--paper-raised); color:var(--ink-soft); font:12px/1.5 'IBM Plex Mono', ui-monospace, monospace; display:flex; flex-wrap:wrap; gap:2px 16px; justify-content:space-between;">
-  <a href="index.html" style="color:inherit;">← Mappa delle pagine</a>
-  <span>Pagina statica · <strong style="color:var(--ink); font-weight:500;">approvata</strong> · ADR-47 · canali, gruppi e immagini AI: ADR-57, 59, 60, 61, 70 · presenza costante: ADR-81…88</span>
+          <div class="form-group">
+            <label class="form-label">Canali di questa campagna *</label>
+            <div class="scelte">
+              <label class="scelta canale"><input type="checkbox" checked> <span class="status-pill fb">Facebook</span></label>
+              <label class="scelta canale"><input type="checkbox" checked> <span class="status-pill ig">Instagram</span></label>
+            </div>
+            <div class="form-hint">Uno o tutti e due. La pagina propone i canali del profilo; si possono scegliere solo quelli collegati (ADR-57). La frequenza del profilo vale per ogni canale: 3 a settimana su due canali sono 6 post a settimana. È il ritmo che ci impegniamo a tenere (ADR-81).</div>
+            <div class="form-hint" style="color: var(--danger-text);">Esempio con un canale non collegato: la voce è spenta e dice "Instagram non è collegato: contatta il consorzio".</div>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="camp_descrizione">Descrizione e commenti della campagna *</label>
+            <textarea id="camp_descrizione" class="form-input">A ottobre voglio spingere i regali su misura per Natale, ho anche il mercatino il weekend del 6-7 dicembre da preparare.</textarea>
+          </div>
+        </div>
+      </div>
+
+      <!-- 11 · Foto della campagna -->
+      <div class="surface-card" id="s11" style="margin-bottom: 24px;">
+        <div class="surface-card-header">
+          <div>
+            <h3 class="surface-card-title">11 · Foto della campagna · Le foto di questo periodo</h3>
+            <span class="sotto">Le foto si caricano a gruppi: da 1 a 20 foto per gruppo, con una descrizione. I post nascono dai gruppi. Per inviare servono almeno 4 foto caricate in tutto (ADR-59, ADR-60).</span>
+          </div>
+          <span class="status-pill success">3 gruppi · 6 foto in totale · 1 con la stella</span>
+        </div>
+        <div class="surface-card-body">
+          <div class="avviso-box info">
+            Per 31 giorni a 3 post a settimana servono circa <strong>13 foto buone</strong> e diverse tra loro: le stesse escono su tutti i canali. Se sono meno, completiamo con le foto del tuo archivio che su quel canale non sono mai uscite, poi con i riempitivi: i post che hai scelto escono sempre tutti (ADR-81…83). Meglio se di almeno due tipi: pezzo finito, dettaglio, lavorazione, tu al lavoro, il pezzo in uso, un evento. Esempio: 6 caricate in 3 gruppi.
+          </div>
+
+          <!-- Gruppo 1 -->
+          <div class="gruppo-foto">
+            <div class="testa">
+              <strong>Gruppo 1 · 2 foto</strong>
+              <button type="button" class="btn btn-secondary btn-sm">Rimuovi gruppo</button>
+            </div>
+            <div class="foto-griglia">
+              <div class="foto"><img src="assets/img/fb-tavolo.jpg" alt=""><span class="stella">★</span><span class="nome">tavolo-rovere-01.jpg</span></div>
+              <div class="foto"><img src="assets/img/ig-dettaglio.jpg" alt=""><span class="stella spenta">☆</span><span class="nome">tavolo-rovere-02.jpg</span></div>
+              <button type="button" class="foto aggiungi" aria-label="Aggiungi foto">+</button>
+            </div>
+            <div class="griglia-2">
+              <div class="form-group">
+                <label class="form-label">Descrizione o richieste per queste foto *</label>
+                <textarea class="form-input">Tavolo in rovere appena finito, luce naturale, per un post di presentazione prodotto.</textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Da usare verso il (facoltativa)</label>
+                <input type="date" class="form-input">
+                <div class="form-hint">Solo se le foto riguardano una data precisa, dentro il periodo della campagna: un evento, una consegna, una festa.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Gruppo 2 -->
+          <div class="gruppo-foto">
+            <div class="testa">
+              <strong>Gruppo 2 · 3 foto</strong>
+              <button type="button" class="btn btn-secondary btn-sm">Rimuovi gruppo</button>
+            </div>
+            <div class="foto-griglia">
+              <div class="foto"><img src="assets/img/fb-falegname.jpg" alt=""><span class="stella spenta">☆</span><span class="nome">laboratorio-1.jpg</span></div>
+              <div class="foto">laboratorio-2.jpg<span class="stella spenta">☆</span></div>
+              <div class="foto">mani-sgorbia.jpg<span class="stella spenta">☆</span></div>
+              <button type="button" class="foto aggiungi" aria-label="Aggiungi foto">+</button>
+            </div>
+            <div class="griglia-2">
+              <div class="form-group">
+                <label class="form-label">Descrizione o richieste per queste foto *</label>
+                <textarea class="form-input">Il laboratorio e le mie mani al lavoro, per la giornata di porte aperte in bottega.</textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Da usare verso il (facoltativa)</label>
+                <input type="date" class="form-input" value="2026-10-17">
+              </div>
+            </div>
+          </div>
+
+          <!-- Gruppo 3 -->
+          <div class="gruppo-foto">
+            <div class="testa">
+              <strong>Gruppo 3 · 1 foto</strong>
+              <button type="button" class="btn btn-secondary btn-sm">Rimuovi gruppo</button>
+            </div>
+            <div class="foto-griglia">
+              <div class="foto">sedie-01.jpg<span class="stella spenta">☆</span></div>
+              <button type="button" class="foto aggiungi" aria-label="Aggiungi foto">+</button>
+            </div>
+            <div class="griglia-2">
+              <div class="form-group">
+                <label class="form-label">Descrizione o richieste per queste foto *</label>
+                <textarea class="form-input">Sedie su misura appena consegnate, per far vedere un lavoro finito.</textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Da usare verso il (facoltativa)</label>
+                <input type="date" class="form-input">
+              </div>
+            </div>
+          </div>
+
+          <button type="button" class="btn btn-secondary btn-sm">+ Aggiungi un gruppo di foto</button>
+          <p class="nota-card" style="margin-bottom: 18px;">★ = "da usare per forza": se la foto è buona esce di sicuro in un post. Le altre le sceglie il sistema tra le migliori del gruppo (ADR-64).</p>
+
+          <!-- Gruppo 4 · immagini da creare -->
+          <div class="gruppo-foto" style="border-style: dashed;">
+            <div class="testa">
+              <strong>Gruppo 4 · immagini da creare con l'AI</strong>
+              <button type="button" class="btn btn-secondary btn-sm">Rimuovi gruppo</button>
+            </div>
+            <div class="griglia-2">
+              <div class="form-group">
+                <label class="form-label">Che cosa si deve vedere *</label>
+                <textarea class="form-input">Un tagliere in rovere su una tavola apparecchiata per Natale, luce calda, qualche rametto di abete.</textarea>
+                <div class="form-hint">L'AI parte da queste parole, dal profilo della bottega e dalla campagna, prepara le istruzioni e poi crea le immagini. Il consorzio le controlla prima che escano, e può farle ritoccare o rifare (ADR-61). Sono le prime che usiamo quando le foto non bastano a tenere il ritmo che hai scelto (ADR-84).</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Quante immagini *</label>
+                <select class="form-select"><option>1</option><option selected>2</option><option>3</option><option>…</option><option>20</option></select>
+                <div class="form-hint">Da 1 a 20. Il sistema crea solo quelle che servono ai post.</div>
+              </div>
+            </div>
+          </div>
+          <button type="button" class="btn btn-secondary btn-sm">+ Aggiungi un gruppo di immagini da creare con l'AI</button>
+          <p class="nota-card">Un gruppo è di foto caricate oppure di immagini da creare, mai misto. Le immagini create si aggiungono alle foto, non le sostituiscono: le 4 foto caricate servono comunque. Senza questo gruppo, se serve un'immagine creata è una frase o una riflessione sul tuo mestiere, mai un prodotto.</p>
+          <div class="avviso-box attn" style="margin: 14px 0 0;">
+            <strong>Ancora da costruire (lavori-aperti.md A-05).</strong> Finché la creazione non è costruita, nel programma questo riquadro e il suo pulsante restano nascosti (ADR-80, R-19). Restano da decidere: i cicli di ritocco, se il post deve dire che l'immagine è creata dall'AI, modello e costi.
+          </div>
+        </div>
+      </div>
+
+      <!-- 12 · Riepilogo -->
+      <div class="surface-card" id="s12">
+        <div class="surface-card-header">
+          <div>
+            <h3 class="surface-card-title">12 · Riepilogo · Rivedi prima di inviare</h3>
+            <span class="sotto">Ultimo controllo prima dell'invio. Da qui si torna alle sezioni 10 e 11; i dati del profilo sono in sola lettura e si cambiano nella pagina <a href="AdFlow-profilo-bottega.html">Profilo bottega</a>.</span>
+          </div>
+          <span class="status-pill review">1 avviso · puoi inviare</span>
+        </div>
+        <div class="surface-card-body">
+          <div class="kpi-griglia">
+            <div class="kpi">
+              <div class="title">Post chiesti</div>
+              <div class="value primario">13 per canale</div>
+            </div>
+            <div class="kpi">
+              <div class="title">Ritmo scelto</div>
+              <div class="value">3 a settimana per canale</div>
+              <span class="sotto">con due canali 6 post a settimana</span>
+            </div>
+            <div class="kpi">
+              <div class="title">Foto caricate</div>
+              <div class="value">6 foto in 3 gruppi</div>
+              <span class="sotto">1 con la stella · immagini da creare: 2, in 1 gruppo</span>
+            </div>
+          </div>
+
+          <div class="griglia-2 card" style="margin-bottom: 20px;">
+            <div>
+              <h4 class="titolo-sezione" style="font-size: 14px; margin-bottom: 8px;">Identità</h4>
+              <dl class="dati-lista sinistra" style="margin-bottom: 16px;">
+                <div><dt>Bottega</dt><dd>Falegnameria Bianchi</dd></div>
+                <div><dt>Referente</dt><dd>Mario Bianchi</dd></div>
+                <div><dt>Città</dt><dd>Bra (CN)</dd></div>
+              </dl>
+              <h4 class="titolo-sezione" style="font-size: 14px; margin-bottom: 8px;">Prodotti e pubblico</h4>
+              <dl class="dati-lista sinistra" style="margin-bottom: 16px;">
+                <div><dt>Tipo di prodotto</dt><dd>Legno e mobili</dd></div>
+                <div><dt>Obiettivo</dt><dd>Farmi conoscere</dd></div>
+              </dl>
+              <h4 class="titolo-sezione" style="font-size: 14px; margin-bottom: 8px;">Logistica</h4>
+              <dl class="dati-lista sinistra">
+                <div><dt>Ritmo scelto</dt><dd>3 a settimana per canale · con due canali 6 post a settimana</dd></div>
+              </dl>
+            </div>
+            <div>
+              <h4 class="titolo-sezione" style="font-size: 14px; margin-bottom: 8px;">Durata e canali</h4>
+              <dl class="dati-lista sinistra" style="margin-bottom: 16px;">
+                <div><dt>Nome campagna</dt><dd>Campagna Ottobre 2026</dd></div>
+                <div><dt>Periodo</dt><dd>2026-10-01 → 2026-10-31 · 31 giorni</dd></div>
+                <div><dt>Canali</dt><dd>Facebook, Instagram</dd></div>
+                <div><dt>Post chiesti</dt><dd>13 per canale</dd></div>
+              </dl>
+              <h4 class="titolo-sezione" style="font-size: 14px; margin-bottom: 8px;">Foto della campagna</h4>
+              <dl class="dati-lista sinistra">
+                <div><dt>Foto caricate</dt><dd>6 foto in 3 gruppi · 1 con la stella</dd></div>
+                <div><dt>Immagini da creare</dt><dd>2, in 1 gruppo</dd></div>
+              </dl>
+            </div>
+          </div>
+
+          <h4 class="titolo-sezione" style="font-size: 14px; margin-bottom: 8px;">Che cosa uscirà · stima</h4>
+          <dl class="dati-lista sinistra" style="margin-bottom: 16px;">
+            <div><dt><span class="status-pill fb">Facebook</span></dt><dd>13 post · 6 con le foto di questa campagna · 2 con foto d'archivio mai uscite · 5 riempitivi: le tue 2 immagini da creare, 2 foto già uscite, 1 cartolina</dd></div>
+            <div><dt><span class="status-pill ig">Instagram</span></dt><dd>13 post · 6 con le foto di questa campagna · 7 con foto d'archivio, su Instagram mai uscite</dd></div>
+          </dl>
+
+          <div class="avviso-box attn">
+            <strong>Avviso, puoi inviare lo stesso.</strong> I 13 post che hai scelto escono tutti, ma su Facebook 5 non hanno una foto nuova: più di uno ogni due. Con una foto in più scendono a 4 (ADR-70, ADR-82).
+          </div>
+
+          <div class="azioni-riga fine">
+            <button type="button" class="btn btn-primary" style="padding: 10px 24px;">Invia all'operatore</button>
+          </div>
+
+          <p class="nota-card">È una stima: quali foto sono buone lo dice l'analisi, dopo l'invio. Lo stesso riquadro in altri due casi. Archivio vuoto, prima campagna con 6 foto e senza immagini da creare: "13 post per canale: 6 con le tue foto, 7 tra cartoline e immagini con una frase sul tuo mestiere. Sono più della metà: con 9 foto scendono a 4." Foto in più dei post scelti: "Le foto che non escono restano nel tuo archivio per le prossime campagne. Vuoi pubblicare di più? Passa a 5 a settimana."</p>
+          <p class="nota-card">Altro avviso che non blocca: frequenza alta rispetto alle foto che dichiari nel profilo. Gli avvisi arrivano dal server (ADR-73). Blocchi, con il campo evidenziato: meno di 4 foto caricate; un gruppo senza descrizione; un canale non più collegato ("Instagram non è collegato: contatta il consorzio").</p>
+          <div class="avviso-box attn" style="margin: 14px 0 0;">
+            <strong>Si costruisce a tappe (ADR-88).</strong> Sprint 1: i post che le foto non coprono sono cartoline, con il nome della bottega e il tema del post, e il riquadro dice solo quante: "Con 6 foto, 7 dei 13 post per canale saranno cartoline. Aggiungine 7 per avere solo foto." Sprint 2a: archivio e logo. Le immagini create arrivano quando la loro creazione sarà costruita (lavori-aperti.md A-05).
+          </div>
+        </div>
+      </div>
+
+      <!-- Note della pagina statica: non fanno parte della schermata -->
+      <div class="note-pagina">
+        <p><strong>Schema statico, non interattivo</strong> (v5.5, ADR-47, ADR-57…70 e ADR-81…88): mostra in sequenza tutte le schermate della pagina con dati di esempio. Non salva né valida nulla — è lo scheletro da cui costruire la pagina reale nel software.</p>
+      </div>
+
+    </main>
+  </div>
 </div>
-<!-- /fascia-mappa -->
 
-<div class="wrap">
-
-  <div class="masthead">
-    <div class="eyebrow">AdFlow Suite · Pagina 2 di 2 · Campagna</div>
-    <h1>Campagna</h1>
-    <p>Ogni volta che serve un nuovo periodo di pubblicazioni: durata, canali, descrizione e foto a gruppi (sezioni 10 e 11), poi il riepilogo con un unico invio all'operatore. Il profilo si compila nella pagina <a href="AdFlow-profilo-bottega.html">Profilo bottega</a> (sezioni 1–9).</p>
-  </div>
-
-  <div class="banner warn">
-    <span class="icon">i</span>
-    <span>Schema statico, non interattivo (v5.5, ADR-47, ADR-57…70 e ADR-81…88): mostra in sequenza tutte le schermate della pagina con dati di esempio. Non salva né valida nulla — è lo scheletro da cui costruire la pagina reale nel software.</span>
-  </div>
-
-  <nav class="toc">
-    <div class="tab">Schermate</div>
-    <ol>
-      <li><a href="#gate">Bentornato (profilo già salvato)</a></li>
-      <li><a href="#s10">10 · Durata e canali</a></li>
-      <li><a href="#s11">11 · Foto della campagna</a></li>
-      <li><a href="#s12">12 · Riepilogo e invio</a></li>
-    </ol>
-  </nav>
-
-  <div class="card" id="gate">
-    <div class="tab">Schermata · Bentornato</div>
-    <h2>Bentornato, Mario</h2>
-    <p class="hint">La pagina Campagna si apre con questo riepilogo del profilo già salvato. Chi non ha ancora un profilo viene portato prima alla pagina Profilo bottega.</p>
-    <div class="banner warn" style="margin-bottom:16px;">
-      <span class="icon">!</span>
-      <span><b>Solo se l'ultima campagna è stata respinta.</b> Il consorzio non ha approvato "Campagna Luglio 2026". <b>Motivo: foto scattate male.</b> Richiesta di modifica: "Le foto del laboratorio sono troppo buie: ricaricale con più luce e aggiungi il tavolo finito." Foto da rifare (segnate dall'operatore, nell'email come miniature): laboratorio-1.jpg, laboratorio-2.jpg. Tienine conto nella nuova campagna: foto e testi vanno inseriti di nuovo (ADR-40).</span>
-    </div>
-    <div class="rev-line"><dt>Bottega</dt><dd>Falegnameria Bianchi</dd></div>
-    <div class="rev-line"><dt>Referente</dt><dd>Mario Bianchi</dd></div>
-    <div class="rev-line"><dt>Tipo di prodotto</dt><dd>Legno e mobili</dd></div>
-    <div class="rev-line"><dt>Obiettivo</dt><dd>Farmi conoscere</dd></div>
-    <div class="rev-line"><dt>Canali preferiti</dt><dd>Facebook, Instagram</dd></div>
-    <a class="link-btn" href="AdFlow-profilo-bottega.html">Vedi tutte le risposte</a>
-    <div class="gate-actions">
-      <button type="button" class="btn primary">Va bene così, vai alla campagna →</button>
-      <a class="btn" href="AdFlow-profilo-bottega.html">Voglio modificare il profilo</a>
-    </div>
-  </div>
-
-  <div class="card" id="s10">
-    <div class="tab">10 · Durata e canali</div>
-    <h2>Di che campagna si tratta</h2>
-    <p class="hint">Ogni volta che si arriva fin qui si sta preparando un nuovo periodo di pubblicazioni: nome, inizio, fine e i canali su cui esce.</p>
-    <div class="field">
-      <label for="camp_nome">Nome della campagna *</label>
-      <input type="text" id="camp_nome" value="Campagna Ottobre 2026">
-    </div>
-    <div class="row2">
-      <div class="field">
-        <label for="camp_inizio">Inizio *</label>
-        <input type="date" id="camp_inizio" value="2026-10-01" min="2026-10-01">
-      </div>
-      <div class="field">
-        <label for="camp_fine">Fine *</label>
-        <input type="date" id="camp_fine" value="2026-10-31">
-      </div>
-    </div>
-    <div class="desc" style="font-size:12.5px;color:var(--ink-faint);">L'inizio deve cadere almeno 3 giorni dopo oggi: il consorzio deve avere il tempo di approvare i post prima che partano. La campagna dura almeno 7 giorni e al massimo 3 mesi.</div>
-    <div class="chip-row">
-      <span class="chip">2 settimane</span>
-      <span class="chip chosen">1 mese</span>
-      <span class="chip">2 mesi</span>
-    </div>
-    <div class="field" style="margin-top:18px;">
-      <label>Canali di questa campagna *</label>
-      <div class="choice-grid">
-        <label class="choice checked"><input type="checkbox" checked>Facebook</label>
-        <label class="choice checked"><input type="checkbox" checked>Instagram</label>
-      </div>
-      <div class="desc" style="margin-top:8px;">Uno o tutti e due. La pagina propone i canali del profilo; si possono scegliere solo quelli collegati (ADR-57). La frequenza del profilo vale per ogni canale: 3 a settimana su due canali sono 6 post a settimana. È il ritmo che ci impegniamo a tenere (ADR-81).</div>
-      <div class="desc" style="color:var(--danger);">Esempio con un canale non collegato: la voce è spenta e dice "Instagram non è collegato: contatta il consorzio".</div>
-    </div>
-    <div class="field" style="margin-top:18px;">
-      <label for="camp_descrizione">Descrizione e commenti della campagna *</label>
-      <textarea id="camp_descrizione">A ottobre voglio spingere i regali su misura per Natale, ho anche il mercatino il weekend del 6-7 dicembre da preparare.</textarea>
-    </div>
-  </div>
-
-  <div class="card" id="s11">
-    <div class="tab">11 · Foto della campagna</div>
-    <h2>Le foto di questo periodo</h2>
-    <p class="hint">Le foto si caricano a gruppi: da 1 a 20 foto per gruppo, con una descrizione. I post nascono dai gruppi. Per inviare servono almeno 4 foto caricate in tutto (ADR-59, ADR-60).</p>
-    <div class="banner info" style="margin-bottom:16px;">
-      <span class="icon">i</span>
-      <span>Per 31 giorni a 3 post a settimana servono circa 13 foto buone e diverse tra loro: le stesse escono su tutti i canali. Se sono meno, completiamo con le foto del tuo archivio che su quel canale non sono mai uscite, poi con i riempitivi: i post che hai scelto escono sempre tutti (ADR-81…83). Meglio se di almeno due tipi: pezzo finito, dettaglio, lavorazione, tu al lavoro, il pezzo in uso, un evento. Esempio: 6 caricate in 3 gruppi.</span>
-    </div>
-    <div class="gruppo">
-      <div class="gruppo-head"><span class="tag">Gruppo 1 · 2 foto</span><button type="button" class="rm">Rimuovi gruppo</button></div>
-      <div class="thumbs">
-        <div class="thumb">tavolo-rovere-01.jpg<button type="button" class="star on" aria-label="Da usare per forza" aria-pressed="true">★</button><button type="button" class="rm-x" aria-label="Rimuovi foto">×</button></div>
-        <div class="thumb">tavolo-rovere-02.jpg<button type="button" class="star" aria-label="Da usare per forza" aria-pressed="false">☆</button><button type="button" class="rm-x" aria-label="Rimuovi foto">×</button></div>
-        <div class="add-thumb">+</div>
-      </div>
-      <div class="field">
-        <label>Descrizione o richieste per queste foto *</label>
-        <textarea>Tavolo in rovere appena finito, luce naturale, per un post di presentazione prodotto.</textarea>
-      </div>
-      <div class="field">
-        <label>Da usare verso il (facoltativa)</label>
-        <input type="date">
-        <div class="desc" style="margin-top:6px;">Solo se le foto riguardano una data precisa, dentro il periodo della campagna: un evento, una consegna, una festa.</div>
-      </div>
-    </div>
-    <div class="gruppo">
-      <div class="gruppo-head"><span class="tag">Gruppo 2 · 3 foto</span><button type="button" class="rm">Rimuovi gruppo</button></div>
-      <div class="thumbs">
-        <div class="thumb">laboratorio-1.jpg<button type="button" class="star" aria-label="Da usare per forza" aria-pressed="false">☆</button><button type="button" class="rm-x" aria-label="Rimuovi foto">×</button></div>
-        <div class="thumb">laboratorio-2.jpg<button type="button" class="star" aria-label="Da usare per forza" aria-pressed="false">☆</button><button type="button" class="rm-x" aria-label="Rimuovi foto">×</button></div>
-        <div class="thumb">mani-sgorbia.jpg<button type="button" class="star" aria-label="Da usare per forza" aria-pressed="false">☆</button><button type="button" class="rm-x" aria-label="Rimuovi foto">×</button></div>
-        <div class="add-thumb">+</div>
-      </div>
-      <div class="field">
-        <label>Descrizione o richieste per queste foto *</label>
-        <textarea>Il laboratorio e le mie mani al lavoro, per la giornata di porte aperte in bottega.</textarea>
-      </div>
-      <div class="field">
-        <label>Da usare verso il (facoltativa)</label>
-        <input type="date" value="2026-10-17">
-      </div>
-    </div>
-    <div class="gruppo">
-      <div class="gruppo-head"><span class="tag">Gruppo 3 · 1 foto</span><button type="button" class="rm">Rimuovi gruppo</button></div>
-      <div class="thumbs">
-        <div class="thumb">sedie-01.jpg<button type="button" class="star" aria-label="Da usare per forza" aria-pressed="false">☆</button><button type="button" class="rm-x" aria-label="Rimuovi foto">×</button></div>
-        <div class="add-thumb">+</div>
-      </div>
-      <div class="field">
-        <label>Descrizione o richieste per queste foto *</label>
-        <textarea>Sedie su misura appena consegnate, per far vedere un lavoro finito.</textarea>
-      </div>
-      <div class="field">
-        <label>Da usare verso il (facoltativa)</label>
-        <input type="date">
-      </div>
-    </div>
-    <button type="button" class="add-btn">+ Aggiungi un gruppo di foto</button>
-    <div class="desc" style="font-size:12.5px;color:var(--ink-faint);margin-top:10px;">★ = "da usare per forza": se la foto è buona esce di sicuro in un post. Le altre le sceglie il sistema tra le migliori del gruppo (ADR-64).</div>
-    <div class="stat-row">
-      <span class="stat"><b>3</b> gruppi</span>
-      <span class="stat"><b>6</b> foto in totale</span>
-      <span class="stat"><b>1</b> con la stella</span>
-    </div>
-
-    <div class="gruppo" style="margin-top:20px;border-style:dashed;">
-      <div class="gruppo-head"><span class="tag">Gruppo 4 · immagini da creare con l'AI</span><button type="button" class="rm">Rimuovi gruppo</button></div>
-      <div class="field">
-        <label>Che cosa si deve vedere *</label>
-        <textarea>Un tagliere in rovere su una tavola apparecchiata per Natale, luce calda, qualche rametto di abete.</textarea>
-        <div class="desc" style="margin-top:6px;">L'AI parte da queste parole, dal profilo della bottega e dalla campagna, prepara le istruzioni e poi crea le immagini. Il consorzio le controlla prima che escano, e può farle ritoccare o rifare (ADR-61). Sono le prime che usiamo quando le foto non bastano a tenere il ritmo che hai scelto (ADR-84).</div>
-      </div>
-      <div class="field">
-        <label>Quante immagini *</label>
-        <select><option>1</option><option selected>2</option><option>3</option><option>…</option><option>20</option></select>
-        <div class="desc" style="margin-top:6px;">Da 1 a 20. Il sistema crea solo quelle che servono ai post.</div>
-      </div>
-    </div>
-    <button type="button" class="add-btn">+ Aggiungi un gruppo di immagini da creare con l'AI</button>
-    <div class="desc" style="font-size:12.5px;color:var(--ink-faint);margin-top:10px;">Un gruppo è di foto caricate oppure di immagini da creare, mai misto. Le immagini create si aggiungono alle foto, non le sostituiscono: le 4 foto caricate servono comunque. Senza questo gruppo, se serve un'immagine creata è una frase o una riflessione sul tuo mestiere, mai un prodotto.</div>
-    <div class="banner warn" style="margin-top:12px;margin-bottom:0;">
-      <span class="icon">!</span>
-      <span><b>Ancora da costruire (lavori-aperti.md A-05).</b> Finché la creazione non è costruita, nel programma questo riquadro e il suo pulsante restano nascosti (ADR-80, R-19). Restano da decidere: i cicli di ritocco, se il post deve dire che l'immagine è creata dall'AI, modello e costi.</span>
-    </div>
-  </div>
-
-  <div class="card" id="s12">
-    <div class="tab">12 · Riepilogo</div>
-    <h2>Rivedi prima di inviare</h2>
-    <p class="hint">Ultimo controllo prima dell'invio. Da qui si torna alle sezioni 10 e 11; i dati del profilo sono in sola lettura e si cambiano nella pagina <a href="AdFlow-profilo-bottega.html">Profilo bottega</a>.</p>
-
-    <div class="rev-group">
-      <h3>Identità</h3>
-      <div class="rev-line"><dt>Bottega</dt><dd>Falegnameria Bianchi</dd></div>
-      <div class="rev-line"><dt>Referente</dt><dd>Mario Bianchi</dd></div>
-      <div class="rev-line"><dt>Città</dt><dd>Bra (CN)</dd></div>
-    </div>
-    <div class="rev-group">
-      <h3>Prodotti e pubblico</h3>
-      <div class="rev-line"><dt>Tipo di prodotto</dt><dd>Legno e mobili</dd></div>
-      <div class="rev-line"><dt>Obiettivo</dt><dd>Farmi conoscere</dd></div>
-    </div>
-    <div class="rev-group">
-      <h3>Logistica</h3>
-      <div class="rev-line"><dt>Ritmo scelto</dt><dd>3 a settimana per canale · con due canali 6 post a settimana</dd></div>
-    </div>
-    <div class="rev-group">
-      <h3>Durata e canali</h3>
-      <div class="rev-line"><dt>Nome campagna</dt><dd>Campagna Ottobre 2026</dd></div>
-      <div class="rev-line"><dt>Periodo</dt><dd>2026-10-01 → 2026-10-31 · 31 giorni</dd></div>
-      <div class="rev-line"><dt>Canali</dt><dd>Facebook, Instagram</dd></div>
-      <div class="rev-line"><dt>Post chiesti</dt><dd>13 per canale</dd></div>
-    </div>
-    <div class="rev-group">
-      <h3>Foto della campagna</h3>
-      <div class="rev-line"><dt>Foto caricate</dt><dd>6 foto in 3 gruppi · 1 con la stella</dd></div>
-      <div class="rev-line"><dt>Immagini da creare</dt><dd>2, in 1 gruppo</dd></div>
-    </div>
-
-    <div class="rev-group">
-      <h3>Che cosa uscirà · stima</h3>
-      <div class="rev-line"><dt>Facebook</dt><dd>13 post · 6 con le foto di questa campagna · 2 con foto d'archivio mai uscite · 5 riempitivi: le tue 2 immagini da creare, 2 foto già uscite, 1 cartolina</dd></div>
-      <div class="rev-line"><dt>Instagram</dt><dd>13 post · 6 con le foto di questa campagna · 7 con foto d'archivio, su Instagram mai uscite</dd></div>
-    </div>
-
-    <div class="banner warn" style="margin-bottom:12px;">
-      <span class="icon">i</span>
-      <span><b>Avviso, puoi inviare lo stesso.</b> I 13 post che hai scelto escono tutti, ma su Facebook 5 non hanno una foto nuova: più di uno ogni due. Con una foto in più scendono a 4 (ADR-70, ADR-82).</span>
-    </div>
-    <div class="desc" style="font-size:12.5px;color:var(--ink-faint);">È una stima: quali foto sono buone lo dice l'analisi, dopo l'invio. Lo stesso riquadro in altri due casi. Archivio vuoto, prima campagna con 6 foto e senza immagini da creare: "13 post per canale: 6 con le tue foto, 7 tra cartoline e immagini con una frase sul tuo mestiere. Sono più della metà: con 9 foto scendono a 4." Foto in più dei post scelti: "Le foto che non escono restano nel tuo archivio per le prossime campagne. Vuoi pubblicare di più? Passa a 5 a settimana."</div>
-    <div class="desc" style="font-size:12.5px;color:var(--ink-faint);margin-top:8px;">Altro avviso che non blocca: frequenza alta rispetto alle foto che dichiari nel profilo. Gli avvisi arrivano dal server (ADR-73). Blocchi, con il campo evidenziato: meno di 4 foto caricate; un gruppo senza descrizione; un canale non più collegato ("Instagram non è collegato: contatta il consorzio").</div>
-    <div class="banner warn" style="margin-top:12px;margin-bottom:0;">
-      <span class="icon">!</span>
-      <span><b>Si costruisce a tappe (ADR-88).</b> Sprint 1: i post che le foto non coprono sono cartoline, con il nome della bottega e il tema del post, e il riquadro dice solo quante: "Con 6 foto, 7 dei 13 post per canale saranno cartoline. Aggiungine 7 per avere solo foto." Sprint 2a: archivio e logo. Le immagini create arrivano quando la loro creazione sarà costruita (lavori-aperti.md A-05).</span>
-    </div>
-
-    <div class="final-actions" style="margin-top:22px;">
-      <button type="button" class="btn primary">Invia all'operatore</button>
-    </div>
-  </div>
-
-</div>
+</body>
+</html>
