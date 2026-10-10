@@ -12,6 +12,7 @@ Copre:
 
 from datetime import date, datetime, timedelta, timezone
 from io import BytesIO
+from pathlib import Path
 import struct
 import zlib
 
@@ -630,3 +631,229 @@ def test_api_delete_archivio_gruppi_vincoli(
     profilo(db, utente_id=altro.id)
     r_altro = client.delete(f"/api/archivio/gruppi/{mazzo.id}")
     assert r_altro.status_code == 404
+
+
+# ==============================================================================
+# Test di Deep Debug, Sicurezza (Defense in Depth) e Robustezza
+# ==============================================================================
+
+
+def test_debug_ca76_foto_di_archivio_case_insensitive_e_spazi(db: Session):
+    """Verifica resilienza a maiuscole e spazi sui canali in foto_di_archivio e segna_pubblicata."""
+    bottega = profilo(db)
+    mazzo = gruppo_di_archivio(db, profilo_id=bottega.id, n_foto=1)
+    img = mazzo.foto[0]
+
+    # Segna pubblicata con spazi e maiuscole
+    campagne_service.segna_pubblicata(
+        db, img.id, "  InStAgRaM  ", ORA_BASE - timedelta(days=95)
+    )
+    db.expire(img)
+    assert "instagram" in img.pubblicata_su
+
+    # Ricerca con casing misto
+    risultati = campagne_service.foto_di_archivio(
+        db, profilo_id=bottega.id, canale="INSTAGRAM", adesso=ORA_BASE
+    )
+    assert len(risultati) == 1
+    assert risultati[0].foto.id == img.id
+    assert risultati[0].mai_uscita is False
+
+
+def test_debug_api_post_archivio_foto_gruppo_id_invalido_o_assente(
+    client: TestClient, utente_di_prova, db: Session
+):
+    """Verifica che gruppo_id alfanumerico, vuoto o omesso risponda sempre 422."""
+    artigiano = utente_di_prova("artigiano")
+    profilo(db, utente_id=artigiano.id)
+    png_valido = _crea_png(1080, 1080)
+
+    # 1. gruppo_id non numerico
+    r1 = client.post(
+        "/api/archivio/foto",
+        data={"gruppo_id": "non-un-numero"},
+        files={"file": ("foto.png", BytesIO(png_valido), "image/png")},
+    )
+    assert r1.status_code == 422
+
+    # 2. gruppo_id vuoto
+    r2 = client.post(
+        "/api/archivio/foto",
+        data={"gruppo_id": "   "},
+        files={"file": ("foto.png", BytesIO(png_valido), "image/png")},
+    )
+    assert r2.status_code == 422
+
+    # 3. gruppo_id omesso
+    r3 = client.post(
+        "/api/archivio/foto",
+        data={},
+        files={"file": ("foto.png", BytesIO(png_valido), "image/png")},
+    )
+    assert r3.status_code == 422
+
+
+def test_debug_api_post_archivio_foto_file_vuoto_da_422(
+    client: TestClient, utente_di_prova, db: Session
+):
+    """Verifica che un file di 0 byte venga rifiutato con 422."""
+    artigiano = utente_di_prova("artigiano")
+    bottega = profilo(db, utente_id=artigiano.id)
+    mazzo = gruppo_di_archivio(db, profilo_id=bottega.id, n_foto=0)
+
+    r = client.post(
+        "/api/archivio/foto",
+        data={"gruppo_id": str(mazzo.id)},
+        files={"file": ("vuoto.png", BytesIO(b""), "image/png")},
+    )
+    assert r.status_code == 422
+
+
+def test_debug_api_post_archivio_foto_non_immagine_o_decompression_bomb(
+    client: TestClient, utente_di_prova, db: Session
+):
+    """Verifica controlli di sicurezza (Defense in Depth): anti-spoofing e anti-decompression bomb."""
+    artigiano = utente_di_prova("artigiano")
+    bottega = profilo(db, utente_id=artigiano.id)
+    mazzo = gruppo_di_archivio(db, profilo_id=bottega.id, n_foto=0)
+
+    # File testo mascherato da png
+    r_spoof = client.post(
+        "/api/archivio/foto",
+        data={"gruppo_id": str(mazzo.id)},
+        files={"file": ("falso.png", BytesIO(b"Questo non e un png"), "image/png")},
+    )
+    assert r_spoof.status_code == 422
+
+    # Dimensione pixel eccessiva (bomb > 36M px: 7000x6000 = 42M px)
+    png_bomb = _crea_png(7000, 6000)
+    r_bomb = client.post(
+        "/api/archivio/foto",
+        data={"gruppo_id": str(mazzo.id)},
+        files={"file": ("bomb.png", BytesIO(png_bomb), "image/png")},
+    )
+    assert r_bomb.status_code == 422
+
+
+def test_debug_api_delete_foto_o_gruppo_con_campagna_da_404(
+    client: TestClient, utente_di_prova, db: Session
+):
+    """Verifica che foto o gruppi con campagna non siano manipolabili tramite gli endpoint /archivio (404)."""
+    artigiano = utente_di_prova("artigiano")
+    bottega = profilo(db, utente_id=artigiano.id)
+    camp = campagna_in_bozza(db, profilo_id=bottega.id)
+    g_camp = gruppo(db, camp)
+    f_camp = foto(db, gruppo=g_camp)
+
+    # 1. Cancellazione foto di campagna tramite /archivio/foto/{id} -> 404
+    r_foto = client.delete(f"/api/archivio/foto/{f_camp.id}")
+    assert r_foto.status_code == 404
+
+    # 2. Cancellazione gruppo di campagna tramite /archivio/gruppi/{id} -> 404
+    r_gruppo = client.delete(f"/api/archivio/gruppi/{g_camp.id}")
+    assert r_gruppo.status_code == 404
+
+
+def test_debug_api_risorse_inesistenti_da_404(
+    client: TestClient, utente_di_prova, db: Session
+):
+    """Verifica che id inesistenti su download e delete restituiscano coerentemente 404."""
+    artigiano = utente_di_prova("artigiano")
+    profilo(db, utente_id=artigiano.id)
+
+    assert client.delete("/api/archivio/foto/999999").status_code == 404
+    assert client.delete("/api/archivio/gruppi/999999").status_code == 404
+    assert client.get("/api/foto/999999/file").status_code == 404
+
+
+def test_debug_concorrenza_upload_archivio_limite_20_foto(motore_test, tmp_path: Path):
+    """Verifica che il row-lock su GruppoFoto e l'advisory lock prevengano race condition: con 19 foto d'archivio, solo 1 su 2 thread concorrenti entra."""
+    from concurrent.futures import ThreadPoolExecutor
+    from sqlalchemy import text
+    from sqlalchemy.orm import Session as SessionClass
+    from app.adapters.archivio import ArchivioDisco, usa_archivio
+    from app.core.errori import DatiNonValidi
+    from app.moduli.campagne import archivio as archivio_modulo
+
+    with usa_archivio(ArchivioDisco(tmp_path)):
+        with SessionClass(motore_test) as s, s.begin():
+            p = profilo(s, canali=["instagram"])
+            u_id = p.utente_id
+            prof_id = p.id
+            g = GruppoFoto(
+                profilo_id=prof_id,
+                campagna_id=None,
+                origine="caricate",
+                descrizione="Archivio concorrente",
+            )
+            s.add(g)
+            s.flush()
+            g_id = g.id
+
+            # Inseriamo 19 foto
+            for i in range(19):
+                s.add(
+                    Foto(
+                        profilo_id=prof_id,
+                        campagna_id=None,
+                        gruppo_id=g_id,
+                        origine="caricata",
+                        file=f"arc_concurr_{i}.png",
+                        mime="image/png",
+                        larghezza=1080,
+                        altezza=1080,
+                        da_usare=False,
+                        pubblicata_su={},
+                    )
+                )
+
+        try:
+            file_bytes = _crea_png(1080, 1080)
+
+            def tenta_upload(indice: int) -> str:
+                with SessionClass(motore_test) as sess:
+                    try:
+                        with sess.begin():
+                            archivio_modulo.carica_foto_archivio(
+                                sess,
+                                u_id,
+                                g_id,
+                                file_bytes,
+                            )
+                        return "ok"
+                    except DatiNonValidi:
+                        return "422"
+
+            with ThreadPoolExecutor(max_workers=2) as executor:
+                futures = [executor.submit(tenta_upload, i) for i in range(2)]
+                esiti = [f.result() for f in futures]
+
+            # Esattamente 1 thread entra (raggiungendo la 20-esima foto) e 1 viene respinto con 422
+            assert esiti.count("ok") == 1
+            assert esiti.count("422") == 1
+
+            with SessionClass(motore_test) as s:
+                totale = (
+                    s.query(Foto)
+                    .filter(Foto.campagna_id.is_(None), Foto.gruppo_id == g_id)
+                    .count()
+                )
+                assert totale == 20
+        finally:
+            with SessionClass(motore_test) as s, s.begin():
+                s.execute(
+                    text("DELETE FROM foto WHERE gruppo_id = :gid"),
+                    {"gid": g_id},
+                )
+                s.execute(
+                    text("DELETE FROM gruppo_foto WHERE id = :gid"),
+                    {"gid": g_id},
+                )
+                s.execute(
+                    text("DELETE FROM account_social WHERE profilo_id = :pid"),
+                    {"pid": prof_id},
+                )
+                s.execute(
+                    text("DELETE FROM profilo_bottega WHERE id = :pid"),
+                    {"pid": prof_id},
+                )

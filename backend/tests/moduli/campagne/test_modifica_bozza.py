@@ -364,3 +364,13 @@ def test_modifica_sovrapposizione_con_altra_campagna_da_409(
     )
     assert risposta.status_code == 409
     assert "si sovrappone" in risposta.json()["detail"]
+
+
+def test_modifica_bozza_senza_profilo_da_404(
+    client: TestClient, utente_di_prova, db: Session
+):
+    """Artigiano autenticato ma senza profilo bottega riceve 404."""
+    utente_di_prova("artigiano")
+    risposta = client.patch("/api/campagne/123", json={"titolo": "Nuovo Titolo"})
+    assert risposta.status_code == 404
+    assert "non trovata" in risposta.json()["detail"].lower()

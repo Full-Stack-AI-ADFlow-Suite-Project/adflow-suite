@@ -71,7 +71,9 @@ def carica_foto_archivio(
 
     db.execute(text("SELECT pg_advisory_xact_lock(:chiave)"), {"chiave": profilo.id})
 
-    gruppo = db.get(GruppoFoto, gruppo_id)
+    gruppo = db.scalar(
+        select(GruppoFoto).where(GruppoFoto.id == gruppo_id).with_for_update()
+    )
     if (
         gruppo is None
         or gruppo.profilo_id != profilo.id
@@ -120,7 +122,7 @@ def elimina_foto_archivio(db: Session, utente_id: int, foto_id: int) -> None:
 
     db.execute(text("SELECT pg_advisory_xact_lock(:chiave)"), {"chiave": profilo.id})
 
-    foto = db.get(Foto, foto_id)
+    foto = db.scalar(select(Foto).where(Foto.id == foto_id).with_for_update())
     if foto is None or foto.profilo_id != profilo.id or foto.campagna_id is not None:
         raise NonTrovato("Foto non trovata.")
 
@@ -152,7 +154,9 @@ def elimina_gruppo_archivio(db: Session, utente_id: int, gruppo_id: int) -> None
 
     db.execute(text("SELECT pg_advisory_xact_lock(:chiave)"), {"chiave": profilo.id})
 
-    gruppo = db.get(GruppoFoto, gruppo_id)
+    gruppo = db.scalar(
+        select(GruppoFoto).where(GruppoFoto.id == gruppo_id).with_for_update()
+    )
     if (
         gruppo is None
         or gruppo.profilo_id != profilo.id

@@ -377,8 +377,9 @@ def foto_di_archivio(
                 continue
 
         pub = f.pubblicata_su or {}
-        if canale in pub:
-            ultima_dt = datetime.fromisoformat(pub[canale])
+        canale_norm = canale.strip().lower()
+        if canale_norm in pub:
+            ultima_dt = datetime.fromisoformat(pub[canale_norm])
             ultima_utc = (
                 ultima_dt
                 if ultima_dt.tzinfo
@@ -430,13 +431,14 @@ def segna_pubblicata(
 
     quando_utc = quando if quando.tzinfo else quando.replace(tzinfo=timezone.utc)
     pub = dict(foto.pubblicata_su or {})
-    if canale in pub:
-        prec_dt = datetime.fromisoformat(pub[canale])
+    canale_norm = canale.strip().lower()
+    if canale_norm in pub:
+        prec_dt = datetime.fromisoformat(pub[canale_norm])
         prec_utc = prec_dt if prec_dt.tzinfo else prec_dt.replace(tzinfo=timezone.utc)
         if quando_utc <= prec_utc:
             return
 
-    pub[canale] = quando_utc.isoformat()
+    pub[canale_norm] = quando_utc.isoformat()
     foto.pubblicata_su = pub
     db.flush()
 
