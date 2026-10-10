@@ -12,11 +12,12 @@ from app.core.errori import DatiNonValidi
 from app.core.orologio import adesso
 from app.moduli.accesso.service import richiede_ruolo, utente_corrente
 
-from . import service
+from . import bozza, service
 from .schemas import (
     CampagnaCrea,
     CampagnaDettaglio,
     CampagnaElencoItem,
+    CampagnaModifica,
     FotoDettaglio,
     FotoStellaModifica,
     GruppoAggiorna,
@@ -36,6 +37,19 @@ def crea_campagna(
 ) -> CampagnaDettaglio:
     """Crea una nuova campagna in bozza per l'artigiano autenticato (CA-09, CA-10, CA-11, CA-12, CA-48)."""
     campagna = service.crea_bozza(db, utente.id, dati, ora)
+    return service.dettaglio_campagna(db, utente.id, utente.ruolo, campagna.id)
+
+
+@router.patch("/campagne/{id}", response_model=CampagnaDettaglio)
+def modifica_campagna(
+    id: int,
+    dati: CampagnaModifica,
+    db: Annotated[Session, Depends(get_db)],
+    utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
+    ora: Annotated[datetime, Depends(adesso)],
+) -> CampagnaDettaglio:
+    """Modifica una campagna in bozza per l'artigiano proprietario (T2a-21, CA-08, CA-09, CA-10, CA-48)."""
+    campagna = bozza.modifica_bozza(db, utente.id, id, dati, ora)
     return service.dettaglio_campagna(db, utente.id, utente.ruolo, campagna.id)
 
 
