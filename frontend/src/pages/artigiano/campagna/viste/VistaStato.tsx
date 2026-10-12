@@ -16,8 +16,16 @@ import {
   Title,
 } from "@mantine/core";
 
-import type { CampagnaDettaglio } from "../../../api/campagne";
-import { Riga } from "./Riga";
+import type { CampagnaDettaglio } from "../../../../api/campagne";
+import { Riga } from "../Riga";
+import { CanaliTolti } from "./CanaliTolti";
+import { ContattoConsorzio } from "./ContattoConsorzio";
+
+/** I motivi di una respinta come li legge l'artigiano (spec R-18). */
+const MOTIVO: Record<string, string> = {
+  foto: "foto da rifare",
+  altro: "altro",
+};
 
 const POST_A_SETTIMANA: Record<string, number> = {
   f1_2: 2,
@@ -84,7 +92,12 @@ function RiepilogoLettura({ campagna }: { campagna: CampagnaDettaglio }) {
           "it-IT",
         )}`}
       />
-      <Riga nome="Canali" valore={(campagna.canali ?? []).join(", ")} />
+      <Riga
+        nome="Canali"
+        valore={(campagna.canali ?? [])
+          .filter((c) => !(campagna.canali_tolti ?? []).includes(c))
+          .join(", ")}
+      />
       <Riga
         nome="Ritmo scelto"
         valore={`${postSett} post a settimana per canale · ${chiesti} per canale nel periodo`}
@@ -194,7 +207,7 @@ export function VistaStato({
           <>
             {esito && (
               <Alert color="red" variant="light" mb="md">
-                <b>Motivo: {esito.motivo}.</b>
+                <b>Motivo: {MOTIVO[esito.motivo] ?? esito.motivo}.</b>
                 {esito.nota && <> Richiesta del consorzio: "{esito.nota}"</>}
               </Alert>
             )}
@@ -284,22 +297,28 @@ export function VistaStato({
               sprint 3; le metriche con lo sprint 4.
             </Alert>
             <RiepilogoLettura campagna={campagna} />
+            <ContattoConsorzio />
           </>
         );
       case "sospesa":
         return (
-          <Alert color="orange" variant="light">
-            <b>Pubblicazioni ferme.</b> Il consorzio ha sospeso la campagna:
-            contatta il consorzio per ripartire. I post in programma ripartono
-            dopo.
-          </Alert>
+          <>
+            <Alert color="orange" variant="light">
+              <b>Pubblicazioni ferme.</b> Il consorzio ha sospeso la campagna:
+              contatta il consorzio per ripartire. I post in programma ripartono
+              dopo.
+            </Alert>
+            <ContattoConsorzio />
+          </>
         );
       case "annullata":
         return (
           <Alert color="orange" variant="light">
-            <b>Annullata.</b> Il consorzio ha fermato la campagna il{" "}
-            {dataOraIT(campagna.chiusa_il).split(" alle")[0]}: i post in
-            programma non usciranno. Quelli già pubblicati restano nel
+            <b>
+              Campagna chiusa dal consorzio il{" "}
+              {dataOraIT(campagna.chiusa_il).split(" alle")[0]}.
+            </b>{" "}
+            I post in programma non usciranno. Quelli già pubblicati restano nel
             calendario.
           </Alert>
         );
@@ -334,6 +353,7 @@ export function VistaStato({
       <Title order={2} mb="md">
         {campagna.titolo} {badge}
       </Title>
+      <CanaliTolti campagna={campagna} />
       {corpo()}
     </Paper>
   );

@@ -1,12 +1,18 @@
 /**
  * Pagina Campagna (docs/appunti/pagine/AdFlow-campagna*.html):
  * niente campagne → Bentornato; una bozza → passi 10–12; dopo l'invio
- * una vista per stato. Una campagna alla volta (la scelta è della 2b).
+ * una vista per stato. Una campagna alla volta: con più campagne si apre
+ * quella che chiede qualcosa e in cima c'è la riga di scelta (spec §4).
  */
 import { useCallback, useEffect, useState } from "react";
 import { Center, Loader } from "@mantine/core";
 
-import { dettaglio, elenco, type CampagnaDettaglio } from "../../api/campagne";
+import {
+  dettaglio,
+  elenco,
+  type CampagnaDettaglio,
+  type CampagnaElencoItem,
+} from "../../api/campagne";
 import {
   profilo as apiProfilo,
   type ProfiloBottega,
@@ -14,7 +20,10 @@ import {
 import { Guscio } from "../../components/Guscio";
 import { Bentornato } from "./campagna/Bentornato";
 import { Bozza } from "./campagna/Bozza";
-import { VistaStato } from "./campagna/VistaStato";
+import { CampagnePassate } from "./campagna/viste/CampagnePassate";
+import { scegli } from "./campagna/viste/scelta";
+import { SceltaCampagna } from "./campagna/viste/SceltaCampagna";
+import { VistaStato } from "./campagna/viste/VistaStato";
 
 type Vista =
   | { tipo: "bentornato" }
@@ -26,34 +35,41 @@ export function Campagna() {
   const [profilo, setProfilo] = useState<ProfiloBottega | null>(null);
   const [respintaRecente, setRespintaRecente] =
     useState<CampagnaDettaglio | null>(null);
+  const [lista, setLista] = useState<CampagnaElencoItem[]>([]);
 
-  const carica = useCallback(async () => {
-    let lista;
-    let p;
-    try {
-      [p, lista] = await Promise.all([apiProfilo(), elenco()]);
-    } catch {
-      setVista({ tipo: "bentornato" });
+  /** Mostra una campagna: la bozza nei passi, le altre nella vista per stato. */
+  const mostra = useCallback(async (c: CampagnaElencoItem) => {
+    const d = await dettaglio(c.id);
+    if (c.stato === "bozza") {
+      setVista({ tipo: "bozza", campagna: d });
       return;
     }
-    setProfilo(p);
-    const bozza = lista.find((c) => c.stato === "bozza");
-    const ultima = lista.reduce<(typeof lista)[number] | null>(
-      (m, c) => (m === null || c.id > m.id ? c : m),
-      null,
-    );
-    if (bozza) {
-      setVista({ tipo: "bozza", campagna: await dettaglio(bozza.id) });
-      return;
-    }
-    if (ultima) {
-      const c = await dettaglio(ultima.id);
-      setVista({ tipo: "stato", campagna: c });
-      setRespintaRecente(c.stato === "respinta" ? c : null);
-      return;
-    }
-    setVista({ tipo: "bentornato" });
+    setVista({ tipo: "stato", campagna: d });
+    setRespintaRecente(d.stato === "respinta" ? d : null);
   }, []);
+
+  const carica = useCallback(
+    async (preferita?: number) => {
+      let lista;
+      let p;
+      try {
+        [p, lista] = await Promise.all([apiProfilo(), elenco()]);
+      } catch {
+        setVista({ tipo: "bentornato" });
+        return;
+      }
+      setProfilo(p);
+      setLista(lista);
+      const daAprire =
+        lista.find((c) => c.id === preferita) ?? scegli(lista).aperta;
+      if (daAprire) {
+        await mostra(daAprire);
+        return;
+      }
+      setVista({ tipo: "bentornato" });
+    },
+    [mostra],
+  );
 
   useEffect(() => {
     // Carica la campagna all'apertura della pagina: setState solo dopo l'attesa.
@@ -63,6 +79,8 @@ export function Campagna() {
 
   const apriBozza = useCallback((c: CampagnaDettaglio) => {
     setVista({ tipo: "bozza", campagna: c });
+    // La nuova bozza entra nella riga di scelta.
+    void elenco().then(setLista);
   }, []);
 
   const ricarica = useCallback(
@@ -72,13 +90,40 @@ export function Campagna() {
   );
 
   const nuovaCampagna = useCallback(() => setVista({ tipo: "bentornato" }), []);
-  const dopoInvio = useCallback(async () => {
-    setRespintaRecente(null);
-    await carica();
-  }, [carica]);
+  /** Dopo l'invio si resta sulla campagna appena inviata, non su un'altra. */
+  const dopoInvio = useCallback(
+    async (inviataId?: number) => {
+      setRespintaRecente(null);
+      await carica(inviataId);
+    },
+    [carica],
+  );
+
+  const { visibili, passate } = scegli(lista);
+  const mostrata =
+    vista !== null && vista.tipo !== "bentornato" ? vista.campagna : null;
+  const apertaId = mostrata?.id ?? null;
+  const inChiaro = visibili.some((c) => c.id === apertaId);
+  // Una sola campagna: la riga serve per crearne un'altra, tranne dove la
+  // vista ha già il suo pulsante (respinta, scaduta) o si sta compilando.
+  const mostraRiga =
+    visibili.length > 1 ||
+    (visibili.length === 1 &&
+      vista?.tipo !== "bozza" &&
+      mostrata?.stato !== "respinta" &&
+      mostrata?.stato !== "scaduta") ||
+    (visibili.length > 0 && mostrata !== null && !inChiaro);
 
   return (
     <Guscio titolo="Campagna">
+      {mostraRiga && (
+        <SceltaCampagna
+          visibili={visibili}
+          apertaId={inChiaro ? apertaId : null}
+          onApri={(c) => void mostra(c)}
+          onNuova={nuovaCampagna}
+        />
+      )}
       {vista === null || profilo === null ? (
         <Center py="xl">
           <Loader color="verde" />
@@ -95,10 +140,17 @@ export function Campagna() {
           profilo={profilo}
           onCambiata={ricarica}
           onCreata={apriBozza}
-          onInviata={dopoInvio}
+          onInviata={() => dopoInvio(vista.campagna?.id)}
         />
       ) : (
         <VistaStato campagna={vista.campagna} onNuovaCampagna={nuovaCampagna} />
+      )}
+      {vista !== null && vista.tipo !== "bozza" && (
+        <CampagnePassate
+          passate={passate}
+          apertaId={inChiaro ? null : apertaId}
+          onApri={(c) => void mostra(c)}
+        />
       )}
     </Guscio>
   );

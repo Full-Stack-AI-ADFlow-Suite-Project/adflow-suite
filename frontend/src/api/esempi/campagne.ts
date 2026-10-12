@@ -178,7 +178,138 @@ function seed(): CampagnaDettaglio[] {
         foto_segnate: [1, 2],
       },
     },
+    ...semiArtigiano(),
     ...semiOperatore(),
+  ];
+}
+
+/**
+ * Le altre campagne dell'artigiano di prova (T2b-53): una in corso con un
+ * canale tolto, una in revisione e due chiuse. Con la respinta del primo
+ * seme la pagina Campagna ha più campagne: si apre quella in corso, la
+ * respinta e le chiuse stanno in "Campagne passate".
+ */
+function semiArtigiano(): CampagnaDettaglio[] {
+  const base = {
+    profilo_id: 1,
+    descrizione: null,
+    canali: ["facebook", "instagram"],
+    canali_tolti: null,
+    frequenza: "f3_4",
+    obiettivo: "Farmi conoscere",
+    post_chiesti_per_canale: {},
+    avvisi: [],
+    profilo_snapshot: fotografia(1),
+    decisioni: [],
+  };
+  const gruppo = (id: number, nomi: string[]) => ({
+    id,
+    origine: "caricate",
+    descrizione: "Il laboratorio e i pezzi finiti.",
+    da_usare_il: null,
+    n_immagini: null,
+    foto: nomi.map((nome, i) => f(id * 10 + i, id, nome)),
+  });
+  return [
+    {
+      ...base,
+      id: 2,
+      titolo: "Primavera in bottega",
+      inizio: "2026-04-06",
+      fine: "2026-05-03",
+      stato: "conclusa",
+      inviata_il: "2026-03-28T09:40:00",
+      chiusa_il: "2026-05-04T00:05:00",
+      gruppi: [
+        gruppo(181, [
+          "sedia-01.jpg",
+          "sedia-02.jpg",
+          "sedia-03.jpg",
+          "sedia-04.jpg",
+        ]),
+      ],
+    },
+    {
+      ...base,
+      id: 3,
+      titolo: "Idee per l'estate",
+      inizio: "2026-08-17",
+      fine: "2026-09-06",
+      stato: "scaduta",
+      inviata_il: "2026-08-10T16:20:00",
+      chiusa_il: "2026-08-17T00:00:00",
+      gruppi: [
+        gruppo(182, [
+          "panca-01.jpg",
+          "panca-02.jpg",
+          "panca-03.jpg",
+          "panca-04.jpg",
+        ]),
+      ],
+    },
+    {
+      ...base,
+      id: 18,
+      titolo: "Autunno in bottega",
+      inizio: "2026-10-05",
+      fine: "2026-11-08",
+      stato: "attiva",
+      canali_tolti: ["instagram"],
+      inviata_il: "2026-09-28T11:05:00",
+      chiusa_il: null,
+      gruppi: [
+        gruppo(191, [
+          "tavolo-01.jpg",
+          "tavolo-02.jpg",
+          "mensola-01.jpg",
+          "mensola-02.jpg",
+        ]),
+      ],
+      decisioni: [
+        {
+          id: 1,
+          esito: "canale_tolto",
+          canale: "instagram",
+          post_id: null,
+          motivo: null,
+          nota: "Le foto non sono adatte al formato di Instagram: usciamo solo su Facebook.",
+        },
+        {
+          id: 2,
+          esito: "nota",
+          canale: null,
+          post_id: null,
+          motivo: null,
+          nota: "Mario risponde sempre tardi: chiamare di mattina.",
+        },
+        {
+          id: 3,
+          esito: "approvata",
+          canale: null,
+          post_id: null,
+          motivo: null,
+          nota: null,
+        },
+      ],
+    },
+    {
+      ...base,
+      id: 19,
+      titolo: "Natale in falegnameria",
+      inizio: "2026-11-23",
+      fine: "2026-12-20",
+      stato: "in_revisione",
+      inviata_il: "2026-10-09T15:30:00",
+      chiusa_il: null,
+      gruppi: [
+        gruppo(192, [
+          "albero-01.jpg",
+          "albero-02.jpg",
+          "giochi-01.jpg",
+          "giochi-02.jpg",
+        ]),
+      ],
+    },
   ];
 }
 
@@ -585,7 +716,16 @@ export const esempiCampagne = {
   },
 
   async dettaglio(id: number): Promise<CampagnaDettaglio> {
-    return conAvvisi(trova(carica(), id));
+    const c = conAvvisi(trova(carica(), id));
+    const utente = sessioneEsempio();
+    if (utente?.ruolo === "operatore" || utente?.ruolo === "admin") return c;
+    // L'artigiano non legge snapshot, note interne né le altre decisioni: solo
+    // il canale tolto, con la nota (spec §4, R-32).
+    return {
+      ...c,
+      profilo_snapshot: undefined,
+      decisioni: (c.decisioni ?? []).filter((d) => d.esito === "canale_tolto"),
+    };
   },
 
   async crea(dati: CampagnaCrea): Promise<CampagnaDettaglio> {
