@@ -6,13 +6,15 @@ from datetime import datetime, timedelta
 from sqlalchemy import select, or_, and_
 from sqlalchemy.orm import Session, selectinload
 
-from app.core.errori import DatiNonValidi, StatoNonValido
+from app.core.config import leggi_impostazioni
+from app.core.errori import DatiNonValidi, NonTrovato, StatoNonValido
 from app.core.orologio import ROMA
 from app.core.transizioni import verifica_transizione
 from app.moduli.campagne import service as campagne
 
 from .domain import (
     APPROVATO,
+    ANNULLATO,
     DA_APPROVARE,
     SCADUTO,
     SCARTATO,
@@ -221,6 +223,51 @@ def ultimo_errore(db: Session, campagna_id: int) -> ErroreGenerazione | None:
     )
 
 
+def _post_in_stato(
+    db: Session, campagna_id: int, stato: str, *condizioni
+) -> list[Post]:
+    """I post della campagna in quello stato, in ordine di data."""
+    return list(
+        db.scalars(
+            select(Post)
+            .where(Post.campagna_id == campagna_id, Post.stato == stato, *condizioni)
+            .order_by(Post.data_ora, Post.id)
+        )
+    )
+
+
+def _porta_a(db: Session, post: list[Post], nuovo: str) -> list[Post]:
+    """Cambia lo stato di tutti i post o di nessuno, con ``verifica_transizione()``."""
+    for uno in post:
+        verifica_transizione(TRANSIZIONI, uno.stato, nuovo)
+    for uno in post:
+        uno.stato = nuovo
+    db.flush()
+    return post
+
+
+def _post(db: Session, post_id: int) -> Post:
+    record = db.get(Post, post_id)
+    if record is None:
+        raise NonTrovato("Post non trovato.")
+    return record
+
+
+def _azzera_spunta(post: Post) -> None:
+    """La spunta «va bene» vale per una versione e una data: se cambiano, cade (R-30)."""
+    post.controllato_da = None
+    post.controllato_il = None
+
+
+def _intervento_attivo(post: Post, adesso: datetime) -> bool:
+    """Un intervento partito da più di 10 minuti vale come fallito (R-31)."""
+    return (
+        post.intervento_in_corso is not None
+        and post.intervento_dal is not None
+        and post.intervento_dal > adesso - timedelta(minutes=10)
+    )
+
+
 def scarta_post_della_campagna(db: Session, campagna_id: int) -> list[Post]:
     """Porta a ``scartato`` tutti i post ``da_approvare`` della campagna.
 
@@ -232,7 +279,7 @@ def scarta_post_della_campagna(db: Session, campagna_id: int) -> list[Post]:
     Returns:
         I post scartati adesso, in ordine di data; vuota se non ce n'erano.
     """
-    raise NotImplementedError("T2b-31")
+    return _porta_a(db, _post_in_stato(db, campagna_id, DA_APPROVARE), SCARTATO)
 
 
 def scarta_post_del_canale(db: Session, campagna_id: int, canale: str) -> list[Post]:
@@ -244,7 +291,8 @@ def scarta_post_del_canale(db: Session, campagna_id: int, canale: str) -> list[P
     Returns:
         I post scartati adesso, in ordine di data; vuota se non ce n'erano.
     """
-    raise NotImplementedError("T2b-31")
+    da_scartare = _post_in_stato(db, campagna_id, DA_APPROVARE, Post.canale == canale)
+    return _porta_a(db, da_scartare, SCARTATO)
 
 
 def scadi_post(db: Session, campagna_id: int, adesso: datetime) -> list[Post]:
@@ -257,7 +305,8 @@ def scadi_post(db: Session, campagna_id: int, adesso: datetime) -> list[Post]:
     Returns:
         I post scaduti adesso, in ordine di data; vuota se non ce n'erano.
     """
-    raise NotImplementedError("T2b-31")
+    passati = _post_in_stato(db, campagna_id, DA_APPROVARE, Post.data_ora < adesso)
+    return _porta_a(db, passati, SCADUTO)
 
 
 def annulla_post(
@@ -273,7 +322,9 @@ def annulla_post(
     Returns:
         I post annullati adesso, in ordine di data; vuota se non ce n'erano.
     """
-    raise NotImplementedError("T2b-31")
+    condizioni = [] if post_ids is None else [Post.id.in_(list(post_ids))]
+    approvati = _post_in_stato(db, campagna_id, APPROVATO, *condizioni)
+    return _porta_a(db, approvati, ANNULLATO)
 
 
 def riprogramma_post(
@@ -292,7 +343,27 @@ def riprogramma_post(
         DatiNonValidi: ``data_ora`` fuori dal periodo della campagna o a meno
             di 15 minuti da ``adesso`` (422).
     """
-    raise NotImplementedError("T2b-31")
+    record = _post(db, post_id)
+    if record.stato != FALLITO:
+        raise StatoNonValido("Si riprogramma solo un post fallito.")
+    campagna = campagne.campagna(db, record.campagna_id)
+    if campagna.stato not in ("attiva", "sospesa"):
+        raise StatoNonValido("La campagna non è attiva né sospesa.")
+    if data_ora.tzinfo is None:
+        raise DatiNonValidi("La nuova data deve avere il fuso orario.")
+    margine = leggi_impostazioni().margine_slot_minuti
+    if data_ora < adesso + timedelta(minutes=margine):
+        raise DatiNonValidi(
+            f"La nuova data deve essere almeno {margine} minuti dopo adesso."
+        )
+    if not campagna.inizio <= data_ora.astimezone(ROMA).date() <= campagna.fine:
+        raise DatiNonValidi("La nuova data deve cadere nel periodo della campagna.")
+    verifica_transizione(TRANSIZIONI, record.stato, APPROVATO)
+    record.data_ora = data_ora
+    record.stato = APPROVATO
+    _azzera_spunta(record)
+    db.flush()
+    return record
 
 
 def segna_controllato(
@@ -310,7 +381,22 @@ def segna_controllato(
             ``da_approvare``, ha un intervento in corso o, per mettere la
             spunta, è ``da_rivedere`` (409).
     """
-    raise NotImplementedError("T2b-31")
+    record = _post(db, post_id)
+    if campagne.campagna(db, record.campagna_id).stato != "in_revisione":
+        raise StatoNonValido("La campagna non è in revisione.")
+    if record.stato != DA_APPROVARE:
+        raise StatoNonValido("Il post non è da approvare.")
+    if _intervento_attivo(record, adesso):
+        raise StatoNonValido("Sul post c'è un intervento in corso.")
+    if valore and record.da_rivedere:
+        raise StatoNonValido("Un post da rivedere non si può spuntare.")
+    if valore:
+        record.controllato_da = utente_id
+        record.controllato_il = adesso
+    else:
+        _azzera_spunta(record)
+    db.flush()
+    return record
 
 
 def modifica_post(
@@ -336,7 +422,9 @@ def modifica_post(
         DatiNonValidi: la versione avrebbe un blocco o è uguale a quella
             corrente (422); nessuna versione si salva.
     """
-    raise NotImplementedError("T2b-32")
+    from .interventi import modifica  # interventi importa questo modulo
+
+    return modifica(db, post_id, utente_id, testo, hashtag, adesso)
 
 
 def puo_rigenerare(db: Session, post_id: int, adesso: datetime) -> bool:
@@ -382,4 +470,18 @@ def ferma_generazione(db: Session, campagna_id: int, adesso: datetime) -> None:
         NonTrovato: se non esiste nessuna campagna con quell'id.
         StatoNonValido: la campagna non è ``inviata`` né ``in_generazione`` (409).
     """
-    raise NotImplementedError("T2b-44")
+    from .generazione import prossima_tappa  # generazione importa questo modulo
+
+    record = campagne.campagna(db, campagna_id)
+    if record.stato not in ("inviata", "in_generazione"):
+        raise StatoNonValido("La campagna non è ferma in generazione.")
+    db.add(
+        ErroreGenerazione(
+            campagna_id=record.id,
+            tipo="temporaneo",
+            messaggio="La generazione non ha fatto progressi per 30 minuti.",
+            tappa=prossima_tappa(db, record, adesso) or "avvio",
+            creata_il=adesso,
+        )
+    )
+    campagne.cambia_stato(db, record, "generazione_fallita")
