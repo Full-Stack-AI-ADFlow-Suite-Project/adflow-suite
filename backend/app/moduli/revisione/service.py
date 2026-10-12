@@ -203,3 +203,21 @@ def prosegui(db: Session, campagna_id: int, utente: accesso.Utente) -> None:
     )
     campagne.cambia_stato(db, record, "in_generazione")
     accoda(GENERA_CAMPAGNA, campagna_id=record.id)
+
+
+def scadenze(db: Session, adesso: datetime) -> None:
+    """Applica le scadenze morbide e ferma le campagne bloccate (R-06, R-35).
+
+    Chiamata dal tick, ogni minuto, prima di ``pubblica_dovuti()``
+    (``worker.py``). Tre cose, tutte idempotenti: i post ``da_approvare`` con
+    la data passata diventano ``scaduto``; la campagna con un piano diventa
+    ``scaduta`` quando i ``da_approvare`` sono meno della metà dei post chiesti
+    sui canali non tolti, e senza piano alle 00:00 (Europe/Rome) del giorno
+    d'inizio, con la notifica ``campagna_scaduta`` all'artigiano; una campagna
+    ferma da 30 minuti in ``inviata`` o ``in_generazione`` va in
+    ``generazione_fallita`` con ``contenuti.ferma_generazione()``. Due tick di
+    seguito con lo stesso ``adesso``: il secondo non cambia nulla.
+    """
+    # Finché T2b-44 non scrive il corpo non fa niente: il tick gira ogni minuto
+    # e i percorsi degli sprint prima lo attraversano.
+    return None

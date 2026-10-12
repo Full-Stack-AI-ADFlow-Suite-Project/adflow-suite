@@ -6,7 +6,7 @@ import subprocess
 import sys
 from contextlib import nullcontext
 from datetime import datetime, timezone
-from unittest.mock import Mock
+from unittest.mock import Mock, call
 
 import pytest
 
@@ -17,6 +17,7 @@ import app.worker as worker
 def pubblica_dovuti_finta(monkeypatch) -> Mock:
     """`pubblica_dovuti` finta, con sessione e ora fisse al posto di quelle vere."""
     finta = Mock()
+    monkeypatch.setattr(worker, "scadenze", Mock())
     monkeypatch.setattr(worker, "transazione", lambda: nullcontext("db"))
     monkeypatch.setattr(
         worker, "adesso", lambda: datetime(2026, 10, 2, tzinfo=timezone.utc)
@@ -56,6 +57,24 @@ def test_tick_pubblicazione_invoca_pubblica_dovuti(pubblica_dovuti_finta):
     pubblica_dovuti_finta.assert_called_once_with(
         "db", datetime(2026, 10, 2, tzinfo=timezone.utc)
     )
+
+
+def test_tick_applica_le_scadenze_prima_di_pubblicare(monkeypatch):
+    ordine = Mock()
+    monkeypatch.setattr(worker, "transazione", lambda: nullcontext("db"))
+    monkeypatch.setattr(
+        worker, "adesso", lambda: datetime(2026, 10, 2, tzinfo=timezone.utc)
+    )
+    monkeypatch.setattr(worker, "scadenze", ordine.scadenze)
+    monkeypatch.setattr(worker, "pubblica_dovuti", ordine.pubblica_dovuti)
+
+    worker.tick_pubblicazione(timestamp=0)
+
+    ora = datetime(2026, 10, 2, tzinfo=timezone.utc)
+    assert ordine.mock_calls == [
+        call.scadenze("db", ora),
+        call.pubblica_dovuti("db", ora),
+    ]
 
 
 def test_tick_accodato_ed_eseguito_dal_worker(coda, pubblica_dovuti_finta):

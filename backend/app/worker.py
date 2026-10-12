@@ -6,6 +6,7 @@ from app.core.coda import TICK_PUBBLICAZIONE, app
 from app.core.db import transazione
 from app.core.orologio import adesso
 from app.moduli.pubblicazione.service import pubblica_dovuti
+from app.moduli.revisione.service import scadenze
 from app.moduli.accesso import jobs as accesso
 from app.moduli.artigiani import jobs as artigiani
 from app.moduli.campagne import jobs as campagne
@@ -34,9 +35,11 @@ JOB_DEI_MODULI = (
 )
 @app.task(name=TICK_PUBBLICAZIONE)
 def tick_pubblicazione(timestamp: int) -> None:
-    """Esegue la pubblicazione dovuta ogni minuto, senza tick sovrapposti.
+    """Ogni minuto applica le scadenze e poi pubblica il dovuto, senza tick sovrapposti.
 
     `timestamp` è il minuto per cui Procrastinate ha accodato il tick.
     """
     with transazione() as db:
-        pubblica_dovuti(db, adesso())
+        ora = adesso()
+        scadenze(db, ora)
+        pubblica_dovuti(db, ora)
