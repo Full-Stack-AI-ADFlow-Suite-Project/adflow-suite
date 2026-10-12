@@ -8,10 +8,14 @@ export function UscitaCard({
   uscita,
   bottega,
   citta,
+  statoCampagna,
+  ricarica,
 }: {
   uscita: Uscita;
   bottega: string;
   citta: string | null;
+  statoCampagna: string;
+  ricarica: () => void;
 }) {
   return (
     <Card withBorder radius="lg" p="lg">
@@ -46,6 +50,8 @@ export function UscitaCard({
               bottega={bottega}
               citta={citta}
               tema={uscita.tema}
+              statoCampagna={statoCampagna}
+              ricarica={ricarica}
             />
           ))}
         </SimpleGrid>

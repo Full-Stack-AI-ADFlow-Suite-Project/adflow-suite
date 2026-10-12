@@ -12,12 +12,13 @@ import {
   Paper,
   Stack,
   Text,
-  UnstyledButton,
 } from "@mantine/core";
-import { useState } from "react";
 import { Link } from "react-router-dom";
 
 import type { PostVista } from "../../../api/revisione";
+import { AzioniPost } from "../vedi-campagna/post/AzioniPost";
+import { conCancelletto, interventoAttivo } from "../vedi-campagna/post/regole";
+import { StoricoVersioni } from "../vedi-campagna/post/StoricoVersioni";
 import { colorePost, dataOra, erroriDi, NOME_CANALE } from "./util";
 
 function AnteprimaPost({
@@ -57,7 +58,7 @@ function AnteprimaPost({
       </Text>
       {!!v?.hashtag?.length && (
         <Text size="xs" c="verde" mt={4}>
-          {v.hashtag.join(" ")}
+          {conCancelletto(v.hashtag)}
         </Text>
       )}
       {post.riempitivo === "cartolina" ? (
@@ -113,18 +114,21 @@ export function PostCard({
   bottega,
   citta,
   tema,
+  statoCampagna,
+  ricarica,
 }: {
   post: PostVista;
   bottega: string;
   citta: string | null;
   tema: string;
+  statoCampagna: string;
+  ricarica: () => void;
 }) {
-  const [storico, setStorico] = useState(false);
   const v = post.versione_corrente;
   const errori = erroriDi(post);
   const blocchi = errori.filter((e) => e.livello === "blocco");
   const avvisi = errori.filter((e) => e.livello === "avviso");
-  const inCorso = !!post.intervento_in_corso;
+  const inCorso = interventoAttivo(post);
 
   return (
     <Card
@@ -180,14 +184,6 @@ export function PostCard({
           </Group>
         </Group>
 
-        {inCorso && (
-          <Alert color="yellow" variant="light" py="xs">
-            <b>{post.intervento_in_corso}</b> sta intervenendo su questo post
-            {post.intervento_dal ? ` dal ${dataOra(post.intervento_dal)}` : ""}.
-            Finché lavora lei, nessun altro lo tocca.
-          </Alert>
-        )}
-
         {!v ? (
           <Alert color="gray" variant="light">
             Testo non ancora scritto:{" "}
@@ -234,66 +230,12 @@ export function PostCard({
           </Text>
         )}
 
-        {post.versioni.length > 0 && (
-          <UnstyledButton onClick={() => setStorico((s) => !s)}>
-            <Text size="sm" c="verde">
-              {storico
-                ? "− Chiudi lo storico"
-                : `Storico (${post.versioni.length})`}
-            </Text>
-          </UnstyledButton>
-        )}
-        {storico && (
-          <Stack gap="sm">
-            {post.versioni.map((ver) => (
-              <Paper key={ver.id} withBorder radius="md" p="sm">
-                <Group justify="space-between">
-                  <Text size="sm" fw={600}>
-                    Versione {ver.numero}
-                  </Text>
-                  <Text size="xs" c="dimmed">
-                    {ver.creata_il ? dataOra(ver.creata_il) : ""}
-                  </Text>
-                </Group>
-                <Text size="xs" c="dimmed">
-                  {ver.tipo_intervento} ·{" "}
-                  {ver.autore_id == null ? "AI" : "operatore"}
-                </Text>
-                {ver.testo && (
-                  <Text
-                    size="sm"
-                    mt={6}
-                    c={ver.numero === v?.numero ? undefined : "dimmed"}
-                    style={{ whiteSpace: "pre-line" }}
-                  >
-                    {ver.testo}
-                  </Text>
-                )}
-                {!!ver.hashtag?.length && (
-                  <Text size="xs" c="verde" mt={4}>
-                    {ver.hashtag.join(" ")}
-                  </Text>
-                )}
-                {ver.nota && (
-                  <Text size="xs" mt={4}>
-                    Nota: {ver.nota}
-                  </Text>
-                )}
-                {(Array.isArray(ver.errori_validazione)
-                  ? ver.errori_validazione
-                  : []
-                ).map((e) => (
-                  <Text key={e.regola} size="xs" mt={4}>
-                    <Text span ff="monospace">
-                      [{e.livello} · {e.regola}]
-                    </Text>{" "}
-                    {e.messaggio}
-                  </Text>
-                ))}
-              </Paper>
-            ))}
-          </Stack>
-        )}
+        <AzioniPost
+          post={post}
+          statoCampagna={statoCampagna}
+          ricarica={ricarica}
+        />
+        <StoricoVersioni post={post} />
 
         {post.riempitivo === "cartolina" && (
           <Text size="xs" c="dimmed">
