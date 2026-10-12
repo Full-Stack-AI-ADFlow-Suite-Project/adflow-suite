@@ -24,6 +24,13 @@ VERSIONE_PROMPT = "finto-1"
 
 OPERAZIONI = ("analizza_gruppo", "pianifica_campagna", "genera_post")
 ORA_DI_USCITA = time(10, 0)
+# Il testo del post: la prima frase è quella di sempre, le altre servono alle rigenerazioni.
+FRASI = (
+    "{tema}. {nome} vi aspetta in bottega.",
+    "{tema}: venite a scoprirlo da {nome}.",
+    "Da {nome}: {tema}. Passate a trovarci.",
+    "{nome} racconta: {tema}.",
+)
 TEMI_DEI_RIEMPITIVI = (
     "Dietro ogni pezzo c'è una storia",
     "Fatto a mano, con cura",
@@ -274,20 +281,38 @@ class AIFinto(AIAdapter):
         *,
         testo_precedente: str | None = None,
         violazioni: Sequence[Mapping[str, Any]] | None = None,
+        versioni_rifiutate: Sequence[str] | None = None,
+        testo_proposto: str | None = None,
+        nota: str | None = None,
     ) -> PostScritto:
-        self.chiamate.append(
-            {
-                "operazione": "genera_post",
-                "canale": post.canale,
-                "tema": post.tema,
-                "riscrittura": testo_precedente is not None,
-            }
-        )
+        chiamata = {
+            "operazione": "genera_post",
+            "canale": post.canale,
+            "tema": post.tema,
+            "riscrittura": testo_precedente is not None,
+        }
+        # Nelle rigenerazioni si vede che cosa è arrivato all'AI (R-04).
+        if versioni_rifiutate:
+            chiamata["rifiutate"] = list(versioni_rifiutate)
+        if testo_proposto is not None:
+            chiamata["testo_proposto"] = testo_proposto
+        if nota:
+            chiamata["nota"] = nota
+        self.chiamate.append(chiamata)
         self._solleva(
             "genera_post", foto=[foto.id for foto in post.foto], canale=post.canale
         )
         nome = snapshot.get("nome") or "La bottega"
-        testo = f"{post.tema}. {nome} vi aspetta in bottega."
+        rifiutate = {uno.strip() for uno in versioni_rifiutate or []}
+        if testo_proposto is not None:
+            testo = testo_proposto.strip()
+        else:
+            # La prima frase che l'operatore non ha già scartato.
+            frasi = [frase.format(tema=post.tema, nome=nome) for frase in FRASI]
+            testo = next(
+                (frase for frase in frasi if frase not in rifiutate),
+                f"{frasi[0]} ({len(rifiutate)})",
+            )
         hashtag = ["artigianato", "fattoamano"]
         for comandato in self._testi:
             if comandato.volte == 0:
