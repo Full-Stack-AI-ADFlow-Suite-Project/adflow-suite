@@ -165,7 +165,7 @@ Finché un endpoint non è su `main`, la pagina usa dati di esempio con la forma
 
 | ID | Task | Tocca | Leggi | Dipende da | Fatto quando | ☐ |
 |---|---|---|---|---|---|---|
-| T2b-21 | Funzioni di campagne: `togli_canale()` (il canale va in `canali_tolti`; mai l'ultimo), `ultima_nota()`, `campagne_di()` | in `campagne/service.py` il corpo delle tre funzioni | plan §6; spec R-18, R-32 | T2b-01 | un test per funzione; togliere l'ultimo canale → errore (CA-53, funzione) | ☐ |
+| T2b-21 | Funzioni di campagne: `togli_canale()` (il canale va in `canali_tolti`; mai l'ultimo), `ultima_nota()`, `campagne_di()` | in `campagne/service.py` il corpo delle tre funzioni | plan §6; spec R-18, R-32 | T2b-01 | un test per funzione; togliere l'ultimo canale → errore (CA-53, funzione) | ☑ |
 | T2b-22 | Cosa vede l'artigiano: elenco e dettaglio delle sue campagne secondo spec §4: nessun piano e nessun post prima dell'approvazione, respinta con motivo, nota e foto da rifare, scaduta con avviso, canale tolto con la nota, mai le note interne; ordine di apertura; campagne passate | `campagne/viste.py` (nuovo), `campagne/router.py`, `campagne/schemas.py` | spec §4, R-15, R-32; plan §3 | T2b-21 | CA-31, CA-70 (API), CA-23 (l'artigiano non vede la nota), CA-53 (l'artigiano vede il canale tolto e la nota) | ☐ |
 
 ### Corsia 3 · Contenuti (Giovanni)
