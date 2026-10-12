@@ -156,6 +156,14 @@ class DecisioneSintetica(BaseModel):
     nota: str | None = None
 
 
+class EsitoRespinta(BaseModel):
+    """Ciò che l'artigiano legge di una campagna respinta (spec §4, R-18)."""
+
+    motivo: str
+    nota: str | None = None
+    foto_segnate: list[int] = []
+
+
 class CampagnaDettaglio(BaseModel):
     """Dettaglio completo di una campagna (GET /campagne/{id})."""
 
@@ -179,6 +187,7 @@ class CampagnaDettaglio(BaseModel):
     avvisi: list[str] = []
     profilo_snapshot: dict[str, Any] | list[Any] | None = None
     decisioni: list[DecisioneSintetica] = []
+    esito_respinta: EsitoRespinta | None = None
 
 
 class CampagnaElencoItem(BaseModel):
