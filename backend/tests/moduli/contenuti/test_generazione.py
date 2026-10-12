@@ -1042,3 +1042,96 @@ def test_campagna_in_bozza_non_ha_job_da_fare(db, ai):
 
     assert _job(campagna.id) == 1
     assert campagna.stato == "bozza"
+
+
+# --- Notifiche della generazione (T2b-34, CA-55) ------------------------------
+
+
+def _notifiche(db, campagna, tipo: str) -> list:
+    """Le notifiche di un tipo scritte per la campagna."""
+    from app.moduli.notifiche.models import Notifica
+
+    return list(
+        db.scalars(
+            select(Notifica).where(
+                Notifica.campagna_id == campagna.id, Notifica.tipo == tipo
+            )
+        )
+    )
+
+
+def test_ca55_campagna_pronta_avvisa_gli_operatori(db, ai):
+    """Generazione arrivata in fondo → `in_revisione`, notifica `campagna_pronta`."""
+    from tests.moduli.accesso.fabbrica import utente
+
+    campagna = _campagna(db)
+    operatore = utente(db, "operatore")
+    admin = utente(db, "admin")
+
+    _job(campagna.id)
+
+    assert campagna.stato == "in_revisione"
+    note = _notifiche(db, campagna, "campagna_pronta")
+    assert {una.utente_id for una in note} == {operatore.id, admin.id}
+    assert all(una.post_id is None for una in note)
+    assert all(una.stato_invio == "da_inviare" for una in note)
+
+
+def test_ca55_piano_da_rivedere_avvisa_gli_operatori(db, ai):
+    """Piano debole → `piano_da_rivedere` con la sua notifica, poi Prosegui."""
+    from tests.moduli.accesso.fabbrica import utente
+
+    campagna = _campagna(db, n_foto=4)
+    ids = _foto_ids(db, campagna)
+    ai.comanda_analisi(ids[2], idonea=False, motivo="Foto scura")
+    ai.comanda_analisi(ids[3], idonea=False, motivo="Foto mossa")
+    operatore = utente(db, "operatore")
+
+    assert _job(campagna.id) == 1
+
+    assert campagna.stato == "piano_da_rivedere"
+    [notifica] = _notifiche(db, campagna, "piano_da_rivedere")
+    assert notifica.utente_id == operatore.id
+    assert _notifiche(db, campagna, "campagna_pronta") == []
+
+    # Prosegui (in `revisione`): torna `in_generazione` e arriva in fondo.
+    campagne.cambia_stato(db, campagna, "in_generazione")
+    db.commit()
+    assert _job(campagna.id) == 1
+
+    assert campagna.stato == "in_revisione"
+    [pronta] = _notifiche(db, campagna, "campagna_pronta")
+    assert pronta.utente_id == operatore.id
+
+
+def test_ca55_generazione_fallita_una_notifica_sola_per_evento(db, ai):
+    """Tre esecuzioni fallite → `generazione_fallita`, una notifica; un altro
+    giro dopo Riprova è lo stesso evento e non la ripete."""
+    from tests.moduli.accesso.fabbrica import utente
+
+    campagna = _campagna(db)
+    operatore = utente(db, "operatore")
+    ai.comanda_errore("pianifica_campagna", "temporaneo", volte=None)
+
+    assert _job(campagna.id) == 3
+
+    assert campagna.stato == "generazione_fallita"
+    [notifica] = _notifiche(db, campagna, "generazione_fallita")
+    assert notifica.utente_id == operatore.id
+
+    _riprova(db, campagna)
+    assert _job(campagna.id) == 3
+
+    assert campagna.stato == "generazione_fallita"
+    assert _notifiche(db, campagna, "generazione_fallita") == [notifica]
+
+
+def test_ca55_un_errore_che_passa_non_manda_notifiche(db, ai):
+    """Un'esecuzione che si riprende da sola non è un evento: niente notifica."""
+    campagna = _campagna(db)
+    ai.comanda_errore("pianifica_campagna", "temporaneo", volte=1)
+
+    assert _job(campagna.id) == 2
+
+    assert campagna.stato == "in_revisione"
+    assert _notifiche(db, campagna, "generazione_fallita") == []
