@@ -340,7 +340,10 @@ def utente(db: Session, utente_id: int) -> Utente:
     Raises:
         NonTrovato: se non esiste nessun utente con quell'id.
     """
-    raise NotImplementedError("T2b-11")
+    record = db.get(Utente, utente_id)
+    if record is None:
+        raise NonTrovato("Utente non trovato.")
+    return record
 
 
 def operatori(db: Session) -> list[Utente]:
@@ -349,4 +352,10 @@ def operatori(db: Session) -> list[Utente]:
     Usata da ``notifiche`` (plan §6, spec R-29: l'admin passa dove passa
     l'operatore). Ordinati per id. Un utente non attivo non c'è.
     """
-    raise NotImplementedError("T2b-11")
+    return list(
+        db.scalars(
+            select(Utente)
+            .where(Utente.attivo.is_(True), Utente.ruolo.in_(("operatore", "admin")))
+            .order_by(Utente.id)
+        )
+    )
