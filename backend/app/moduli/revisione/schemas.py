@@ -4,7 +4,7 @@ e dei corpi delle richieste degli interventi sul post (T2b-42)."""
 from datetime import date, datetime
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class PostModifica(BaseModel):
@@ -173,6 +173,33 @@ class VediCampagnaSchema(BaseModel):
     uscite: list[UscitaSchema]
     foto_non_usate: list[GruppoFotoNonUsateSchema]
     ultimo_errore: ErroreSchema | None
+
+
+class CampagnaNota(BaseModel):
+    """Corpo di ``POST /campagne/{id}/nota``: la nota interna (R-32)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    nota: str = Field(min_length=1)
+
+
+class CampagnaRespingi(BaseModel):
+    """Corpo di ``POST /campagne/{id}/respingi`` (R-18, CA-24, CA-25)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    motivo: Literal["foto", "altro"]
+    nota: str = Field(min_length=1)
+    foto_segnate: list[int] = []
+
+
+class CampagnaTogliCanale(BaseModel):
+    """Corpo di ``POST /campagne/{id}/togli-canale`` (CA-53)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    canale: str
+    nota: str = Field(min_length=1)
 
 
 class CampagnaRiattiva(BaseModel):
