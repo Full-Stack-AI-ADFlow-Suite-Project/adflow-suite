@@ -465,6 +465,64 @@ def foto_per_id(db: Session, ids: Iterable[int]) -> list[Foto]:
     return list(db.scalars(select(Foto).where(Foto.id.in_(cercati)).order_by(Foto.id)))
 
 
+def campagne_di(
+    db: Session,
+    profilo_id: int,
+    stati: Iterable[str] | None = None,
+) -> list[Campagna]:
+    """Le campagne di una bottega, anche in più stati insieme.
+
+    Usata da ``revisione`` per le letture dell'operatore su un artigiano
+    (plan §6). Ordinate dalla più recente: per ``inizio`` decrescente, poi per
+    id decrescente. Con ``stati`` solo quelle in uno di quegli stati; senza,
+    tutte, bozza compresa.
+
+    Args:
+        db: sessione del database (aperta e chiusa dal chiamante).
+        profilo_id: il profilo della bottega; uno che non esiste non ha campagne.
+        stati: gli stati che interessano, facoltativi.
+
+    Returns:
+        Lista di ``Campagna``, vuota se non ce ne sono.
+    """
+    raise NotImplementedError("T2b-21")
+
+
+def togli_canale(db: Session, campagna: Campagna, canale: str) -> None:
+    """Toglie un canale alla campagna: va in ``canali_tolti`` e non torna (R-18).
+
+    Usata da ``revisione`` per ``POST /campagne/{id}/togli-canale``. Scrive
+    solo il canale: gli stati, i post e la decisione sono di chi chiama, che
+    scarta i post del canale con ``contenuti.scarta_post_del_canale()`` e
+    registra la decisione ``canale_tolto``. Togliere un canale già tolto non
+    cambia niente.
+
+    Args:
+        db: sessione del database (aperta e chiusa dal chiamante).
+        campagna: il record ``Campagna`` da aggiornare (già caricato in sessione).
+        canale: uno dei canali della campagna.
+
+    Raises:
+        DatiNonValidi: il canale non è tra quelli della campagna (422).
+        StatoNonValido: è l'ultimo canale che resta (409, CA-53).
+    """
+    raise NotImplementedError("T2b-21")
+
+
+def ultima_nota(db: Session, campagna_id: int) -> DecisioneCampagna | None:
+    """L'ultima nota interna della campagna, o ``None`` se non ce n'è (R-32).
+
+    Usata da ``revisione`` per gli elenchi dell'operatore. È la decisione più
+    recente con esito ``nota``: le note le leggono solo gli operatori, a chi
+    chiama il compito di non darle all'artigiano.
+
+    Args:
+        db: sessione del database (aperta e chiusa dal chiamante).
+        campagna_id: chiave primaria della campagna.
+    """
+    raise NotImplementedError("T2b-21")
+
+
 def crea_bozza(
     db: Session,
     utente_id: int,
