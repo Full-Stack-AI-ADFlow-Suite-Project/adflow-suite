@@ -16,6 +16,7 @@ import {
 import { Link } from "react-router-dom";
 
 import type { PostVista } from "../../../api/revisione";
+import { RiprogrammaPost } from "../vedi-campagna/decisioni/RiprogrammaPost";
 import { AzioniPost } from "../vedi-campagna/post/AzioniPost";
 import { conCancelletto, interventoAttivo } from "../vedi-campagna/post/regole";
 import { StoricoVersioni } from "../vedi-campagna/post/StoricoVersioni";
@@ -235,6 +236,10 @@ export function PostCard({
           statoCampagna={statoCampagna}
           ricarica={ricarica}
         />
+        {post.stato === "fallito" &&
+          (statoCampagna === "attiva" || statoCampagna === "sospesa") && (
+            <RiprogrammaPost post={post} ricarica={ricarica} />
+          )}
         <StoricoVersioni post={post} />
 
         {post.riempitivo === "cartolina" && (

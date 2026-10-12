@@ -40,6 +40,12 @@ const ESITI: Record<string, string> = {
   proseguita: "Proseguita",
   respinta: "Respinta",
   riaperta: "Riaperta",
+  nota: "Nota interna",
+  canale_tolto: "Canale tolto",
+  sospesa: "Sospesa",
+  riattivata: "Riattivata",
+  annullata: "Annullata",
+  riprogrammato: "Riprogrammato",
 };
 
 export function Materiali({
