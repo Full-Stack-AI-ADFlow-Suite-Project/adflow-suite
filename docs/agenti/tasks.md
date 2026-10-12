@@ -158,7 +158,7 @@ Finché un endpoint non è su `main`, la pagina usa dati di esempio con la forma
 
 | ID | Task | Tocca | Leggi | Dipende da | Fatto quando | ☐ |
 |---|---|---|---|---|---|---|
-| T2b-11 | Notifiche: `crea()` scrive una riga per destinatario (l'artigiano della campagna o gli operatori, secondo il tipo) e accoda `invia_notifica`; lo stesso evento non crea due volte la stessa notifica (stesso destinatario, campagna, tipo e post: plan §6) | `notifiche/service.py` | plan §2, §4, §6; spec §2.2, §4, R-32 | T2b-01 | un test per tipo di notifica, con i suoi destinatari; nessun doppione; nessuna email inviata nei test | ☐ |
+| T2b-11 | Notifiche: `crea()` scrive una riga per destinatario (l'artigiano della campagna o gli operatori, secondo il tipo) e accoda `invia_notifica`; lo stesso evento non crea due volte la stessa notifica (stesso destinatario, campagna, tipo e post: plan §6) | `notifiche/service.py` | plan §2, §4, §6; spec §2.2, §4, R-32 | T2b-01 | un test per tipo di notifica, con i suoi destinatari; nessun doppione; nessuna email inviata nei test | ☑ |
 | T2b-12 | Email: adattatore (`invia()`, finto, SMTP verso il catcher locale); job `invia_notifica` con 3 tentativi, `stato_invio` e `inviata_il`; testo di ogni tipo di email, con motivo, nota e miniature per la respinta | `adapters/email/`, `notifiche/jobs.py`, `notifiche/testi.py` (nuovo) | plan §4, §5; spec §4, R-18; constitution §3 | T2b-11 | CA-25 (email con motivo, nota e 2 miniature), CA-30 (email della scaduta); errore ×3 → invio fallito; nessun dato personale nei log | ☐ |
 
 ### Corsia 2 · Campagne (Silvia)
