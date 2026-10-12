@@ -140,7 +140,13 @@ def test_ca25_respingi_foto_scarta_i_post_e_avvisa(db, client, utente_di_prova, 
     assert notifica.tipo == "campagna_respinta"
     assert notifica.utente_id == artigiano.id
     assert notifica.stato_invio == "da_inviare"
-    assert any(j["task_name"] == "invia_notifica" for j in coda.jobs.values())
+    job = next(j for j in coda.jobs.values() if j["task_name"] == "invia_notifica")
+    contenuto = job["args"]["contenuto"]
+    assert contenuto["titolo"] == campagna.titolo
+    assert contenuto["motivo"] == "foto"
+    assert contenuto["nota"] == "Le foto del banco sono troppo buie."
+    assert {foto["nome"] for foto in contenuto["foto"]} == {f.file for f in segnate}
+    assert {foto["mime"] for foto in contenuto["foto"]} == {f.mime for f in segnate}
 
 
 def test_respingi_foto_di_altra_campagna_422(db, client, utente_di_prova):

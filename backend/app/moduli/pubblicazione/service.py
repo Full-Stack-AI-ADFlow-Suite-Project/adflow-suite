@@ -19,6 +19,23 @@ from .models import Pubblicazione
 TENTATIVI_MAX = 3
 
 
+def _notifica_post_fallito(db: Session, post, adesso: datetime) -> None:
+    """Notifica `post_fallito` agli operatori, con titolo e canale nell'email."""
+    campagna = campagne.campagna(db, post.campagna_id)
+    notifiche.crea(
+        db,
+        "post_fallito",
+        post.campagna_id,
+        adesso,
+        post_id=post.id,
+        contenuto={
+            "titolo": campagna.titolo,
+            "canale": post.canale,
+            "data_ora": post.data_ora.strftime("%d/%m/%Y %H:%M"),
+        },
+    )
+
+
 def pubblica_dovuti(
     db: Session,
     adesso: datetime,
@@ -72,7 +89,7 @@ def _pubblica_post(db: Session, post, adesso: datetime) -> None:
     versione = post.versione_corrente
     if versione is None:
         contenuti.segna_esito(db, post, "fallito")
-        notifiche.crea(db, "post_fallito", post.campagna_id, adesso, post_id=post.id)
+        _notifica_post_fallito(db, post, adesso)
         return
 
     tentativo = _registra_tentativo(db, post, versione.id, adesso)
@@ -185,4 +202,4 @@ def _segna_errore(
     tentativo.stato = "errore"
     tentativo.errore = messaggio
     contenuti.segna_esito(db, post, "fallito")
-    notifiche.crea(db, "post_fallito", post.campagna_id, adesso, post_id=post.id)
+    _notifica_post_fallito(db, post, adesso)

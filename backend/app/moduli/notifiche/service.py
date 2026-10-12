@@ -1,20 +1,37 @@
 """Logica del modulo notifiche: l'unica parte che gli altri moduli possono importare."""
 
 from datetime import datetime, timezone
+from io import BytesIO
 
+from PIL import Image, ImageOps
 from sqlalchemy import select, text
 from sqlalchemy.orm import Session
 
+from app.adapters.archivio import ottieni_archivio
+from app.adapters.email import Allegato, Email, ottieni_email
 from app.core.coda import INVIA_NOTIFICA, accoda
 from app.core.errori import DatiNonValidi
 from app.moduli.accesso import service as accesso
 
-from . import domain
+from . import domain, testi
 
 from .models import Notifica
 
 # Namespace distinto dai lock a una chiave usati da altri moduli.
 _LOCK_NOTIFICHE = 0x4E4F5449
+_DIMENSIONI_MINIATURA = (320, 320)
+
+
+def _miniatura(contenuto: bytes) -> bytes:
+    """Riduce una foto segnata a una miniatura JPEG adatta all'email."""
+    with Image.open(BytesIO(contenuto)) as immagine:
+        immagine = ImageOps.exif_transpose(immagine)
+        immagine.thumbnail(_DIMENSIONI_MINIATURA, Image.Resampling.LANCZOS)
+        if immagine.mode != "RGB":
+            immagine = immagine.convert("RGB")
+        buffer = BytesIO()
+        immagine.save(buffer, format="JPEG", optimize=True)
+        return buffer.getvalue()
 
 
 def crea(
@@ -25,6 +42,7 @@ def crea(
     *,
     artigiano_id: int | None = None,
     post_id: int | None = None,
+    contenuto: dict | None = None,
 ) -> list[Notifica]:
     """Scrive una notifica per ogni destinatario dell'evento e accoda l'email.
 
@@ -51,6 +69,10 @@ def crea(
             tipi che lo riguardano, ignorato per gli altri.
         post_id: il post dell'evento; obbligatorio per i tipi di un post
             (``domain.TIPI_DI_UN_POST``), ignorato per gli altri.
+        contenuto: i dati dell'evento per il testo dell'email (chiavi in
+            ``testi.py``: titolo sempre, motivo/nota/foto per la respinta);
+            deve essere serializzabile in JSON perché viaggia negli argomenti
+            del job ``invia_notifica``.
 
     Returns:
         Le notifiche scritte adesso, una per destinatario; vuota se l'evento
@@ -116,5 +138,56 @@ def crea(
     db.flush()
     # La coda ha una connessione propria: dopo tutti i flush, per ultima.
     for notifica in nuove:
-        accoda(INVIA_NOTIFICA, notifica_id=notifica.id)
+        argomenti = {"notifica_id": notifica.id}
+        if contenuto is not None:
+            argomenti["contenuto"] = contenuto
+        accoda(INVIA_NOTIFICA, **argomenti)
     return nuove
+
+
+def invia(
+    db: Session, notifica_id: int, contenuto: dict | None, adesso: datetime
+) -> None:
+    """Compone e spedisce l'email di una notifica ``da_inviare``.
+
+    Il job ``invia_notifica`` la chiama (plan §4): il testo viene da
+    ``testi.py`` con il ``contenuto`` passato da chi ha creato la notifica; le
+    miniature segnate vengono lette dall'adattatore archivio. Una notifica già
+    ``inviata`` o ``fallita`` non riparte: due esecuzioni del job non inviano
+    due email.
+
+    Raises:
+        ErroreInvio: il trasporto email non è riuscito: il job riprova.
+    """
+    notifica = db.get(Notifica, notifica_id)
+    if notifica is None or notifica.stato_invio != domain.DA_INVIARE:
+        return
+    persona = accesso.utente(db, notifica.utente_id)
+    contenuto = contenuto or {}
+    oggetto, corpo = testi.componi(notifica.tipo, contenuto, persona.nome)
+    archivio = ottieni_archivio()
+    allegati = [
+        Allegato(
+            nome=f"miniatura-{indice}.jpg",
+            contenuto=_miniatura(archivio.leggi(foto["nome"])),
+            mime="image/jpeg",
+        )
+        for indice, foto in enumerate(contenuto.get("foto") or [], start=1)
+    ]
+    ottieni_email().invia(
+        Email(
+            destinatario=persona.email,
+            oggetto=oggetto,
+            corpo=corpo,
+            allegati=allegati,
+        )
+    )
+    notifica.stato_invio = domain.INVIATA
+    notifica.inviata_il = adesso
+
+
+def segna_fallita(db: Session, notifica_id: int) -> None:
+    """Esauriti i tentativi: la notifica resta ``fallita`` (plan §4)."""
+    notifica = db.get(Notifica, notifica_id)
+    if notifica is not None and notifica.stato_invio == domain.DA_INVIARE:
+        notifica.stato_invio = domain.FALLITA
