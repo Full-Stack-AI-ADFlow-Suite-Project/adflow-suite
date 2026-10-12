@@ -12,7 +12,7 @@ from app.core.errori import DatiNonValidi
 from app.core.orologio import adesso
 from app.moduli.accesso.service import richiede_ruolo, utente_corrente
 
-from . import archivio, bozza, service
+from . import archivio, bozza, service, viste
 from .schemas import (
     CampagnaCrea,
     CampagnaDettaglio,
@@ -62,6 +62,8 @@ def elenca_campagne(
     stato: Annotated[list[str] | None, Query()] = None,
 ) -> list[CampagnaElencoItem]:
     """Elenca le campagne accessibili all'utente (l'artigiano vede solo le sue, operatore/admin tutte con bottega e città)."""
+    if utente.ruolo == "artigiano":
+        return viste.campagne_artigiano(db, utente.id, stato)
     return service.elenca_campagne(db, utente.id, utente.ruolo, stato)
 
 
@@ -72,6 +74,8 @@ def dettaglio_campagna(
     utente: Annotated[Any, Depends(utente_corrente)],
 ) -> CampagnaDettaglio:
     """Restituisce il dettaglio della campagna (CA-04: 404 se l'artigiano accede a un'altra)."""
+    if utente.ruolo == "artigiano":
+        return viste.dettaglio_artigiano(db, utente.id, id)
     return service.dettaglio_campagna(db, utente.id, utente.ruolo, id)
 
 
