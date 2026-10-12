@@ -8,7 +8,7 @@ from uuid import uuid4
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 from app.moduli.artigiani.models import ProfiloBottega
-from app.moduli.campagne.models import Campagna, Foto, GruppoFoto
+from app.moduli.campagne.models import Campagna, DecisioneCampagna, Foto, GruppoFoto
 from tests.moduli.artigiani.fabbrica import profilo
 
 # L'analisi di una foto che il piano può usare (plan §2, `foto.analisi_ai`).
@@ -185,4 +185,36 @@ def campagna_con_piano_da_rivedere(db: Session, **campi) -> Campagna:
 
     record = _inviata(db, "piano_da_rivedere", **campi)
     piano(db, record, debole=True)
+    return record
+
+
+def campagna_sospesa(db: Session, **campi) -> Campagna:
+    """Campagna approvata e poi sospesa dall'operatore (R-33)."""
+    return _inviata(db, "sospesa", **campi)
+
+
+def nota_interna(
+    db: Session,
+    campagna: Campagna,
+    *,
+    nota: str = "Nota di prova",
+    utente_id: int | None = None,
+    **campi,
+) -> DecisioneCampagna:
+    """Una nota interna dell'operatore: decisione ``nota``, senza cambiare lo stato (R-32)."""
+    from tests.moduli.accesso.fabbrica import utente
+
+    if utente_id is None:
+        utente_id = utente(db, "operatore").id
+    dati = dict(
+        campagna_id=campagna.id,
+        utente_id=utente_id,
+        esito="nota",
+        nota=nota,
+        foto_segnate=[],
+    )
+    dati.update(campi)
+    record = DecisioneCampagna(**dati)
+    db.add(record)
+    db.flush()
     return record

@@ -115,3 +115,10 @@ def post_approvato(db: Session, *, campagna_id: int | None = None, **campi) -> P
     dati = dict(stato="approvato")
     dati.update(campi)
     return post_da_approvare(db, campagna_id=campagna_id, **dati)
+
+
+def post_fallito(db: Session, *, campagna_id: int | None = None, **campi) -> Post:
+    """Post che la pubblicazione non è riuscita a far uscire, in campagna attiva (R-34)."""
+    dati = dict(stato="fallito")
+    dati.update(campi)
+    return post_approvato(db, campagna_id=campagna_id, **dati)

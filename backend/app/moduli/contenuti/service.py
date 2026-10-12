@@ -1,5 +1,6 @@
 """Logica del modulo contenuti: l'unica parte che gli altri moduli possono importare."""
 
+from collections.abc import Iterable
 from datetime import datetime, timedelta
 
 from sqlalchemy import select, or_, and_
@@ -218,3 +219,167 @@ def ultimo_errore(db: Session, campagna_id: int) -> ErroreGenerazione | None:
         .order_by(ErroreGenerazione.creata_il.desc(), ErroreGenerazione.id.desc())
         .limit(1)
     )
+
+
+def scarta_post_della_campagna(db: Session, campagna_id: int) -> list[Post]:
+    """Porta a ``scartato`` tutti i post ``da_approvare`` della campagna.
+
+    Usata da ``revisione`` quando si respinge (plan §6, spec R-18). Ogni
+    cambio di stato passa da ``verifica_transizione()``. I post che non sono
+    ``da_approvare`` restano come sono; l'ordine dei passaggi di campagna è di
+    chi chiama.
+
+    Returns:
+        I post scartati adesso, in ordine di data; vuota se non ce n'erano.
+    """
+    raise NotImplementedError("T2b-31")
+
+
+def scarta_post_del_canale(db: Session, campagna_id: int, canale: str) -> list[Post]:
+    """Porta a ``scartato`` i post ``da_approvare`` di un canale della campagna.
+
+    Usata da ``revisione`` quando si toglie un canale (plan §6, spec R-18,
+    CA-53). Come ``scarta_post_della_campagna()``, ma solo per quel canale.
+
+    Returns:
+        I post scartati adesso, in ordine di data; vuota se non ce n'erano.
+    """
+    raise NotImplementedError("T2b-31")
+
+
+def scadi_post(db: Session, campagna_id: int, adesso: datetime) -> list[Post]:
+    """Porta a ``scaduto`` i post ``da_approvare`` con la data passata (R-06).
+
+    Usata da ``revisione.scadenze()`` a ogni tick (plan §6). Non decide se
+    scade la campagna: questo lo guarda ``revisione``, sui post rimasti. Due
+    chiamate di seguito con lo stesso ``adesso``: la seconda non cambia nulla.
+
+    Returns:
+        I post scaduti adesso, in ordine di data; vuota se non ce n'erano.
+    """
+    raise NotImplementedError("T2b-31")
+
+
+def annulla_post(
+    db: Session, campagna_id: int, post_ids: Iterable[int] | None = None
+) -> list[Post]:
+    """Porta ad ``annullato`` i post ``approvato`` della campagna (R-33).
+
+    Usata da ``revisione`` per annullare la campagna (tutti i post approvati)
+    e per riattivarla (solo gli arretrati che l'operatore non vuole pubblicare
+    adesso). Con ``post_ids`` solo quei post, se sono ``approvato``; senza,
+    tutti quelli approvati. Un post ``annullato`` è chiuso e non si pubblica.
+
+    Returns:
+        I post annullati adesso, in ordine di data; vuota se non ce n'erano.
+    """
+    raise NotImplementedError("T2b-31")
+
+
+def riprogramma_post(
+    db: Session, post_id: int, data_ora: datetime, adesso: datetime
+) -> Post:
+    """Rimette in coda un post ``fallito`` con una nuova data (R-34, CA-67).
+
+    Usata da ``revisione`` per ``POST /post/{id}/riprogramma``: l'unico
+    intervento sul singolo post che la campagna attiva o sospesa ammette
+    (R-16). Il post torna ``approvato``; il contenuto non cambia. La
+    decisione ``riprogrammato`` la registra chi chiama.
+
+    Raises:
+        NonTrovato: se non esiste nessun post con quell'id.
+        StatoNonValido: il post non è ``fallito`` (409).
+        DatiNonValidi: ``data_ora`` fuori dal periodo della campagna o a meno
+            di 15 minuti da ``adesso`` (422).
+    """
+    raise NotImplementedError("T2b-31")
+
+
+def segna_controllato(
+    db: Session, post_id: int, utente_id: int, valore: bool, adesso: datetime
+) -> Post:
+    """Mette o toglie la spunta «va bene» di un post (R-30, CA-65).
+
+    Usata da ``revisione`` (plan §6). Con ``valore`` vero salva ``utente_id`` in
+    ``controllato_da`` e ``adesso`` in ``controllato_il``; con falso li svuota.
+    La spunta si azzera da sola a ogni nuova versione e a ogni cambio di data.
+
+    Raises:
+        NonTrovato: se non esiste nessun post con quell'id.
+        StatoNonValido: la campagna non è ``in_revisione``, il post non è
+            ``da_approvare``, ha un intervento in corso o, per mettere la
+            spunta, è ``da_rivedere`` (409).
+    """
+    raise NotImplementedError("T2b-31")
+
+
+def modifica_post(
+    db: Session,
+    post_id: int,
+    utente_id: int,
+    testo: str,
+    hashtag: list[str],
+    adesso: datetime,
+) -> VersionePost:
+    """Salva la modifica a mano dell'operatore come nuova versione (R-30, CA-64).
+
+    Usata da ``revisione`` (plan §6). Nasce una versione
+    ``modifica_operatore`` con ``utente_id`` come autore, le stesse foto della
+    precedente, passata dal validatore (R-09). Non conta cicli (R-03) e
+    azzera la spunta. Un post ``da_rivedere`` si sblocca se la nuova versione
+    non ha blocchi.
+
+    Raises:
+        NonTrovato: se non esiste nessun post con quell'id.
+        StatoNonValido: campagna non ``in_revisione``, post non ``da_approvare``
+            o con un intervento in corso (409).
+        DatiNonValidi: la versione avrebbe un blocco o è uguale a quella
+            corrente (422); nessuna versione si salva.
+    """
+    raise NotImplementedError("T2b-32")
+
+
+def puo_rigenerare(db: Session, post_id: int, adesso: datetime) -> bool:
+    """Vero se per il post si può chiedere una rigenerazione del testo (R-03, R-31).
+
+    Usata da ``revisione`` prima di accendere l'intervento (plan §6). Serve che
+    la campagna sia ``in_revisione``, il post ``da_approvare``, senza un
+    intervento in corso partito da meno di 10 minuti e con meno di 3
+    rigenerazioni del testo.
+
+    Raises:
+        NonTrovato: se non esiste nessun post con quell'id.
+    """
+    raise NotImplementedError("T2b-33")
+
+
+def accendi_intervento(db: Session, post_id: int, tipo: str, adesso: datetime) -> Post:
+    """Segna sul post che un intervento dell'AI è in corso (R-31).
+
+    Usata da ``revisione`` prima di accodare ``rigenera_post`` (plan §6).
+    Salva ``tipo`` (uno di ``TIPI_INTERVENTO_IN_CORSO``) in
+    ``intervento_in_corso`` e ``adesso`` in ``intervento_dal``. Lo spegne il
+    job quando nasce la versione o alla terza esecuzione fallita.
+
+    Raises:
+        NonTrovato: se non esiste nessun post con quell'id.
+        StatoNonValido: ``puo_rigenerare()`` sarebbe falso (409).
+        DatiNonValidi: ``tipo`` che non esiste (422).
+    """
+    raise NotImplementedError("T2b-33")
+
+
+def ferma_generazione(db: Session, campagna_id: int, adesso: datetime) -> None:
+    """Ferma una campagna rimasta bloccata in ``inviata`` o ``in_generazione`` (R-35).
+
+    Usata da ``revisione.scadenze()`` per le campagne ferme da 30 minuti
+    (plan §6, CA-68). Salva un ``ErroreGenerazione`` di tipo ``temporaneo`` con
+    un messaggio per l'operatore, poi porta la campagna a
+    ``generazione_fallita`` con ``campagne.cambia_stato()``. L'errore sta qui
+    perché ``errore_generazione`` è di ``contenuti``.
+
+    Raises:
+        NonTrovato: se non esiste nessuna campagna con quell'id.
+        StatoNonValido: la campagna non è ``inviata`` né ``in_generazione`` (409).
+    """
+    raise NotImplementedError("T2b-44")

@@ -329,3 +329,24 @@ def cambia_password(db: Session, email: str, password: str) -> None:
     record.deve_cambiare_password = False
     db.execute(delete(Sessione).where(Sessione.utente_id == record.id))
     db.flush()
+
+
+def utente(db: Session, utente_id: int) -> Utente:
+    """L'utente con quell'id.
+
+    Usata da ``notifiche`` per l'indirizzo e il nome di un destinatario
+    (plan §6). Non controlla ``attivo``: lo fa chi ne ha bisogno.
+
+    Raises:
+        NonTrovato: se non esiste nessun utente con quell'id.
+    """
+    raise NotImplementedError("T2b-11")
+
+
+def operatori(db: Session) -> list[Utente]:
+    """Gli utenti che ricevono le notifiche degli operatori: operatori e admin attivi.
+
+    Usata da ``notifiche`` (plan §6, spec R-29: l'admin passa dove passa
+    l'operatore). Ordinati per id. Un utente non attivo non c'è.
+    """
+    raise NotImplementedError("T2b-11")
