@@ -1,4 +1,6 @@
-import { Select, SimpleGrid, Stack } from "@mantine/core";
+import { useEffect, useState } from "react";
+import { Alert, Button, Loader, Select, SimpleGrid, Stack, Text } from "@mantine/core";
+import { leggiProfilo } from "../../../../api/artigiani";
 
 import type {
   DatiProfilo,
@@ -23,6 +25,17 @@ export function Passo7({
   logo: string | null;
   onLogoCambiato: (nuovoLogo: string | null) => void;
 }) {
+  const [profilo, setProfilo] = useState<"caricamento" | "presente" | "assente" | "errore">("caricamento");
+  const [tentativo, setTentativo] = useState(0);
+
+  useEffect(() => {
+    let attivo = true;
+    leggiProfilo()
+      .then((p) => { if (attivo) setProfilo(p ? "presente" : "assente"); })
+      .catch(() => { if (attivo) setProfilo("errore"); });
+    return () => { attivo = false; };
+  }, [tentativo]);
+
   const policy = (
     campo: "quantita_mese" | "chi_scatta" | "persone",
     label: string,
@@ -53,9 +66,30 @@ export function Passo7({
         {policy("persone", "Persone riconoscibili nelle foto")}
       </SimpleGrid>
 
-      <SezioneLogo logo={logo} onLogoCambiato={onLogoCambiato} />
-
-      <SezioneArchivio />
+      {profilo === "presente" ? (
+        <>
+          <SezioneLogo logo={logo} onLogoCambiato={onLogoCambiato} />
+          <SezioneArchivio />
+        </>
+      ) : profilo === "assente" ? (
+        <Alert color="blue" title="Prima salva il profilo">
+          Logo e archivio della bottega saranno disponibili dopo il primo salvataggio.
+          Completa il passo 9, poi riapri Profilo bottega e torna al passo 7 per caricare logo e foto.
+        </Alert>
+      ) : profilo === "errore" ? (
+        <Alert color="red" title="Logo e archivio non disponibili">
+          <Text size="sm">Non riesco a verificare se il profilo è già salvato. Riprova.</Text>
+          <Button mt="sm" variant="default" onClick={() => {
+            setProfilo("caricamento");
+            setTentativo((n) => n + 1);
+          }}>Riprova</Button>
+        </Alert>
+      ) : (
+        <Stack align="center" gap="xs">
+          <Loader size="sm" aria-label="Verifica del profilo" />
+          <Text size="sm" c="dimmed">Verifico se logo e archivio sono disponibili.</Text>
+        </Stack>
+      )}
     </Stack>
   );
 }
