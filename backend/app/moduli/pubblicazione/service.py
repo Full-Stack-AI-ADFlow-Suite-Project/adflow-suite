@@ -10,6 +10,7 @@ from app.adapters.social import ottieni_social
 from app.moduli.artigiani import service as artigiani
 from app.moduli.campagne import service as campagne
 from app.moduli.contenuti import service as contenuti
+from app.moduli.notifiche import service as notifiche
 
 from .models import Pubblicazione
 
@@ -71,13 +72,14 @@ def _pubblica_post(db: Session, post, adesso: datetime) -> None:
     versione = post.versione_corrente
     if versione is None:
         contenuti.segna_esito(db, post, "fallito")
+        notifiche.crea(db, "post_fallito", post.campagna_id, adesso, post_id=post.id)
         return
 
     tentativo = _registra_tentativo(db, post, versione.id, adesso)
 
     problema = _verifica_pubblicabile(db, post, versione)
     if problema is not None:
-        _segna_errore(db, post, tentativo, problema)
+        _segna_errore(db, post, tentativo, problema, adesso)
         return
 
     archivio = ottieni_archivio()
@@ -96,7 +98,9 @@ def _pubblica_post(db: Session, post, adesso: datetime) -> None:
             for legame in versione.legami_foto
         ]
     except (KeyError, FileNotFoundError):
-        _segna_errore(db, post, tentativo, "File della foto non trovato nell'archivio.")
+        _segna_errore(
+            db, post, tentativo, "File della foto non trovato nell'archivio.", adesso
+        )
         return
 
     esito = ottieni_social().pubblica(versione.testo, list(versione.hashtag), byte_foto)
@@ -112,7 +116,7 @@ def _pubblica_post(db: Session, post, adesso: datetime) -> None:
         pass  # resta in_corso: il prossimo tick riprova
     else:
         _segna_errore(
-            db, post, tentativo, esito.errore or "Pubblicazione non riuscita."
+            db, post, tentativo, esito.errore or "Pubblicazione non riuscita.", adesso
         )
 
 
@@ -174,8 +178,11 @@ def _verifica_pubblicabile(db: Session, post, versione) -> str | None:
     return None
 
 
-def _segna_errore(db: Session, post, tentativo: Pubblicazione, messaggio: str) -> None:
-    """Chiude il tentativo in errore e porta il post a ``fallito``."""
+def _segna_errore(
+    db: Session, post, tentativo: Pubblicazione, messaggio: str, adesso: datetime
+) -> None:
+    """Chiude il tentativo in errore, porta il post a ``fallito`` e avvisa gli operatori (CA-55)."""
     tentativo.stato = "errore"
     tentativo.errore = messaggio
     contenuti.segna_esito(db, post, "fallito")
+    notifiche.crea(db, "post_fallito", post.campagna_id, adesso, post_id=post.id)

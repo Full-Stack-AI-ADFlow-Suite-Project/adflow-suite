@@ -175,6 +175,32 @@ class VediCampagnaSchema(BaseModel):
     ultimo_errore: ErroreSchema | None
 
 
+class ConteggiPost(BaseModel):
+    """Conteggi dei post di una campagna in «Campagne da approvare» (plan §3)."""
+
+    totale: int
+    da_approvare: int
+    da_rivedere: int
+    riempitivi: dict[str, int] = {}
+
+
+class CampagnaDaApprovare(BaseModel):
+    """Una riga di ``GET /da-approvare`` (R-38): conteggi, entro quando, ultima nota."""
+
+    id: int
+    profilo_id: int
+    titolo: str
+    inizio: date
+    fine: date
+    stato: str
+    canali: list[str] | None = None
+    bottega: str | None = None
+    citta: str | None = None
+    conteggi: ConteggiPost | None = None
+    entro_quando: datetime | None = None
+    ultima_nota: str | None = None
+
+
 class CampagnaNota(BaseModel):
     """Corpo di ``POST /campagne/{id}/nota``: la nota interna (R-32)."""
 
