@@ -422,7 +422,9 @@ def modifica_post(
         DatiNonValidi: la versione avrebbe un blocco o è uguale a quella
             corrente (422); nessuna versione si salva.
     """
-    raise NotImplementedError("T2b-32")
+    from .interventi import modifica  # interventi importa questo modulo
+
+    return modifica(db, post_id, utente_id, testo, hashtag, adesso)
 
 
 def puo_rigenerare(db: Session, post_id: int, adesso: datetime) -> bool:
