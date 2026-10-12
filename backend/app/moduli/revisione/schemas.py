@@ -141,3 +141,15 @@ class VediCampagnaSchema(BaseModel):
     uscite: list[UscitaSchema]
     foto_non_usate: list[GruppoFotoNonUsateSchema]
     ultimo_errore: ErroreSchema | None
+
+
+class CampagnaRiattiva(BaseModel):
+    """Corpo di ``POST /campagne/{id}/riattiva`` (plan §3, R-33).
+
+    ``pubblica_ora``: gli id dei post approvati in arretrato che escono
+    subito; gli altri arretrati diventano ``annullato``.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    pubblica_ora: list[int] = []
