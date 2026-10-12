@@ -485,7 +485,16 @@ def campagne_di(
     Returns:
         Lista di ``Campagna``, vuota se non ce ne sono.
     """
-    raise NotImplementedError("T2b-21")
+    condizioni = [Campagna.profilo_id == profilo_id]
+    if stati is not None:
+        condizioni.append(Campagna.stato.in_(list(stati)))
+    return list(
+        db.scalars(
+            select(Campagna)
+            .where(*condizioni)
+            .order_by(Campagna.inizio.desc(), Campagna.id.desc())
+        )
+    )
 
 
 def togli_canale(db: Session, campagna: Campagna, canale: str) -> None:
@@ -506,7 +515,15 @@ def togli_canale(db: Session, campagna: Campagna, canale: str) -> None:
         DatiNonValidi: il canale non è tra quelli della campagna (422).
         StatoNonValido: è l'ultimo canale che resta (409, CA-53).
     """
-    raise NotImplementedError("T2b-21")
+    if canale not in (campagna.canali or []):
+        raise DatiNonValidi("Il canale non è tra quelli della campagna.")
+    tolti = list(campagna.canali_tolti or [])
+    if canale in tolti:
+        return
+    if all(c == canale or c in tolti for c in campagna.canali):
+        raise StatoNonValido("Non si può togliere l'ultimo canale della campagna.")
+    campagna.canali_tolti = tolti + [canale]
+    db.flush()
 
 
 def ultima_nota(db: Session, campagna_id: int) -> DecisioneCampagna | None:
@@ -520,7 +537,15 @@ def ultima_nota(db: Session, campagna_id: int) -> DecisioneCampagna | None:
         db: sessione del database (aperta e chiusa dal chiamante).
         campagna_id: chiave primaria della campagna.
     """
-    raise NotImplementedError("T2b-21")
+    return db.scalar(
+        select(DecisioneCampagna)
+        .where(
+            DecisioneCampagna.campagna_id == campagna_id,
+            DecisioneCampagna.esito == "nota",
+        )
+        .order_by(DecisioneCampagna.id.desc())
+        .limit(1)
+    )
 
 
 def crea_bozza(
