@@ -39,7 +39,7 @@ export function urlLogo(logo?: string | null): string | null {
   if (USA_ESEMPI) {
     return `/assets/img/${logo}`;
   }
-  return `/api/profilo/logo`;
+  return `/api/profilo/logo?v=${encodeURIComponent(logo)}`;
 }
 
 export function urlFotoFile(file: string, id?: number): string {
