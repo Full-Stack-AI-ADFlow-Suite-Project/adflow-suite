@@ -10,6 +10,7 @@ from app.moduli.accesso import service as accesso
 from app.moduli.campagne import service as campagne
 from app.moduli.contenuti import service as contenuti
 
+from . import scadenze as scadenze_modulo
 from .models import Approvazione
 from .schemas import (
     CampagnaSchema,
@@ -218,6 +219,4 @@ def scadenze(db: Session, adesso: datetime) -> None:
     ``generazione_fallita`` con ``contenuti.ferma_generazione()``. Due tick di
     seguito con lo stesso ``adesso``: il secondo non cambia nulla.
     """
-    # Finché T2b-44 non scrive il corpo non fa niente: il tick gira ogni minuto
-    # e i percorsi degli sprint prima lo attraversano.
-    return None
+    scadenze_modulo.scadenze(db, adesso)
