@@ -16,7 +16,7 @@ from tests.moduli.campagne.fabbrica import (
     campagna_sospesa,
     nota_interna,
 )
-from tests.moduli.contenuti.fabbrica import post_fallito
+from tests.moduli.contenuti.fabbrica import piano, post_da_approvare, post_fallito
 from tests.moduli.notifiche.fabbrica import notifica
 
 ORA = datetime(2030, 1, 5, 12, tzinfo=timezone.utc)
@@ -103,9 +103,13 @@ def test_firme_dello_sprint_2b(modulo, funzione, parametri):
     assert list(firma.parameters) == parametri
 
 
-def test_scadenze_per_ora_non_fa_niente(db):
-    """Il tick la chiama già: finché T2b-44 non la scrive lascia tutto com'è."""
+def test_scadenze_lascia_stare_una_campagna_sana(db):
+    """Il tick la chiama a ogni minuto: una campagna in revisione con il piano
+    e i suoi post ancora nel futuro non subisce niente (T2b-44)."""
     record = campagna_in_revisione(db)
+    piano(db, record)
+    for _ in range(5):
+        post_da_approvare(db, campagna_id=record.id)
     assert revisione.scadenze(db, ORA) is None
     db.expire(record)
     assert record.stato == "in_revisione"
