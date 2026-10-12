@@ -438,7 +438,9 @@ def puo_rigenerare(db: Session, post_id: int, adesso: datetime) -> bool:
     Raises:
         NonTrovato: se non esiste nessun post con quell'id.
     """
-    raise NotImplementedError("T2b-33")
+    from .interventi import puo_rigenerare as _puo_rigenerare  # importa questo modulo
+
+    return _puo_rigenerare(db, post_id, adesso)
 
 
 def accendi_intervento(db: Session, post_id: int, tipo: str, adesso: datetime) -> Post:
@@ -454,7 +456,9 @@ def accendi_intervento(db: Session, post_id: int, tipo: str, adesso: datetime) -
         StatoNonValido: ``puo_rigenerare()`` sarebbe falso (409).
         DatiNonValidi: ``tipo`` che non esiste (422).
     """
-    raise NotImplementedError("T2b-33")
+    from .interventi import accendi_intervento as _accendi  # importa questo modulo
+
+    return _accendi(db, post_id, tipo, adesso)
 
 
 def ferma_generazione(db: Session, campagna_id: int, adesso: datetime) -> None:

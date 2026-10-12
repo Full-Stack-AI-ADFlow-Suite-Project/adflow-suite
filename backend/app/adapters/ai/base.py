@@ -173,6 +173,9 @@ class AIAdapter(ABC):
         *,
         testo_precedente: str | None = None,
         violazioni: Sequence[Mapping[str, Any]] | None = None,
+        versioni_rifiutate: Sequence[str] | None = None,
+        testo_proposto: str | None = None,
+        nota: str | None = None,
     ) -> PostScritto:
         """Scrive testo e hashtag di un post per il suo canale.
 
@@ -180,5 +183,10 @@ class AIAdapter(ABC):
             scheda: la scheda del canale del post (R-21).
             testo_precedente, violazioni: nelle riscritture, il testo che non
                 ha passato il validatore e ciò che il validatore ha trovato.
+            versioni_rifiutate: nelle rigenerazioni, i testi delle versioni che
+                l'operatore ha già scartato: esempi di «cosa non rifare» (R-04).
+            testo_proposto: nella rigenerazione da testo proposto, il testo
+                dell'operatore da cui partire.
+            nota: la nota facoltativa dell'operatore per la rigenerazione.
         """
         raise NotImplementedError
