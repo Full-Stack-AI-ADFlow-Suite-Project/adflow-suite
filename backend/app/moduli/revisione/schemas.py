@@ -1,9 +1,41 @@
-"""Schemi delle risposte di ``GET /campagne/{id}/post`` (plan §3, spec §2.3)."""
+"""Schemi delle risposte di ``GET /campagne/{id}/post`` (plan §3, spec §2.3)
+e dei corpi delle richieste degli interventi sul post (T2b-42)."""
 
 from datetime import date, datetime
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict
+
+
+class PostModifica(BaseModel):
+    """Corpo di ``POST /post/{id}/modifica`` (R-30): testo e hashtag nuovi."""
+
+    testo: str
+    hashtag: list[str] = []
+
+
+class PostControllato(BaseModel):
+    """Corpo di ``POST /post/{id}/controllato``: la spunta «va bene» (R-30)."""
+
+    valore: bool
+
+
+class PostRigenera(BaseModel):
+    """Corpo di ``POST /post/{id}/rigenera`` (R-03, R-31).
+
+    ``totale`` riscrive da zero; ``da_proposta`` parte dal testo scritto
+    dall'operatore, obbligatorio in quel caso (422).
+    """
+
+    modalita: Literal["totale", "da_proposta"]
+    testo_proposto: str | None = None
+    nota: str | None = None
+
+
+class PostRiprogramma(BaseModel):
+    """Corpo di ``POST /post/{id}/riprogramma`` (R-34): la nuova data e ora."""
+
+    data_ora: datetime
 
 
 class CampagnaSchema(BaseModel):
