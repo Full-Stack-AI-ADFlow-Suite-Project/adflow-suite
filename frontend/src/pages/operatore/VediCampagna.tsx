@@ -28,6 +28,7 @@ import { Decidi } from "./campagna/Decidi";
 import { Materiali } from "./campagna/Materiali";
 import { PianoCard } from "./campagna/PianoCard";
 import { UscitaCard } from "./campagna/UscitaCard";
+import { AzioniCampagna } from "./vedi-campagna/decisioni/AzioniCampagna";
 import { coloreCampagna, data, giorni, NOME_CANALE } from "./campagna/util";
 
 const BOTTEGA_SCONOSCIUTA = "Bottega";
@@ -129,6 +130,7 @@ export function VediCampagna() {
           </div>
 
           <Decidi vista={vista} ricarica={carica} />
+          <AzioniCampagna vista={vista} campagna={campagna} ricarica={carica} />
           <PianoCard piano={vista.piano} uscite={vista.uscite} />
 
           <Tabs defaultValue="uscite">

@@ -256,7 +256,8 @@ export function Decidi({
                 </Anchor>
               </span>
             ))}{" "}
-            da rivedere. Il post con un blocco si sistema dalla 2b.
+            da rivedere. Il post con un blocco si sistema con la modifica a
+            mano.
           </Text>
         )}
         {inCorso.length > 0 && (

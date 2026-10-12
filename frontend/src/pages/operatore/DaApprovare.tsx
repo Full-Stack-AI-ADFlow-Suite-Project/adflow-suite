@@ -4,24 +4,19 @@
  */
 import {
   Alert,
-  Badge,
-  Box,
-  Button,
   Card,
   Center,
-  Group,
   Loader,
   Select,
   Stack,
   Text,
 } from "@mantine/core";
 import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
 
-import type { CampagnaElencoItem } from "../../api/campagne";
-import { elenco } from "../../api/campagne";
+import type { CampagnaDaApprovare } from "../../api/decisioni";
+import { daApprovare } from "../../api/decisioni";
 import { Guscio } from "../../components/Guscio";
-import { coloreCampagna, data } from "./campagna/util";
+import { RigaCampagna } from "./da-approvare/RigaCampagna";
 
 const STATI_DA_APPROVARE = [
   "inviata",
@@ -39,28 +34,21 @@ const URGENZA: Record<string, number> = {
   inviata: 4,
 };
 
-const BORDO: Record<string, string | undefined> = {
-  in_revisione: "var(--mantine-color-yellow-6)",
-  piano_da_rivedere: "var(--mantine-color-yellow-6)",
-  generazione_fallita: "var(--mantine-color-red-6)",
-};
-
 export function DaApprovare() {
-  const [lista, setLista] = useState<CampagnaElencoItem[] | null>(null);
+  const [lista, setLista] = useState<CampagnaDaApprovare[] | null>(null);
   const [errore, setErrore] = useState<string | null>(null);
   const [stato, setStato] = useState<string | null>(null);
 
   useEffect(() => {
-    elenco()
+    daApprovare()
       .then((tutte) =>
         setLista(
-          tutte
-            .filter((c) => STATI_DA_APPROVARE.includes(c.stato))
-            .sort(
-              (a, b) =>
-                (URGENZA[a.stato] ?? 9) - (URGENZA[b.stato] ?? 9) ||
-                a.inizio.localeCompare(b.inizio),
-            ),
+          [...tutte].sort(
+            (a, b) =>
+              (a.entro_quando ?? "9").localeCompare(b.entro_quando ?? "9") ||
+              (URGENZA[a.stato] ?? 9) - (URGENZA[b.stato] ?? 9) ||
+              a.inizio.localeCompare(b.inizio),
+          ),
         ),
       )
       .catch(() => setErrore("Non sono riuscita a leggere le campagne."));
@@ -84,7 +72,9 @@ export function DaApprovare() {
   return (
     <Guscio titolo="Campagne da approvare" largo={1100}>
       <Text c="dimmed" size="sm" mb="md">
-        Dalla più urgente. Si decide sempre in Vedi campagna.
+        Dalla più urgente: per "entro quando", cioè la data del primo post da
+        approvare o le 00:00 del giorno di inizio se il piano non c'è. Si decide
+        sempre in Vedi campagna.
       </Text>
       <Alert color="verde" variant="light" mb="lg">
         Stati mostrati:{" "}
@@ -122,49 +112,7 @@ export function DaApprovare() {
           />
           <Stack gap="sm">
             {visibili.map((c) => (
-              <Card
-                key={c.id}
-                withBorder
-                radius="md"
-                p="lg"
-                style={
-                  BORDO[c.stato]
-                    ? { borderLeft: `4px solid ${BORDO[c.stato]}` }
-                    : undefined
-                }
-              >
-                <Group justify="space-between" align="flex-start" wrap="wrap">
-                  <Box>
-                    <Text size="sm" c="dimmed">
-                      {c.bottega}
-                      {c.citta ? ` · ${c.citta}` : ""}
-                    </Text>
-                    <Group gap="sm" mt={4}>
-                      <Text fw={600} size="lg">
-                        {c.titolo}
-                      </Text>
-                      <Badge
-                        color={coloreCampagna(c.stato)}
-                        variant="light"
-                        ff="monospace"
-                      >
-                        {c.stato}
-                      </Badge>
-                    </Group>
-                    <Text size="sm" c="dimmed" mt={6}>
-                      {data(c.inizio)} → {data(c.fine)} ·{" "}
-                      {(c.canali ?? []).join(", ")}
-                    </Text>
-                  </Box>
-                  <Button
-                    color="verde"
-                    component={Link}
-                    to={`/campagne/${c.id}`}
-                  >
-                    Vedi campagna →
-                  </Button>
-                </Group>
-              </Card>
+              <RigaCampagna key={c.id} c={c} />
             ))}
             {!visibili.length && (
               <Card
@@ -183,8 +131,7 @@ export function DaApprovare() {
         </>
       )}
       <Text size="xs" c="dimmed" mt="lg">
-        Conteggi dei post, "entro quando" e nota interna arrivano con la 2b; lo
-        storico della bottega con lo sprint 3.
+        Lo storico della bottega arriva con lo sprint 3.
       </Text>
     </Guscio>
   );
