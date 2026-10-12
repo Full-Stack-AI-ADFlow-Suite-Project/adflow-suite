@@ -10,8 +10,9 @@ from app.core.db import get_db
 from app.core.orologio import adesso
 from app.moduli.accesso import service as accesso
 
-from . import interventi, service
+from . import interventi, service, sospensione
 from .schemas import (
+    CampagnaRiattiva,
     PostControllato,
     PostModifica,
     PostRigenera,
@@ -54,6 +55,44 @@ def prosegui_campagna(
     """Riparte la generazione da un piano debole (R-20, CA-49)."""
     service.prosegui(db, campagna_id, utente)
     return {"stato": "in_generazione"}
+
+
+@router.post("/campagne/{campagna_id}/sospendi")
+def sospendi_campagna(
+    campagna_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
+) -> dict[str, str]:
+    """Sospende la pubblicazione di una campagna attiva (R-33, CA-32)."""
+    sospensione.sospendi(db, campagna_id, utente)
+    return {"stato": "sospesa"}
+
+
+@router.post("/campagne/{campagna_id}/riattiva")
+def riattiva_campagna(
+    campagna_id: int,
+    corpo: CampagnaRiattiva,
+    db: Annotated[Session, Depends(get_db)],
+    utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
+    ora: Annotated[datetime, Depends(adesso)],
+) -> dict[str, str]:
+    """Riattiva una sospesa: gli arretrati scelti escono subito, gli altri
+    diventano ``annullato`` (R-33, CA-32)."""
+    sospensione.riattiva(db, campagna_id, utente, corpo.pubblica_ora, ora)
+    return {"stato": "attiva"}
+
+
+@router.post("/campagne/{campagna_id}/annulla")
+def annulla_campagna(
+    campagna_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
+    ora: Annotated[datetime, Depends(adesso)],
+) -> dict[str, str]:
+    """Annulla una campagna attiva o sospesa: i post ``approvato`` diventano
+    ``annullato`` (R-33, CA-32)."""
+    sospensione.annulla(db, campagna_id, utente, ora)
+    return {"stato": "annullata"}
 
 
 @router.post("/post/{post_id}/modifica")
