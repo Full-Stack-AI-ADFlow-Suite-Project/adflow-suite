@@ -10,10 +10,13 @@ from app.core.db import get_db
 from app.core.orologio import adesso
 from app.moduli.accesso import service as accesso
 
-from . import interventi, letture, service, sospensione
+from . import decisioni, interventi, letture, service, sospensione
 from .schemas import (
     CampagnaDaApprovare,
+    CampagnaNota,
+    CampagnaRespingi,
     CampagnaRiattiva,
+    CampagnaTogliCanale,
     PostControllato,
     PostModifica,
     PostRigenera,
@@ -103,6 +106,48 @@ def annulla_campagna(
     ``annullato`` (R-33, CA-32)."""
     sospensione.annulla(db, campagna_id, utente, ora)
     return {"stato": "annullata"}
+
+
+@router.post("/campagne/{campagna_id}/nota")
+def nota_interna(
+    campagna_id: int,
+    corpo: CampagnaNota,
+    db: Annotated[Session, Depends(get_db)],
+    utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
+) -> dict[str, str]:
+    """Nota interna in ogni stato dopo l'invio: solo operatori (R-32, CA-23)."""
+    decisioni.nota(db, campagna_id, utente, corpo.nota)
+    return {"stato": "ok"}
+
+
+@router.post("/campagne/{campagna_id}/respingi")
+def respingi_campagna(
+    campagna_id: int,
+    corpo: CampagnaRespingi,
+    db: Annotated[Session, Depends(get_db)],
+    utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
+    ora: Annotated[datetime, Depends(adesso)],
+) -> dict[str, str]:
+    """Respinge la campagna: post scartati, decisione e notifica (R-18, CA-24/25)."""
+    decisioni.respingi(
+        db, campagna_id, utente, corpo.motivo, corpo.nota, corpo.foto_segnate, ora
+    )
+    return {"stato": "respinta"}
+
+
+@router.post("/campagne/{campagna_id}/togli-canale")
+def togli_canale_campagna(
+    campagna_id: int,
+    corpo: CampagnaTogliCanale,
+    db: Annotated[Session, Depends(get_db)],
+    utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
+    ora: Annotated[datetime, Depends(adesso)],
+) -> dict[str, str]:
+    """Toglie un canale: post scartati, decisione `canale_tolto` (CA-53)."""
+    record = decisioni.togli_canale(
+        db, campagna_id, utente, corpo.canale, corpo.nota, ora
+    )
+    return {"stato": record.stato}
 
 
 @router.post("/post/{post_id}/modifica")
