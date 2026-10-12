@@ -10,8 +10,9 @@ from app.core.db import get_db
 from app.core.orologio import adesso
 from app.moduli.accesso import service as accesso
 
-from . import interventi, service, sospensione
+from . import interventi, letture, service, sospensione
 from .schemas import (
+    CampagnaDaApprovare,
     CampagnaRiattiva,
     PostControllato,
     PostModifica,
@@ -21,6 +22,15 @@ from .schemas import (
 )
 
 router = APIRouter(tags=["revisione"])
+
+
+@router.get("/da-approvare", response_model=list[CampagnaDaApprovare])
+def campagne_da_approvare(
+    db: Annotated[Session, Depends(get_db)],
+    utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
+) -> list[CampagnaDaApprovare]:
+    """Campagne da approvare di tutti gli artigiani, dalla più urgente (R-38, CA-69)."""
+    return letture.da_approvare(db)
 
 
 @router.get("/campagne/{campagna_id}/post", response_model=VediCampagnaSchema)

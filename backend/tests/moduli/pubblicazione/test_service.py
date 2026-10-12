@@ -387,6 +387,43 @@ def test_ca36_due_tick_una_sola_scrittura_sulla_foto(db, social, archivio):
     assert len(social.pubblicazioni) == 1
 
 
+def test_ca55_post_fallito_avvisa_gli_operatori(db, social, archivio):
+    """CA-55: un post fallito crea una notifica `post_fallito` per operatore."""
+    from app.moduli.notifiche.models import Notifica
+    from tests.moduli.accesso.fabbrica import utente
+
+    campagna = campagna_attiva(db)
+    post = post_approvato(db, campagna_id=campagna.id, data_ora=PASSATO)
+    post.versione_corrente.testo = "Testo con FAIL_DEF"
+    _archivia_foto(db, archivio, campagna.id)
+    operatore = utente(db, "operatore")
+    admin = utente(db, "admin")
+
+    pubblica_dovuti(db, ADESSO)
+
+    db.refresh(post)
+    assert post.stato == "fallito"
+    note = db.scalars(
+        select(Notifica).where(
+            Notifica.campagna_id == campagna.id,
+            Notifica.tipo == "post_fallito",
+        )
+    ).all()
+    assert {n.utente_id for n in note} == {operatore.id, admin.id}
+    assert {n.post_id for n in note} == {post.id}
+    # Un secondo tick non scrive due volte la stessa notifica.
+    pubblica_dovuti(db, ADESSO)
+    assert (
+        db.scalars(
+            select(Notifica).where(
+                Notifica.campagna_id == campagna.id,
+                Notifica.tipo == "post_fallito",
+            )
+        ).all()
+        == note
+    )
+
+
 def test_ripresa_dopo_tentativo_rimasto_in_corso(db, social, archivio):
     """Un tentativo in_corso (crash o errore temporaneo) viene ripreso."""
     campagna = campagna_attiva(db)
