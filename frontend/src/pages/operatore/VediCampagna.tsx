@@ -145,6 +145,8 @@ export function VediCampagna() {
                       uscita={u}
                       bottega={bottega}
                       citta={citta}
+                      statoCampagna={vista.campagna.stato}
+                      ricarica={carica}
                     />
                   ))}
                 </Stack>
