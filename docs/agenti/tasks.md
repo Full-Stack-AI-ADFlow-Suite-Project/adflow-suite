@@ -232,7 +232,7 @@ Finché un endpoint non è su `main`, la pagina usa dati di esempio con la forma
 
 | ID | Task | Tocca | Leggi | Dipende da | Fatto quando | ☐ |
 |---|---|---|---|---|---|---|
-| T3-41 | Adattatore social, collegamento: `collega_account()` simulato, con esito ok ed errore a comando | `adapters/social/` | plan §5 | T3-01 | nessuna chiamata di rete nei test | ☐ |
+| T3-41 | Adattatore social, collegamento: `collega_account()` simulato, con esito ok ed errore a comando | `adapters/social/` | plan §5 | T3-01 | nessuna chiamata di rete nei test | ☑ |
 | T3-42 | Foto e data del post: `POST /post/{id}/ritocca-foto`, `/scegli-foto`, `/cambia-foto`, `/sposta` | `revisione/interventi.py`, `revisione/router.py`, `revisione/schemas.py` | plan §3; spec R-03, R-16, R-31, R-36 | T3-32 | CA-34, CA-35, CA-71, CA-72 (API); in campagna attiva o sospesa → 409 | ☐ |
 | T3-43 | Pubblicazione, sospensione e ritaglio: permesso scaduto o account scollegato → campagna `sospesa` con gli avvisi; le foto escono nella versione scelta e ritagliate con la funzione di contenuti | `pubblicazione/service.py` | plan §4, §6; spec R-07, R-36 | T3-13, T3-33 | CA-40; un post esce con la versione ritoccata e ritagliata | ☐ |
 | T3-44 | Promemoria: un promemoria per ogni campagna `in_revisione` o `piano_da_rivedere` a meno di 48 ore dall'inizio, una volta sola | `revisione/promemoria.py` (nuovo), `revisione/jobs.py` | plan §4; spec R-06 | T3-01 | CA-42 | ☐ |

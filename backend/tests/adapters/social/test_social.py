@@ -1,8 +1,11 @@
 """Test dell'adattatore social finto: nessuna chiamata di rete."""
 
+from datetime import datetime, timedelta, timezone
+
 import pytest
 
 from app.adapters.social import (
+    MARCA_ERRORE_COLLEGAMENTO,
     SocialAdapter,
     SocialFinto,
     ottieni_social,
@@ -65,6 +68,35 @@ def test_pubblica_errore_definitivo_a_comando():
     assert esito.errore == "Errore definitivo simulato"
     assert esito.tipo_errore == "definitivo"
     assert esito.id_esterno is None
+
+
+def test_collega_account_riesce_con_permesso_pagina_e_scadenza():
+    prima = datetime.now(timezone.utc)
+
+    esito = SocialFinto().collega_account("instagram")
+
+    assert esito.ok is True
+    assert esito.id_pagina == "pagina-finto-instagram-1"
+    assert esito.permesso is not None
+    assert esito.errore is None
+    assert prima + timedelta(days=59) < esito.scadenza <= prima + timedelta(days=61)
+
+
+def test_collega_account_errore_a_comando():
+    esito = SocialFinto().collega_account(f"instagram-{MARCA_ERRORE_COLLEGAMENTO}")
+
+    assert esito.ok is False
+    assert esito.errore == "Collegamento simulato fallito."
+    assert esito.id_pagina is None
+    assert esito.permesso is None
+    assert esito.scadenza is None
+
+
+def test_collega_account_registra_solo_la_piattaforma():
+    finto = SocialFinto()
+    finto.collega_account("instagram")
+
+    assert finto.collegamenti == [{"piattaforma": "instagram"}]
 
 
 def test_usa_social_sostituisce_e_ripristina():

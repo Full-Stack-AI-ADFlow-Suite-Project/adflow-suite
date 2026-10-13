@@ -1,9 +1,15 @@
 """Implementazione finta dell'adattatore social per sviluppo e test."""
 
-from .base import EsitoPubblicazione, SocialAdapter
+from datetime import timedelta
+
+from app.core.orologio import adesso
+
+from .base import EsitoCollegamento, EsitoPubblicazione, SocialAdapter
 
 MARCA_ERRORE_TEMPORANEO = "FAIL_TEMP"
 MARCA_ERRORE_DEFINITIVO = "FAIL_DEF"
+MARCA_ERRORE_COLLEGAMENTO = "FAIL_COLLEGAMENTO"
+DURATA_PERMESSO_GIORNI = 60
 
 
 class SocialFinto(SocialAdapter):
@@ -15,13 +21,20 @@ class SocialFinto(SocialAdapter):
     - ``FAIL_TEMP``: errore temporaneo;
     - ``FAIL_DEF``: errore definitivo.
 
-    Ogni chiamata si registra in ``pubblicazioni``, per i test che controllano
-    che cosa è stato pubblicato. Nessuna chiamata di rete.
+    Il collegamento di un account riesce con un permesso finto che scade dopo
+    ``DURATA_PERMESSO_GIORNI`` giorni; la marca ``FAIL_COLLEGAMENTO`` nel nome
+    della piattaforma comanda l'errore.
+
+    Ogni chiamata si registra in ``pubblicazioni`` e ``collegamenti``, per i
+    test che controllano che cosa è stato fatto; i permessi non si registrano.
+    Nessuna chiamata di rete.
     """
 
     def __init__(self) -> None:
         self._conta = 0
+        self._conta_collegamenti = 0
         self.pubblicazioni: list[dict] = []
+        self.collegamenti: list[dict] = []
 
     def pubblica(
         self,
@@ -49,3 +62,16 @@ class SocialFinto(SocialAdapter):
             )
         self._conta += 1
         return EsitoPubblicazione(ok=True, id_esterno=f"finto-{self._conta}")
+
+    def collega_account(self, piattaforma: str) -> EsitoCollegamento:
+        # Solo la piattaforma si registra: il permesso non va mai nei log.
+        self.collegamenti.append({"piattaforma": piattaforma})
+        if MARCA_ERRORE_COLLEGAMENTO.lower() in piattaforma.lower():
+            return EsitoCollegamento(ok=False, errore="Collegamento simulato fallito.")
+        self._conta_collegamenti += 1
+        return EsitoCollegamento(
+            ok=True,
+            id_pagina=f"pagina-finto-{piattaforma}-{self._conta_collegamenti}",
+            permesso=f"permesso-finto-{self._conta_collegamenti}",
+            scadenza=adesso() + timedelta(days=DURATA_PERMESSO_GIORNI),
+        )

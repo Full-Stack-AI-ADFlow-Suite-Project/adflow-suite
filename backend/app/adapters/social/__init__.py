@@ -5,7 +5,12 @@ from contextlib import contextmanager
 from typing import Optional
 
 from .base import TIPI_ERRORE, EsitoCollegamento, EsitoPubblicazione, SocialAdapter
-from .finto import MARCA_ERRORE_DEFINITIVO, MARCA_ERRORE_TEMPORANEO, SocialFinto
+from .finto import (
+    MARCA_ERRORE_COLLEGAMENTO,
+    MARCA_ERRORE_DEFINITIVO,
+    MARCA_ERRORE_TEMPORANEO,
+    SocialFinto,
+)
 
 _istanza_social: Optional[SocialAdapter] = None
 
@@ -43,6 +48,7 @@ def usa_social(adattatore: SocialAdapter) -> Iterator[SocialAdapter]:
 
 __all__ = [
     "TIPI_ERRORE",
+    "MARCA_ERRORE_COLLEGAMENTO",
     "MARCA_ERRORE_DEFINITIVO",
     "MARCA_ERRORE_TEMPORANEO",
     "EsitoCollegamento",
