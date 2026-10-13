@@ -46,7 +46,6 @@ class FotoAI:
     id: int
     file: str
     mime: str
-    da_usare: bool = False
     analisi: dict[str, Any] | None = None
 
 
@@ -55,7 +54,7 @@ class GruppoAI:
     """Un gruppo di foto caricate, con la descrizione scritta dall'artigiano.
 
     Con ``archivio`` il gruppo viene dall'archivio della bottega (R-27): ha
-    solo le foto che la campagna può usare, senza stella e senza data.
+    solo le foto che la campagna può usare, senza data.
     """
 
     id: int

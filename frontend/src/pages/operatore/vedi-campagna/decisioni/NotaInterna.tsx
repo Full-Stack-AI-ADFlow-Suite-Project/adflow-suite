@@ -1,3 +1,4 @@
+// Congelato per l'MVP, ADR-114: non estendere.
 /** Nota interna (R-32): in ogni stato dopo l'invio, la leggono solo gli operatori. */
 import {
   Alert,

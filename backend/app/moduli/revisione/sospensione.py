@@ -1,3 +1,4 @@
+# Congelato per l'MVP, ADR-114: non estendere.
 """Sospendi, riattiva e annulla una campagna (spec R-33, plan §3).
 
 Gli endpoint di ``router.py`` chiamano queste funzioni: lo stato della

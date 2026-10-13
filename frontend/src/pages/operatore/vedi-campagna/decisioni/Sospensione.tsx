@@ -1,3 +1,4 @@
+// Congelato per l'MVP, ADR-114: non estendere.
 /**
  * Sospendi, riattiva e annulla (R-33). Ognuna ha la sua conferma: sospendere
  * ferma le uscite, riattivare chiede cosa fare dei post in arretrato, annullare

@@ -126,7 +126,6 @@ class FotoSintetica(BaseModel):
     mime: str
     larghezza: int
     altezza: int
-    da_usare: bool = False
     origine: str = "caricata"
 
 
@@ -316,11 +315,4 @@ class FotoDettaglio(BaseModel):
     mime: str
     larghezza: int
     altezza: int
-    da_usare: bool = False
     n_utilizzi: int = 0
-
-
-class FotoStellaModifica(BaseModel):
-    """Payload per impostare la stella su una foto (PUT /foto/{id})."""
-
-    da_usare: bool

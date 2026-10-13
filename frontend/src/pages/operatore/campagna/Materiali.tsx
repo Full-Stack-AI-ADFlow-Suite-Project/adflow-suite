@@ -110,21 +110,10 @@ export function Materiali({
             )}
             <Stack gap={6} mt="sm">
               {g.foto.map((f) => (
-                <Paper
-                  key={f.id}
-                  withBorder
-                  radius="md"
-                  p="xs"
-                  style={
-                    f.da_usare
-                      ? { border: "2px solid var(--mantine-color-yellow-5)" }
-                      : undefined
-                  }
-                >
+                <Paper key={f.id} withBorder radius="md" p="xs">
                   <Group justify="space-between" wrap="wrap">
                     <Text size="xs" ff="monospace">
                       {f.file}
-                      {f.da_usare ? " ★" : ""}
                     </Text>
                     <Text size="xs" c="dimmed">
                       {f.larghezza}×{f.altezza}

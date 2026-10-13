@@ -40,6 +40,7 @@ def modifica(
     return contenuti.modifica_post(db, post_id, utente_id, testo, hashtag, adesso)
 
 
+# Congelato per l'MVP, ADR-114: non estendere.
 def controllato(
     db: Session, post_id: int, utente_id: int, valore: bool, adesso: datetime
 ):
@@ -83,6 +84,7 @@ def rigenera(
     )
 
 
+# Congelato per l'MVP, ADR-114: non estendere.
 def riprogramma(
     db: Session, post_id: int, utente_id: int, data_ora: datetime, adesso: datetime
 ):

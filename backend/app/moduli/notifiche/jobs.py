@@ -1,3 +1,4 @@
+# Congelato per l'MVP, ADR-114: non estendere.
 """Job del modulo notifiche: chiamano service.py, senza logica di business."""
 
 import logging

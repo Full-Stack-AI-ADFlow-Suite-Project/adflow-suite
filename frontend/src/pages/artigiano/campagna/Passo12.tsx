@@ -60,10 +60,6 @@ export function Passo12({
 
   const gruppiFoto = campagna.gruppi.filter((g) => g.origine === "caricate");
   const nFoto = gruppiFoto.reduce((n, g) => n + g.foto.length, 0);
-  const nStelle = gruppiFoto.reduce(
-    (n, g) => n + g.foto.filter((f) => f.da_usare).length,
-    0,
-  );
   const chiesti = Math.max(
     0,
     ...Object.values(campagna.post_chiesti_per_canale),
@@ -176,7 +172,7 @@ export function Passo12({
           </Title>
           <Riga
             nome="Foto caricate"
-            valore={`${nFoto} foto in ${gruppiFoto.length} gruppi · ${nStelle} con la stella`}
+            valore={`${nFoto} foto in ${gruppiFoto.length} gruppi`}
           />
         </div>
         <div>
