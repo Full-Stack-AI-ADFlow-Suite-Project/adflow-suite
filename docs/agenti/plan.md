@@ -186,6 +186,8 @@ Le sole funzioni di `moduli/<modulo>/service.py` che un altro modulo può chiama
 | campagne | `foto_di_archivio(profilo_id, canale, adesso)` → lista di `FotoDiArchivio(foto, gruppo, mai_uscita)` | contenuti | firma T2a-01, corpo T2a-22 |
 | campagne | `segna_pubblicata(foto_id, canale, quando)` | pubblicazione | firma T2a-01, corpo T2a-22 |
 | campagne | `foto_per_id(ids)` → le foto con quegli id, di qualunque campagna o dell'archivio | contenuti, revisione, pubblicazione | T2a-01 |
+| campagne | `sistema_foto(dati, canale="instagram", proporzione=None)` → bytes JPEG sistemati (spec R-42, CA-81) | anteprima, pubblicazione | T3-21 |
+| campagne | `foto_sistemata(db, foto_id, canale="instagram", proporzione=None)` → `(bytes, "image/jpeg")` | pubblicazione | T3-21 |
 
 - Sprint 2a e 2b: le firme le fissava il task di apertura dello sprint. Dallo sprint 3 · MVP una funzione nuova la scrive il task che la usa, nel `service.py` del modulo proprietario, e la aggiunge a questa tabella (ADR-114).
   - **2a (T2a-01)**: le tre righe di campagne qui sopra. `contenuti` non può leggere `pubblicazione`, che viene dopo: per questo dove è uscita una foto sta sulla foto, in `campagne`.
