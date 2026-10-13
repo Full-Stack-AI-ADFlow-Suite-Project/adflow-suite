@@ -346,6 +346,16 @@ def utente(db: Session, utente_id: int) -> Utente:
     return record
 
 
+def password_provvisoria(db: Session, utente_id: int | None = None) -> str:
+    """Genera una password provvisoria; con ``utente_id`` la salva e forza il cambio.
+
+    Senza id restituisce una password da usare alla creazione dell'utente, che
+    nasce già con ``deve_cambiare_password`` attivo. Con id ruota la password,
+    imposta il flag e revoca le sessioni. Il testo in chiaro torna una sola volta.
+    """
+    raise NotImplementedError
+
+
 def operatori(db: Session) -> list[Utente]:
     """Gli utenti che ricevono le notifiche degli operatori: operatori e admin attivi.
 
