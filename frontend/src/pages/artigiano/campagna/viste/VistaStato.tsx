@@ -9,6 +9,7 @@ import {
   Badge,
   Button,
   Group,
+  Image,
   List,
   Paper,
   Stack,
@@ -16,6 +17,7 @@ import {
   Title,
 } from "@mantine/core";
 
+import { urlFotoFile } from "../../../../api/archivio";
 import type { CampagnaDettaglio } from "../../../../api/campagne";
 import { Riga } from "../Riga";
 import { CanaliTolti } from "./CanaliTolti";
@@ -236,14 +238,14 @@ export function VistaStato({
                             : undefined
                         }
                       >
-                        <Text
-                          ff="monospace"
-                          size="10px"
-                          ta="center"
-                          style={{ wordBreak: "break-all" }}
-                        >
-                          {f.file}
-                        </Text>
+                        <Image
+                          src={urlFotoFile(f.file, f.id)}
+                          alt={`Foto ${f.id}${segnate.has(f.id) ? " — da rifare" : ""}`}
+                          h={72}
+                          w={72}
+                          fit="cover"
+                          radius="sm"
+                        />
                       </Paper>
                     )),
                   )}
