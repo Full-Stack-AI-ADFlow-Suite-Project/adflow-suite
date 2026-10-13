@@ -303,10 +303,11 @@ def test_percorso_dalla_bozza_alla_campagna_conclusa(
     assert [riga["stato"] for riga in api("GET", "/campagne").json()] == ["conclusa"]
 
 
-def test_percorso_del_piano_debole_con_le_cartoline(
-    api, entra, lavora, orologio, finti
-):
-    """Converge §3, passo 7: 4 settimane con 4 foto, Prosegui, 8 cartoline (R-28)."""
+def test_percorso_con_poche_foto_e_le_cartoline(api, entra, lavora, orologio, finti):
+    """Converge §3, passo 7: 4 settimane con 4 foto, 8 cartoline (R-28).
+
+    Dall'MVP il piano non è mai debole (ADR-114, A3): si arriva in revisione.
+    """
     entra(ARTIGIANO)
     campagna_id, foto = _bozza(api, QUATTRO_SETTIMANE, foto_per_gruppo=(4,))
     bozza = api("GET", f"/campagne/{campagna_id}").json()
@@ -315,16 +316,10 @@ def test_percorso_del_piano_debole_con_le_cartoline(
 
     assert api("POST", f"/campagne/{campagna_id}/invia").status_code == 200
     assert lavora() == [1]
-    assert _stato(api, campagna_id) == "piano_da_rivedere"
 
     entra(OPERATORE)
-    assert _vedi(api, campagna_id)["piano"]["debole"] is True
-    assert api("POST", f"/campagne/{campagna_id}/prosegui").json() == {
-        "stato": "in_generazione"
-    }
-    assert lavora() == [1]
-
     vista = _vedi(api, campagna_id)
+    assert vista["piano"]["debole"] is False
     assert vista["campagna"]["stato"] == "in_revisione"
     for post in _post_per_canale(vista).values():
         assert len(post) == 12

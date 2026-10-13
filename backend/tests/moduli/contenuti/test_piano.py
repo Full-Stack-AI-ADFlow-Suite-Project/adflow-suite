@@ -1,4 +1,4 @@
-"""T1-32: limiti e controllo del piano (spec R-05, R-08, R-20, R-21, R-23, R-28).
+"""T1-32: limiti e controllo del piano (spec R-05, R-08, R-21, R-23, R-28).
 
 - CA-17 (limiti): 14 giorni, 3 post/sett., 2 canali, 5 foto idonee e diverse
   → 6 post chiesti per canale, 5 con una foto e 1 cartolina.
@@ -21,7 +21,6 @@ from app.moduli.contenuti.piano import (
     foto_con_stella,
     foto_disponibili,
     limiti_per_canale,
-    piano_debole,
 )
 from tests.moduli.artigiani.fabbrica import profilo
 from tests.moduli.campagne.fabbrica import campagna_in_bozza, campagna_inviata, foto
@@ -178,7 +177,6 @@ def test_ca17_limiti_sei_post_chiesti_cinque_foto_e_una_cartolina(db):
         assert limite["post_chiesti"] == 6
         assert len(limite["foto_disponibili"]) == 5
         assert limite["riempitivi"] == 1
-    assert piano_debole(limiti, gruppi) is False
 
     # 6 uscite, 6 post per canale: 5 con una foto e 1 cartolina, nessuna ripetuta.
     contenuto = _piano_valido(limiti, gruppo_id=mazzo.id)
@@ -336,68 +334,6 @@ def test_limiti_senza_archivio_per_un_canale():
     limiti = limiti_per_canale(DUE_CANALI, 3, INIZIO, FINE, [_gruppo_di(2)], archivio)
     assert limiti["instagram"]["foto_disponibili"] == [1, 2]
     assert limiti["facebook"]["foto_disponibili"] == [1, 2, 10]
-
-
-@pytest.mark.parametrize(
-    ("n_foto", "debole"),
-    [
-        (0, True),  # nessuna foto
-        (2, True),  # 2 su 6: sotto la metà
-        (3, False),  # 3 su 6: la metà esatta non è debole
-        (6, False),
-    ],
-)
-def test_piano_debole_con_foto_sotto_la_meta_dei_post_chiesti(n_foto, debole):
-    """CA-49, parte dei limiti."""
-    limiti, _ = _limiti(n_foto)
-    # il gruppo senza idonee si prova a parte: qui conta solo la metà
-    gruppi = [_gruppo(1, [_foto(99)])]
-    assert piano_debole(limiti, gruppi) is debole
-
-
-def test_piano_debole_con_meta_dispari():
-    """5 post chiesti: 2 foto sono sotto la metà, 3 no."""
-    gruppi = [_gruppo_di(2)]
-    limiti = limiti_per_canale(["instagram"], 5, INIZIO, INIZIO + timedelta(6), gruppi)
-    assert limiti["instagram"]["post_chiesti"] == 5
-    assert piano_debole(limiti, gruppi) is True
-
-    gruppi = [_gruppo_di(3)]
-    limiti = limiti_per_canale(["instagram"], 5, INIZIO, INIZIO + timedelta(6), gruppi)
-    assert piano_debole(limiti, gruppi) is False
-
-
-def test_piano_debole_con_un_gruppo_caricate_senza_foto_idonee():
-    gruppi = [
-        _gruppo_di(8),
-        _gruppo(2, [_foto(20, idonea=False), _foto(21, analizzata=False)]),
-    ]
-    limiti = limiti_per_canale(["facebook"], 3, INIZIO, FINE, gruppi)
-    assert limiti["facebook"]["riempitivi"] == 0
-    assert piano_debole(limiti, gruppi) is True
-
-
-def test_piano_non_debole_con_un_gruppo_di_doppioni_idonei():
-    """R-20 guarda le foto idonee del gruppo, non i doppioni."""
-    gruppi = [_gruppo_di(8), _gruppo(2, [_foto(20, simile_a=1)])]
-    limiti = limiti_per_canale(["facebook"], 3, INIZIO, FINE, gruppi)
-    assert piano_debole(limiti, gruppi) is False
-
-
-def test_piano_non_debole_per_un_gruppo_create_ai():
-    """Un gruppo `create_ai` non ha foto: la generazione lo ignora (R-19)."""
-    gruppi = [_gruppo_di(8), _gruppo(2, [], origine="create_ai")]
-    limiti = limiti_per_canale(["facebook"], 3, INIZIO, FINE, gruppi)
-    assert piano_debole(limiti, gruppi) is False
-
-
-def test_piano_debole_conta_le_foto_d_archivio_mai_uscite_non_quelle_gia_uscite():
-    """R-20 con R-05: 2 foto su 6 post, la terza arriva dall'archivio."""
-    limiti, gruppi, _ = _limiti_con_archivio(2, mai_uscite=[10])
-    assert piano_debole(limiti, gruppi) is False
-
-    limiti, gruppi, _ = _limiti_con_archivio(2, gia_uscite=[10])
-    assert piano_debole(limiti, gruppi) is True
 
 
 # --- Controllo del piano ------------------------------------------------------

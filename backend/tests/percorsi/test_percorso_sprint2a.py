@@ -640,12 +640,9 @@ def test_percorso_completo_sprint2a(
 
     assert api("POST", f"/campagne/{c_id}/invia").status_code == 200
     assert lavora() == [1]
-    assert _stato(api, c_id) == "piano_da_rivedere"
 
-    # L'operatore visualizza il piano debole e preme Prosegui
+    # Con poche foto la generazione non si ferma più (ADR-114, A3)
     assert entra(OPERATORE)["ruolo"] == "operatore"
-    assert api("POST", f"/campagne/{c_id}/prosegui").status_code == 200
-    assert lavora() == [1]
     assert _stato(api, c_id) == "in_revisione"
 
     vista_c = _vedi(api, c_id)

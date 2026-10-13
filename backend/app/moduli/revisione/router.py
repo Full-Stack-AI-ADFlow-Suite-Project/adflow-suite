@@ -59,17 +59,6 @@ def approva_campagna(
     return {"stato": "attiva"}
 
 
-@router.post("/campagne/{campagna_id}/prosegui")
-def prosegui_campagna(
-    campagna_id: int,
-    db: Annotated[Session, Depends(get_db)],
-    utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
-) -> dict[str, str]:
-    """Riparte la generazione da un piano debole (R-20, CA-49)."""
-    service.prosegui(db, campagna_id, utente)
-    return {"stato": "in_generazione"}
-
-
 @router.post("/campagne/{campagna_id}/sospendi")
 def sospendi_campagna(
     campagna_id: int,

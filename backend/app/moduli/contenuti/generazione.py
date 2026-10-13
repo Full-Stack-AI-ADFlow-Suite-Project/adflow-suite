@@ -10,8 +10,8 @@ sua. Un passo guarda ciò che è già salvato e fa la prima cosa che manca:
 4. testi: un post senza versione, con la sua cartolina se è una cartolina;
 5. fine: la campagna passa `in_revisione`.
 
-Per questo una nuova esecuzione, Riprova e Prosegui riprendono da sole dal
-punto giusto (R-24). Se un passo solleva un errore, la sua transazione si
+Per questo una nuova esecuzione e Riprova riprendono da sole dal punto
+giusto (R-24). Se un passo solleva un errore, la sua transazione si
 annulla e ``registra_errore()`` decide che cosa succede alla campagna (R-35).
 Si usa sempre la fotografia del profilo, mai il profilo corrente (R-11).
 """
@@ -50,7 +50,7 @@ from .models import (
     VersionePost,
     VersionePostFoto,
 )
-from .piano import controlla_piano, limiti_per_canale, piano_debole
+from .piano import controlla_piano, limiti_per_canale
 from .validatore import BLOCCO, TESTO_VUOTO, valida_testo
 
 # plan §4: il job gira al massimo 3 volte, a 30 secondi una dall'altra.
@@ -189,7 +189,8 @@ def passo(db: Session, campagna_id: int, adesso: datetime) -> bool:
         _analizza(db, gruppo, da_fare, d_archivio=gruppo.campagna_id != campagna.id)
         return True
     if tappa == PIANO:
-        return _pianifica(db, campagna, adesso)
+        _pianifica(db, campagna, adesso)
+        return True
     if tappa == TESTI:
         _scrivi(db, campagna, _post_da_scrivere(db, campagna), adesso)
         return True
@@ -337,13 +338,11 @@ def _gruppi_di_archivio_ai(
     ]
 
 
-def _pianifica(db: Session, campagna: Any, adesso: datetime) -> bool:
+def _pianifica(db: Session, campagna: Any, adesso: datetime) -> None:
     """Chiede il piano, lo controlla e lo salva con uscite e post.
 
     Un piano che non passa il controllo si fa riscrivere, al massimo 3 volte:
-    dopo vale come errore `risposta` (R-09). Il piano debole si salva lo
-    stesso, con i suoi post, e ferma la campagna in `piano_da_rivedere`
-    (R-20): restituisce falso.
+    dopo vale come errore `risposta` (R-09).
     """
     gruppi = _caricate(db, campagna.id)
     archivio = _archivio(db, campagna, adesso)
@@ -395,7 +394,6 @@ def _pianifica(db: Session, campagna: Any, adesso: datetime) -> bool:
                 violazioni[0]["canale"],
             )
 
-    debole = piano_debole(limiti, gruppi)
     numero = db.scalar(
         select(func.max(Piano.numero)).where(Piano.campagna_id == campagna.id)
     )
@@ -406,7 +404,7 @@ def _pianifica(db: Session, campagna: Any, adesso: datetime) -> bool:
             strategia=scritto.contenuto["strategia"],
             contenuto=scritto.contenuto,
             esito_controllo=[],
-            debole=debole,
+            debole=False,
             provider_ai=scritto.provider,
             modello_ai=scritto.modello,
             versione_prompt=scritto.versione_prompt,
@@ -434,18 +432,6 @@ def _pianifica(db: Session, campagna: Any, adesso: datetime) -> bool:
                 )
             )
     db.flush()
-
-    if debole:
-        campagne.cambia_stato(db, campagna, "piano_da_rivedere")
-        notifiche.crea(
-            db,
-            "piano_da_rivedere",
-            campagna.id,
-            adesso,
-            contenuto={"titolo": campagna.titolo},
-        )
-        return False
-    return True
 
 
 # --- Testi --------------------------------------------------------------------

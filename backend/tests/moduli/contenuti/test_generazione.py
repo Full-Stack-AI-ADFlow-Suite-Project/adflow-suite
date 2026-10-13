@@ -1,8 +1,7 @@
 """T1-34: job `genera_campagna` a tappe (plan §4, spec §2.2, R-24, R-35).
 
-CA-17, CA-18, CA-19 (fino a `generazione_fallita`), CA-20, CA-49 (fino a
-`piano_da_rivedere`), CA-50, CA-51, CA-52 (post con più foto), CA-57 (fino ai
-post `da_approvare`), CA-58, CA-59; poi la ripresa dalle tappe già salvate e
+CA-17, CA-18, CA-19 (fino a `generazione_fallita`), CA-20, CA-50, CA-51,
+CA-52 (post con più foto), CA-57 (fino ai post `da_approvare`), CA-58, CA-59; poi la ripresa dalle tappe già salvate e
 gli errori tecnici secondo il tipo.
 """
 
@@ -411,8 +410,11 @@ def test_analisi_senza_esito_per_una_foto_e_un_errore_di_risposta(db, ai, monkey
 # --- Piano --------------------------------------------------------------------
 
 
-def test_ca49_piano_debole_la_campagna_si_ferma_senza_testi_poi_prosegue(db, ai):
-    """4 foto, 2 non idonee: 2 disponibili su 6 post chiesti, sotto la metà."""
+def test_con_poche_foto_la_generazione_non_si_ferma(db, ai):
+    """4 foto, 2 non idonee: 2 disponibili su 6 post chiesti, e si arriva in fondo.
+
+    Dall'MVP il piano non è mai debole (ADR-114, A3): niente `piano_da_rivedere`.
+    """
     campagna = _campagna(db, n_foto=4)
     ids = _foto_ids(db, campagna)
     ai.comanda_analisi(ids[2], idonea=False, motivo="Foto scura")
@@ -420,22 +422,9 @@ def test_ca49_piano_debole_la_campagna_si_ferma_senza_testi_poi_prosegue(db, ai)
 
     assert _job(campagna.id) == 1
 
-    assert campagna.stato == "piano_da_rivedere"
-    assert piano_corrente(db, campagna.id).debole is True
-    post = post_della_campagna(db, campagna.id)
-    # il piano ha già i post chiesti, con i riempitivi; nessun testo generato
-    assert Counter(p.canale for p in post) == {"facebook": 6, "instagram": 6}
-    assert all(p.versioni == [] for p in post)
-    assert _chiamate(ai, "genera_post") == []
-
-    # Prosegui (in `revisione`): la campagna torna `in_generazione` e il job riparte
-    campagne.cambia_stato(db, campagna, "in_generazione")
-    db.commit()
-    assert _job(campagna.id) == 1
-
     assert campagna.stato == "in_revisione"
-    assert len(_chiamate(ai, "pianifica_campagna")) == 1  # il piano non si rifà
-    assert len(_chiamate(ai, "analizza_gruppo")) == 1
+    assert piano_corrente(db, campagna.id).debole is False
+    assert _notifiche(db, campagna, "piano_da_rivedere") == []
     for canale in DUE_CANALI:
         post = _post_del_canale(db, campagna, canale)
         assert [p.riempitivo for p in post] == [None] * 2 + ["cartolina"] * 4
@@ -676,23 +665,6 @@ def test_errore_imprevisto_nell_analisi_dell_archivio_ha_la_tappa_analisi(
 
     (errore,) = _errori(db, campagna)
     assert (errore.tipo, errore.tappa) == ("temporaneo", "analisi")
-
-
-def test_piano_non_debole_grazie_alle_foto_d_archivio(db, ai):
-    """Come CA-49, ma l'archivio porta le foto disponibili alla metà dei post."""
-    campagna = _campagna(db, n_foto=4, canali=["instagram"])
-    ids = _foto_ids(db, campagna)
-    ai.comanda_analisi(ids[2], idonea=False, motivo="Foto scura")
-    ai.comanda_analisi(ids[3], idonea=False, motivo="Foto mossa")
-    gruppo_di_archivio(db, profilo_id=campagna.profilo_id, n_foto=1)
-    db.commit()
-
-    assert _job(campagna.id) == 1
-
-    assert campagna.stato == "in_revisione"
-    assert piano_corrente(db, campagna.id).debole is False
-    post = _post_del_canale(db, campagna, "instagram")
-    assert [p.riempitivo for p in post] == [None] * 3 + ["cartolina"] * 3
 
 
 def test_l_archivio_di_un_altra_bottega_non_entra_nel_piano(db, ai):
@@ -1075,33 +1047,6 @@ def test_ca55_campagna_pronta_avvisa_gli_operatori(db, ai):
     assert {una.utente_id for una in note} == {operatore.id, admin.id}
     assert all(una.post_id is None for una in note)
     assert all(una.stato_invio == "da_inviare" for una in note)
-
-
-def test_ca55_piano_da_rivedere_avvisa_gli_operatori(db, ai):
-    """Piano debole → `piano_da_rivedere` con la sua notifica, poi Prosegui."""
-    from tests.moduli.accesso.fabbrica import utente
-
-    campagna = _campagna(db, n_foto=4)
-    ids = _foto_ids(db, campagna)
-    ai.comanda_analisi(ids[2], idonea=False, motivo="Foto scura")
-    ai.comanda_analisi(ids[3], idonea=False, motivo="Foto mossa")
-    operatore = utente(db, "operatore")
-
-    assert _job(campagna.id) == 1
-
-    assert campagna.stato == "piano_da_rivedere"
-    [notifica] = _notifiche(db, campagna, "piano_da_rivedere")
-    assert notifica.utente_id == operatore.id
-    assert _notifiche(db, campagna, "campagna_pronta") == []
-
-    # Prosegui (in `revisione`): torna `in_generazione` e arriva in fondo.
-    campagne.cambia_stato(db, campagna, "in_generazione")
-    db.commit()
-    assert _job(campagna.id) == 1
-
-    assert campagna.stato == "in_revisione"
-    [pronta] = _notifiche(db, campagna, "campagna_pronta")
-    assert pronta.utente_id == operatore.id
 
 
 def test_ca55_generazione_fallita_una_notifica_sola_per_evento(db, ai):

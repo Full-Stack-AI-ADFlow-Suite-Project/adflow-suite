@@ -156,22 +156,6 @@ def limiti_per_canale(
     return limiti
 
 
-def piano_debole(limiti: Mapping[str, LimitiCanale], gruppi: Iterable[Any]) -> bool:
-    """Piano debole (R-20).
-
-    Su un canale le foto disponibili sono meno della metà dei post chiesti,
-    oppure un gruppo di foto caricate non ha nessuna foto idonea.
-    """
-    poche_foto = any(
-        2 * len(limite["foto_disponibili"]) < limite["post_chiesti"]
-        for limite in limiti.values()
-    )
-    gruppo_senza_idonee = any(
-        not any(_idonea(foto) for foto in gruppo.foto) for gruppo in _caricate(gruppi)
-    )
-    return poche_foto or gruppo_senza_idonee
-
-
 def _intero(valore: Any) -> bool:
     return isinstance(valore, int) and not isinstance(valore, bool)
 
