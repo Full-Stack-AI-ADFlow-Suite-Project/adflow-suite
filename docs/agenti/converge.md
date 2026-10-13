@@ -18,19 +18,19 @@ GitHub rilancia i comandi del backend a ogni PR (`.github/workflows/backend.yml`
 
 - [ ] "Fatto quando" del task vero; ogni CA citato ha un test `test_caNN_...` verde.
 - [ ] Nessuna regola di `constitution.md` violata; `tests/test_confini.py` verde.
-- [ ] La PR tocca solo ciò che è della corsia del task (`tasks.md`) e, dallo sprint 2a, solo i file della colonna "Tocca" del task, con i loro test. Tabelle, stati, funzioni di plan §6, `core/` e composizione solo nei task della corsia 0.
-- [ ] Dopo aver portato `main` nel branch, le funzioni della corsia 0 sono identiche a `main`: `git diff origin/main -- <file>` non mostra righe tolte o cambiate dentro quelle funzioni.
-- [ ] Nessuna libreria nuova fuori da `requirements.txt` su `main`; nessun SQL scritto a mano sulle tabelle di un altro modulo e nessuna copia delle sue costanti (plan §6).
-- [ ] Se tocchi il database (solo corsia 0): `alembic downgrade -1` e di nuovo `upgrade head` funzionano.
+- [ ] La PR fa solo il suo task e non costruisce né estende ciò che `perimetro-mvp.md` segna *Togli*, *Congela* o *Roadmap*.
+- [ ] Se la PR cambia composizione, `core/`, `alembic/`, `backend/requirements.txt` o un `domain.py`, lo dice nella descrizione.
+- [ ] Ogni libreria nuova è in `requirements.txt`, con nome, motivo e licenza nella PR; nessun SQL scritto a mano sulle tabelle di un altro modulo e nessuna copia delle sue costanti (plan §6).
+- [ ] Se tocchi il database: `alembic downgrade -1` e di nuovo `upgrade head` funzionano.
 - [ ] `.env.example` e README aggiornati se serve; casella del task spuntata.
 - [ ] Nella PR: cosa fa, quali CA copre, come si prova.
-- [ ] Revisione: corsia 0 approvata da tutto il team; corsie 1–5 riviste in gruppo. Unisce l'admin.
+- [ ] Revisione di un collega; per i file comuni del referente. Unisce l'admin.
 
 ## 2. Test
 
 - `tests/moduli/<modulo>/`: unitari, service e API del modulo. I dati degli altri moduli si creano con le loro fabbriche (plan §6); l'utente con `utente_di_prova(ruolo)`.
 - `tests/adapters/`: senza rete.
-- `tests/percorsi/`: più moduli insieme (corsia 0).
+- `tests/percorsi/`: più moduli insieme.
 - `tests/test_confini.py`: regole di import di constitution §2.
 
 Database pulito a ogni test con le fixture `db` e `client` di `tests/conftest.py` (plan §7); ora iniettata. `pytest` svuota `adflow_test` a ogni esecuzione. Copertura dei CA: `grep -r "test_ca" backend/tests`.
@@ -82,14 +82,17 @@ Riparte dal percorso della 2a e ci aggiunge la revisione. Da database vuoto, con
 7. scadenze, con la data di test che avanza: in `in_revisione` passa la data di un post → quel post `scaduto`, la campagna si può ancora approvare; passa la data di tanti post da lasciarne meno della metà dei chiesti → campagna `scaduta`, post rimasti `scaduti`, email all'artigiano; campagna senza piano → `scaduta` alle 00:00 del giorno d'inizio (CA-30). Campagna ferma da 30 minuti in `inviata` o `in_generazione` (worker spento durante l'invio) → `generazione_fallita` con l'errore `temporaneo` accanto a Riprova (CA-68). Due tick di fila non ripetono notifiche né cambi (CA-55);
 8. prove negative: quelle della 2a e, in più, ogni intervento di revisione fatto da un artigiano → 403, su una campagna di un altro artigiano o di un altro stato → rifiutato, nota o respingi su una campagna ancora in bozza → rifiutato.
 
-### Sprint 3 (T3-07)
+### Sprint 3 · MVP (T3-07): il percorso della demo
 
-Riparte dal percorso 2b, da database vuoto, con adattatori AI/social finti e posta di prova:
+È il percorso che si mostra nel pitch e che si registra nel video di riserva. Da database vuoto, con l'AI vera (`AI_PROVIDER=litellm`), Meta sulla pagina di prova (`SOCIAL_PROVIDER=meta`, tunnel acceso) e i dati di T3-06:
 
-1. L'operatore crea un artigiano: codice ART assegnato, anagrafica e password provvisoria mostrata una volta. Al primo accesso l'artigiano è obbligato a cambiarla; prima del cambio ogni altra API risponde 403, dopo l'accesso funziona normalmente. La password non appare nei log e non viene restituita una seconda volta (CA-73).
-2. L'operatore collega Facebook e Instagram con l'adattatore social simulato. Verifica di esito positivo e negativo, account visibili da `GET /canali`, stato e scadenza corretti; il permesso non compare nei log e nel DB è cifrato.
-3. L'artigiano crea una campagna e carica le foto. Per ogni foto la versione 0 resta l'originale; dopo la generazione solo le foto usate hanno la versione ritoccata 1. In Vedi campagna si provano ritocco ulteriore entro il limite, scelta di una versione precedente senza consumare cicli, cambio con una foto idonea non usata dello stesso gruppo e spostamento della data dentro il periodo e almeno 15 minuti nel futuro. Testo/foto non ammessi, riempitivi, limiti dei ritocchi, reset della spunta e interventi su campagna attiva/sospesa → rifiutati (CA-33…CA-35, CA-71, CA-72).
-4. Si approva la campagna e si apre il calendario: compaiono solo post approvati o chiusi, con la versione foto selezionata e l'anteprima ritagliata secondo il canale. La pubblicazione usa gli stessi byte e le stesse proporzioni dell'anteprima (CA-40, CA-56).
-5. Con un account scollegato o scaduto, il tick non pubblica: sospende la campagna e mostra l'avviso; i post già approvati restano approvati. Si ricollega l'account, si riattiva e si verifica il percorso di pubblicazione (CA-40).
-6. Una campagna in `in_revisione` e una in `piano_da_rivedere`, entrambe entro 48 ore dall'inizio, ricevono il promemoria una sola volta; fuori soglia o dopo la prima esecuzione non si invia di nuovo (CA-42).
-7. Prove negative: cambio password con credenziali errate, anagrafica incompleta, permessi da artigiano sulle API operatore, account di altro profilo, foto di altro gruppo o già usata sul canale, date fuori periodo o troppo vicine, operazioni su campagna non in revisione; tutte rifiutate senza mutazioni.
+1. operatore: crea un artigiano nuovo, la password provvisoria si vede una volta (CA-79); l'artigiano entra e arriva al passo 1 del profilo;
+2. artigiano della demo: Bentornato, campagna di 7 giorni su Facebook e Instagram che inizia tra 4 giorni, un gruppo di foto vere meno dei post chiesti; il passo 12 mostra quanti post avranno un'immagine AI (CA-54); invio senza dichiarazione → rifiutato; con la dichiarazione → inviata (CA-14);
+3. generazione: post chiesti per canale, foto migliori per punteggio, i post scoperti con un'immagine AI e la dicitura (CA-17, CA-57, CA-80); costo della campagna in Vedi campagna (CA-82);
+4. operatore, Vedi campagna: solo approva, respingi, riprova, modifica a mano e rigenera; modifica un testo, ne rigenera un altro, approva; calendario per giorno (CA-56);
+5. pubblicazione: con la data di test avanti, il worker pubblica sulla pagina di prova: il post si vede su Facebook e su Instagram, con la foto dritta, senza GPS e nel formato del canale (CA-81, CA-83). Se Instagram è rimasto simulato (D1), si mostra solo Facebook;
+6. controllo visivo: le schermate di login, profilo, campagna, Vedi campagna e nuovo artigiano confrontate con le pagine statiche aggiornate (T3-03), con gli screenshot nella PR;
+7. respinta: una seconda campagna con foto non della bottega → respingi con motivo `foto`, nota e foto segnate; l'artigiano le rivede;
+8. prove negative: quelle della 2b che restano nell'MVP, e in più nuovo artigiano con un'email già usata → 409.
+
+Il video di riserva si registra il giorno prima della consegna, con lo stesso percorso.

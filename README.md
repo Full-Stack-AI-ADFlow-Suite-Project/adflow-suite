@@ -2,6 +2,8 @@
 
 Repository ufficiale per il progetto di fine tirocinio Full Stack AI.
 
+**Perimetro MVP** (ADR-114): consegna e pitch il 6 novembre 2026, codice bloccato il 30 ottobre. Che cosa entra nell'MVP: [`docs/agenti/perimetro-mvp.md`](docs/agenti/perimetro-mvp.md); che cosa resta fuori: [`docs/ROADMAP.md`](docs/ROADMAP.md).
+
 ## ▶️ Si parte da qui
 
 Ogni volta che riapri il progetto, dalla radice del repository:
@@ -10,10 +12,10 @@ Ogni volta che riapri il progetto, dalla radice del repository:
 uv run python allinea.py
 ```
 
-Un solo comando: scarica le novità e aggiorna `main` (mai il tuo branch di lavoro, mai le modifiche non salvate), installa le dipendenze cambiate, porta il database all'ultima migrazione, poi ti dice quali task della tua corsia sono pronti, cosa leggere per ognuno e che branch aprire.
+Un solo comando: scarica le novità e aggiorna `main` (mai il tuo branch di lavoro, mai le modifiche non salvate), installa le dipendenze cambiate, porta il database all'ultima migrazione, poi ti dice quali task della tua area sono pronti, cosa leggere per ognuno e che branch aprire.
 
-- La prima volta indica la tua corsia: `uv run python allinea.py 3` (0 comune, 1 accesso e artigiani, 2 campagne, 3 contenuti, 4 revisione e pubblicazione, 5 frontend). Resta ricordata.
-- `uv run python allinea.py tutte` mostra lo stato di tutte le corsie; `--stato` mostra lo stato senza toccare nulla.
+- La prima volta indica la tua area: `uv run python allinea.py 3` (0 comune e deliverable, 1 nuovo artigiano e calendario, 2 foto e invio, 3 AI vera, 4 Meta, 5 frontend). Resta ricordata.
+- `uv run python allinea.py tutte` mostra lo stato di tutte le aree; `--stato` mostra lo stato senza toccare nulla.
 - In VS Code è il task predefinito: **Ctrl+Shift+B** (su macOS ⇧⌘B), oppure _Terminal → Run Task → Allinea_.
 - Chi lavora con un agente (Claude Code, Codex, Kilo…) non deve fare altro: [`AGENTS.md`](AGENTS.md) gli dice di lanciarlo a inizio sessione.
 
@@ -28,12 +30,11 @@ Funziona anche alla prima installazione: vedi [Setup](#-setup-fase-1---locale).
 
 ## 📚 Documentazione
 
-La documentazione ha **due canali** (ADR-46):
+Un solo canale fa testo (ADR-114): [`AGENTS.md`](AGENTS.md) e [`docs/agenti/`](docs/agenti/): perimetro dell'MVP (`perimetro-mvp.md`), regole (`constitution.md`), cosa (`spec.md`), come (`plan.md`), task (`tasks.md`), verifica (`converge.md`). Anche le persone ci trovano i task da prendere.
 
-- **Appunti** · [`docs/appunti/`](docs/appunti/LEGGIMI.md): diagrammi (`architettura/`), pagine statiche di prova (`pagine/`, mappa in [`index.html`](docs/appunti/pagine/index.html)), note sul flusso e sull'architettura, lavori aperti, decisioni (ADR). Materiale in continua rimodulazione, mantenuto dall'amministratore dei documenti; è la fonte di verità. Si parte da [`LEGGIMI.md`](docs/appunti/LEGGIMI.md).
-- **Canale agenti** · [`AGENTS.md`](AGENTS.md) + [`docs/agenti/`](docs/agenti/): regole (`constitution.md`), cosa (`spec.md`), come (`plan.md`), task (`tasks.md`), verifica (`converge.md`). Breve, derivato dagli appunti. Anche le persone ci trovano i task da prendere.
-
-[`docs/novita/`](docs/novita/) raccoglie le note datate di alcune PR (cosa è entrato quel giorno, procedure operative): non fanno testo. Dove non tornano con il canale agenti, vale il canale agenti.
+- [`docs/ROADMAP.md`](docs/ROADMAP.md): ciò che non entra nell'MVP; è anche la slide della roadmap nel pitch.
+- [`docs/appunti/`](docs/appunti/LEGGIMI.md): archivio di diagrammi, note e registro delle decisioni (`ADR.md`), con le pagine statiche aggiornate all'MVP come riferimento per l'interfaccia. Il resto non fa più testo; una decisione nuova entra in `ADR.md` solo se cambia il perimetro dell'MVP.
+- [`docs/novita/`](docs/novita/): note datate di alcune PR; non fanno testo.
 
 ## 🚀 Setup (Fase 1 - Locale)
 
@@ -115,8 +116,8 @@ I test usano `adflow_test` e lo svuotano a ogni esecuzione: non metterci dati da
 1. **NON** lavorare mai direttamente sul branch `main`.
 2. Prima di iniziare un task, crea un branch: `git switch -c feature/<id>-<breve>` (es. `feature/T1-24-invio-riprova`). Il nome te lo propone `allinea.py`.
 3. `pre-commit` (installato da `allinea.py`) formatta il codice Python a ogni `git commit`. Se un hook modifica dei file, rifai `git add` e ripeti il commit.
-4. Una libreria nuova entra in `backend/requirements.txt` con una PR della corsia 0, prima della PR del task che la usa.
-5. Quando hai finito, pusha il branch e apri una **Pull Request** su GitHub. Revisione: corsia 0 approvata da tutto il team, corsie 1–5 riviste in gruppo (vedi `docs/agenti/tasks.md`); il merge lo fa l'admin.
+4. Una libreria nuova entra in `backend/requirements.txt` nella PR del task che la usa, con nome, motivo e licenza.
+5. Quando hai finito, pusha il branch e apri una **Pull Request** su GitHub. La rivede un collega; se cambia composizione, `core/`, `alembic/`, `requirements.txt` o un `domain.py`, la rivede il referente dei file comuni. I controlli devono essere verdi; il merge lo fa l'admin.
 
 ## Protezioni dell'accesso (#16–19)
 

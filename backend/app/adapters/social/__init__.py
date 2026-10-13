@@ -4,7 +4,7 @@ from collections.abc import Iterator
 from contextlib import contextmanager
 from typing import Optional
 
-from .base import TIPI_ERRORE, EsitoCollegamento, EsitoPubblicazione, SocialAdapter
+from .base import TIPI_ERRORE, EsitoPubblicazione, SocialAdapter
 from .finto import MARCA_ERRORE_DEFINITIVO, MARCA_ERRORE_TEMPORANEO, SocialFinto
 
 _istanza_social: Optional[SocialAdapter] = None
@@ -45,7 +45,6 @@ __all__ = [
     "TIPI_ERRORE",
     "MARCA_ERRORE_DEFINITIVO",
     "MARCA_ERRORE_TEMPORANEO",
-    "EsitoCollegamento",
     "EsitoPubblicazione",
     "SocialAdapter",
     "SocialFinto",

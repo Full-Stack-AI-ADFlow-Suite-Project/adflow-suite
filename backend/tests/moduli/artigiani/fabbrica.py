@@ -1,36 +1,8 @@
 """Profilo minimo con dati fittizi e account social collegati, senza commit."""
-from datetime import date
-from sqlalchemy import func, select
+from sqlalchemy import select
 from sqlalchemy.orm import Session
-from app.moduli.artigiani.models import (
-    AccountSocial,
-    AnagraficaArtigiano,
-    ProfiloBottega,
-)
+from app.moduli.artigiani.models import AccountSocial, ProfiloBottega
 from tests.moduli.accesso.fabbrica import utente
-
-
-def anagrafica(
-    db: Session, *, utente_id: int | None = None, **campi
-) -> AnagraficaArtigiano:
-    if utente_id is None:
-        utente_id = utente(db, "artigiano").id
-    numero = db.scalar(select(func.count()).select_from(AnagraficaArtigiano)) + 1
-    dati = dict(
-        utente_id=utente_id,
-        codice=f"ART-{numero:04d}",
-        codice_consorzio="CONS-001",
-        nome_bottega="Bottega di prova",
-        referente="Referente",
-        citta="Roma",
-        stato_iscrizione="attiva",
-        iscritto_il=date(2030, 1, 5),
-    )
-    dati.update(campi)
-    record = AnagraficaArtigiano(**dati)
-    db.add(record)
-    db.flush()
-    return record
 
 
 def profilo(db: Session, *, utente_id: int | None = None, **campi) -> ProfiloBottega:

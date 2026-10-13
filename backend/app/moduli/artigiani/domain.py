@@ -51,4 +51,3 @@ OBBLIGATORI = (
 )
 
 STATI_ACCOUNT = ("collegato", "scaduto", "scollegato")
-STATI_ISCRIZIONE = ("attiva", "sospesa")

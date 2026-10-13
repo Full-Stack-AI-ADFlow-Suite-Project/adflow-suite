@@ -9,7 +9,6 @@ from app.moduli.contenuti.models import (
     Piano,
     Post,
     Uscita,
-    VersioneFoto,
     VersionePost,
     VersionePostFoto,
 )
@@ -68,28 +67,6 @@ def uscita(
     return record
 
 
-def versione_foto(db: Session, immagine, *, numero: int = 0, **campi) -> VersioneFoto:
-    esistente = db.scalar(
-        select(VersioneFoto).where(
-            VersioneFoto.foto_id == immagine.id,
-            VersioneFoto.numero == numero,
-        )
-    )
-    if esistente is not None:
-        return esistente
-    dati = dict(
-        foto_id=immagine.id,
-        numero=numero,
-        file=immagine.file,
-        origine="originale" if numero == 0 else "ritocco_ai",
-    )
-    dati.update(campi)
-    record = VersioneFoto(**dati)
-    db.add(record)
-    db.flush()
-    return record
-
-
 def post_da_approvare(db: Session, *, campagna_id: int | None = None, **campi) -> Post:
     if campagna_id is None:
         campagna_id = campagna_in_revisione(db).id
@@ -101,7 +78,6 @@ def post_da_approvare(db: Session, *, campagna_id: int | None = None, **campi) -
     else:
         immagine = foto(db, campagna=campagna)
     immagine.n_utilizzi += 1
-    versione_immagine = versione_foto(db, immagine)
     gruppi = campagne.gruppi_della_campagna(db, campagna_id)
     mazzo = next((g for g in gruppi if g.id == immagine.gruppo_id), None)
     uscita_della_campagna = uscita(db, campagna, mazzo)
@@ -128,14 +104,7 @@ def post_da_approvare(db: Session, *, campagna_id: int | None = None, **campi) -
     )
     db.add(versione)
     db.flush()
-    db.add(
-        VersionePostFoto(
-            versione_id=versione.id,
-            posizione=1,
-            foto_id=immagine.id,
-            versione_foto_id=versione_immagine.id,
-        )
-    )
+    db.add(VersionePostFoto(versione_id=versione.id, posizione=1, foto_id=immagine.id))
     db.flush()
     return record
 

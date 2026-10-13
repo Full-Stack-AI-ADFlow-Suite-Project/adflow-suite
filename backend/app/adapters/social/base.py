@@ -2,7 +2,6 @@
 
 from abc import ABC, abstractmethod
 from dataclasses import dataclass
-from datetime import datetime
 
 TIPI_ERRORE = ("temporaneo", "definitivo")
 
@@ -23,17 +22,6 @@ class EsitoPubblicazione:
     id_esterno: str | None = None
     errore: str | None = None
     tipo_errore: str | None = None
-
-
-@dataclass
-class EsitoCollegamento:
-    """Risultato del collegamento simulato o reale di un account social."""
-
-    ok: bool
-    id_pagina: str | None = None
-    permesso: str | None = None
-    scadenza: datetime | None = None
-    errore: str | None = None
 
 
 class SocialAdapter(ABC):
@@ -61,8 +49,4 @@ class SocialAdapter(ABC):
         Returns:
             ``EsitoPubblicazione`` con il risultato del tentativo.
         """
-        raise NotImplementedError
-
-    def collega_account(self, piattaforma: str) -> EsitoCollegamento:
-        """Avvia il collegamento della piattaforma e restituisce l'esito."""
         raise NotImplementedError

@@ -461,51 +461,6 @@ def accendi_intervento(db: Session, post_id: int, tipo: str, adesso: datetime) -
     return _accendi(db, post_id, tipo, adesso)
 
 
-def puo_ritoccare(db: Session, post_id: int, adesso: datetime) -> bool:
-    """Vero se il post può ricevere un altro ritocco AI (R-03, R-31).
-
-    Usata da ``revisione`` prima di accendere l'intervento. Richiede campagna
-    ``in_revisione``, post ``da_approvare``, meno di tre ritocchi e nessun
-    intervento attivo da meno di dieci minuti.
-
-    Raises:
-        NonTrovato: se non esiste nessun post con quell'id.
-    """
-    raise NotImplementedError
-
-
-def scegli_foto(
-    db: Session,
-    post_id: int,
-    versione_foto_id: int,
-    utente_id: int,
-    adesso: datetime,
-) -> VersionePost:
-    """Crea una versione del post usando una versione foto precedente (R-03)."""
-    raise NotImplementedError
-
-
-def cambia_foto(
-    db: Session,
-    post_id: int,
-    foto_id: int,
-    utente_id: int,
-    adesso: datetime,
-) -> VersionePost:
-    """Crea una versione del post con un'altra foto idonea dello stesso gruppo (R-36)."""
-    raise NotImplementedError
-
-
-def sposta_post(
-    db: Session,
-    post_id: int,
-    data_ora: datetime,
-    adesso: datetime,
-) -> Post:
-    """Sposta un post in revisione senza cambiare il contenuto (R-36)."""
-    raise NotImplementedError
-
-
 def ferma_generazione(db: Session, campagna_id: int, adesso: datetime) -> None:
     """Ferma una campagna rimasta bloccata in ``inviata`` o ``in_generazione`` (R-35).
 

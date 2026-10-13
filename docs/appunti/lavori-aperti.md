@@ -1,5 +1,19 @@
 # Lavori aperti
 
+> **Chiuso il 13/10/2026** (ADR-114). Gli appunti sono un archivio: questi punti sono diventati task dello sprint 3 · MVP (`docs/agenti/tasks.md`) o voci di `docs/ROADMAP.md`.
+>
+> | Punto | Dove è andato |
+> |---|---|
+> | A-01 AI, prompt e modelli | T3-31, T3-32 (prompt, prova su 10 post, scelta del modello) |
+> | A-02 Campi del profilo | Restano quelli di oggi; la verifica con un artigiano reale va in roadmap |
+> | A-03 Libreria calendario | Chiuso: elenco per giorno, nessuna libreria (E1) |
+> | A-05 Immagini create dall'AI | Chiuso: solo rimpiazzi (A4, R-28, R-43); i gruppi `create_ai` in roadmap |
+> | A-06 Numeri della scheda per canale | Restano i numeri di prova di R-21; un post = una foto |
+> | A-08 Presenza costante, archivio e riempitivi | Chiuso: rimpiazzi con immagini AI (A2, A4); archivio congelato (A10) |
+> | Consenso delle persone nelle foto | Chiuso: dichiarazione all'invio (C3, R-41) |
+> | Prezzo, chi paga, tra una campagna e l'altra | Roadmap |
+> | Accordo di delega consorzio–artigiano | Roadmap: serve con le pagine degli artigiani veri (D3) |
+
 Tutto ciò che è ancora da fare, decidere o verificare. Quando un punto si chiude, il risultato entra in `ADR.md` (se è una decisione) o nelle note, si chiede un assorbimento (vedi `LEGGIMI.md`) e il punto si toglie da qui.
 
 ## 1. Analisi (senza codice)

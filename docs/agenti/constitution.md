@@ -1,18 +1,18 @@
 # Costituzione
 
-Regole non negoziabili. Se un task le contraddice, fermati e chiedi.
+Regole non negoziabili. Se un task le contraddice, fermati e chiedi. Il perimetro dell'MVP è in `perimetro-mvp.md` (ADR-114).
 
 ## 1. Invarianti del prodotto
 1. Si pubblica solo un post `approvato`; si approva solo la campagna intera: tutti i suoi post `da_approvare`.
 2. Niente si cancella: versioni di post e foto, decisioni, campagne respinte o scadute restano.
-3. La foto originale (versione 0) non si perde mai.
+3. La foto originale non si modifica e non si perde mai: la sistemazione (spec R-42) lavora su una copia.
 4. Generazione e rigenerazioni usano `campagna.profilo_snapshot`, mai il profilo corrente.
 5. In campagna `attiva` o `sospesa` nessuna modifica ai post e nessun intervento sul singolo post: si sospende, si riattiva o si annulla la campagna. Unica eccezione: riprogrammare un post `fallito`.
 6. Ogni versione di un post, scritta dall'AI o dall'operatore, ha un autore e passa il validatore; una modifica a mano con un blocco non si salva.
 7. Pubblicazione idempotente: il tentativo si registra prima di chiamare il social; al massimo un `ok` per post.
 8. Gli stati cambiano solo nel modulo proprietario e solo con `verifica_transizione()` (transizioni in plan §2).
 9. Nella stessa campagna una foto non esce due volte sullo stesso canale.
-10. Il piano di una campagna ha, per ogni canale, esattamente i post chiesti: quelli che le foto non coprono sono riempitivi.
+10. Il piano di una campagna ha, per ogni canale, esattamente i post chiesti: quelli che le foto non coprono hanno un'immagine AI (spec R-28).
 11. In revisione un post non si toglie: si sistema. I post di una campagna calano solo con un canale tolto o con la scadenza.
 
 ## 2. Architettura
@@ -48,9 +48,9 @@ Ordine dei moduli: `accesso`, `notifiche`, `artigiani`, `campagne`, `contenuti`,
 - Password con scrypt; cookie `adflow_sessione` httpOnly; nel database solo l'hash del token; la sessione scade dopo un periodo senza uso (spec R-29).
 - Permessi controllati sul server a ogni richiesta: 401 senza sessione, 403 ruolo, 404 per risorse di un altro artigiano. L'admin passa dove passa l'operatore.
 - Upload: controllo di tipo reale, peso e dimensioni; il nome del file lo genera il server.
-- Permessi social cifrati. Nessun dato personale o token nei log.
+- Permessi social cifrati; il token della pagina Meta di prova solo in `backend/.env`. Nessun dato personale o token nei log.
 - Nei test nessuna chiamata reale ad AI, social o email.
-- Una libreria nuova si dichiara nella PR (nome, motivo, licenza) ed entra in `backend/requirements.txt` con una PR della corsia 0, prima del task che la usa.
+- Una libreria nuova si dichiara nella PR (nome, motivo, licenza) ed entra in `backend/requirements.txt` nella PR del task che la usa; la rivede il referente dei file comuni.
 
 ## 4. Standard
 - Dominio in italiano (tabelle, campi, funzioni, messaggi); termini tecnici in inglese.
@@ -60,6 +60,7 @@ Ordine dei moduli: `accesso`, `notifiche`, `artigiani`, `campagne`, `contenuti`,
 - Frontend: TypeScript strict, Mantine, niente stato globale; i tipi di `api/<modulo>.ts` rispecchiano lo `schemas.py` del modulo.
 - Test su PostgreSQL reale (`adflow_test`), mai SQLite; l'ora "adesso" si inietta (`core/orologio.py`).
 
-## 5. Corsie e fatto
-- Ogni file ha una corsia proprietaria (`tasks.md`). La corsia 0 è di tutto il team: composizione, `core/`, `alembic/`, `backend/requirements.txt`, e di ogni modulo `models.py`, `domain.py` e le funzioni di plan §6 scritte nella corsia 0. Si cambiano solo con un task della corsia 0.
-- Un task è fatto quando il suo "Fatto quando" è vero, la checklist di `converge.md` è verde e la PR è unita dall'admin dopo la revisione: approvazione di tutto il team per la corsia 0, revisione di gruppo per le corsie 1–5.
+## 5. Aree e fatto
+- Lo sprint 3 · MVP ha aree di lavoro (`tasks.md`), non proprietà dei file: un task tocca i file che gli servono, con i loro test.
+- Composizione, `core/`, `alembic/`, `backend/requirements.txt` e i `domain.py`: la PR che li cambia la rivede il referente dei file comuni.
+- Un task è fatto quando il suo "Fatto quando" è vero, la checklist di `converge.md` è verde e la PR, rivista da un collega, è unita dall'admin.
