@@ -275,9 +275,9 @@ def test_percorso_completo_sprint2a(
     assert r_ok.status_code == 200
     assert r_ok.json()["nome"] == "Bottega del Legno"
 
-    # L'artigiano nuovo non ha canali collegati (sprint 3)
+    # MVP R-37: al primo salvataggio gli account sono preparati come nel seed.
     canali_nuovo = api("GET", "/canali").json()
-    assert all(c["collegato"] is False for c in canali_nuovo)
+    assert all(c["collegato"] is True for c in canali_nuovo)
 
     # =========================================================================
     # 2. Artigiano del seed -> Bentornato / Modifica (CA-06)

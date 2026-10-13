@@ -14,7 +14,13 @@ from sqlalchemy.orm import Session
 from app.core.config import leggi_impostazioni
 from app.core.db import get_db
 from app.core.orologio import adesso
-from app.core.errori import DatiNonValidi, NonAutenticato, NonPermesso, NonTrovato
+from app.core.errori import (
+    DatiNonValidi,
+    NonAutenticato,
+    NonPermesso,
+    NonTrovato,
+    StatoNonValido,
+)
 from app.core.security import genera_token, hash_password, hash_token, verifica_password
 
 from .models import Sessione, Utente
@@ -203,6 +209,10 @@ def richiede_ruolo(*ruoli: str) -> Callable[..., Utente]:
 RUOLI_AMMESSI = ("artigiano", "operatore", "admin")
 
 
+class EmailGiaRegistrata(DatiNonValidi):
+    """Identità duplicata: i chiamanti scelgono il proprio esito API."""
+
+
 def _testo_valido(testo: str, *, campo_postgres: bool = False) -> bool:
     if campo_postgres and "\x00" in testo:
         return False
@@ -273,7 +283,7 @@ def crea_utente(
         identita_login(precedente) == email
         for precedente in db.scalars(select(Utente.email))
     ):
-        raise DatiNonValidi("Email già registrata.")
+        raise EmailGiaRegistrata("Email già registrata.")
     record = Utente(
         email=email,
         nome=nome,
@@ -296,7 +306,7 @@ def crea_utente(
             and getattr(getattr(errore.orig, "diag", None), "constraint_name", None)
             == "utente_email_key"
         ):
-            raise DatiNonValidi("Email già registrata.") from None
+            raise EmailGiaRegistrata("Email già registrata.") from None
         raise
     return record
 
@@ -359,3 +369,17 @@ def operatori(db: Session) -> list[Utente]:
             .order_by(Utente.id)
         )
     )
+
+
+def crea_artigiano(db: Session, email: str, nome: str) -> tuple[Utente, str]:
+    """Crea l'utente MVP: password casuale restituita solo al chiamante (R-37).
+
+    Il profilo sarà compilato al primo accesso. Nessun cambio password
+    obbligatorio viene introdotto nell'MVP; nessun commit o log di credenziali.
+    """
+    password = genera_token()
+    try:
+        record = crea_utente(db, email, password, nome, "artigiano")
+    except EmailGiaRegistrata:
+        raise StatoNonValido("Email già registrata.") from None
+    return record, password

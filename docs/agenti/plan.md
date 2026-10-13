@@ -169,6 +169,7 @@ Le sole funzioni di `moduli/<modulo>/service.py` che un altro modulo può chiama
 |---|---|---|---|
 | accesso | `utente_corrente` (dipendenza FastAPI → utente; rinnova la scadenza della sessione) · `richiede_ruolo(*ruoli)` (l'admin passa dove è ammesso l'operatore) | tutti i router | T1-12 (fino ad allora: utente di prova, T1-06; `richiede_ruolo` funziona già da T1-04; l'admin in T1-09) |
 | accesso | `crea_utente(email, password, nome, ruolo)` · `cambia_password(email, password)` | `cli.py` | T1-13 |
+| accesso | `crea_artigiano(db, email, nome)` → utente e password provvisoria; duplicato → 409, dati non validi → 422 | artigiani | T3-11 MVP |
 | artigiani | `profilo_di(utente_id)` → profilo o `None` | campagne, revisione | T1-04 |
 | artigiani | `canali_collegati(profilo_id)` → canali con account `collegato` | campagne, pubblicazione | T1-09 |
 | artigiani | `profilo(profilo_id)` → profilo o `None` · `post_a_settimana(frequenza)` → post alla settimana per canale (senza frequenza vale `decidete_voi`) | campagne, contenuti | issue #39 |
@@ -227,3 +228,14 @@ Ciò che ogni modulo trova già pronto: si usa; se va cambiato, la PR la rivede 
 | `tests/conftest.py` | fixture `db` · `client` · `coda` · `utente_di_prova` | `db`: sessione su `adflow_test`, annullata a fine test anche dopo un commit; `client`: `TestClient` che usa la stessa sessione; `coda`: coda in memoria attiva in ogni test, i job accodati si leggono in `coda.jobs.values()`, ognuno con `task_name` e `args`; `utente_di_prova("operatore", nome=…)`: crea l'utente con la fabbrica e lo rende l'utente autenticato di `client`, anche per `richiede_ruolo()` (ruolo sbagliato → 403); richiamata, lo cambia |
 
 A ogni esecuzione di `pytest` il database `adflow_test` viene svuotato e portato all'ultima migrazione con Alembic: le migrazioni sono provate da ogni test.
+
+
+### Creazione artigiano MVP (T3-11)
+
+`POST /artigiani` restituisce `{id, email, nome, password_provvisoria}` con
+`Cache-Control: no-store`. La password è generata dall'accesso, memorizzata
+soltanto come hash e non fa parte delle letture successive dell'utente.
+Il primo `GET /profilo` resta 404: l'artigiano compila il proprio profilo.
+Poiché `account_social.profilo_id` è obbligatorio, Facebook e Instagram vengono
+preparati come nel seed al primo salvataggio del profilo, nella stessa
+transazione; le modifiche successive preservano gli account già esistenti.

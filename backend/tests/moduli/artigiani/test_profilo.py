@@ -4,7 +4,7 @@ import json
 from datetime import datetime, timezone
 
 import pytest
-from sqlalchemy import func, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.orm import Session
 
 from app.core.orologio import adesso
@@ -60,8 +60,8 @@ def test_ca06_crea_legge_e_modifica_senza_duplicare(db, client, utente_di_prova)
         == 1
     )
     assert client.get("/api/canali").json() == [
-        {"canale": "facebook", "collegato": False},
-        {"canale": "instagram", "collegato": False},
+        {"canale": "facebook", "collegato": True},
+        {"canale": "instagram", "collegato": True},
     ]
 
 
@@ -262,6 +262,16 @@ def test_prime_scritture_concorrenti_creano_un_solo_profilo(motore_test):
                 .where(ProfiloBottega.utente_id == persona_id)
             )
             == 1
+        )
+        accounts = list(
+            controllo.scalars(
+                select(AccountSocial).where(AccountSocial.profilo_id == record.id)
+            )
+        )
+        assert len(accounts) == 2
+        assert all(a.stato == "collegato" for a in accounts)
+        controllo.execute(
+            delete(AccountSocial).where(AccountSocial.profilo_id == record.id)
         )
         controllo.delete(record)
         from app.moduli.accesso.models import Utente
