@@ -6,17 +6,9 @@
  * qui non si legge il corpo delle risposte.
  */
 import type { CampagnaElencoItem } from "./campagne";
-import { elenco } from "./campagne";
 import { richiesta } from "./http";
 import { esempiDecisioni } from "./esempi/decisioni";
 import { USA_ESEMPI } from "./esempi/accesso";
-
-/**
- * GET /da-approvare arriva con T2b-45. Finché è false, con le API vere la
- * pagina legge GET /campagne e non ha conteggi, "entro quando" e nota: il
- * passaggio si fa nella chiusura dello sprint (T2b-07).
- */
-const DA_APPROVARE_SU_MAIN = false;
 
 export type MotivoRespinta = "foto" | "altro";
 
@@ -39,23 +31,7 @@ export interface CampagnaDaApprovare extends CampagnaElencoItem {
 
 export async function daApprovare(): Promise<CampagnaDaApprovare[]> {
   if (USA_ESEMPI) return esempiDecisioni.daApprovare();
-  if (DA_APPROVARE_SU_MAIN)
-    return richiesta<CampagnaDaApprovare[]>("GET", "/da-approvare");
-  const stati = [
-    "inviata",
-    "in_generazione",
-    "piano_da_rivedere",
-    "generazione_fallita",
-    "in_revisione",
-  ];
-  return (await elenco())
-    .filter((c) => stati.includes(c.stato))
-    .map((c) => ({
-      ...c,
-      conteggi: null,
-      entro_quando: null,
-      ultima_nota: null,
-    }));
+  return richiesta<CampagnaDaApprovare[]>("GET", "/da-approvare");
 }
 
 /** POST /campagne/{id}/nota: in ogni stato dopo l'invio, nessuna email (R-32). */
