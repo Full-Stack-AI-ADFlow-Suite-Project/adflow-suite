@@ -103,6 +103,15 @@ def respingi(
             campagna_id,
             adesso,
             artigiano_id=profilo.utente_id,
+            contenuto={
+                "titolo": record.titolo,
+                "motivo": motivo,
+                "nota": testo.strip(),
+                "foto": [
+                    {"nome": foto.file, "mime": foto.mime}
+                    for foto in campagne.foto_per_id(db, segnate)
+                ],
+            },
         )
 
 

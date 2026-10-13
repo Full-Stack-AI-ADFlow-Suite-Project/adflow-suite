@@ -69,7 +69,15 @@ def test_i_tipi_di_notifica_hanno_un_destinatario():
         (
             notifiche,
             "crea",
-            ["db", "tipo", "campagna_id", "adesso", "artigiano_id", "post_id"],
+            [
+                "db",
+                "tipo",
+                "campagna_id",
+                "adesso",
+                "artigiano_id",
+                "post_id",
+                "contenuto",
+            ],
         ),
         (accesso, "utente", ["db", "utente_id"]),
         (accesso, "operatori", ["db"]),

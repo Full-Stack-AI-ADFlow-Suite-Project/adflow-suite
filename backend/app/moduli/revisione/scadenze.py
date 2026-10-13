@@ -90,7 +90,12 @@ def _notifica_artigiano(db: Session, record, adesso: datetime) -> None:
     if profilo is None:
         return
     notifiche.crea(
-        db, "campagna_scaduta", record.id, adesso, artigiano_id=profilo.utente_id
+        db,
+        "campagna_scaduta",
+        record.id,
+        adesso,
+        artigiano_id=profilo.utente_id,
+        contenuto={"titolo": record.titolo},
     )
 
 

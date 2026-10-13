@@ -194,7 +194,13 @@ def passo(db: Session, campagna_id: int, adesso: datetime) -> bool:
         _scrivi(db, campagna, _post_da_scrivere(db, campagna), adesso)
         return True
     campagne.cambia_stato(db, campagna, "in_revisione")
-    notifiche.crea(db, "campagna_pronta", campagna.id, adesso)
+    notifiche.crea(
+        db,
+        "campagna_pronta",
+        campagna.id,
+        adesso,
+        contenuto={"titolo": campagna.titolo},
+    )
     return False
 
 
@@ -431,7 +437,13 @@ def _pianifica(db: Session, campagna: Any, adesso: datetime) -> bool:
 
     if debole:
         campagne.cambia_stato(db, campagna, "piano_da_rivedere")
-        notifiche.crea(db, "piano_da_rivedere", campagna.id, adesso)
+        notifiche.crea(
+            db,
+            "piano_da_rivedere",
+            campagna.id,
+            adesso,
+            contenuto={"titolo": campagna.titolo},
+        )
         return False
     return True
 
@@ -603,6 +615,12 @@ def registra_errore(
         return False
     if tipo == "configurazione" or esecuzione >= ESECUZIONI:
         campagne.cambia_stato(db, campagna, "generazione_fallita")
-        notifiche.crea(db, "generazione_fallita", campagna_id, ora_di_adesso())
+        notifiche.crea(
+            db,
+            "generazione_fallita",
+            campagna_id,
+            ora_di_adesso(),
+            contenuto={"titolo": campagna.titolo, "errore": tipo},
+        )
         return False
     return True
