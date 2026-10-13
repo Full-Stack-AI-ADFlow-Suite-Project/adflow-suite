@@ -2,13 +2,16 @@
 
 Ogni tabella nasce già nella forma definitiva, nello sprint indicato. Le tabelle dello sprint 1 già su `main` si riallineano una volta, con T1-08 (§2). Cartelle e regole dei moduli: `constitution.md` §2. Vincoli: regole R-xx di `spec.md` §5.
 
+**Perimetro MVP** (ADR-114, `perimetro-mvp.md`): nella colonna Sprint `M` = sprint 3 · MVP, `–` = fuori MVP. Il codice delle righe `–` già costruito lo toglie o lo congela T3-01.
+
 ## 1. Stack e configurazione
-Python 3.11+ · FastAPI · Pydantic · SQLAlchemy 2 + Alembic · PostgreSQL 16 · Procrastinate (coda e job in PostgreSQL) · LiteLLM (AI; primo provider OpenAI; provider `finto` per sviluppo e test) · React + Vite + TypeScript + Mantine · pytest. Social simulato; email verso un catcher locale (Mailpit). Sessione con cookie httpOnly. Driver psycopg 3: gli indirizzi iniziano con `postgresql+psycopg://`. Le versioni stanno in `backend/requirements.txt`; l'ambiente virtuale è `.venv` nella radice. Cosa offre già il codice comune: §7.
+Python 3.11+ · FastAPI · Pydantic · SQLAlchemy 2 + Alembic · PostgreSQL 16 · Procrastinate (coda e job in PostgreSQL) · LiteLLM (AI; primo provider OpenAI; provider `finto` per sviluppo e test) · React + Vite + TypeScript + Mantine · pytest. Social simulato e Meta, su una pagina di prova (`SOCIAL_PROVIDER`); email verso un catcher locale (Mailpit). Sessione con cookie httpOnly. Driver psycopg 3: gli indirizzi iniziano con `postgresql+psycopg://`. Le versioni stanno in `backend/requirements.txt`; l'ambiente virtuale è `.venv` nella radice. Cosa offre già il codice comune: §7.
 
 `backend/.env` (ogni variabile è un campo di `core/config.py`, in minuscolo):
 ```
 DATABASE_URL · DATABASE_URL_TEST · ARCHIVIO_FOTO_DIR · RICHIESTA_MAX_BYTE=12582912
-AI_PROVIDER=finto|litellm · AI_MODELLO_VISIONE · AI_MODELLO_TESTO · OPENAI_API_KEY
+AI_PROVIDER=finto|litellm · AI_MODELLO_VISIONE · AI_MODELLO_TESTO · AI_MODELLO_IMMAGINI · OPENAI_API_KEY
+SOCIAL_PROVIDER=finto|meta · META_PAGINA_ID · META_INSTAGRAM_ID · META_TOKEN_PAGINA · FOTO_URL_PUBBLICO   (MVP)
 ANTICIPO_MINIMO_GIORNI=3 · MARGINE_SLOT_MINUTI=15 · OROLOGIO_GIORNI_AVANTI=0 · SMTP_HOST · SMTP_PORT
 SESSIONE_ARTIGIANO_GIORNI=7 · SESSIONE_OPERATORE_ORE=12 · CONSORZIO_NOME · CONSORZIO_TELEFONO · CONSORZIO_EMAIL
 AMBIENTE=sviluppo|test|produzione · LOGIN_LIMITE_TENTATIVI=5 · LOGIN_FINESTRA_SECONDI=900 · LOGIN_LIMITE_SEGRETO · EMAIL_TEST_ENVIRONMENT · COOKIE_SECURE
@@ -30,13 +33,14 @@ AMBIENTE=sviluppo|test|produzione · LOGIN_LIMITE_TENTATIVI=5 · LOGIN_FINESTRA_
 | post | contenuti | campagna_id, uscita_id, canale, formato, riempitivo (facoltativo), data_ora, stato, da_rivedere (bool), n_rigenerazioni_testo · n_ritocchi_foto (3), controllato_da (utente, facoltativo) · controllato_il (2b), intervento_in_corso (tipo, facoltativo) · intervento_dal (2b) · unico su (uscita_id, canale) | 1 |
 | versione_post | contenuti | post_id, numero, testo, hashtag[], tipo_intervento, autore_id (utente; vuoto = AI), testo_proposto, nota, provider_ai, modello_ai, versione_prompt (i tre facoltativi), errori_validazione (JSON `[{livello, regola, messaggio}]`), creata_il · unico su (post_id, numero) | 1 |
 | versione_post_foto | contenuti | versione_id, posizione, foto_id · versione_foto_id (3) · unico su (versione_id, posizione) | 1 |
-| versione_foto | contenuti | foto_id, numero (0 = originale), file, origine (originale / ritocco_ai), nota, provider_ai, modello_ai, versione_prompt, creata_il | 3 |
+| versione_foto | contenuti | foto_id, numero (0 = originale), file, origine (originale / ritocco_ai), nota, provider_ai, modello_ai, versione_prompt, creata_il | – |
+| chiamata_ai | contenuti | campagna_id, post_id (facoltativo), tipo (analisi / piano / testo / immagine), provider_ai, modello_ai, token_ingresso, token_uscita, n_immagini (facoltativi), costo_usd (numerico), creata_il (spec R-44) | M (migrazione 012) |
 | errore_generazione | contenuti | campagna_id, tipo, messaggio, tappa, canale (facoltativo), creata_il | 1 |
 | approvazione | revisione | versione_id, utente_id, ruolo, esito, creata_il | 1 |
 | pubblicazione | pubblicazione | post_id, versione_id, n_tentativo, stato (in_corso / ok / errore), id_esterno, errore, creata_il · indice unico parziale su `ok` per post · unico su (post_id, n_tentativo) | 1 |
-| metrica | pubblicazione | pubblicazione_id, data_rilevazione, like, commenti, copertura, salvataggi | 4 |
+| metrica | pubblicazione | pubblicazione_id, data_rilevazione, like, commenti, copertura, salvataggi | – |
 | notifica | notifiche | utente_id, campagna_id, post_id (facoltativo: solo `post_fallito`, per distinguere un evento dall'altro), tipo (`campagna_pronta`, `piano_da_rivedere`, `generazione_fallita`, `post_fallito` agli operatori; `campagna_respinta`, `campagna_scaduta` all'artigiano; poi `campagna_sospesa` e `campagna_conclusa`), canale (`email`), stato_invio (`da_inviare`, `inviata`, `fallita`), creata_il, inviata_il | 2b |
-| anagrafica_artigiano | artigiani | utente_id (1:1), codice (unico, es. ART-0042), codice_consorzio, nome_bottega, referente, citta, telefono, stato_iscrizione, iscritto_il | 3 |
+| anagrafica_artigiano | artigiani | utente_id (1:1), codice (unico, es. ART-0042), codice_consorzio, nome_bottega, referente, citta, telefono, stato_iscrizione, iscritto_il | – |
 
 La versione corrente di un post è l'ultima; il piano corrente è l'ultimo. Versioni, piani, decisioni ed errori di generazione non si cancellano mai. `post.da_rivedere` è vero quando la versione corrente ha almeno un errore di livello `blocco`. Le note interne sono decisioni con esito `nota`. `campagna.chiusa_il` si scrive quando la campagna entra in uno stato chiuso. Un post nasce con il piano, senza versioni: la versione 1 arriva con il testo, e le sue foto sono quelle che il piano gli ha dato. Nel contratto Python `versione.legami_foto` è la lista dei record `VersionePostFoto`, ordinati per `posizione`, con `foto_id`: non contiene direttamente gli oggetti `Foto` di un altro modulo.
 
@@ -89,22 +93,22 @@ Migrazioni dello sprint 1: 001 accesso, 002 artigiani, 003 campagne, 004 contenu
 | 1 | campagne | POST /campagne/{id}/gruppi `{origine, descrizione, da_usare_il, n_immagini}` | artigiano | 201 · solo in bozza · 422 R-13 |
 | 1 | campagne | PUT /campagne/{id}/gruppi/{gruppo_id} `{descrizione, da_usare_il, n_immagini}` | artigiano | solo in bozza · 422 R-13 |
 | 1 | campagne | POST /campagne/{id}/foto (multipart: file, gruppo_id; entrambi obbligatori) | artigiano | 201 · solo in bozza, solo in un gruppo `caricate` già creato · 422 R-13 o senza gruppo |
-| 1 | campagne | PUT /foto/{id} `{da_usare}` | artigiano | la stella · solo in bozza |
+| – | campagne | PUT /foto/{id} `{da_usare}` | artigiano | la stella · solo in bozza |
 | 1 | campagne | DELETE /foto/{id} · DELETE /campagne/{id}/gruppi/{gruppo_id} | artigiano | 204 · solo in bozza |
 | 1 | campagne | GET /foto/{id}/file | proprietario, operatore | immagine |
-| 1 | campagne | POST /campagne/{id}/invia | artigiano | → inviata + job `genera_campagna`; 409 senza profilo o con un canale non collegato (R-22); 422 R-08, R-13 |
+| 1, M | campagne | POST /campagne/{id}/invia `{dichiarazione}` | artigiano | → inviata + job `genera_campagna`; 409 senza profilo o con un canale non collegato (R-22); 422 R-08, R-13, senza dichiarazione (R-41) |
 | 1 | campagne | POST /campagne/{id}/riprova | operatore | generazione_fallita → inviata + job |
-| 1 | revisione | GET /campagne/{id}/post?stato= | operatore | in ogni stato dopo l'invio: piano corrente (strategia, esito del controllo, debole) o niente se non c'è ancora, uscite (tema, gruppo e data del gruppo) con i post dei canali (tipo di riempitivo, versione corrente con foto, autore, blocchi e avvisi, storico; dalla 2b spunta e intervento in corso), foto non usate per gruppo con il motivo, `ultimo_errore` della generazione (R-35) |
-| 1 | revisione | POST /campagne/{id}/prosegui | operatore | piano_da_rivedere → in_generazione + job, decisione `proseguita` · 409 se il piano non ha post (R-20) |
+| 1 | revisione | GET /campagne/{id}/post?stato= | operatore | in ogni stato dopo l'invio: piano corrente (strategia, esito del controllo, debole) o niente se non c'è ancora, uscite (tema, gruppo e data del gruppo) con i post dei canali (tipo di riempitivo, versione corrente con foto, autore, blocchi e avvisi, storico; dalla 2b spunta e intervento in corso), foto non usate per gruppo con il motivo, `ultimo_errore` della generazione (R-35); nell'MVP anche `costo_ai`, il totale della campagna in dollari (R-44) |
+| – | revisione | POST /campagne/{id}/prosegui | operatore | piano_da_rivedere → in_generazione + job, decisione `proseguita` · 409 se il piano non ha post (R-20) |
 | 1 | revisione | POST /campagne/{id}/approva | operatore | → attiva, post `da_approvare` approvati (quelli con la data passata scaduti), righe approvazione + decisione · 409 R-14 |
 | 2a | artigiani | GET /profilo · PUT /profilo | artigiano | 404 se assente · upsert, 422 obbligatori |
 | 2a | campagne | PATCH /campagne/{id} | artigiano | solo in bozza, stessi controlli della creazione; anche `canali[]` |
-| 2a | artigiani | PUT /profilo/logo (multipart: `file`, obbligatorio) | artigiano | 200 con il profilo, come `GET /profilo`: `logo` è il nome del file nuovo, generato dal server · il file di prima resta nell'archivio (spec R-40) · 404 senza profilo · 422 R-40 (non è JPG, PNG o WEBP, pesa più di 2 MB, lato corto sotto 300 px) |
-| 2a | artigiani | GET /profilo/logo · DELETE /profilo/logo | artigiano | l'immagine del logo corrente, con il suo tipo · 204: il profilo resta senza logo, il file non si elimina · 404 senza profilo o senza logo |
-| 2a | campagne | GET /archivio | artigiano | `[gruppo]`: i gruppi senza campagna del suo profilo, ognuno con le sue foto, nella forma dei gruppi di `GET /campagne/{id}`; elenco vuoto se non ce ne sono (spec R-27) |
-| 2a | campagne | POST /archivio/gruppi `{descrizione}` | artigiano | 201 gruppo `caricate` senza campagna, senza `da_usare_il` · 422 senza descrizione |
-| 2a | campagne | POST /archivio/foto (multipart: file, gruppo_id; entrambi obbligatori) | artigiano | 201 foto, come `POST /campagne/{id}/foto` · 422 R-13 (tipo, peso, lato corto, più di 20 foto nel gruppo) · 404 se il gruppo non è del suo archivio |
-| 2a | campagne | DELETE /archivio/foto/{id} · DELETE /archivio/gruppi/{id} | artigiano | 204; il gruppo si elimina con le sue foto · 409 se la foto, o una foto del gruppo, è già in un post (`n_utilizzi` > 0) · 404 se non è del suo archivio |
+| – | artigiani | PUT /profilo/logo (multipart: `file`, obbligatorio) | artigiano | 200 con il profilo, come `GET /profilo`: `logo` è il nome del file nuovo, generato dal server · il file di prima resta nell'archivio (spec R-40) · 404 senza profilo · 422 R-40 (non è JPG, PNG o WEBP, pesa più di 2 MB, lato corto sotto 300 px) |
+| – | artigiani | GET /profilo/logo · DELETE /profilo/logo | artigiano | l'immagine del logo corrente, con il suo tipo · 204: il profilo resta senza logo, il file non si elimina · 404 senza profilo o senza logo |
+| 2a, congelato | campagne | GET /archivio | artigiano | `[gruppo]`: i gruppi senza campagna del suo profilo, ognuno con le sue foto, nella forma dei gruppi di `GET /campagne/{id}`; elenco vuoto se non ce ne sono (spec R-27) |
+| 2a, congelato | campagne | POST /archivio/gruppi `{descrizione}` | artigiano | 201 gruppo `caricate` senza campagna, senza `da_usare_il` · 422 senza descrizione |
+| 2a, congelato | campagne | POST /archivio/foto (multipart: file, gruppo_id; entrambi obbligatori) | artigiano | 201 foto, come `POST /campagne/{id}/foto` · 422 R-13 (tipo, peso, lato corto, più di 20 foto nel gruppo) · 404 se il gruppo non è del suo archivio |
+| 2a, congelato | campagne | DELETE /archivio/foto/{id} · DELETE /archivio/gruppi/{id} | artigiano | 204; il gruppo si elimina con le sue foto · 409 se la foto, o una foto del gruppo, è già in un post (`n_utilizzi` > 0) · 404 se non è del suo archivio |
 | 2a | campagne | GET /foto/{id}/file | proprietario, operatore | vale anche per le foto senza campagna dell'archivio |
 | 2b | revisione | GET /da-approvare | operatore | le campagne di tutti gli artigiani negli stati "da approvare" (spec §4), con bottega e città, conteggi dei post (totale, da approvare, da rivedere, riempitivi per canale), `entro_quando` e ultima nota interna, ordinate per `entro_quando` (R-38) |
 | 2b | revisione | POST /campagne/{id}/nota `{nota}` | operatore | in ogni stato dopo l'invio: decisione `nota`, nessuna email · 422 senza nota (R-32) |
@@ -115,18 +119,19 @@ Migrazioni dello sprint 1: 001 accesso, 002 artigiani, 003 campagne, 004 contenu
 | 2b | revisione | POST /post/{id}/controllato `{valore}` | operatore | mette o toglie la spunta (R-30) · 409 fuori da in_revisione o su un post `da_rivedere` |
 | 2b | revisione | POST /post/{id}/rigenera `{modalita, testo_proposto, nota}` | operatore | `totale` o `da_proposta`; solo in_revisione; stesse foto; accende l'intervento in corso + job · 409 R-03, R-16, R-31 · 422 `da_proposta` senza testo |
 | 2b | revisione | POST /post/{id}/riprogramma `{data_ora}` | operatore | post `fallito` in campagna attiva o sospesa → `approvato`, decisione `riprogrammato` · 409 se non è fallito · 422 R-34 |
-| 3 | accesso | POST /auth/cambia-password `{password_attuale, password_nuova}` | autenticato | 204; spegne `deve_cambiare_password`. Finché è acceso ogni altra chiamata dell'utente → 403 (R-37) |
-| 3 | revisione | GET /artigiani · GET /artigiani/{id} | operatore | elenco (R-38); dettaglio per sezioni (spec §4): campagne da approvare, in corso, le ultime 3 chiuse e il totale delle chiuse |
-| 3 | campagne | GET /campagne?artigiano=&stato= | operatore | filtro per artigiano, per la pagina delle campagne chiuse |
-| 3 | artigiani | POST /artigiani · PUT /artigiani/{id}/anagrafica | operatore | creazione (201 con la password provvisoria, una sola volta), anagrafica · 422 R-37 |
-| 3 | artigiani | POST /artigiani/{id}/password-provvisoria | operatore | nuova password provvisoria, mostrata una sola volta |
-| 3 | artigiani | POST /artigiani/{id}/social/{piattaforma}/collega | operatore | collegamento (simulato) |
-| 3 | revisione | POST /post/{id}/ritocca-foto `{nota}` | operatore | solo in_revisione; intervento in corso + job · 409 R-03, R-31 |
-| 3 | revisione | POST /post/{id}/scegli-foto `{versione_foto_id}` | operatore | originale o precedente; non consuma cicli |
-| 3 | revisione | POST /post/{id}/cambia-foto `{foto_id}` | operatore | versione `cambio_foto` · 422 R-36 |
-| 3 | revisione | POST /post/{id}/sposta `{data_ora}` | operatore | nuova data, spunta azzerata · 422 R-36 |
-| 3 | contenuti | GET /campagne/{id}/calendario | proprietario, operatore | strategia del piano e soli post approvati, pubblicati, falliti o annullati (data, canale, stato, testo e foto della versione corrente); canali tolti con la nota; numero dei post scaduti · 409 prima dell'approvazione |
-| 4 | pubblicazione | GET /metriche?artigiano=&campagna=&dal=&al= | operatore; artigiano solo le sue | metriche (R-39) |
+| – | accesso | POST /auth/cambia-password `{password_attuale, password_nuova}` | autenticato | 204; spegne `deve_cambiare_password`. Finché è acceso ogni altra chiamata dell'utente → 403 (R-37) |
+| – | revisione | GET /artigiani · GET /artigiani/{id} | operatore | elenco (R-38); dettaglio per sezioni (spec §4): campagne da approvare, in corso, le ultime 3 chiuse e il totale delle chiuse |
+| – | campagne | GET /campagne?artigiano=&stato= | operatore | filtro per artigiano, per la pagina delle campagne chiuse |
+| M | artigiani | POST /artigiani `{email, nome}` | operatore | 201 con la password provvisoria, una sola volta (spec R-37) · 409 email già usata · 422 email non valida. Anagrafica: fuori MVP |
+| – | artigiani | POST /artigiani/{id}/password-provvisoria | operatore | nuova password provvisoria, mostrata una sola volta |
+| – | artigiani | POST /artigiani/{id}/social/{piattaforma}/collega | operatore | collegamento (simulato) |
+| – | revisione | POST /post/{id}/ritocca-foto `{nota}` | operatore | solo in_revisione; intervento in corso + job · 409 R-03, R-31 |
+| – | revisione | POST /post/{id}/scegli-foto `{versione_foto_id}` | operatore | originale o precedente; non consuma cicli |
+| – | revisione | POST /post/{id}/cambia-foto `{foto_id}` | operatore | versione `cambio_foto` · 422 R-36 |
+| – | revisione | POST /post/{id}/sposta `{data_ora}` | operatore | nuova data, spunta azzerata · 422 R-36 |
+| M | contenuti | GET /campagne/{id}/calendario | proprietario, operatore | strategia del piano e soli post approvati, pubblicati, falliti o annullati (data, canale, stato, testo e foto della versione corrente); canali tolti con la nota; numero dei post scaduti · 409 prima dell'approvazione |
+| M | campagne | GET /foto/{id}/pubblica?canale=&firma= | senza sessione, con firma a tempo generata dal server | la foto sistemata per il canale (spec R-42), JPEG: è l'indirizzo pubblico che Instagram scarica · 404 firma non valida o scaduta |
+| – | pubblicazione | GET /metriche?artigiano=&campagna=&dal=&al= | operatore; artigiano solo le sue | metriche (R-39) |
 
 Per ogni percorso: una richiesta oltre `RICHIESTA_MAX_BYTE` (12 MiB: i 10 MB di una foto più il margine del multipart) riceve 413 prima di arrivare al router; `POST /auth/login` oltre il limite dei tentativi riceve 429 con `Retry-After`.
 
@@ -141,16 +146,19 @@ Non esistono: approvazione, scarto o annullamento del singolo post; togliere un'
 | 1 | `worker.py` | `tick_pubblicazione` | ogni minuto, uno alla volta | (2b) `revisione.scadenze()`: scadenza morbida R-06 e campagne ferme da 30 minuti R-35; poi `pubblicazione.pubblica_dovuti()`: tentativo registrato → pubblica con tutte le foto → esito, (2b) notifica agli operatori per un post `fallito`; campagna conclusa secondo R-34; (3) sospensione R-07 |
 | 2b | contenuti | `rigenera_post(post_id)` | da /rigenera; 3 esecuzioni | non fa nulla se la campagna non è `in_revisione` o il post non è `da_approvare`; nuovo testo, stesse foto, versioni rifiutate come contesto, validatore; conta il ciclo e spegne l'intervento in corso quando nasce la versione; alla terza esecuzione fallita spegne l'intervento senza contare il ciclo (R-31) |
 | 2b | notifiche | `invia_notifica(notifica_id)` | alla creazione; 3 tentativi | email via adattatore, aggiorna `stato_invio` |
-| 3 | contenuti | `ritocca_foto(post_id)` | da /ritocca-foto; 3 esecuzioni | nuova `versione_foto` e nuova versione del post; stesse regole di R-31 |
-| 3 | revisione | `promemoria` | ogni ora | email all'operatore per le campagne `in_revisione` o `piano_da_rivedere`, R-06, una volta per campagna |
-| 4 | pubblicazione | `raccogli_metriche` · `report_settimanale` | giorno · settimana | metriche; email di riepilogo agli operatori; all'artigiano un riepilogo quando la campagna è `conclusa` (R-39) |
+| – | contenuti | `ritocca_foto(post_id)` | da /ritocca-foto; 3 esecuzioni | nuova `versione_foto` e nuova versione del post; stesse regole di R-31 |
+| – | revisione | `promemoria` | ogni ora | email all'operatore per le campagne `in_revisione` o `piano_da_rivedere`, R-06, una volta per campagna |
+| – | pubblicazione | `raccogli_metriche` · `report_settimanale` | giorno · settimana | metriche; email di riepilogo agli operatori; all'artigiano un riepilogo quando la campagna è `conclusa` (R-39) |
+
+**MVP** (ADR-114), in `genera_campagna`: ③ il codice passa all'AI solo le foto migliori per punteggio, fino ai post chiesti per canale; il piano non si ferma mai per piano debole e i post scoperti hanno `riempitivo` = `immagine_ai`; ④ al posto di cartoline e ritocco: un'immagine AI quadrata 1:1 per uscita scoperta, la stessa sui due canali (spec R-28, R-43), salvata con l'adattatore archivio e creata come foto `creata_ai` con `campagne.service.aggiungi_foto()`. Ogni chiamata all'AI scrive una riga `chiamata_ai` (spec R-44). In `tick_pubblicazione` la sospensione R-07 è fuori MVP.
 
 I nomi dei job stanno in `core/coda.py`; un job di un altro modulo si accoda con `accoda(nome, …)`, senza importarlo. Il job parte anche trovando la campagna già `in_generazione` (nuova esecuzione o Prosegui): riprende dalla prima tappa non fatta. Con un piano già salvato non si ferma di nuovo per il piano debole.
 
 ## 5. Adattatori
 Ognuno in `adapters/<nome>/`: interfaccia, implementazione finta, implementazione reale.
 - **ai**: `analizza_gruppo()` (le foto di un gruppo con la sua descrizione → per ogni foto `idonea`, `simile_a`, `tipo`, `punteggio`, `motivo`, `soggetto`), `pianifica_campagna()` (snapshot, campagna, gruppi analizzati, limiti per canale, schede dei canali → strategia, uscite e post per canale con formato, foto, data e ora), `genera_post()` (un post del piano → testo e hashtag per il suo canale), `ritocca_immagine()` (3); `crea_immagine()` non ancora pianificata (spec R-19). Le cartoline non passano dall'AI: le compone `contenuti` (spec R-28). Ogni errore esce dall'adattatore come `ErroreAI` con il suo `tipo` (R-35) e un messaggio per l'operatore: è l'adattatore a tradurre gli errori del provider. Provider da `AI_PROVIDER`; piano e versioni salvano provider, modello e versione del prompt. Prompt in `adapters/ai/prompts/`; quello del piano è scritto da social media manager. Il provider finto dà sempre lo stesso piano a parità di dati: una foto per post, tutte le foto disponibili fino ai post chiesti (prima quelle della campagna, poi quelle d'archivio mai uscite sul canale), poi i riempitivi per i post che mancano: prima le foto d'archivio già uscite sul canale (`foto_riempitivo` dei limiti, riempitivo `archivio`), poi le cartoline; date distribuite sul periodo, Instagram il giorno dopo Facebook; carosello ed errori, di ogni tipo, a comando.
-- **social**: `collega_account()`, `pubblica()` (testo, hashtag e una o più foto), `leggi_metriche()`; simulato e Meta.
+  **MVP**: implementazione reale con LiteLLM (`AI_PROVIDER=litellm`, risposte strutturate con modelli Pydantic, foto ridotte a 1024 px); `genera_immagine(prompt, formato)` per i rimpiazzi (spec R-43); ogni metodo restituisce anche l'uso (token o immagini) per il costo (spec R-44). Il provider finto non fa più cartoline né foto d'archivio: i post scoperti diventano `immagine_ai`. `ritocca_immagine()`: fuori MVP.
+- **social**: `pubblica(canale, testo, hashtag, foto, url_foto)` (nell'MVP una foto: i byte servono a Facebook, l'indirizzo pubblico di §3 a Instagram); simulato e Meta (`SOCIAL_PROVIDER`). Meta: Facebook `POST /{page-id}/photos`; Instagram contenitore `POST /{ig-id}/media` con `image_url` (l'indirizzo pubblico di §3) e `POST /{ig-id}/media_publish`, stato del contenitore controllato una volta al minuto per al massimo 5 minuti; errori tradotti in temporaneo o definitivo. Token, id della Pagina e dell'account Instagram da `.env`: una sola pagina di prova per tutti gli artigiani, `account_social` non si legge. `collega_account()` e `leggi_metriche()`: fuori MVP.
 - **email**: `invia()`; catcher locale in sviluppo.
 - **archivio**: salva, legge, elimina file sotto `ARCHIVIO_FOTO_DIR`.
 
@@ -179,7 +187,7 @@ Le sole funzioni di `moduli/<modulo>/service.py` che un altro modulo può chiama
 | campagne | `segna_pubblicata(foto_id, canale, quando)` | pubblicazione | firma T2a-01, corpo T2a-22 |
 | campagne | `foto_per_id(ids)` → le foto con quegli id, di qualunque campagna o dell'archivio | contenuti, revisione, pubblicazione | T2a-01 |
 
-- Sprint successivi: le firme le fissa il task di apertura dello sprint, della corsia 0, che le scrive nei `service.py` con `NotImplementedError` e in questa tabella.
+- Sprint 2a e 2b: le firme le fissava il task di apertura dello sprint. Dallo sprint 3 · MVP una funzione nuova la scrive il task che la usa, nel `service.py` del modulo proprietario, e la aggiunge a questa tabella (ADR-114).
   - **2a (T2a-01)**: le tre righe di campagne qui sopra. `contenuti` non può leggere `pubblicazione`, che viene dopo: per questo dove è uscita una foto sta sulla foto, in `campagne`.
     - `foto_di_archivio()` restituisce le foto `caricata` del profilo che stanno in una campagna chiusa o in un gruppo senza campagna (spec R-27), ordinate per gruppo e per id. Restano fuori le foto non idonee, quelle segnate in una decisione `respinta` e quelle uscite sul canale da meno di 90 giorni (`adesso` meno l'ultima pubblicazione lì). `mai_uscita` vero: la foto conta tra le foto disponibili del canale (R-05); falso: è uscita lì da almeno 90 giorni e vale solo come riempitivo `archivio` (R-28). `gruppo` è il gruppo della foto, con la descrizione per l'AI. Una foto non ancora analizzata è compresa, con `mai_uscita` vero: la generazione la analizza prima del piano e richiama la funzione. `simile_a` non la toglie dall'elenco: lo guarda `contenuti`, come per le foto della campagna.
     - `segna_pubblicata()` scrive `quando` in `foto.pubblicata_su` sotto il canale, senza toccare gli altri; un istante precedente a quello già scritto non lo sostituisce, così due chiamate uguali fanno una sola scrittura. Foto che non esiste → `NonTrovato`. Quali foto segnare (le caricate, non le cartoline) lo decide chi chiama.
@@ -190,18 +198,18 @@ Le sole funzioni di `moduli/<modulo>/service.py` che un altro modulo può chiama
     - `contenuti.annulla_post(db, campagna_id, post_ids=None)`: senza `post_ids` annulla tutti i post `approvato` (annulla la campagna); con `post_ids` solo quelli (riattiva: gli arretrati che l'operatore non vuole pubblicare adesso; `revisione` calcola gli arretrati con `post_della_campagna()` e rifiuta con 422 un `pubblica_ora` che non lo è).
     - `contenuti.ferma_generazione(db, campagna_id, adesso)` salva l'errore `temporaneo` e porta la campagna a `generazione_fallita` con `campagne.cambia_stato()`.
     - `revisione.scadenze(db, adesso)` per ora non fa niente (T2b-44 ne scrive il corpo): il tick la chiama già, prima di `pubblica_dovuti()`, e i percorsi degli sprint prima lo attraversano.
-  - **3 (T3-01)**: accesso `password_provvisoria()`; artigiani `account_social()`, `anagrafica_di()`; contenuti `puo_ritoccare()`, `scegli_foto()`, `cambia_foto()`, `sposta_post()`; negli adattatori `ritocca_immagine()` (AI) e `collega_account()` (social).
+  - **3 · MVP**: le funzioni nuove le aggiungono i loro task (per esempio la sistemazione delle foto di T3-21 in `campagne`). Le firme del vecchio T3-01 (ritocco, anagrafica, collegamento degli account) sono in roadmap.
 - I dati di un altro modulo si leggono solo con le funzioni di questa tabella: niente SQL scritto a mano sulle sue tabelle e niente copie delle sue costanti (`tests/test_confini.py` controlla gli import, non questo).
 - Lo stato si passa per nome, `cambia_stato(db, campagna, "attiva")`: il `domain.py` di un altro modulo non si importa. Dentro il modulo proprietario si usano le sue costanti.
 - `approva_post(campagna_id, adesso)` porta a `scaduto` i post `da_approvare` con la data passata e approva gli altri; lascia `scartato` e `scaduto` come sono. Se non resta nessun post da approvare solleva `StatoNonValido` e nessun post cambia stato.
 - `ha_blocchi(campagna_id, adesso)` è vero se un post `da_approvare` ha `da_rivedere` oppure un intervento in corso partito da meno di 10 minuti (spec R-31).
 - `tutti_chiusi(campagna_id, adesso)` è vero quando ogni post è `pubblicato`, `fallito`, `annullato`, `scartato` o `scaduto` e, se c'è un post `fallito`, il periodo della campagna è finito (spec R-34).
 - Job accodati per nome: `genera_campagna` da campagne (/invia, /riprova) e da revisione (/prosegui); `rigenera_post` (2b) e `ritocca_foto` (3) da revisione.
-- **Fabbriche di test** in `tests/moduli/<modulo>/fabbrica.py`, della corsia 0: `utente(ruolo)`, `profilo()`, `account_social(profilo, piattaforma, stato)`, `campagna_in_bozza()`, `gruppo(campagna, origine)`, `foto(gruppo)`, `campagna_inviata()`, `campagna_con_piano_da_rivedere()`, `campagna_in_revisione()`, `campagna_attiva()`, `piano(campagna)`, `uscita(campagna, gruppo)`, `post_da_approvare()`, `post_approvato()`. Ricevono `db` come primo argomento e fanno `flush`, non `commit`. Ogni utente creato ha la password `PASSWORD_DI_PROVA` (fabbrica di accesso). `profilo()` crea anche gli account collegati dei suoi canali; `campagna_inviata()` e le successive hanno un gruppo con 4 foto. Dalla 2b (T2b-01): `campagna_sospesa()`, `nota_interna(campagna)` (decisione `nota`), `post_fallito()` (in campagna attiva) e `notifica(campagna, utente)`. Dalla 2a (T2a-01): `campagna_conclusa()`, chiusa nell'autunno 2029, con 4 foto idonee e mai pubblicate; `gruppo_di_archivio(profilo_id, n_foto)`, un gruppo senza campagna con `n_foto` foto idonee e mai pubblicate (2 se non si dice); `ANALISI_IDONEA`, l'analisi di una foto che il piano può usare. Dove è uscita una foto lo scrive il test in `foto.pubblicata_su`. Fixture `utente_di_prova(ruolo)` (T1-06) al posto di `utente_corrente` nei test delle API: §7.
-- Una firma o una fabbrica si cambia solo con un task della corsia 0.
+- **Fabbriche di test** in `tests/moduli/<modulo>/fabbrica.py`: `utente(ruolo)`, `profilo()`, `account_social(profilo, piattaforma, stato)`, `campagna_in_bozza()`, `gruppo(campagna, origine)`, `foto(gruppo)`, `campagna_inviata()`, `campagna_con_piano_da_rivedere()`, `campagna_in_revisione()`, `campagna_attiva()`, `piano(campagna)`, `uscita(campagna, gruppo)`, `post_da_approvare()`, `post_approvato()`. Ricevono `db` come primo argomento e fanno `flush`, non `commit`. Ogni utente creato ha la password `PASSWORD_DI_PROVA` (fabbrica di accesso). `profilo()` crea anche gli account collegati dei suoi canali; `campagna_inviata()` e le successive hanno un gruppo con 4 foto. Dalla 2b (T2b-01): `campagna_sospesa()`, `nota_interna(campagna)` (decisione `nota`), `post_fallito()` (in campagna attiva) e `notifica(campagna, utente)`. Dalla 2a (T2a-01): `campagna_conclusa()`, chiusa nell'autunno 2029, con 4 foto idonee e mai pubblicate; `gruppo_di_archivio(profilo_id, n_foto)`, un gruppo senza campagna con `n_foto` foto idonee e mai pubblicate (2 se non si dice); `ANALISI_IDONEA`, l'analisi di una foto che il piano può usare. Dove è uscita una foto lo scrive il test in `foto.pubblicata_su`. Fixture `utente_di_prova(ruolo)` (T1-06) al posto di `utente_corrente` nei test delle API: §7.
+- Una firma o una fabbrica si cambia nel task che ne ha bisogno, dicendolo nella PR (ADR-114).
 
 ## 7. Base comune (T1-01)
-Ciò che ogni modulo trova già pronto. È della corsia 0: si usa, non si cambia.
+Ciò che ogni modulo trova già pronto: si usa; se va cambiato, la PR la rivede il referente dei file comuni.
 
 | Dove | Cosa | Come si usa |
 |---|---|---|

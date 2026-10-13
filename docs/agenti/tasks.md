@@ -1,33 +1,28 @@
 # Tasks
 
-Sei corsie. La **corsia 0** è di tutto il team: si lavora e si approva insieme. Le **corsie 1–5** sono di una persona ciascuna e procedono in parallelo. Prendi i task della tua corsia in ordine, quando ciò che sta in "Dipende da" è su `main`; nella PR cambia ☐ in ☑. Gli sprint 1, 2a, 2b e 3 sono divisi in task; lo sprint corrente è il primo che ha ancora un task da fare.
+Lo sprint di lavoro è lo **Sprint 3 · MVP** (ADR-114, `perimetro-mvp.md`): consegna e pitch il 6 novembre, codice bloccato il 30 ottobre. Gli sprint 1, 2a e 2b restano qui come storia. Ciò che non entra nell'MVP è in `docs/ROADMAP.md`.
 
-**Da dove riparto?** Dalla radice: `uv run python allinea.py <corsia>`. Allinea la tua copia a `main` e legge questa pagina per te: stampa i task pronti della tua corsia (quelli con le dipendenze già ☑), cosa leggere e il branch da aprire. Le caselle di questa pagina sono l'unica fonte dello stato: non tenere elenchi a parte.
+**Da dove riparto?** Dalla radice: `uv run python allinea.py <area>`. Allinea la tua copia a `main` e legge questa pagina per te: stampa i task pronti della tua area (quelli con le dipendenze già ☑), cosa leggere e il branch da aprire. Le caselle di questa pagina sono l'unica fonte dello stato: non tenere elenchi a parte.
 
-| Corsia | Chi | Di sua proprietà |
+| Area | Chi | Di cosa si occupa |
 |---|---|---|
-| 0 · Comune | tutto il team | `core/`, `main.py`, `worker.py`, `cli.py`, `tabelle.py`, `alembic/`, `backend/requirements.txt`, `.github/`, `allinea.py`; di ogni modulo `models.py`, `domain.py` e le funzioni di plan §6 scritte in T1-04 e T1-09; `tests/percorsi/`, `tests/test_confini.py`, `tests/moduli/*/fabbrica.py` |
-| 1 · Accesso e artigiani | Gianluca | `moduli/accesso/`, `moduli/notifiche/`, `moduli/artigiani/`, `adapters/email/` |
-| 2 · Campagne | Silvia | `moduli/campagne/`, `adapters/archivio/` |
-| 3 · Contenuti | Giovanni | `moduli/contenuti/`, `adapters/ai/` |
-| 4 · Revisione e pubblicazione | Nilton | `moduli/revisione/`, `moduli/pubblicazione/`, `adapters/social/` |
-| 5 · Frontend | Angelo | `frontend/` |
+| 0 · Comune e deliverable | tutto il team | Perimetro nel codice (T3-01), proposta tecnica e pitch, pagine statiche, dati della demo, chiusura |
+| 1 · Nuovo artigiano e calendario | Gianluca | Creazione dell'artigiano da parte dell'operatore, calendario della campagna |
+| 2 · Foto e invio | Silvia | Sistemazione locale delle foto, invio senza minimo e con la dichiarazione, indirizzo pubblico delle foto |
+| 3 · AI vera | Giovanni | Adattatore LiteLLM, prova su 10 post, generazione MVP, immagini AI |
+| 4 · Meta | Nilton | Pagina di prova, adattatore Meta, pubblicazione reale |
+| 5 · Frontend | Angelo | Vedi campagna e pagina Campagna ridotte all'MVP, calendario, nuovo artigiano |
 
-Nei loro moduli le corsie 1–4 possiedono `router.py`, `schemas.py`, `jobs.py`, le altre funzioni di `service.py` e i test (`tests/moduli/<modulo>/`, `tests/adapters/<nome>/`).
+Nelle tabelle le aree si chiamano ancora "Corsia", perché `allinea.py` le legge così.
 
-- Corsia 0: la PR si unisce solo con l'approvazione di tutti.
-- Corsie 1–5: la PR tocca solo ciò che è della sua corsia; revisione di gruppo; unisce l'admin.
-- Ciò che è della corsia 0 si cambia solo con un nuovo task della corsia 0: apri una domanda, non una PR.
-- Una libreria nuova è della corsia 0: entra in `backend/requirements.txt` con una PR sua (nome, motivo, licenza), unita **prima** della PR del task che la usa.
+**Regole dello sprint MVP** (ADR-114, decisioni F1–F3):
 
-**Come si evita di pestarsi i piedi** (dallo sprint 2a):
-
-- **Apertura e chiusura.** Ogni sprint si apre con un task della corsia 0 (`-01`) che fissa tabelle, valori ammessi, firme di plan §6 con `NotImplementedError`, fabbriche e forma delle API. Le corsie partono quando l'apertura è su `main`. Ogni sprint si chiude con un task della corsia 0 (`-07`): percorso completo, frontend sulle API vere, percorso a mano (converge §4).
-- **Tocca.** Ogni task dice quali file tocca. La logica nuova va nel file che il task nomina, spesso un file nuovo del modulo, non in coda a `service.py`: in `service.py` restano le funzioni di plan §6. Se ti serve un file che il task non nomina, fermati e chiedi.
-- **Frontend.** Una cartella di pagina e un file di `api/` per task. Finché l'endpoint non è su `main` la pagina usa i dati di esempio, con la forma di plan §3; il passaggio alle API vere si fa nella chiusura.
-- **Riserva.** Ogni task del frontend ha una riserva: se due giorni dopo che le sue dipendenze sono su `main` nessuno l'ha aperto, lo prende la riserva, e il proprietario della corsia rivede la PR.
-- **Prestito.** Un task segnato "prestabile" vive in un file suo: può farlo la persona indicata, se il proprietario della corsia è carico. Gli altri task non si prestano senza una decisione del team.
-- **Ciò che manca.** Una regola o una firma che non c'è diventa una issue e una PR della corsia 0, mai un pezzo della PR del task.
+- **Un'area non è un elenco di file proibiti.** Il task tocca i file che gli servono, con i loro test. Se cambia un file su cui lavora un'altra area, lo dice a chi ci lavora.
+- **Una PR per task**, su `feature/<id>-<breve>`. La rivede un collega; i controlli di GitHub devono essere verdi; unisce l'admin. Se la PR cambia composizione, `core/`, `alembic/`, `backend/requirements.txt` o un `domain.py`, la rivede il referente dei file comuni.
+- **Le firme nascono nel task che le usa.** Niente apertura con `NotImplementedError` e niente colonna "Tocca".
+- **Una libreria nuova** entra in `backend/requirements.txt` nella PR del task che la usa, con nome, motivo e licenza.
+- **Frontend.** Finché l'endpoint non è su `main` la pagina usa i dati di esempio (`src/api/esempi/`); passa alle API vere nel suo task appena l'endpoint c'è, o al più tardi in T3-07.
+- **La chiusura (T3-07)** è la prova del percorso della demo da database vuoto, non un controllo di proprietà.
 
 ## Sprint 1 · Scheletro che cammina (modello definitivo, AI e social finti, profilo e account social dal seed)
 
@@ -195,62 +190,67 @@ Finché un endpoint non è su `main`, la pagina usa dati di esempio con la forma
 | T2b-52 | Vedi campagna, decisioni: nota interna, respingi con le foto segnate, togli il canale, sospendi, riattiva, annulla, riprogramma; pagina Campagne da approvare con conteggi, "entro quando" e ultima nota. Riserva: Nilton | `pages/operatore/vedi-campagna/decisioni/`, `pages/operatore/da-approvare/`, `api/decisioni.ts`, `api/esempi/decisioni.ts` | spec §2.3, §4, R-18, R-32, R-33, R-34, R-38; plan §3 | T1-53, T2b-01 | CA-23…CA-25, CA-32, CA-53, CA-67, CA-69 sui dati di esempio; build e lint puliti | ☑ |
 | T2b-53 | Pagina Campagna dell'artigiano per stato: le viste di spec §4, la riga di scelta tra più campagne, le campagne passate, la respinta con le foto da rifare. Riserva: Gianluca | `pages/artigiano/campagna/viste/`, `api/esempi/campagne.ts` | spec §4, R-15, R-29 | T2a-53, T2b-01 | CA-31 e CA-70 sui dati di esempio; build e lint puliti | ☑ |
 
-## Sprint 3 · Ritocco foto e pagine dell'operatore (versioni delle foto, anagrafica, account social, calendario, promemoria)
+## Sprint 3 · MVP (AI vera, immagini AI, pubblicazione su Meta, calendario, deliverable)
 
-**Ordine.** T3-01 → corsie 1–5 in parallelo → T3-07. La corsia 2 ha un solo task: Silvia è la persona a cui si presta T3-45. T3-13 aspetta l'adattatore di T3-41, e T3-43 aspetta T3-13: sono in quest'ordine apposta. CA dello sprint: CA-33…CA-35, CA-40…CA-43, CA-56, CA-71…CA-74.
+**Ordine.** T2b-07 → T3-01. Senza aspettare T3-01 partono T3-02, T3-03, T3-11, T3-12, T3-21, T3-31, T3-41, T3-53 e T3-54; gli altri quando ciò che sta in "Dipende da" è su `main`. CA dello sprint: quelli con S = M in spec §6.
 
-### Corsia 0 · Comune (tutto il team)
+**Date.** T3-31 entro il 16/10 e la prova su 10 post (T3-32) entro il 20/10. Meta (T3-41) parte il 14/10; se Instagram non pubblica entro il 23/10 resta simulato (D1). Codice bloccato il 30/10; dal 2 al 6/11 solo correzioni, slide, video e prove.
 
-| ID | Task | Tocca | Leggi | Dipende da | Fatto quando | ☐ |
-|---|---|---|---|---|---|---|
-| T3-01 | **Apertura**: migrazione 012 con `versione_foto`, `versione_post_foto.versione_foto_id`, `post.n_ritocchi_foto` e `anagrafica_artigiano`; modelli e valori ammessi; firme con `NotImplementedError`: in `contenuti` `puo_ritoccare()`, `scegli_foto()`, `cambia_foto()`, `sposta_post()`, in `accesso` `password_provvisoria()`, in `artigiani` `account_social()`, `anagrafica_di()`; `ritocca_immagine()` nell'interfaccia dell'adattatore AI e `collega_account()` in quella del social; job `promemoria` ogni ora in `worker.py`; fabbriche; plan §6 e converge §4 aggiornati | `alembic/`, i `models.py` e i `domain.py` che cambiano, `tabelle.py`, `worker.py`, i `service.py` (solo le firme), `adapters/ai/base.py`, `adapters/social/base.py`, `tests/moduli/*/fabbrica.py`, `docs/agenti/` | plan §2, §4, §5, §6; spec R-03, R-36, R-37 | T2b-07 | upgrade e downgrade su DB vuoto; `alembic check` senza differenze; firme approvate | ☐ |
-| T3-07 | **Chiusura**: test API del percorso (nuovo artigiano con il cambio password, account collegato, campagna con le foto ritoccate, cambia foto e sposta, approvazione, calendario, sospensione per account scaduto, promemoria); frontend sulle API vere; percorso a mano | `tests/percorsi/`, `frontend/src/api/` | converge §4 | tutti i task dello sprint | tutti i CA con S = 3 verdi | ☐ |
+### Corsia 0 · Comune e deliverable (tutto il team)
 
-### Corsia 1 · Accesso e artigiani (Gianluca)
+| ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
+|---|---|---|---|---|---|
+| T3-01 | **Perimetro nel codice**: toglie, congela e nasconde il codice secondo `perimetro-mvp.md`, con le istruzioni di `brief-T3-01.md` | `perimetro-mvp.md`; `brief-T3-01.md` | T2b-07 | comandi di converge §1 verdi; `tests/test_confini.py` verde; nella PR le decisioni applicate e il numero dei test prima e dopo | ☐ |
+| T3-02 | **Proposta tecnica** (G1–G3), un solo documento per il cliente in tre capitoli: 1 analisi dei requisiti, 2 architettura, schema dati e stack, 3 piano con costi e tempi. Responsabili dei capitoli: da assegnare | `perimetro-mvp.md`; spec §0–§6; plan §1–§5; constitution §2; questa pagina; `docs/ROADMAP.md` | — | cap. 1: requisiti funzionali e non funzionali, attori, casi d'uso; cap. 2: componenti, flussi, adattatori, tabelle, stack con le motivazioni; cap. 3: milestone, ore del team, costi di sviluppo e di esercizio (AI con i numeri di T3-32, hosting); tutto al perimetro MVP; riletto da un collega | ☐ |
+| T3-03 | **Pagine statiche all'MVP**: `docs/appunti/pagine` allineate al perimetro (vedi `perimetro-mvp.md`, sezione Pagine statiche), mappa `index.html` aggiornata. Giovanni con Claude | `perimetro-mvp.md` | — | ogni pagina MVP senza ciò che è tolto o congelato e con ciò che è nuovo; le pagine fuori MVP segnate come roadmap nella mappa; riletto da Angelo | ☐ |
+| T3-05 | **Pitch**: slide e scaletta dei 10 minuti, con la roadmap e la pagina statica delle metriche come anteprima. Coordina Giovanni | la proposta tecnica di T3-02; `docs/ROADMAP.md`; `docs/appunti/pagine` | T3-02, T3-03 | slide pronte; due prove cronometrate sotto i 10 minuti | ☐ |
+| T3-06 | **Dati della demo**: nel seed un artigiano con profilo e foto vere, collegato alla pagina di prova Meta; una campagna pronta da inviare | `perimetro-mvp.md`; plan §1 | T3-01 | da database vuoto un comando prepara la demo; nessuna password o token nel codice | ☐ |
+| T3-07 | **Chiusura**: percorso della demo provato da database vuoto (converge §4) e video di riserva registrato | converge §4 | tutti i task dello sprint | tutti i CA con S = M verdi; percorso a mano senza errori; video salvato | ☐ |
 
-| ID | Task | Tocca | Leggi | Dipende da | Fatto quando | ☐ |
-|---|---|---|---|---|---|---|
-| T3-11 | Cambio password obbligato: `POST /auth/cambia-password`; finché `deve_cambiare_password` è acceso ogni altra chiamata dell'utente → 403; `password_provvisoria()` | `accesso/router.py`, `accesso/schemas.py`, `accesso/service.py` | plan §3, §6; spec R-29, R-37; constitution §3 | T3-01 | CA-73 (accesso); i test delle altre corsie restano verdi | ☐ |
-| T3-12 | Nuovo artigiano e anagrafica: `POST /artigiani` (201 con la password provvisoria, una sola volta), `PUT /artigiani/{id}/anagrafica`, `POST /artigiani/{id}/password-provvisoria`; codice ART assegnato dal sistema; `anagrafica_di()` | `artigiani/anagrafica.py` (nuovo), `artigiani/router.py`, `artigiani/schemas.py` | plan §2, §3, §6; spec R-37 | T3-11 | CA-73 (creazione); i 422 di R-37; la password non compare nei log né in una seconda risposta | ☐ |
-| T3-13 | Account social: `POST /artigiani/{id}/social/{piattaforma}/collega` (simulato), permesso cifrato, `account_social()` | `artigiani/social.py` (nuovo), `artigiani/router.py` | plan §2, §3, §5, §6; spec R-07, R-22; constitution §3 | T3-41 | account collegato visibile in `GET /canali`; stato e scadenza letti da `account_social()`; nessun permesso nei log | ☐ |
+### Corsia 1 · Nuovo artigiano e calendario (Gianluca)
 
-### Corsia 2 · Campagne (Silvia)
+| ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
+|---|---|---|---|---|---|
+| T3-11 | Nuovo artigiano: `POST /artigiani` `{email, nome}` per l'operatore; password provvisoria generata e restituita una sola volta; account social come quelli del seed | plan §3; spec R-37; constitution §3 | — | CA-79; la password non compare nei log né in una seconda risposta | ☐ |
+| T3-12 | Calendario della campagna: `GET /campagne/{id}/calendario` | plan §3; spec §4, R-45 | — | CA-56 | ☐ |
 
-| ID | Task | Tocca | Leggi | Dipende da | Fatto quando | ☐ |
-|---|---|---|---|---|---|---|
-| T3-21 | Campagne di un artigiano e iscrizione sospesa: `GET /campagne?artigiano=&stato=` per l'operatore; con l'iscrizione sospesa l'invio → 409, e le campagne approvate continuano | `campagne/viste.py`, `campagne/router.py`, il controllo nell'invio | plan §3; spec §4, R-37, R-38 | T3-12 | CA-74; il filtro restituisce le chiuse di un solo artigiano | ☐ |
+### Corsia 2 · Foto e invio (Silvia)
 
-### Corsia 3 · Contenuti (Giovanni)
+| ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
+|---|---|---|---|---|---|
+| T3-21 | Sistemazione delle foto: una funzione locale con Pillow (rotazione, GPS tolto, ritaglio per canale, 1080 px, autocontrasto, JPEG) offerta da `campagne.service`; la usano anteprima e pubblicazione | spec R-21, R-42; constitution §1 | — | CA-81; il file originale non cambia | ☐ |
+| T3-22 | Invio MVP: toglie il minimo di 4 foto (A5); dichiarazione obbligatoria, salvata nella fotografia del profilo; avviso `foto_poche` con il numero dei post che avranno un'immagine AI | plan §3; spec R-13, R-25, R-41 | T3-01 | CA-14, CA-54 | ☐ |
+| T3-23 | Indirizzo pubblico della foto per Instagram: `GET /foto/{id}/pubblica` con firma a tempo, foto sistemata per il canale | plan §3; spec R-42; constitution §3 | T3-21 | firma scaduta o alterata → 404; nessun altro dato esposto | ☐ |
 
-| ID | Task | Tocca | Leggi | Dipende da | Fatto quando | ☐ |
-|---|---|---|---|---|---|---|
-| T3-31 | Versioni delle foto e ritocco nella generazione: la versione 0 è l'originale e resta; dopo il piano si ritoccano le sole foto usate (versione 1); `ritocca_immagine()` nel provider finto; la versione del post punta alla foto ritoccata | `contenuti/foto.py` (nuovo), `contenuti/generazione.py`, `adapters/ai/` | plan §2, §4, §5; spec §2.2, R-17, R-24 | T3-01 | CA-33; la ripresa non ritocca due volte la stessa foto | ☐ |
-| T3-32 | Ritocca, scegli, cambia foto, sposta: `puo_ritoccare()`, job `ritocca_foto`, `scegli_foto()`, `cambia_foto()`, `sposta_post()` | `contenuti/foto.py`, `contenuti/interventi.py`, `contenuti/jobs.py` | plan §4, §6; spec §3, R-03, R-17, R-31, R-36 | T3-31 | CA-34, CA-35, CA-71, CA-72 (funzioni e job) | ☐ |
-| T3-33 | Ritaglio e calendario: una sola funzione di ritaglio per canale, per anteprima e pubblicazione; `GET /campagne/{id}/calendario` | `contenuti/ritaglio.py` (nuovo), `contenuti/router.py`, `contenuti/schemas.py` | plan §3; spec §4, R-21, R-36 | T3-31 | CA-56; un test per proporzione ammessa e non ammessa; in un carosello valgono le proporzioni della prima foto | ☐ |
+### Corsia 3 · AI vera (Giovanni)
 
-### Corsia 4 · Revisione e pubblicazione (Nilton)
+| ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
+|---|---|---|---|---|---|
+| T3-31 | Adattatore LiteLLM (`brief-ai.md`): `analizza_gruppo()`, `pianifica_campagna()`, `genera_post()` con risposte strutturate; errori nei cinque tipi; prompt versionati; uso restituito per il costo; tabella `chiamata_ai` (migrazione 012) | plan §2, §5; spec R-35, R-44 | — | traduzione degli errori provata con chiamate simulate; nessuna chiamata reale nei test; CA-82 per analisi, piano e testi | ☐ |
+| T3-32 | Prova su 10 post e scelta del modello: comando di prova su una campagna del seed; qualità, costo, tempi e riscritture del piano | `perimetro-mvp.md` (A9, M2) | T3-31 | tabella dei risultati nella PR; modello scelto in `.env.example`; tetto di spesa impostato sul conto del provider | ☐ |
+| T3-33 | Generazione MVP: post = frequenza; il codice passa all'AI solo le foto migliori per punteggio, fino ai post chiesti; post scoperti `immagine_ai`; un post = una foto; provider finto allineato (`brief-ai.md`) | spec §2.2, R-05, R-21, R-28; plan §4 | T3-01 | CA-17, CA-57 (senza immagini), CA-80 | ☐ |
+| T3-34 | Immagini AI di rimpiazzo (`brief-ai.md`): `genera_immagine()` (finto e LiteLLM), tappa Immagini dopo il piano al posto delle cartoline, che si tolgono (A6), foto `creata_ai` quadrata 1:1, la stessa per l'uscita su entrambi i canali, dicitura nel testo, costo registrato | spec R-28, R-43, R-44; plan §4, §5 | T3-31, T3-33 | CA-57 con le immagini; CA-82 per le immagini | ☐ |
 
-| ID | Task | Tocca | Leggi | Dipende da | Fatto quando | ☐ |
-|---|---|---|---|---|---|---|
-| T3-41 | Adattatore social, collegamento: `collega_account()` simulato, con esito ok ed errore a comando | `adapters/social/` | plan §5 | T3-01 | nessuna chiamata di rete nei test | ☐ |
-| T3-42 | Foto e data del post: `POST /post/{id}/ritocca-foto`, `/scegli-foto`, `/cambia-foto`, `/sposta` | `revisione/interventi.py`, `revisione/router.py`, `revisione/schemas.py` | plan §3; spec R-03, R-16, R-31, R-36 | T3-32 | CA-34, CA-35, CA-71, CA-72 (API); in campagna attiva o sospesa → 409 | ☐ |
-| T3-43 | Pubblicazione, sospensione e ritaglio: permesso scaduto o account scollegato → campagna `sospesa` con gli avvisi; le foto escono nella versione scelta e ritagliate con la funzione di contenuti | `pubblicazione/service.py` | plan §4, §6; spec R-07, R-36 | T3-13, T3-33 | CA-40; un post esce con la versione ritoccata e ritagliata | ☐ |
-| T3-44 | Promemoria: un promemoria per ogni campagna `in_revisione` o `piano_da_rivedere` a meno di 48 ore dall'inizio, una volta sola | `revisione/promemoria.py` (nuovo), `revisione/jobs.py` | plan §4; spec R-06 | T3-01 | CA-42 | ☐ |
-| T3-45 | Letture dell'operatore: `GET /artigiani` (R-38) e `GET /artigiani/{id}` per sezioni, con la differenza tra anagrafica e profilo e le cose da sistemare. Prestabile a Silvia | `revisione/artigiani.py` (nuovo), le sue rotte in `revisione/router.py`, `revisione/schemas.py` | plan §3; spec §4, R-38 | T3-12 | CA-41, CA-43 | ☐ |
+### Corsia 4 · Meta (Nilton)
+
+| ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
+|---|---|---|---|---|---|
+| T3-41 | Configurazione Meta (`brief-meta.md`): Pagina di prova, account Instagram professionale, app Business, permessi, token della Pagina, Page Publishing Authorization; un post pubblicato a mano su Facebook e su Instagram | `perimetro-mvp.md` (Meta in breve) | — | due post visibili sulla pagina di prova; variabili in `.env.example` con valori finti; procedura nel README del backend | ☐ |
+| T3-42 | Adattatore Meta (`brief-meta.md`): `pubblica()` riceve anche il canale e gli indirizzi pubblici delle foto; Facebook e Instagram sulla sola pagina di prova di `.env`; `SOCIAL_PROVIDER` (finto o meta) | plan §5; spec R-01, R-21 | T3-41 | CA-83; CA-36…CA-38 ancora verdi con il finto | ☐ |
+| T3-43 | Pubblicazione reale provata (`brief-meta.md`): tunnel di sola lettura per le foto, un post della demo pubblicato dal worker su entrambi i canali | `perimetro-mvp.md` (D1) | T3-42, T3-23 | post pubblicati dal tick; se Instagram non pubblica entro il 23/10 resta simulato e la PR lo dice | ☐ |
 
 ### Corsia 5 · Frontend (Angelo)
 
-| ID | Task | Tocca | Leggi | Dipende da | Fatto quando | ☐ |
-|---|---|---|---|---|---|---|
-| T3-51 | Pagine dell'operatore: ingresso con "Da sistemare", elenco artigiani con ricerca e filtri nel browser, pagina artigiano per sezioni, campagne chiuse con il filtro per esito. Riserva: Nilton | `pages/operatore/ingresso/`, `pages/operatore/artigiani/`, `api/operatore.ts`, `api/esempi/operatore.ts` | spec §4, R-29, R-38; plan §3 | T2b-52, T3-01 | CA-41 e CA-43 sui dati di esempio; build e lint puliti | ☐ |
-| T3-52 | Nuovo artigiano e accesso: nuovo artigiano con la password provvisoria mostrata una volta, anagrafica, collegamento degli account, cambio password obbligato al primo accesso. Riserva: Gianluca | `pages/operatore/nuovo-artigiano/`, `pages/CambiaPassword.tsx`, `auth.tsx`, `api/anagrafica.ts`, `api/esempi/anagrafica.ts` | spec R-29, R-37; plan §3 | T3-51 | CA-73 sui dati di esempio; build e lint puliti | ☐ |
-| T3-53 | Vedi campagna, foto e calendario: ritocca di nuovo, scegli foto, cambia foto, sposta, anteprima ritagliata; calendario in Vedi campagna e nella pagina Campagna dell'artigiano. Riserva: Nilton | `pages/operatore/vedi-campagna/foto/`, `pages/operatore/vedi-campagna/calendario/`, `pages/artigiano/campagna/calendario/`, `api/foto.ts`, `api/esempi/foto.ts` | spec §3, §4, R-03, R-36; plan §3 | T2b-51, T3-01 | CA-34, CA-35, CA-56, CA-71, CA-72 sui dati di esempio; build e lint puliti | ☐ |
+| ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
+|---|---|---|---|---|---|
+| T3-51 | Vedi campagna MVP: solo approva, respingi, riprova, modifica a mano e rigenera; "Immagine AI" sui post; costo AI della campagna | spec §2.3, §4, R-44 | T3-01 | build e lint puliti; nella pagina nessuna azione congelata | ☐ |
+| T3-52 | Pagina Campagna MVP: niente stella né gruppi `create_ai`, nessun minimo di foto, dichiarazione al passo 12, avviso dei post con immagine AI; passo 7 del profilo senza logo né archivio | spec §2.1, R-13, R-25, R-41 | T3-01 | CA-14 e CA-54 nella pagina; build e lint puliti | ☐ |
+| T3-53 | Calendario: elenco per giorno in Vedi campagna e nella vista dell'artigiano | spec §4, R-45 | — | CA-56 nella pagina (dati di esempio finché T3-12 non è su `main`); build e lint puliti | ☐ |
+| T3-54 | Nuovo artigiano: pagina dell'operatore con email e nome; password provvisoria mostrata una sola volta | spec R-37 | — | CA-79 nella pagina (dati di esempio finché T3-11 non è su `main`); build e lint puliti | ☐ |
 
-## Sprint successivi (si dividono in task quando si arriva)
-Le corsie restano le stesse: ogni novità va alla corsia del suo modulo; tabelle, stati e funzioni condivise alla corsia 0.
-- **4 · Monitoraggio e demo**: metriche con il filtro per periodo (pagina dell'operatore; per l'artigiano nella pagina Campagna), report settimanale agli operatori, riepilogo di fine campagna all'artigiano, E2E, dati demo, provider LiteLLM in `adapters/ai/` con i suoi prompt (corsia 3; la libreria è già in `requirements.txt`) e prova con OpenAI. CA-44, CA-45, CA-75.
-- **Da pianificare · Immagini create dall'AI** (spec R-19): per i gruppi `create_ai`, ① creazione delle immagini dentro la generazione, dopo il piano e solo per quelle che servono; ② ritocco e rigenerazione con un prompt dell'operatore, dopo il ritocco foto dello sprint 3. Nessun task finché non è chiusa l'analisi.
-- **Presenza costante a tappe** (spec R-27, R-28): cartoline nello sprint 1 (T1-35); archivio della bottega, logo e foto d'archivio nel piano nella 2a; immagini AI come riempitivo insieme alle immagini create, quando avranno un task. Le tabelle sono già pronte da T1-08.
+## Dopo l'MVP
+
+Il vecchio sprint 3 (ritocco delle foto, pagine dell'operatore, anagrafica, collegamento degli account, promemoria), le metriche e le immagini AI chieste dall'artigiano sono in `docs/ROADMAP.md`.
 
 ## Follow-up sicurezza accesso · issue #16–19
 
