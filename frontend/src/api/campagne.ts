@@ -59,7 +59,7 @@ export interface CampagnaDettaglio {
   /** Visibili solo a operatore e admin (CampagnaDettaglio di schemas.py). */
   profilo_snapshot?: ProfiloSnapshot | null;
   decisioni?: DecisioneSintetica[];
-  /** Solo esempi: ciò che l'artigiano vedrà di una respinta dalla 2b in poi. */
+  /** Esito della respinta visibile all’artigiano, come nelle API dello sprint 2b. */
   esito_respinta?: {
     motivo: string;
     nota: string | null;
