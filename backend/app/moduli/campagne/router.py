@@ -19,7 +19,6 @@ from .schemas import (
     CampagnaElencoItem,
     CampagnaModifica,
     FotoDettaglio,
-    FotoStellaModifica,
     GruppoAggiorna,
     GruppoArchivioCrea,
     GruppoCrea,
@@ -178,24 +177,6 @@ def carica_foto(
         campagna_id=id,
         contenuto=contenuto,
         gruppo_id=gruppo,
-    )
-    return FotoDettaglio.model_validate(foto)
-
-
-@router.put("/foto/{id}", response_model=FotoDettaglio, status_code=200)
-def imposta_stella_foto(
-    id: int,
-    payload: FotoStellaModifica,
-    db: Annotated[Session, Depends(get_db)],
-    utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
-) -> FotoDettaglio:
-    """Imposta o toglie la stella ('da_usare') su una foto della campagna in bozza."""
-    foto = service.imposta_stella_foto(
-        db=db,
-        utente_id=utente.id,
-        ruolo=utente.ruolo,
-        foto_id=id,
-        da_usare=payload.da_usare,
     )
     return FotoDettaglio.model_validate(foto)
 

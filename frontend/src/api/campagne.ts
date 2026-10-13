@@ -26,7 +26,6 @@ export interface FotoSintetica {
   mime: string;
   larghezza: number;
   altezza: number;
-  da_usare: boolean;
   origine: string;
 }
 
@@ -214,17 +213,6 @@ export async function caricaFoto(
 export function eliminaFoto(fotoId: number): Promise<void> {
   if (USA_ESEMPI) return esempiCampagne.eliminaFoto(fotoId);
   return richiesta<void>("DELETE", `/foto/${fotoId}`);
-}
-
-/** La stella: la foto "da usare per forza" del gruppo (PUT /foto/{id}). */
-export function stellaFoto(
-  fotoId: number,
-  daUsare: boolean,
-): Promise<FotoSintetica> {
-  if (USA_ESEMPI) return esempiCampagne.stellaFoto(fotoId, daUsare);
-  return richiesta<FotoSintetica>("PUT", `/foto/${fotoId}`, {
-    da_usare: daUsare,
-  });
 }
 
 export function invia(campagnaId: number): Promise<CampagnaDettaglio> {

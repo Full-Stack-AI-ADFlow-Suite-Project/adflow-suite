@@ -2,7 +2,7 @@
 
 I limiti dicono, per ogni canale, quanti post chiede la campagna e quali foto
 ha a disposizione (R-05); il controllo dice se un piano scritto dall'AI li
-rispetta (R-05, R-08, R-21, R-23, R-28). Nessuna funzione legge l'orologio o
+rispetta (R-05, R-08, R-21, R-28). Nessuna funzione legge l'orologio o
 la configurazione: periodo, ora e margine arrivano da chi chiama.
 
 Gruppi e foto sono quelli di ``campagne.service.gruppi_della_campagna()``,
@@ -41,7 +41,6 @@ FOTO_RIPETUTA = "foto_ripetuta"
 FOTO_NON_DISPONIBILE = "foto_non_disponibile"
 DATA_FUORI_PERIODO = "data_fuori_periodo"
 DATA_NEL_PASSATO = "data_nel_passato"
-FOTO_CON_STELLA = "foto_con_stella"
 TROPPE_FOTO = "troppe_foto"
 REGOLE = (
     PIANO_MALFORMATO,
@@ -52,7 +51,6 @@ REGOLE = (
     FOTO_NON_DISPONIBILE,
     DATA_FUORI_PERIODO,
     DATA_NEL_PASSATO,
-    FOTO_CON_STELLA,
     TROPPE_FOTO,
 )
 
@@ -104,16 +102,6 @@ def foto_disponibili(gruppi: Iterable[Any]) -> list[int]:
         for gruppo in _caricate(gruppi)
         for foto in gruppo.foto
         if _senza_doppioni(foto)
-    ]
-
-
-def foto_con_stella(gruppi: Iterable[Any]) -> list[int]:
-    """Id delle foto con la stella e idonee: quelle che il piano deve usare (R-23)."""
-    return [
-        foto.id
-        for gruppo in _caricate(gruppi)
-        for foto in gruppo.foto
-        if foto.da_usare and _idonea(foto)
     ]
 
 
@@ -408,24 +396,6 @@ def controlla_piano(
             )
             nel_passato.append(_violazione(DATA_NEL_PASSATO, uno["canale"], messaggio))
     violazioni += fuori_periodo + nel_passato
-
-    # R-23: con più stelle che post chiesti ne bastano quanti sono i post chiesti,
-    # così un piano valido esiste sempre (una foto con la stella per post).
-    stelle = foto_con_stella(gruppi)
-    nel_piano = {foto for _, p in post for foto in p["foto"]}
-    fuori = [foto for foto in stelle if foto not in nel_piano]
-    chiesti = max((limite["post_chiesti"] for limite in limiti.values()), default=0)
-    if len(stelle) <= chiesti:
-        for foto in fuori:
-            messaggio = f"La foto {foto} ha la stella e non è in nessun post."
-            violazioni.append(_violazione(FOTO_CON_STELLA, None, messaggio))
-    elif len(stelle) - len(fuori) < chiesti:
-        messaggio = (
-            f"Le foto con la stella sono {len(stelle)}, più dei post chiesti: "
-            f"il piano ne deve usare almeno {chiesti}, ne usa "
-            f"{len(stelle) - len(fuori)}."
-        )
-        violazioni.append(_violazione(FOTO_CON_STELLA, None, messaggio))
 
     for numero, uno in post:
         scheda = SCHEDE_CANALE.get(uno["canale"])

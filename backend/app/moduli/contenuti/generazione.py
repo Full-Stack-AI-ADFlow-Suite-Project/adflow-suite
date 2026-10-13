@@ -208,16 +208,9 @@ def passo(db: Session, campagna_id: int, adesso: datetime) -> bool:
 # --- Analisi ------------------------------------------------------------------
 
 
-def _foto_ai(foto: Any, *, d_archivio: bool = False) -> FotoAI:
+def _foto_ai(foto: Any) -> FotoAI:
     analisi = foto.analisi_ai if isinstance(foto.analisi_ai, dict) else None
-    return FotoAI(
-        id=foto.id,
-        file=foto.file,
-        mime=foto.mime,
-        # La stella vale per la campagna in cui l'artigiano l'ha messa (R-23).
-        da_usare=bool(foto.da_usare) and not d_archivio,
-        analisi=analisi,
-    )
+    return FotoAI(id=foto.id, file=foto.file, mime=foto.mime, analisi=analisi)
 
 
 def _gruppo_ai(gruppo: Any, foto: list[Any], *, d_archivio: bool = False) -> GruppoAI:
@@ -225,7 +218,7 @@ def _gruppo_ai(gruppo: Any, foto: list[Any], *, d_archivio: bool = False) -> Gru
         id=gruppo.id,
         descrizione=gruppo.descrizione,
         da_usare_il=None if d_archivio else gruppo.da_usare_il,
-        foto=[_foto_ai(una, d_archivio=d_archivio) for una in foto],
+        foto=[_foto_ai(una) for una in foto],
         archivio=d_archivio,
     )
 
@@ -271,27 +264,8 @@ def _analizza(
                 risultati[foto.id] = {c: analisi.get(c) for c in _CAMPI_ANALISI}
             break
 
-    if not d_archivio:
-        _stelle_mai_doppioni(gruppo, risultati)
     for foto in senza_analisi:
         campagne.aggiorna_foto(db, foto.id, risultati[foto.id], foto.n_utilizzi)
-
-
-def _stelle_mai_doppioni(gruppo: Any, risultati: dict[int, dict[str, Any]]) -> None:
-    """Una foto con la stella non resta `simile_a`: il doppione è l'altra (R-23)."""
-    stelle = {foto.id for foto in gruppo.foto if foto.da_usare}
-    for foto_id in sorted(stelle & set(risultati)):
-        altra = risultati[foto_id].get("simile_a")
-        if altra is None:
-            continue
-        risultati[foto_id]["simile_a"] = None
-        dell_altra = risultati.get(altra)
-        if (
-            altra not in stelle
-            and dell_altra is not None
-            and not dell_altra.get("simile_a")
-        ):
-            dell_altra["simile_a"] = foto_id
 
 
 # --- Piano --------------------------------------------------------------------

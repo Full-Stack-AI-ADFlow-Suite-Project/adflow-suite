@@ -174,7 +174,6 @@ function seed(): Record<number, RevisioneRecord> {
           "Post per canale uguali a quelli chiesti",
           "Riempitivi solo dove le foto non bastano",
           "Nessuna foto due volte sullo stesso canale",
-          "La foto con la stella c'è",
           "Date dentro il periodo",
         ],
         debole: false,
@@ -463,7 +462,6 @@ function seed(): Record<number, RevisioneRecord> {
           "Quattro temi in un mese: la sciarpa in lana, il plaid, il telaio al lavoro, i colori d'autunno.",
         esito_controllo: [
           "Post per canale uguali a quelli chiesti",
-          "La foto con la stella c'è",
           "Date dentro il periodo",
         ],
         debole: false,

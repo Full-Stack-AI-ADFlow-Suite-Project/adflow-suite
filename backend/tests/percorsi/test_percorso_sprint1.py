@@ -234,15 +234,13 @@ def _account(db, piattaforma: str) -> AccountSocial:
 def test_percorso_dalla_bozza_alla_campagna_conclusa(
     api, entra, lavora, orologio, finti, coda
 ):
-    """Converge §3, passi 1–5: 7 giorni, 2 canali, 4 foto in 2 gruppi, una stella."""
+    """Converge §3, passi 1–5: 7 giorni, 2 canali, 4 foto in 2 gruppi."""
     assert entra(ARTIGIANO)["ruolo"] == "artigiano"
     assert api("GET", "/canali").json() == [
         {"canale": canale, "collegato": True} for canale in DUE_CANALI
     ]
 
     campagna_id, foto = _bozza(api, UNA_SETTIMANA, foto_per_gruppo=(2, 2))
-    stella = foto[-1]
-    assert api("PUT", f"/foto/{stella}", json={"da_usare": True}).status_code == 200
     bozza = api("GET", f"/campagne/{campagna_id}").json()
     assert bozza["stato"] == "bozza"
     assert bozza["post_chiesti_per_canale"] == {"facebook": 3, "instagram": 3}
@@ -279,7 +277,6 @@ def test_percorso_dalla_bozza_alla_campagna_conclusa(
         assert all(uno["riempitivo"] is None for uno in post)
         usate = [foto_id for uno in post for foto_id in _foto_del_post(uno)]
         assert len(usate) == len(set(usate)) == 3  # mai due volte sul canale
-        assert stella in usate
         assert set(usate) <= set(foto)
 
     assert api("POST", f"/campagne/{campagna_id}/approva").json() == {"stato": "attiva"}

@@ -99,7 +99,6 @@ def altri_job(coda):
 def _pronta(api, entra, lavora):
     entra(ARTIGIANO)
     campagna, foto = _bozza(api, UNA_SETTIMANA, foto_per_gruppo=(2, 2))
-    assert api("PUT", f"/foto/{foto[-1]}", json={"da_usare": True}).status_code == 200
     assert api("POST", f"/campagne/{campagna}/invia").status_code == 200
     assert lavora() == [1]
     entra(OPERATORE)

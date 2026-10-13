@@ -18,7 +18,6 @@ export interface FotoDettaglio {
   mime: string;
   larghezza: number;
   altezza: number;
-  da_usare: boolean;
   n_utilizzi: number;
 }
 

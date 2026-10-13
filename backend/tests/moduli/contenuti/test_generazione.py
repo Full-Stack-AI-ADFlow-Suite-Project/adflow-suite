@@ -1,11 +1,10 @@
 """T1-34: job `genera_campagna` a tappe (plan §4, spec §2.2, R-24, R-35).
 
-CA-17, CA-18, CA-19 (fino a `generazione_fallita`), CA-20, CA-50, CA-51,
+CA-17, CA-18, CA-19 (fino a `generazione_fallita`), CA-20, CA-50,
 CA-52 (post con più foto), CA-57 (fino ai post `da_approvare`), CA-58, CA-59; poi la ripresa dalle tappe già salvate e
 gli errori tecnici secondo il tipo.
 """
 
-from collections import Counter
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import date, datetime, timedelta, timezone
@@ -80,7 +79,7 @@ def transazioni_di_prova(db, monkeypatch) -> None:
     monkeypatch.setattr(jobs, "adesso", lambda: ADESSO)
 
 
-def _campagna(db, *, n_foto: int = 6, canali=DUE_CANALI, stelle=(), **campi):
+def _campagna(db, *, n_foto: int = 6, canali=DUE_CANALI, **campi):
     """Campagna `inviata` di 14 giorni con un gruppo di ``n_foto`` foto (almeno 4)."""
     bottega = profilo(
         db,
@@ -98,9 +97,6 @@ def _campagna(db, *, n_foto: int = 6, canali=DUE_CANALI, stelle=(), **campi):
     mazzo = campagne.gruppi_della_campagna(db, campagna.id)[0]
     for _ in range(n_foto - 4):
         foto(db, gruppo=mazzo)
-    immagini = campagne.foto_della_campagna(db, campagna.id)
-    for posizione in stelle:
-        immagini[posizione].da_usare = True
     db.commit()  # come dopo l'invio: i dati restano se un passo viene annullato
     return campagna
 
@@ -321,61 +317,27 @@ def test_le_tappe_in_ordine_un_passo_alla_volta(db, ai):
 # --- Analisi ------------------------------------------------------------------
 
 
-def test_ca51_la_foto_con_la_stella_e_nel_piano(db, ai):
-    """8 foto e 6 post per canale: la stella è l'ultima, ma entra nel piano."""
-    campagna = _campagna(db, n_foto=8, stelle=[7])
-    con_stella = _foto_ids(db, campagna)[7]
+def test_una_stella_gia_salvata_non_conta_piu(db, ai):
+    """ADR-114, A11: 8 foto e 6 post, l'ultima ha `da_usare` e resta un doppione.
 
-    _job(campagna.id)
-
-    for canale in DUE_CANALI:
-        usate = [
-            f for p in _post_del_canale(db, campagna, canale) for f in _foto_del_post(p)
-        ]
-        assert con_stella in usate
-
-
-def test_ca51_la_foto_con_la_stella_non_idonea_resta_fuori_con_il_motivo(db, ai):
-    campagna = _campagna(db, n_foto=8, stelle=[7])
-    con_stella = _foto_ids(db, campagna)[7]
-    ai.comanda_analisi(con_stella, idonea=False, motivo="Foto sfocata")
-
-    _job(campagna.id)
-
-    assert campagna.stato == "in_revisione"
-    usate = {f for p in post_della_campagna(db, campagna.id) for f in _foto_del_post(p)}
-    assert con_stella not in usate
-    immagini = {f.id: f for f in campagne.foto_della_campagna(db, campagna.id)}
-    assert immagini[con_stella].analisi_ai["idonea"] is False
-    assert immagini[con_stella].analisi_ai["motivo"] == "Foto sfocata"
-
-
-def test_ca51_tra_due_foto_quasi_uguali_il_doppione_e_quella_senza_stella(db, ai):
-    campagna = _campagna(db, n_foto=8, stelle=[7])
+    La colonna resta nel database, ma la generazione non la legge: la foto non
+    entra nel piano per forza e l'analisi dell'AI resta com'è.
+    """
+    campagna = _campagna(db, n_foto=8)
     ids = _foto_ids(db, campagna)
     con_stella, altra = ids[7], ids[0]
+    campagne.foto_per_id(db, [con_stella])[0].da_usare = True
+    db.commit()
     ai.comanda_analisi(con_stella, simile_a=altra)
 
     _job(campagna.id)
 
+    assert campagna.stato == "in_revisione"
     immagini = {f.id: f for f in campagne.foto_della_campagna(db, campagna.id)}
-    assert immagini[con_stella].analisi_ai["simile_a"] is None
-    assert immagini[altra].analisi_ai["simile_a"] == con_stella
+    assert immagini[con_stella].analisi_ai["simile_a"] == altra
+    assert immagini[altra].analisi_ai["simile_a"] is None
     usate = {f for p in post_della_campagna(db, campagna.id) for f in _foto_del_post(p)}
-    assert con_stella in usate
-    assert altra not in usate
-
-
-def test_due_foto_con_la_stella_quasi_uguali_restano_tutte_e_due(db, ai):
-    campagna = _campagna(db, n_foto=8, stelle=[6, 7])
-    ids = _foto_ids(db, campagna)
-    ai.comanda_analisi(ids[7], simile_a=ids[6])
-
-    _job(campagna.id)
-
-    immagini = {f.id: f for f in campagne.foto_della_campagna(db, campagna.id)}
-    assert immagini[ids[6]].analisi_ai["simile_a"] is None
-    assert immagini[ids[7]].analisi_ai["simile_a"] is None
+    assert con_stella not in usate
 
 
 @pytest.mark.parametrize("tipo", ["richiesta", "rifiuto"])
@@ -677,20 +639,6 @@ def test_l_archivio_di_un_altra_bottega_non_entra_nel_piano(db, ai):
     post = _post_del_canale(db, campagna, "instagram")
     assert [p.riempitivo for p in post] == [None] * 4 + ["cartolina"] * 2
     assert len(_chiamate(ai, "analizza_gruppo")) == 1
-
-
-def test_la_stella_di_una_campagna_chiusa_non_vale_per_quella_nuova(db, ai):
-    """6 foto nuove per 6 post: la foto d'archivio con la stella non ne toglie una."""
-    campagna = _campagna(db, n_foto=6, canali=["instagram"])
-    nuove = _foto_ids(db, campagna)
-    vecchie = _conclusa(db, campagna)
-    vecchie[0].da_usare = True
-    db.commit()
-
-    _job(campagna.id)
-
-    assert campagna.stato == "in_revisione"
-    assert _foto_dei_post(db, campagna, "instagram") == [[n] for n in nuove]
 
 
 def test_un_canale_tolto_non_guarda_il_suo_archivio(db, ai):

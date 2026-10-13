@@ -104,7 +104,6 @@ function seed(): CampagnaDettaglio[] {
               mime: "image/jpeg",
               larghezza: 1200,
               altezza: 1200,
-              da_usare: false,
               origine: "caricata",
             },
             {
@@ -114,7 +113,6 @@ function seed(): CampagnaDettaglio[] {
               mime: "image/jpeg",
               larghezza: 1200,
               altezza: 1200,
-              da_usare: false,
               origine: "caricata",
             },
             {
@@ -124,7 +122,6 @@ function seed(): CampagnaDettaglio[] {
               mime: "image/jpeg",
               larghezza: 1200,
               altezza: 1200,
-              da_usare: false,
               origine: "caricata",
             },
             {
@@ -134,7 +131,6 @@ function seed(): CampagnaDettaglio[] {
               mime: "image/jpeg",
               larghezza: 1200,
               altezza: 1200,
-              da_usare: false,
               origine: "caricata",
             },
             {
@@ -144,7 +140,6 @@ function seed(): CampagnaDettaglio[] {
               mime: "image/jpeg",
               larghezza: 1200,
               altezza: 1200,
-              da_usare: false,
               origine: "caricata",
             },
             {
@@ -154,7 +149,6 @@ function seed(): CampagnaDettaglio[] {
               mime: "image/jpeg",
               larghezza: 1200,
               altezza: 1200,
-              da_usare: false,
               origine: "caricata",
             },
           ],
@@ -314,12 +308,7 @@ function semiArtigiano(): CampagnaDettaglio[] {
 }
 
 /** Una foto caricata nel seme, compatta. */
-function f(
-  id: number,
-  gruppoId: number,
-  file: string,
-  daUsare = false,
-): FotoSintetica {
+function f(id: number, gruppoId: number, file: string): FotoSintetica {
   return {
     id,
     gruppo_id: gruppoId,
@@ -327,7 +316,6 @@ function f(
     mime: "image/jpeg",
     larghezza: 1200,
     altezza: 1200,
-    da_usare: daUsare,
     origine: "caricata",
   };
 }
@@ -375,7 +363,7 @@ function semiOperatore(): CampagnaDettaglio[] {
           da_usare_il: null,
           n_immagini: null,
           foto: [
-            f(101, 101, "piatto-verde-01.jpg", true),
+            f(101, 101, "piatto-verde-01.jpg"),
             f(102, 101, "vassoio-01.jpg"),
             f(103, 101, "piatto-dettaglio.jpg"),
           ],
@@ -422,7 +410,7 @@ function semiOperatore(): CampagnaDettaglio[] {
           da_usare_il: null,
           n_immagini: null,
           foto: [
-            f(111, 111, "borsa-cuoio-01.jpg", true),
+            f(111, 111, "borsa-cuoio-01.jpg"),
             f(112, 111, "borsa-nero.jpg"),
             f(113, 111, "borsa-buia.jpg"),
           ],
@@ -489,7 +477,7 @@ function semiOperatore(): CampagnaDettaglio[] {
           da_usare_il: null,
           n_immagini: null,
           foto: [
-            f(131, 131, "sciarpa-01.jpg", true),
+            f(131, 131, "sciarpa-01.jpg"),
             f(132, 131, "plaid-piegato.jpg"),
             f(133, 131, "telaio-filo.jpg"),
             f(134, 131, "sciarpa-colori.jpg"),
@@ -937,7 +925,6 @@ export const esempiCampagne = {
       mime: file.type || "image/jpeg",
       larghezza: 1200,
       altezza: 1200,
-      da_usare: false,
       origine: "caricata",
     };
     g.foto.push(foto);
@@ -955,22 +942,6 @@ export const esempiCampagne = {
           soloBozza(c);
           salva(campagne);
           return;
-        }
-      }
-    }
-    throw new ApiErrore(404, "Foto non trovata.");
-  },
-
-  async stellaFoto(fotoId: number, daUsare: boolean): Promise<FotoSintetica> {
-    const campagne = carica();
-    for (const c of campagne) {
-      for (const g of c.gruppi) {
-        const f = g.foto.find((x) => x.id === fotoId);
-        if (f) {
-          soloBozza(c);
-          f.da_usare = daUsare;
-          salva(campagne);
-          return f;
         }
       }
     }

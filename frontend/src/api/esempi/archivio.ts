@@ -37,7 +37,6 @@ function semiArchivio(utenteId: number): GruppoSintetico[] {
           mime: "image/jpeg",
           larghezza: 1200,
           altezza: 1200,
-          da_usare: false,
           origine: "caricata",
         },
         {
@@ -47,7 +46,6 @@ function semiArchivio(utenteId: number): GruppoSintetico[] {
           mime: "image/jpeg",
           larghezza: 1200,
           altezza: 1200,
-          da_usare: false,
           origine: "caricata",
         },
       ],
@@ -216,7 +214,6 @@ export const esempiArchivio = {
       mime: file.type || "image/jpeg",
       larghezza,
       altezza,
-      da_usare: false,
       origine: "caricata",
     };
     gruppo.foto.push(foto);
