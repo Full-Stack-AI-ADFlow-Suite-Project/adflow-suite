@@ -20,6 +20,10 @@ from app.moduli.artigiani import service as artigiani_service
 
 from .domain import (
     BOZZA,
+    ATTIVA,
+    SOSPESA,
+    CONCLUSA,
+    ANNULLATA,
     GENERAZIONE_FALLITA,
     INVIATA,
     ESITI_DECISIONE,
@@ -1318,3 +1322,36 @@ def riprova_campagna(db: Session, campagna_id: int, ora: datetime) -> Campagna:
     cambia_stato(db, rec, INVIATA, ora=ora)
     coda.accoda(coda.GENERA_CAMPAGNA, campagna_id=rec.id)
     return rec
+
+
+def campagna_per_calendario(
+    db: Session,
+    campagna_id: int,
+    utente_id: int,
+    ruolo: str,
+) -> Campagna:
+    """R-45: proprietà prima dello stato, senza esporre campagne altrui."""
+    if ruolo not in ("artigiano", "operatore", "admin"):
+        raise NonPermesso("Non hai i permessi per visualizzare le campagne.")
+    record = campagna(db, campagna_id)
+    if ruolo == "artigiano":
+        profilo = artigiani_service.profilo_di(db, utente_id)
+        if profilo is None or profilo.id != record.profilo_id:
+            raise NonTrovato("Campagna non trovata.")
+    if record.stato not in (ATTIVA, SOSPESA, CONCLUSA, ANNULLATA):
+        raise StatoNonValido("Il calendario è disponibile dopo l'approvazione.")
+    return record
+
+
+def decisioni_canali_tolti(db: Session, campagna_id: int) -> list[DecisioneCampagna]:
+    """Le sole note dei canali tolti, pubbliche anche per l'artigiano (R-45)."""
+    return list(
+        db.scalars(
+            select(DecisioneCampagna)
+            .where(
+                DecisioneCampagna.campagna_id == campagna_id,
+                DecisioneCampagna.esito == "canale_tolto",
+            )
+            .order_by(DecisioneCampagna.id)
+        )
+    )

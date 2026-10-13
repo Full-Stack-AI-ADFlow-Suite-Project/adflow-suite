@@ -179,6 +179,7 @@ Le sole funzioni di `moduli/<modulo>/service.py` che un altro modulo può chiama
 | campagne | `aggiorna_foto(foto_id, analisi_ai, n_utilizzi)` | contenuti | T1-04 |
 | campagne | `aggiungi_foto(campagna_id, origine, file, mime, larghezza, altezza)` → foto senza gruppo, per le cartoline | contenuti | T1-09 |
 | campagne | `post_chiesti(post_a_settimana, inizio, fine)` → post chiesti su un canale (spec R-05); funzione pura, senza `db`: la formula sta solo qui | campagne (dettaglio), contenuti | issue #44 |
+| campagne | `campagna_per_calendario(db, campagna_id, utente_id, ruolo)` → campagna autorizzata e già approvata; `decisioni_canali_tolti(db, campagna_id)` → sole decisioni pubbliche di rimozione canale | contenuti | T3-12 MVP |
 | contenuti | `post_della_campagna(campagna_id)` (post con `versione_corrente`, `versioni` e le foto di ogni versione) · `ha_blocchi(campagna_id, adesso)` · `approva_post(campagna_id, adesso)` → versioni approvate | revisione | T1-04; foto delle versioni, scartati, `adesso` in T1-09 |
 | contenuti | `piano_corrente(campagna_id)` → piano o `None` · `uscite_della_campagna(campagna_id)` · `ultimo_errore(campagna_id)` → errore di generazione o `None` | revisione | T1-09 |
 | contenuti | `post_dovuti(adesso)` (approvati, data raggiunta, campagna attiva) · `segna_esito(post, esito)` · `tutti_chiusi(campagna_id, adesso)` | pubblicazione | T1-04; scartati, scaduti, annullati e `adesso` in T1-09 |
@@ -227,3 +228,18 @@ Ciò che ogni modulo trova già pronto: si usa; se va cambiato, la PR la rivede 
 | `tests/conftest.py` | fixture `db` · `client` · `coda` · `utente_di_prova` | `db`: sessione su `adflow_test`, annullata a fine test anche dopo un commit; `client`: `TestClient` che usa la stessa sessione; `coda`: coda in memoria attiva in ogni test, i job accodati si leggono in `coda.jobs.values()`, ognuno con `task_name` e `args`; `utente_di_prova("operatore", nome=…)`: crea l'utente con la fabbrica e lo rende l'utente autenticato di `client`, anche per `richiede_ruolo()` (ruolo sbagliato → 403); richiamata, lo cambia |
 
 A ogni esecuzione di `pytest` il database `adflow_test` viene svuotato e portato all'ultima migrazione con Alembic: le migrazioni sono provate da ogni test.
+
+
+### Risposta del calendario MVP (T3-12)
+
+`GET /campagne/{id}/calendario` restituisce `{campagna_id, strategia, giorni,
+canali_tolti, n_post_scaduti}`, con `Cache-Control: no-store`. Ogni giorno
+contiene `{data, post}`; la data e il campo `ora` dei post sono Europe/Rome,
+mentre `data_ora` conserva l'istante completo con fuso. I post sono ordinati
+per istante e id e hanno `{id, data_ora, ora, canale, stato, testo, hashtag,
+foto}`. Le foto hanno `{id, url, mime, larghezza, altezza, origine}`: `url`
+punta al percorso autenticato `/api/foto/{id}/file`, anche per l'archivio.
+Si espongono soltanto testo e foto della versione corrente; niente storico,
+note interne, snapshot, credenziali o identificativi di account social.
+I canali tolti hanno `{canale, nota}`; i post scaduti si contano ma non si
+mostrano. Prima dell'approvazione: 409; campagna di un altro artigiano: 404.

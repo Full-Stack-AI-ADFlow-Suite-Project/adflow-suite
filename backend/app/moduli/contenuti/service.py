@@ -24,6 +24,7 @@ from .domain import (
     STATI_CHIUSI,
 )
 from .models import Post, VersionePost, Piano, Uscita, ErroreGenerazione
+from .schemas import CalendarioCampagna
 
 
 def post_della_campagna(
@@ -489,3 +490,12 @@ def ferma_generazione(db: Session, campagna_id: int, adesso: datetime) -> None:
         )
     )
     campagne.cambia_stato(db, record, "generazione_fallita")
+
+
+def calendario_campagna(
+    db: Session, campagna_id: int, utente_id: int, ruolo: str
+) -> CalendarioCampagna:
+    """Calendario approvato, autorizzato per proprietario e operatori (R-45)."""
+    from .calendario import leggi
+
+    return leggi(db, campagna_id, utente_id, ruolo)
