@@ -2,7 +2,7 @@
 
 # Il modello intero: un job salva righe con chiavi verso tabelle di altri moduli.
 from app import tabelle  # noqa: F401
-from app.core.coda import TICK_PUBBLICAZIONE, app
+from app.core.coda import PROMEMORIA, TICK_PUBBLICAZIONE, app
 from app.core.db import transazione
 from app.core.orologio import adesso
 from app.moduli.pubblicazione.service import pubblica_dovuti
@@ -43,3 +43,9 @@ def tick_pubblicazione(timestamp: int) -> None:
         ora = adesso()
         scadenze(db, ora)
         pubblica_dovuti(db, ora)
+
+
+@app.periodic(cron="0 * * * *", lock=PROMEMORIA, queueing_lock=PROMEMORIA)
+@app.task(name=PROMEMORIA)
+def promemoria(timestamp: int) -> None:
+    pass

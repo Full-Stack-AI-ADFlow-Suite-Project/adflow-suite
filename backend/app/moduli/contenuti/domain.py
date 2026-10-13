@@ -45,6 +45,7 @@ TIPI_ERRORE_GENERAZIONE = (
     "rifiuto",
 )
 TIPI_INTERVENTO_IN_CORSO = ("rigenera_totale", "rigenera_da_proposta", "ritocco_foto")
+ORIGINI_VERSIONE_FOTO = ("originale", "ritocco_ai")
 STATI_CHIUSI = (PUBBLICATO, FALLITO, ANNULLATO, SCARTATO, SCADUTO)
 
 # Schede MVP (R-21): proporzioni come stringhe "larghezza:altezza".

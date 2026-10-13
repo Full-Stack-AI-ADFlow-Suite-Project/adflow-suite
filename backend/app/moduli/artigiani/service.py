@@ -6,7 +6,7 @@ from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.orm import Session
 
-from .models import AccountSocial, ProfiloBottega
+from .models import AccountSocial, AnagraficaArtigiano, ProfiloBottega
 from .domain import CANALI, POST_A_SETTIMANA
 from .schemas import CanaleCollegato
 from .profilo_schemas import ProfiloScrittura
@@ -52,6 +52,18 @@ def profilo(db: Session, profilo_id: int) -> ProfiloBottega | None:
     guarda non è il proprietario. Il record si legge, non si modifica.
     """
     return db.get(ProfiloBottega, profilo_id)
+
+
+def account_social(
+    db: Session, profilo_id: int, piattaforma: str
+) -> AccountSocial | None:
+    """Restituisce l'account del profilo per piattaforma, se esiste (plan §6)."""
+    raise NotImplementedError
+
+
+def anagrafica_di(db: Session, utente_id: int) -> AnagraficaArtigiano | None:
+    """Restituisce l'anagrafica consortile dell'utente, o ``None`` (plan §6)."""
+    raise NotImplementedError
 
 
 def post_a_settimana(frequenza: str | None) -> int:

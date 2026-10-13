@@ -1,8 +1,9 @@
 """Tabelle dello sprint 1 (plan §2)."""
-from datetime import datetime
+from datetime import date, datetime
 from typing import Any
 
 from sqlalchemy import (
+    Date,
     DateTime,
     ForeignKey,
     Integer,
@@ -59,6 +60,32 @@ class ProfiloBottega(Base):
         DateTime(timezone=True),
         nullable=False,
         server_default=text("CURRENT_TIMESTAMP"),
+    )
+
+
+class AnagraficaArtigiano(Base):
+    """Anagrafica consortile, distinta dal profilo di comunicazione (plan §2)."""
+
+    __tablename__ = "anagrafica_artigiano"
+    __table_args__ = (
+        UniqueConstraint("utente_id", name="uq_anagrafica_artigiano_utente"),
+        UniqueConstraint("codice", name="uq_anagrafica_artigiano_codice"),
+    )
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    utente_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("utente.id"), nullable=False
+    )
+    codice: Mapped[str] = mapped_column(Text, nullable=False)
+    codice_consorzio: Mapped[str] = mapped_column(Text, nullable=False)
+    nome_bottega: Mapped[str] = mapped_column(Text, nullable=False)
+    referente: Mapped[str] = mapped_column(Text, nullable=False)
+    citta: Mapped[str] = mapped_column(Text, nullable=False)
+    telefono: Mapped[str | None] = mapped_column(Text, nullable=True)
+    stato_iscrizione: Mapped[str] = mapped_column(
+        Text, nullable=False, server_default=text("'attiva'")
+    )
+    iscritto_il: Mapped[date] = mapped_column(
+        Date, nullable=False, server_default=text("CURRENT_DATE")
     )
 
 

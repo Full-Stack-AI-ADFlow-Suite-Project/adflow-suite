@@ -90,6 +90,17 @@ class PostAI:
 
 
 @dataclass
+class ImmagineRitoccata:
+    """File ritoccato e metadati del provider per la versione della foto."""
+
+    contenuto: bytes
+    mime: str
+    provider: str
+    modello: str
+    versione_prompt: str
+
+
+@dataclass
 class PianoAI:
     """Il piano scritto dall'AI, con chi lo ha scritto."""
 
@@ -189,4 +200,10 @@ class AIAdapter(ABC):
                 dell'operatore da cui partire.
             nota: la nota facoltativa dell'operatore per la rigenerazione.
         """
+        raise NotImplementedError
+
+    def ritocca_immagine(
+        self, immagine: bytes, mime: str, nota: str | None = None
+    ) -> ImmagineRitoccata:
+        """Ritocca una foto e restituisce file e metadati per lo storico (R-03)."""
         raise NotImplementedError

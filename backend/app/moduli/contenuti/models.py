@@ -91,6 +91,9 @@ class Post(Base):
     n_rigenerazioni_testo: Mapped[int] = mapped_column(
         Integer, nullable=False, server_default=text("0")
     )
+    n_ritocchi_foto: Mapped[int] = mapped_column(
+        Integer, nullable=False, server_default=text("0")
+    )
     controllato_da: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("utente.id"), nullable=True
     )
@@ -146,8 +149,33 @@ class VersionePost(Base):
     )
 
 
+class VersioneFoto(Base):
+    """Versione originale o ritoccata di una foto (plan §2)."""
+
+    __tablename__ = "versione_foto"
+    __table_args__ = (
+        UniqueConstraint("foto_id", "numero", name="uq_versione_foto_numero"),
+    )
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    foto_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("foto.id"), nullable=False, index=True
+    )
+    numero: Mapped[int] = mapped_column(Integer, nullable=False)
+    file: Mapped[str] = mapped_column(Text, nullable=False)
+    origine: Mapped[str] = mapped_column(Text, nullable=False)
+    nota: Mapped[str | None] = mapped_column(Text, nullable=True)
+    provider_ai: Mapped[str | None] = mapped_column(Text, nullable=True)
+    modello_ai: Mapped[str | None] = mapped_column(Text, nullable=True)
+    versione_prompt: Mapped[str | None] = mapped_column(Text, nullable=True)
+    creata_il: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=text("CURRENT_TIMESTAMP"),
+    )
+
+
 class VersionePostFoto(Base):
-    """Foto di una versione del post, in ordine (plan §2)."""
+    """Foto e versione usate da una versione del post, in ordine (plan §2)."""
 
     __tablename__ = "versione_post_foto"
     __table_args__ = (
@@ -162,6 +190,15 @@ class VersionePostFoto(Base):
     posizione: Mapped[int] = mapped_column(Integer, nullable=False)
     foto_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("foto.id"), nullable=False, index=True
+    )
+    versione_foto_id: Mapped[int | None] = mapped_column(
+        Integer,
+        ForeignKey(
+            "versione_foto.id",
+            name="fk_versione_post_foto_versione_foto_id_versione_foto",
+        ),
+        nullable=True,
+        index=True,
     )
 
 

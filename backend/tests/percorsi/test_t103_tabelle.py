@@ -44,6 +44,8 @@ TABELLE = {
     "post",
     "versione_post",
     "versione_post_foto",
+    "versione_foto",
+    "anagrafica_artigiano",
     "errore_generazione",
     "approvazione",
     "pubblicazione",
@@ -78,26 +80,156 @@ def test_upgrade_downgrade_completo_e_ultimo_passaggio(motore_test):
             )
         )
     command.upgrade(config, "head")
-    command.downgrade(config, "-1")
+    command.downgrade(config, "011")
+    with motore_test.begin() as conn:
+        utente_id = conn.execute(
+            text(
+                "insert into utente(email,password_hash,nome,ruolo) "
+                "values ('migrazione-t3@example.test','hash','Artigiano','artigiano') "
+                "returning id"
+            )
+        ).scalar_one()
+        profilo_id = conn.execute(
+            text(
+                "insert into profilo_bottega(utente_id,nome,referente,citta,"
+                "tipo_prodotto,clienti_ideali,obiettivo,canali) values "
+                "(:utente,'Bottega','Referente','Roma','altro','Clienti',"
+                "'notorieta',array['instagram']) returning id"
+            ),
+            {"utente": utente_id},
+        ).scalar_one()
+        campagna_id = conn.execute(
+            text(
+                "insert into campagna(profilo_id,titolo,inizio,fine,stato) "
+                "values (:profilo,'Migrazione',date '2030-01-01',"
+                "date '2030-01-07','in_revisione') returning id"
+            ),
+            {"profilo": profilo_id},
+        ).scalar_one()
+        gruppo_id = conn.execute(
+            text(
+                "insert into gruppo_foto(profilo_id,campagna_id,origine) "
+                "values (:profilo,:campagna,'caricate') returning id"
+            ),
+            {"profilo": profilo_id, "campagna": campagna_id},
+        ).scalar_one()
+        foto_id = conn.execute(
+            text(
+                "insert into foto(profilo_id,campagna_id,gruppo_id,file,mime,"
+                "larghezza,altezza) values (:profilo,:campagna,:gruppo,"
+                "'originale.jpg','image/jpeg',1080,1350) returning id"
+            ),
+            {"profilo": profilo_id, "campagna": campagna_id, "gruppo": gruppo_id},
+        ).scalar_one()
+        uscita_id = conn.execute(
+            text(
+                "insert into uscita(campagna_id,numero,tema) "
+                "values (:campagna,1,'Tema') returning id"
+            ),
+            {"campagna": campagna_id},
+        ).scalar_one()
+        post_id = conn.execute(
+            text(
+                "insert into post(campagna_id,uscita_id,canale,data_ora,stato) "
+                "values (:campagna,:uscita,'instagram',"
+                "timestamptz '2030-01-02 10:00:00+00','da_approvare') returning id"
+            ),
+            {"campagna": campagna_id, "uscita": uscita_id},
+        ).scalar_one()
+        versione_id = conn.execute(
+            text(
+                "insert into versione_post(post_id,numero,testo,hashtag,"
+                "tipo_intervento) values (:post,1,'Testo',array[]::text[],'generazione') "
+                "returning id"
+            ),
+            {"post": post_id},
+        ).scalar_one()
+        conn.execute(
+            text(
+                "insert into versione_post_foto(versione_id,posizione,foto_id) "
+                "values (:versione,1,:foto)"
+            ),
+            {"versione": versione_id, "foto": foto_id},
+        )
+    command.upgrade(config, "head")
+    with motore_test.connect() as conn:
+        originale = conn.execute(
+            text(
+                "select v.id,v.numero,v.file,v.origine,l.versione_foto_id "
+                "from versione_foto v join versione_post_foto l "
+                "on l.foto_id=v.foto_id where v.foto_id=:foto and v.numero=0"
+            ),
+            {"foto": foto_id},
+        ).one()
+        assert (originale.numero, originale.file, originale.origine) == (
+            0,
+            "originale.jpg",
+            "originale",
+        )
+        assert originale.versione_foto_id == originale.id
+    command.downgrade(config, "011")
+    with motore_test.connect() as conn:
+        tabelle = set(inspect(conn).get_table_names())
+        assert not {"versione_foto", "anagrafica_artigiano"} & tabelle
+        assert "notifica" in tabelle
+        assert "n_ritocchi_foto" not in {
+            c["name"] for c in inspect(conn).get_columns("post")
+        }
+        assert "versione_foto_id" not in {
+            c["name"] for c in inspect(conn).get_columns("versione_post_foto")
+        }
+    with motore_test.begin() as conn:
+        conn.execute(
+            text(
+                "delete from versione_post_foto where versione_id in "
+                "(select id from versione_post where post_id in "
+                "(select id from post where campagna_id=:campagna))"
+            ),
+            {"campagna": campagna_id},
+        )
+        conn.execute(
+            text(
+                "delete from versione_post where post_id in (select id from post where campagna_id=:id)"
+            ),
+            {"id": campagna_id},
+        )
+        conn.execute(
+            text("delete from post where campagna_id=:id"), {"id": campagna_id}
+        )
+        conn.execute(
+            text("delete from uscita where campagna_id=:id"), {"id": campagna_id}
+        )
+        conn.execute(
+            text("delete from foto where campagna_id=:id"), {"id": campagna_id}
+        )
+        conn.execute(
+            text("delete from gruppo_foto where campagna_id=:id"), {"id": campagna_id}
+        )
+        conn.execute(text("delete from campagna where id=:id"), {"id": campagna_id})
+        conn.execute(
+            text("delete from profilo_bottega where id=:id"), {"id": profilo_id}
+        )
+        conn.execute(text("delete from utente where id=:id"), {"id": utente_id})
+    command.downgrade(config, "010")
     with motore_test.connect() as conn:
         assert "notifica" not in inspect(conn).get_table_names()
         assert "pubblicata_su" in {c["name"] for c in inspect(conn).get_columns("foto")}
-    command.downgrade(config, "-1")
+    command.downgrade(config, "009")
     with motore_test.connect() as conn:
         colonne = {c["name"] for c in inspect(conn).get_columns("foto")}
         assert "pubblicata_su" not in colonne
         assert "limite_login" in inspect(conn).get_table_names()
-    command.downgrade(config, "-1")
+    command.downgrade(config, "008")
     with motore_test.connect() as conn:
         assert "limite_login" not in inspect(conn).get_table_names()
         assert TABELLE_NUOVE_008 <= set(inspect(conn).get_table_names())
-    command.downgrade(config, "-1")
+    command.downgrade(config, "007")
     with motore_test.connect() as conn:
         assert not TABELLE_NUOVE_008 & set(inspect(conn).get_table_names())
-    command.downgrade(config, "-1")
+    command.downgrade(config, "006")
     with motore_test.connect() as conn:
         assert not TABELLE_CODA & set(inspect(conn).get_table_names())
-    command.downgrade(config, "-1")
+    command.downgrade(config, "005")
     with motore_test.connect() as conn:
         assert "pubblicazione" not in inspect(conn).get_table_names()
     command.upgrade(config, "head")
@@ -106,7 +238,7 @@ def test_upgrade_downgrade_completo_e_ultimo_passaggio(motore_test):
             set(inspect(conn).get_table_names()) - {"alembic_version"}
             == TABELLE | TABELLE_CODA
         )
-        assert conn.scalar(text("select version_num from alembic_version")) == "011"
+        assert conn.scalar(text("select version_num from alembic_version")) == "012"
         contesto = MigrationContext.configure(conn, opts={"include_name": del_modello})
         assert compare_metadata(contesto, metadata) == []
 
