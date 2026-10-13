@@ -166,8 +166,8 @@ def test_la_pagina_vera_si_legge_per_intero():
             assert task.id.startswith(f"T{corsia.sprint}-{corsia.numero}")
             assert task.titolo and task.leggi and task.fatto_quando
             assert task.tutti or set(task.dipende_da) <= set(letti)
-            # dallo sprint 2a ogni task dice quali file tocca
-            assert task.tocca or corsia.sprint == "1"
+            # negli sprint 2a e 2b ogni task dice quali file tocca; lo sprint 3 · MVP ha aree, non file
+            assert task.tocca or corsia.sprint in ("1", "3")
     assert set(allinea.stato_dei_task(corsie)) <= set(letti)
 
 
