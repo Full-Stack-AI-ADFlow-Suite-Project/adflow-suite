@@ -1,12 +1,10 @@
 /**
- * Dati e comportamenti di esempio per logo e archivio bottega (T2a-52).
- * Simula le operazioni di backend in localStorage rispettando i vincoli R-13 e R-40.
+ * Dati e comportamenti di esempio per l'archivio della bottega (T2a-52).
+ * Simula le operazioni di backend in localStorage rispettando i vincoli di R-13.
  */
 import { ApiErrore } from "../http";
 import type { FotoSintetica, GruppoSintetico } from "../campagne";
-import type { ProfiloPubblico } from "../artigiani";
 import { sessioneEsempio, USA_ESEMPI } from "./accesso";
-import { leggiProfiloEsempio } from "./artigiani";
 
 export { USA_ESEMPI };
 
@@ -79,7 +77,6 @@ function salvaGruppi(gruppi: GruppoSintetico[]): void {
 
 function validaImmagineFile(
   file: File,
-  regola: "R-13" | "R-40",
 ): Promise<{ larghezza: number; altezza: number }> {
   return new Promise((resolve, reject) => {
     const nome = file.name.toLowerCase();
@@ -92,39 +89,23 @@ function validaImmagineFile(
       "image/webp",
     ].includes(tipo);
 
-    if (regola === "R-40") {
-      if (file.size > 2 * 1024 * 1024) {
-        reject(
-          new ApiErrore(
-            422,
-            "Il logo deve essere un'immagine di al massimo 2 MB.",
-          ),
-        );
-        return;
-      }
-      if (!estensioneAmmessa && !mimeAmmesso) {
-        reject(new ApiErrore(422, "Il logo deve essere JPG, PNG o WEBP."));
-        return;
-      }
-    } else {
-      if (file.size > 10 * 1024 * 1024) {
-        reject(
-          new ApiErrore(
-            422,
-            "La dimensione del file supera il limite massimo di 10 MB.",
-          ),
-        );
-        return;
-      }
-      if (!estensioneAmmessa && !mimeAmmesso) {
-        reject(
-          new ApiErrore(
-            422,
-            "La foto non è un'immagine valida: usare JPG, PNG o WEBP.",
-          ),
-        );
-        return;
-      }
+    if (file.size > 10 * 1024 * 1024) {
+      reject(
+        new ApiErrore(
+          422,
+          "La dimensione del file supera il limite massimo di 10 MB.",
+        ),
+      );
+      return;
+    }
+    if (!estensioneAmmessa && !mimeAmmesso) {
+      reject(
+        new ApiErrore(
+          422,
+          "La foto non è un'immagine valida: usare JPG, PNG o WEBP.",
+        ),
+      );
+      return;
     }
 
     if (typeof Image === "undefined") {
@@ -137,16 +118,7 @@ function validaImmagineFile(
     img.onload = () => {
       URL.revokeObjectURL(url);
       const minLato = Math.min(img.naturalWidth, img.naturalHeight);
-      if (regola === "R-40" && minLato < 300) {
-        reject(
-          new ApiErrore(
-            422,
-            "Il lato corto del logo deve essere di almeno 300 px.",
-          ),
-        );
-        return;
-      }
-      if (regola === "R-13" && minLato < 1080) {
+      if (minLato < 1080) {
         reject(
           new ApiErrore(
             422,
@@ -159,16 +131,12 @@ function validaImmagineFile(
     };
     img.onerror = () => {
       URL.revokeObjectURL(url);
-      if (regola === "R-40") {
-        reject(new ApiErrore(422, "Il logo deve essere JPG, PNG o WEBP."));
-      } else {
-        reject(
-          new ApiErrore(
-            422,
-            "La foto non è un'immagine valida: usare JPG, PNG o WEBP.",
-          ),
-        );
-      }
+      reject(
+        new ApiErrore(
+          422,
+          "La foto non è un'immagine valida: usare JPG, PNG o WEBP.",
+        ),
+      );
     };
     img.src = url;
   });
@@ -223,7 +191,7 @@ export const esempiArchivio = {
   },
 
   async caricaFoto(gruppoId: number, file: File): Promise<FotoSintetica> {
-    const { larghezza, altezza } = await validaImmagineFile(file, "R-13");
+    const { larghezza, altezza } = await validaImmagineFile(file);
     const gruppi = caricaGruppi();
     const gruppo = gruppi.find((g) => g.id === gruppoId);
     if (!gruppo) {
@@ -271,38 +239,5 @@ export const esempiArchivio = {
       throw new ApiErrore(404, "Foto non trovata nell'archivio.");
     }
     salvaGruppi(gruppi);
-  },
-
-  async salvaLogo(file: File): Promise<ProfiloPubblico> {
-    await validaImmagineFile(file, "R-40");
-    const p = leggiProfiloEsempio();
-    if (!p) throw new ApiErrore(404, "Profilo della bottega non trovato.");
-
-    const { utenteId } = chiaveArchivio();
-    const chiaveP = `adflow_profilo_esempio_${utenteId}`;
-    const dataUrl = await leggiComeDataUrl(file);
-
-    const aggiornato: ProfiloPubblico = {
-      ...p,
-      logo: dataUrl,
-      aggiornato_il: new Date().toISOString(),
-    };
-    localStorage.setItem(chiaveP, JSON.stringify(aggiornato));
-    return structuredClone(aggiornato);
-  },
-
-  async eliminaLogo(): Promise<void> {
-    const p = leggiProfiloEsempio();
-    if (!p) throw new ApiErrore(404, "Profilo della bottega non trovato.");
-    if (!p.logo) throw new ApiErrore(404, "Logo della bottega non trovato.");
-
-    const { utenteId } = chiaveArchivio();
-    const chiaveP = `adflow_profilo_esempio_${utenteId}`;
-    const aggiornato: ProfiloPubblico = {
-      ...p,
-      logo: null,
-      aggiornato_il: new Date().toISOString(),
-    };
-    localStorage.setItem(chiaveP, JSON.stringify(aggiornato));
   },
 };
