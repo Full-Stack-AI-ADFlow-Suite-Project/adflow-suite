@@ -1,3 +1,4 @@
+# Congelato per l'MVP, ADR-114: non estendere.
 """Implementazione SMTP dell'adattatore email: in sviluppo spedisce al catcher
 locale (Mailpit), in produzione al server configurato (plan §1)."""
 

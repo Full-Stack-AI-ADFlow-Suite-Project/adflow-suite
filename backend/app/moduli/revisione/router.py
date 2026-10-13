@@ -59,6 +59,7 @@ def approva_campagna(
     return {"stato": "attiva"}
 
 
+# Congelato per l'MVP, ADR-114: non estendere.
 @router.post("/campagne/{campagna_id}/sospendi")
 def sospendi_campagna(
     campagna_id: int,
@@ -70,6 +71,7 @@ def sospendi_campagna(
     return {"stato": "sospesa"}
 
 
+# Congelato per l'MVP, ADR-114: non estendere.
 @router.post("/campagne/{campagna_id}/riattiva")
 def riattiva_campagna(
     campagna_id: int,
@@ -84,6 +86,7 @@ def riattiva_campagna(
     return {"stato": "attiva"}
 
 
+# Congelato per l'MVP, ADR-114: non estendere.
 @router.post("/campagne/{campagna_id}/annulla")
 def annulla_campagna(
     campagna_id: int,
@@ -97,6 +100,7 @@ def annulla_campagna(
     return {"stato": "annullata"}
 
 
+# Congelato per l'MVP, ADR-114: non estendere.
 @router.post("/campagne/{campagna_id}/nota")
 def nota_interna(
     campagna_id: int,
@@ -124,6 +128,7 @@ def respingi_campagna(
     return {"stato": "respinta"}
 
 
+# Congelato per l'MVP, ADR-114: non estendere.
 @router.post("/campagne/{campagna_id}/togli-canale")
 def togli_canale_campagna(
     campagna_id: int,
@@ -152,6 +157,7 @@ def modifica_post(
     return {"stato": "ok"}
 
 
+# Congelato per l'MVP, ADR-114: non estendere.
 @router.post("/post/{post_id}/controllato")
 def controllato_post(
     post_id: int,
@@ -180,6 +186,7 @@ def rigenera_post(
     return {"stato": "in_corso"}
 
 
+# Congelato per l'MVP, ADR-114: non estendere.
 @router.post("/post/{post_id}/riprogramma")
 def riprogramma_post(
     post_id: int,

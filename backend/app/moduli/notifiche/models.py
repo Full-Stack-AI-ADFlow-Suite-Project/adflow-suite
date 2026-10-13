@@ -1,3 +1,4 @@
+# Congelato per l'MVP, ADR-114: non estendere.
 """Tabelle dello sprint 2b (plan §2)."""
 from datetime import datetime
 

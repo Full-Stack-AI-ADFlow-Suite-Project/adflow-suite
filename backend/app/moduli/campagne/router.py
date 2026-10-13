@@ -231,6 +231,8 @@ def riprova_campagna(
     return service.dettaglio_campagna(db, utente.id, utente.ruolo, id)
 
 
+# Congelato per l'MVP, ADR-114: non estendere. Vale per tutti gli endpoint
+# `/archivio` qui sotto.
 @router.get("/archivio", response_model=list[GruppoSintetico])
 def elenca_archivio(
     db: Annotated[Session, Depends(get_db)],

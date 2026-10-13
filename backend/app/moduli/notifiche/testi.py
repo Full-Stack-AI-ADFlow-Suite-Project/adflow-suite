@@ -1,3 +1,4 @@
+# Congelato per l'MVP, ADR-114: non estendere.
 """Testi delle email delle notifiche (spec §4, R-18).
 
 ``notifiche`` precede ``campagne``: qui non arrivano dati di dominio, solo il
