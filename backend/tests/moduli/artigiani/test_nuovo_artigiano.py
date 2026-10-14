@@ -1,4 +1,4 @@
-"""T3-11 MVP: CA-79, onboarding e password restituita una volta sola."""
+"""Nuovo artigiano: onboarding e password restituita una volta sola (spec R-37, CA-79)."""
 from concurrent.futures import ThreadPoolExecutor
 from threading import Barrier
 from uuid import uuid4

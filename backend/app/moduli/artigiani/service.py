@@ -122,7 +122,7 @@ def salva_profilo_personale(
 
 
 def crea_artigiano(db: Session, dati: NuovoArtigiano) -> ArtigianoCreato:
-    """Creazione consortile MVP; non salva né ripropone la password in chiaro."""
+    """Creazione da parte del consorzio: non salva né ripropone la password in chiaro."""
     record, password = accesso.crea_artigiano(db, dati.email, dati.nome)
     return ArtigianoCreato(
         id=record.id,

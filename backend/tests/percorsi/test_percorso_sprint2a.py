@@ -264,7 +264,7 @@ def test_percorso_completo_sprint2a(
     assert r_ok.status_code == 200
     assert r_ok.json()["nome"] == "Bottega del Legno"
 
-    # MVP R-37: al primo salvataggio gli account sono preparati come nel seed.
+    # R-37: al primo salvataggio gli account sono preparati come nel seed.
     canali_nuovo = api("GET", "/canali").json()
     assert all(c["collegato"] is True for c in canali_nuovo)
 

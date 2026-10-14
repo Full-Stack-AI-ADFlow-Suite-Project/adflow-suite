@@ -24,7 +24,7 @@ AMBIENTE=sviluppo|test|produzione · LOGIN_LIMITE_TENTATIVI=5 · LOGIN_FINESTRA_
 | utente | accesso | email (unica), password_hash, nome, ruolo (artigiano / operatore / admin), attivo, deve_cambiare_password (bool; nell'MVP resta falso: il cambio obbligato è fuori MVP) | MVP |
 | sessione | accesso | token_hash (sha256), utente_id, scade_il (spostata in avanti a ogni richiesta, spec R-29) | MVP |
 | profilo_bottega | artigiani | utente_id (1:1), nome, referente, citta, anni_attivita, sito, storia, origine, valori[], tipo_prodotto, gamma, fascia_prezzo, stagionalita, clienti_ideali, obiettivo, zona, tono[], cortesia, vincoli, canali[] (proposta iniziale per le campagne), frequenza (per canale), orari (JSON), social_esistenti (JSON `{canali[], profili, cosa_funziona}`), foto_policy (JSON `{quantita_mese, chi_scatta, persone}`), eventi_ricorrenti (JSON `[{nome, quando, tipo}]`), chiusure, logo (file, facoltativo; non si legge più, ADR-114), aggiornato_il · obbligatori: nome, referente, citta, tipo_prodotto, clienti_ideali, obiettivo, canali | MVP |
-| account_social | artigiani | profilo_id, piattaforma, id_pagina, permesso (cifrato), scadenza, stato · unico su (profilo_id, piattaforma). Nell'MVP nasce come nel seed e dice solo se un canale è collegato: si pubblica sulla pagina di prova di `.env` | MVP |
+| account_social | artigiani | profilo_id, piattaforma, id_pagina, permesso (cifrato), scadenza, stato · unico su (profilo_id, piattaforma). Nell'MVP nasce come nel seed e dice solo se un canale è collegato: si pubblica sulla pagina di prova di `.env`. Poiché `profilo_id` è obbligatorio, Facebook e Instagram si preparano come nel seed al primo salvataggio del profilo, nella stessa transazione; i salvataggi successivi non toccano gli account esistenti | MVP |
 | campagna | campagne | profilo_id, titolo, inizio, fine, descrizione, stato, canali[] (dichiarati in bozza), canali_tolti[], frequenza, obiettivo, profilo_snapshot (JSON, con la dichiarazione dell'artigiano, spec R-41), inviata_il, chiusa_il | MVP |
 | gruppo_foto | campagne | profilo_id, campagna_id (facoltativa: vuota = gruppo dell'archivio, caricato dal profilo), origine, descrizione, da_usare_il (data, facoltativa), n_immagini (solo `create_ai`) | MVP |
 | foto | campagne | profilo_id, campagna_id (facoltativa, come il suo gruppo), gruppo_id (→ gruppo_foto; facoltativo: vuoto per le immagini AI e le vecchie cartoline), origine (default `caricata`), file, mime, larghezza, altezza, da_usare (bool, la stella; non si legge più, ADR-114), analisi_ai (JSON `{idonea, simile_a, tipo, punteggio, motivo, soggetto}`), n_utilizzi, pubblicata_su (JSON `{canale: istante dell'ultima pubblicazione}`, in UTC e in formato ISO 8601, es. `{"instagram": "2030-01-05T12:00:00+00:00"}`; `{}` se non è mai uscita; la scrive la pubblicazione con `segna_pubblicata()`) | MVP |
@@ -89,7 +89,7 @@ La versione corrente di un post è l'ultima; il piano corrente è l'ultimo. Vers
 | MVP | accesso | POST /auth/login · POST /auth/logout · GET /auth/me | tutti / autenticato | 200 + cookie `adflow_sessione` · 204 · 200; durata della sessione per ruolo, rinnovata a ogni richiesta (R-29) |
 | MVP | artigiani | GET /canali | artigiano | `[{canale, collegato}]` per i canali dell'MVP |
 | MVP | artigiani | GET /profilo · PUT /profilo | artigiano | 404 se assente · upsert, 422 obbligatori |
-| MVP | artigiani | POST /artigiani `{email, nome}` | operatore | 201 con la password provvisoria, una sola volta (spec R-37) · 409 email già usata · 422 email non valida |
+| MVP | artigiani | POST /artigiani `{email, nome}` | operatore | 201 `{id, email, nome, password_provvisoria}` con `Cache-Control: no-store`: la password la genera l'accesso, si salva solo come hash e si vede una volta sola (spec R-37); il primo `GET /profilo` resta 404 · 409 email già usata · 422 email non valida |
 | MVP | campagne | GET /campagne?stato= (ripetibile) | autenticato | l'artigiano vede solo le sue; all'operatore ogni campagna porta anche `bottega` e `citta`, dal profilo |
 | MVP | campagne | POST /campagne `{titolo,inizio,fine,descrizione,canali[]}` | artigiano | 201 bozza · 409 R-12 · 422 R-08, R-22 |
 | MVP | campagne | GET /campagne/{id} | proprietario, operatore | campagna, gruppi con le loro foto, `post_chiesti_per_canale`, `avvisi[]` (R-25) (senza post); all'operatore anche snapshot e decisioni, note interne comprese |
@@ -163,7 +163,7 @@ Le sole funzioni di `moduli/<modulo>/service.py` che un altro modulo può chiama
 |---|---|---|---|
 | accesso | `utente_corrente` (dipendenza FastAPI → utente; rinnova la scadenza della sessione) · `richiede_ruolo(*ruoli)` (l'admin passa dove è ammesso l'operatore) | tutti i router | T1-12 (fino ad allora: utente di prova, T1-06; `richiede_ruolo` funziona già da T1-04; l'admin in T1-09) |
 | accesso | `crea_utente(email, password, nome, ruolo)` · `cambia_password(email, password)` | `cli.py` | T1-13 |
-| accesso | `crea_artigiano(db, email, nome)` → utente e password provvisoria; duplicato → 409, dati non validi → 422 | artigiani | T3-11 MVP |
+| accesso | `crea_artigiano(db, email, nome)` → utente e password provvisoria; duplicato → 409, dati non validi → 422 | artigiani | T3-11 |
 | artigiani | `profilo_di(utente_id)` → profilo o `None` | campagne, revisione | T1-04 |
 | artigiani | `canali_collegati(profilo_id)` → canali con account `collegato` | campagne, pubblicazione | T1-09 |
 | artigiani | `profilo(profilo_id)` → profilo o `None` · `post_a_settimana(frequenza)` → post alla settimana per canale (senza frequenza vale `decidete_voi`) | campagne, contenuti | issue #39 |
@@ -225,14 +225,3 @@ Ciò che ogni modulo trova già pronto: si usa; se va cambiato, la PR la rivede 
 | `tests/conftest.py` | fixture `db` · `client` · `coda` · `utente_di_prova` | `db`: sessione su `adflow_test`, annullata a fine test anche dopo un commit; `client`: `TestClient` che usa la stessa sessione; `coda`: coda in memoria attiva in ogni test, i job accodati si leggono in `coda.jobs.values()`, ognuno con `task_name` e `args`; `utente_di_prova("operatore", nome=…)`: crea l'utente con la fabbrica e lo rende l'utente autenticato di `client`, anche per `richiede_ruolo()` (ruolo sbagliato → 403); richiamata, lo cambia |
 
 A ogni esecuzione di `pytest` il database `adflow_test` viene svuotato e portato all'ultima migrazione con Alembic: le migrazioni sono provate da ogni test.
-
-
-### Creazione artigiano MVP (T3-11)
-
-`POST /artigiani` restituisce `{id, email, nome, password_provvisoria}` con
-`Cache-Control: no-store`. La password è generata dall'accesso, memorizzata
-soltanto come hash e non fa parte delle letture successive dell'utente.
-Il primo `GET /profilo` resta 404: l'artigiano compila il proprio profilo.
-Poiché `account_social.profilo_id` è obbligatorio, Facebook e Instagram vengono
-preparati come nel seed al primo salvataggio del profilo, nella stessa
-transazione; le modifiche successive preservano gli account già esistenti.

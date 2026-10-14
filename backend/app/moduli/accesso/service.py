@@ -372,10 +372,10 @@ def operatori(db: Session) -> list[Utente]:
 
 
 def crea_artigiano(db: Session, email: str, nome: str) -> tuple[Utente, str]:
-    """Crea l'utente MVP: password casuale restituita solo al chiamante (R-37).
+    """Crea l'utente artigiano: password casuale restituita solo al chiamante (R-37).
 
     Il profilo sarà compilato al primo accesso. Nessun cambio password
-    obbligatorio viene introdotto nell'MVP; nessun commit o log di credenziali.
+    obbligatorio (ADR-114); nessun commit o log di credenziali.
     """
     password = genera_token()
     try:
