@@ -25,7 +25,7 @@ Funziona anche alla prima installazione: vedi [Setup](#-setup-fase-1---locale).
 
 - `docs/`: documentazione del progetto (vedi sotto)
 - `backend/`: API FastAPI e worker Procrastinate (Python)
-- `frontend/`: interfaccia utente (React + TypeScript + Mantine) · nasce con il task T1-51
+- `frontend/`: interfaccia utente (React + TypeScript + Mantine): installazione e avvio in [`frontend/README.md`](frontend/README.md)
 - `allinea.py`: il comando qui sopra
 
 ## 📚 Documentazione
@@ -34,11 +34,12 @@ Un solo canale fa testo (ADR-114): [`AGENTS.md`](AGENTS.md) e [`docs/agenti/`](d
 
 - [`docs/ROADMAP.md`](docs/ROADMAP.md): ciò che non entra nell'MVP; è anche la slide della roadmap nel pitch.
 - [`docs/appunti/`](docs/appunti/LEGGIMI.md): archivio di diagrammi, note e registro delle decisioni (`ADR.md`), con le pagine statiche aggiornate all'MVP come riferimento per l'interfaccia. Il resto non fa più testo; una decisione nuova entra in `ADR.md` solo se cambia il perimetro dell'MVP.
-- [`docs/novita/`](docs/novita/): note datate di alcune PR; non fanno testo.
+- [`docs/sicurezza-accesso.md`](docs/sicurezza-accesso.md): procedura operativa per proxy, log e HTTPS (issue #16–19).
+- [`docs/archivio/`](docs/archivio/LEGGIMI.md): note datate di alcune PR, brief e script di task chiusi; non fanno testo.
 
 ## 🚀 Setup (Fase 1 - Locale)
 
-Servono [uv](https://docs.astral.sh/uv/getting-started/installation/), PostgreSQL 16 con i database `adflow` e `adflow_test` e, per il frontend, Node 22+. Python 3.11 lo scarica uv, se manca. Le istruzioni del frontend si scrivono nel task T1-51.
+Servono [uv](https://docs.astral.sh/uv/getting-started/installation/), PostgreSQL 16 con i database `adflow` e `adflow_test` e, per il frontend, Node 22+. Python 3.11 lo scarica uv, se manca. Il frontend si installa e si avvia come dice [`frontend/README.md`](frontend/README.md).
 
 I comandi sono gli stessi su Windows (PowerShell), macOS e Linux: `uv run` usa l'ambiente virtuale `.venv` senza doverlo attivare. Vanno lanciati uno alla volta (`&&` non funziona in ogni shell).
 
@@ -115,7 +116,7 @@ I test usano `adflow_test` e lo svuotano a ogni esecuzione: non metterci dati da
 
 1. **NON** lavorare mai direttamente sul branch `main`.
 2. Prima di iniziare un task, crea un branch: `git switch -c feature/<id>-<breve>` (es. `feature/T1-24-invio-riprova`). Il nome te lo propone `allinea.py`.
-3. `pre-commit` (installato da `allinea.py`) formatta il codice Python a ogni `git commit`. Se un hook modifica dei file, rifai `git add` e ripeti il commit.
+3. `pre-commit` (installato da `allinea.py`) formatta il codice a ogni `git commit`: Python con black, frontend con prettier. Se un hook modifica dei file, rifai `git add` e ripeti il commit.
 4. Una libreria nuova entra in `backend/requirements.txt` nella PR del task che la usa, con nome, motivo e licenza.
 5. Quando hai finito, pusha il branch e apri una **Pull Request** su GitHub. La rivede un collega; se cambia composizione, `core/`, `alembic/`, `requirements.txt` o un `domain.py`, la rivede il referente dei file comuni. I controlli devono essere verdi; il merge lo fa l'admin.
 
@@ -129,7 +130,7 @@ contano anche gli accessi riusciti. Il blocco risponde 429 con `Retry-After`.
 In produzione impostare `AMBIENTE=produzione`, un `LOGIN_LIMITE_SEGRETO` casuale
 di almeno 32 caratteri identico su tutte le istanze e `EMAIL_TEST_ENVIRONMENT=false`.
 I cookie sono sempre Secure in produzione. Per il proxy fidato, i log e le prove
-HTTPS leggere [la procedura di sicurezza](docs/novita/16-19-sicurezza-accesso.md).
+HTTPS leggere [la procedura di sicurezza](docs/sicurezza-accesso.md).
 Non usare il segreto finto di `.env.example` in produzione.
 
 La creazione utenti richiede email valide secondo email-validator, senza DNS.

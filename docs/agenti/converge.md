@@ -37,6 +37,8 @@ Database pulito a ogni test con le fixture `db` e `client` di `tests/conftest.py
 
 ## 3. Chiusura dello sprint 1 (T1-07)
 
+*Storia.* I percorsi dei §3 e §4 per gli sprint 1, 2a e 2b sono quelli con cui gli sprint si sono chiusi: citano cose che l'MVP ha tolto o congelato (stella, piano debole e Prosegui, logo, cartoline, archivio, nota interna, togli canale, sospensione). Non si rifanno: per lo sprint 3 vale il percorso della demo in fondo al §4.
+
 Su `main` pulito, da database vuoto: comandi del §1 verdi, tutti i CA con S = 1 coperti, frontend sulle API vere, poi a mano:
 
 1. seed → avvio di API, worker, frontend;

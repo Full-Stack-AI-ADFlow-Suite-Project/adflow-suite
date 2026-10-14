@@ -14,7 +14,7 @@ Installazione, configurazione, avvio e controlli prima della PR sono nel [README
 - LiteLLM (AI; provider finto per sviluppo e test)
 - pytest
 
-Le versioni stanno in `requirements.txt`. Una libreria nuova entra con una PR della corsia 0.
+Le versioni stanno in `requirements.txt`. Una libreria nuova entra in `requirements.txt` nella PR del task che la usa, con nome, motivo e licenza.
 
 ## Comandi
 
@@ -44,7 +44,7 @@ backend/
 │   ├── cli.py         # CLI per comandi di gestione
 │   └── tabelle.py     # Composizione per Alembic
 ├── tests/
-│   ├── moduli/        # Test dei moduli (con fabbrica.py per ciascuno)
+│   ├── moduli/        # Test dei moduli, con la fabbrica.py di ciascuno (vuota dove plan §6 non ne prevede)
 │   ├── adapters/      # Test degli adattatori
 │   ├── percorsi/      # Test dei percorsi con più moduli
 │   ├── conftest.py    # Fixture pytest
