@@ -32,6 +32,7 @@ from .domain import (
     TRANSIZIONI,
 )
 from .immagini import MAX_FOTO_PER_GRUPPO, analizza_e_valida_immagine
+from .sistemazione_foto import sistema_foto_buffer
 from .models import Campagna, DecisioneCampagna, Foto, GruppoFoto
 from .schemas import (
     CampagnaCrea,
@@ -1281,3 +1282,41 @@ def riprova_campagna(db: Session, campagna_id: int, ora: datetime) -> Campagna:
     cambia_stato(db, rec, INVIATA, ora=ora)
     coda.accoda(coda.GENERA_CAMPAGNA, campagna_id=rec.id)
     return rec
+
+
+def sistema_foto(
+    dati: bytes,
+    canale: str = "instagram",
+    proporzione: str | None = None,
+) -> bytes:
+    """Sistemazione locale di una foto (Pillow) secondo spec R-42 e CA-81.
+
+    Esegue: rotazione da metadati EXIF, rimozione GPS e metadati identificativi,
+    ritaglio al centro se fuori dalle proporzioni del canale (1:1 o 4:5),
+    ridimensionamento con lato corto esattamente a 1080 px, autocontrasto leggero
+    e salvataggio in formato JPEG. Invariante §1.3: la foto originale resta intatta.
+    """
+    return sistema_foto_buffer(dati, canale=canale, proporzione=proporzione)
+
+
+def foto_sistemata(
+    db: Session,
+    foto_id: int,
+    canale: str = "instagram",
+    proporzione: str | None = None,
+) -> tuple[bytes, str]:
+    """Recupera la foto dall'archivio e restituisce i byte JPEG sistemati e il mime-type.
+
+    Il file originale archiviato non viene modificato (costituzione §1.3).
+    """
+    foto = db.get(Foto, foto_id)
+    if foto is None:
+        raise NonTrovato("Foto non trovata.")
+    archivio = ottieni_archivio()
+    try:
+        originale = archivio.leggi(foto.file)
+    except FileNotFoundError:
+        raise NonTrovato("File immagine non trovato nell'archivio.")
+
+    elaborata = sistema_foto_buffer(originale, canale=canale, proporzione=proporzione)
+    return elaborata, "image/jpeg"
