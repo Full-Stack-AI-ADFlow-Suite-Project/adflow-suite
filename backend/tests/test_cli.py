@@ -1,4 +1,5 @@
 """cli.py: seed, demo e comando crea-utente."""
+import json
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import date, datetime, timezone
@@ -198,7 +199,8 @@ def test_demo_prepara_bottega_e_campagna_in_bozza(
     assert artigiano.ruolo == "artigiano"
     assert verifica_password(PASSWORD, artigiano.password_hash)
     profilo = profilo_di(db, artigiano.id)
-    assert profilo.nome == cli.PROFILO_DEMO["nome"]
+    assert profilo.nome == cli.PROFILO_SEED["nome"]
+    assert artigiano.nome == cli.PROFILO_SEED["referente"]
     assert set(canali_collegati(db, profilo.id)) == {"facebook", "instagram"}
 
     campagna = db.get(Campagna, esito.campagna_id)
@@ -219,6 +221,53 @@ def test_demo_con_zero_carica_tutte_le_foto_valide(
     assert esito.caricate == ["a.jpg", "c.jpg", "e.jpg"]
     assert [nome for nome, _ in esito.scartate] == ["b-piccola.jpg", "d-nota.txt"]
     assert all(motivo for _, motivo in esito.scartate)
+
+
+def test_demo_di_default_lascia_due_post_alle_immagini_ai(
+    db: Session, cartella_demo: Path
+) -> None:
+    esito = cli.esegui_demo(db, PASSWORD, cartella_demo, None, ORA_DEMO)
+
+    # Seed: 3 post a settimana, 7 giorni → 3 post per canale, 1 foto.
+    assert esito.post_per_canale == 3
+    assert esito.caricate == ["a.jpg"]
+
+
+def test_demo_json_sostituisce_profilo_campagna_e_gruppo(
+    db: Session, cartella_demo: Path
+) -> None:
+    (cartella_demo / cli.FILE_DEMO).write_text(
+        json.dumps(
+            {
+                "profilo": {"nome": "Mosaici d'Arte", "frequenza": "f5_piu"},
+                "campagna": {"titolo": "Collezione d'autunno"},
+                "gruppo": "Ritratti in mosaico",
+            }
+        ),
+        encoding="utf-8",
+    )
+
+    esito = cli.esegui_demo(db, PASSWORD, cartella_demo, None, ORA_DEMO)
+
+    campagna = db.get(Campagna, esito.campagna_id)
+    assert campagna.titolo == "Collezione d'autunno"
+    assert esito.post_per_canale == 5
+    assert esito.caricate == ["a.jpg", "c.jpg", "e.jpg"]
+    assert cli.FILE_DEMO not in [nome for nome, _ in esito.scartate]
+    artigiano = db.scalar(select(Utente).where(Utente.email == cli.DEMO_EMAIL))
+    assert profilo_di(db, artigiano.id).nome == "Mosaici d'Arte"
+    assert profilo_di(db, artigiano.id).citta == cli.PROFILO_SEED["citta"]
+
+
+@pytest.mark.parametrize(
+    "contenuto",
+    ["{non json", '{"altro": 1}', '{"profilo": {"tipo_prodotto": "astronavi"}}'],
+)
+def test_demo_json_non_valido(db: Session, cartella_demo: Path, contenuto: str) -> None:
+    (cartella_demo / cli.FILE_DEMO).write_text(contenuto, encoding="utf-8")
+
+    with pytest.raises(DatiNonValidi):
+        cli.esegui_demo(db, PASSWORD, cartella_demo, None, ORA_DEMO)
 
 
 def test_demo_si_prepara_una_volta_sola(db: Session, cartella_demo: Path) -> None:

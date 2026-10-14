@@ -16,10 +16,12 @@ fatto e speso l'AI: è la prova su 10 post di T3-32, da ripetere per ogni modell
 
 ``demo`` prepara da database vuoto i dati della demo (T3-06, converge §4): il
 seed, la bottega della demo con il profilo e una campagna in bozza pronta da
-inviare, con le foto vere prese dalla cartella. Le foto non entrano in git.
+inviare, con le foto vere prese dalla cartella. Profilo e testi si cambiano con
+un ``demo.json`` nella stessa cartella. Le foto non entrano in git.
 """
 
 import argparse
+import json
 import sys
 import time
 import traceback
@@ -30,6 +32,7 @@ from decimal import Decimal
 from getpass import getpass
 from pathlib import Path
 
+from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -42,7 +45,7 @@ from app.moduli.accesso.models import Utente
 from app.moduli.accesso.service import crea_utente, cambia_password
 from app.moduli.artigiani.models import ProfiloBottega, AccountSocial
 from app.moduli.artigiani.profilo_schemas import ProfiloScrittura
-from app.moduli.artigiani.service import salva_profilo_personale
+from app.moduli.artigiani.service import post_a_settimana, salva_profilo_personale
 from app.moduli.campagne import service as campagne
 from app.moduli.campagne.domain import INVIATA, IN_GENERAZIONE
 from app.moduli.campagne.schemas import CampagnaCrea, GruppoCrea
@@ -143,55 +146,22 @@ def esegui_seed(db: Session, password: str) -> list[str]:
     return creati
 
 
-# La bottega della demo (T3-06): un mosaicista con le foto vere della cartella.
-DEMO_EMAIL = "mosaici@example.com"
-DEMO_NOME = "Giovanni"
-PROFILO_DEMO = dict(
-    nome="Mosaici d'Arte",
-    referente="Giovanni",
-    citta="Ravenna",
-    anni_attivita=15,
-    sito="https://mosaicidarte.example.com",
-    storia=(
-        "Bottega artistica specializzata in mosaici tradizionali e contemporanei "
-        "in tessere di marmo e pasta vitrea."
-    ),
-    origine="Nata dalla passione per l'arte musiva ravennate.",
-    valori=["artigianalita", "tradizione", "su_misura"],
-    tipo_prodotto="ceramica_vetro",
-    gamma="Quadri musivi, ritratti, elementi d'arredo e decori artistici su misura.",
-    fascia_prezzo="alta",
-    stagionalita="Tutto l'anno; più richieste per i regali di Natale.",
-    clienti_ideali="Appassionati d'arte, collezionisti e amanti del fatto a mano.",
-    obiettivo="notorieta",
-    zona="Italia e internazionale",
-    tono=["caldo", "professionale"],
-    cortesia="tu",
-    vincoli="Non citare altri marchi; non parlare di sconti promozionali.",
-    canali=["facebook", "instagram"],
-    frequenza="f5_piu",
-    social_esistenti={"canali": ["facebook", "instagram"]},
-    foto_policy={
-        "quantita_mese": "da5_a12",
-        "chi_scatta": "artigiano",
-        "persone": "con_consenso",
-    },
-)
+# La bottega della demo (T3-06). Profilo, campagna e descrizione del gruppo
+# si possono sostituire con un file demo.json nella cartella delle foto:
+#   {"profilo": {...campi da cambiare...}, "campagna": {"titolo": ..., "descrizione": ...},
+#    "gruppo": "descrizione delle foto"}
+# Senza file valgono il profilo del seed e testi generici: ogni sviluppatore
+# prova la demo con le foto e la bottega che vuole.
+DEMO_EMAIL = "demo@example.com"
+FILE_DEMO = "demo.json"
 CAMPAGNA_DEMO = dict(
-    titolo="Mosaici d'Autore · Collezione d'autunno",
-    descrizione=(
-        "Ritratti e quadri in mosaico della collezione d'autunno: tessere tagliate "
-        "e posate a mano, dal disegno al pezzo finito."
-    ),
+    titolo="Campagna della demo",
+    descrizione="I lavori della bottega, dalle foto vere dell'artigiano.",
     canali=["facebook", "instagram"],
 )
-GRUPPO_DEMO = (
-    "Creazioni artigianali in tessere di mosaico tagliate e posate a mano "
-    "sul banco di lavoro"
-)
-# Meno foto dei post chiesti, come nel percorso della demo (converge §4):
-# 7 giorni a 5 post per settimana sono 5 post per canale, 3 foto e 2 immagini AI.
-FOTO_DEMO = 3
+GRUPPO_DEMO = "Lavori della bottega fotografati dall'artigiano"
+# Immagini AI che la demo deve mostrare (converge §4: meno foto dei post chiesti).
+IMMAGINI_AI_DEMO = 2
 
 
 @dataclass
@@ -201,18 +171,35 @@ class EsitoDemo:
     creati: list[str]
     campagna_id: int
     inizio: date
+    post_per_canale: int
     caricate: list[str] = field(default_factory=list)
     scartate: list[tuple[str, str]] = field(default_factory=list)
 
 
+def _leggi_file_demo(cartella: Path) -> dict:
+    percorso = cartella / FILE_DEMO
+    if not percorso.is_file():
+        return {}
+    try:
+        dati = json.loads(percorso.read_text(encoding="utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as errore:
+        raise DatiNonValidi(f"{FILE_DEMO} non è un JSON valido: {errore}") from None
+    if not isinstance(dati, dict) or set(dati) - {"profilo", "campagna", "gruppo"}:
+        raise DatiNonValidi(
+            f"{FILE_DEMO} ammette solo le chiavi profilo, campagna e gruppo."
+        )
+    return dati
+
+
 def esegui_demo(
-    db: Session, password: str, cartella: Path, quante: int, ora: datetime
+    db: Session, password: str, cartella: Path, quante: int | None, ora: datetime
 ) -> EsitoDemo:
     """Seed, bottega della demo e campagna in bozza con le foto della cartella.
 
     Le foto passano per ``campagne.carica_foto()``, con i suoi controlli: quelle
     che non li superano (formato, lato corto sotto i 1080 px, troppi pixel) si
-    scartano con il motivo. ``quante`` = 0 carica tutte quelle valide.
+    scartano con il motivo. ``quante`` = None carica i post per canale meno
+    ``IMMAGINI_AI_DEMO`` (almeno una foto); 0 carica tutte quelle valide.
     La demo si prepara una volta sola, da database vuoto.
     """
     if not cartella.is_dir():
@@ -221,21 +208,44 @@ def esegui_demo(
         raise StatoNonValido(
             "La demo è già preparata: per rifarla si parte da un database vuoto."
         )
+    file_demo = _leggi_file_demo(cartella)
+    try:
+        profilo = ProfiloScrittura(**{**PROFILO_SEED, **file_demo.get("profilo", {})})
+        dati_campagna = {**CAMPAGNA_DEMO, **file_demo.get("campagna", {})}
+        gruppo_demo = GruppoCrea(descrizione=file_demo.get("gruppo", GRUPPO_DEMO))
+    except (TypeError, ValidationError) as errore:
+        raise DatiNonValidi(f"Dati della demo non validi: {errore}") from None
+
     creati = esegui_seed(db, password)
-    artigiano = crea_utente(db, DEMO_EMAIL, password, DEMO_NOME, "artigiano")
+    artigiano = crea_utente(db, DEMO_EMAIL, password, profilo.referente, "artigiano")
     creati.append(DEMO_EMAIL)
-    salva_profilo_personale(db, artigiano.id, ProfiloScrittura(**PROFILO_DEMO), ora)
+    salva_profilo_personale(db, artigiano.id, profilo, ora)
 
     # Inizio tra 4 giorni (uno più dell'anticipo minimo), durata 7 giorni.
     anticipo = leggi_impostazioni().anticipo_minimo_giorni
     inizio = ora.astimezone(ROMA).date() + timedelta(days=anticipo + 1)
-    dati = CampagnaCrea(**CAMPAGNA_DEMO, inizio=inizio, fine=inizio + timedelta(6))
+    fine = inizio + timedelta(days=6)
+    try:
+        dati = CampagnaCrea(**dati_campagna, inizio=inizio, fine=fine)
+    except (TypeError, ValidationError) as errore:
+        raise DatiNonValidi(f"Campagna della demo non valida: {errore}") from None
     campagna = campagne.crea_bozza(db, artigiano.id, dati, ora)
     gruppo = campagne.crea_gruppo(
-        db, artigiano.id, "artigiano", campagna.id, GruppoCrea(descrizione=GRUPPO_DEMO)
+        db, artigiano.id, "artigiano", campagna.id, gruppo_demo
     )
-    esito = EsitoDemo(creati=creati, campagna_id=campagna.id, inizio=inizio)
-    for percorso in sorted(p for p in cartella.iterdir() if p.is_file()):
+    post_per_canale = campagne.post_chiesti(
+        post_a_settimana(profilo.frequenza), inizio, fine
+    )
+    if quante is None:
+        quante = max(1, post_per_canale - IMMAGINI_AI_DEMO)
+    esito = EsitoDemo(
+        creati=creati,
+        campagna_id=campagna.id,
+        inizio=inizio,
+        post_per_canale=post_per_canale,
+    )
+    foto = sorted(p for p in cartella.iterdir() if p.is_file() and p.name != FILE_DEMO)
+    for percorso in foto:
         if quante and len(esito.caricate) >= quante:
             break
         try:
@@ -259,7 +269,8 @@ def rapporto_demo(esito: EsitoDemo) -> str:
     righe = [f"utente creato: {email}" for email in esito.creati]
     righe.append(
         f"campagna {esito.campagna_id} in bozza, dal {esito.inizio:%d/%m/%Y}: "
-        f"{len(esito.caricate)} foto caricate"
+        f"{len(esito.caricate)} foto caricate per {esito.post_per_canale} post "
+        "per canale"
     )
     righe.extend(f"  caricata  {nome}" for nome in esito.caricate)
     righe.extend(f"  scartata  {nome}: {motivo}" for nome, motivo in esito.scartate)
@@ -433,8 +444,11 @@ def _parser() -> argparse.ArgumentParser:
     demo.add_argument(
         "--quante",
         type=int,
-        default=FOTO_DEMO,
-        help=f"foto da caricare (default {FOTO_DEMO}, meno dei post; 0 = tutte)",
+        default=None,
+        help=(
+            f"foto da caricare (default: post per canale meno {IMMAGINI_AI_DEMO}, "
+            "per vedere le immagini AI; 0 = tutte)"
+        ),
     )
     return parser
 
@@ -452,9 +466,10 @@ def main(argv: Sequence[str] | None = None) -> int:
         elif argomenti.comando == "demo":
             password = _chiedi_password("Password per gli utenti della demo")
             with transazione() as db:
-                esito = esegui_demo(
-                    db, password, argomenti.foto, max(0, argomenti.quante), adesso()
-                )
+                quante = argomenti.quante
+                if quante is not None:
+                    quante = max(0, quante)
+                esito = esegui_demo(db, password, argomenti.foto, quante, adesso())
             print(rapporto_demo(esito))
         elif argomenti.comando == "prova-ai":
             esito = esegui_prova_ai(argomenti.campagna)

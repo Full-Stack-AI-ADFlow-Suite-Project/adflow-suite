@@ -33,11 +33,21 @@ Il tick di pubblicazione è registrato nel worker: non serve nessun cron esterno
 
 ## Dati della demo
 
-Da database vuoto (dopo `alembic upgrade head`) un solo comando prepara la demo di `docs/agenti/converge.md` §4: gli utenti del seed, la bottega della demo (`mosaici@example.com`, profilo completo) e una campagna in bozza su Facebook e Instagram che inizia tra 4 giorni e dura 7, con le foto vere prese da una cartella. La password, la stessa per tutti gli utenti, si chiede a terminale; le foto restano fuori da git.
+Da database vuoto (dopo `alembic upgrade head`) un solo comando prepara la demo di `docs/agenti/converge.md` §4: gli utenti del seed, la bottega della demo (`demo@example.com`, profilo completo) e una campagna in bozza su Facebook e Instagram che inizia tra 4 giorni e dura 7, con le foto vere prese da una cartella qualsiasi. La password, la stessa per tutti gli utenti, si chiede a terminale; le foto restano fuori da git.
 
 ```bash
-uv run python -m app.cli demo --foto "G:\Il mio Drive\adflowfoto"             # 3 foto: meno dei 5 post per canale, 2 avranno un'immagine AI
-uv run python -m app.cli demo --foto "G:\Il mio Drive\adflowfoto" --quante 0  # tutte le foto valide
+uv run python -m app.cli demo --foto CARTELLA              # foto = post per canale meno 2: si vedono 2 immagini AI
+uv run python -m app.cli demo --foto CARTELLA --quante 0   # tutte le foto valide
+```
+
+Senza altro, la bottega ha il profilo del seed e testi generici. Per provare la propria bottega si mette nella cartella delle foto un `demo.json` con i campi da cambiare (quelli del profilo sono i campi di plan §2):
+
+```json
+{
+  "profilo": {"nome": "Mosaici d'Arte", "referente": "Giovanni", "citta": "Ravenna", "frequenza": "f5_piu"},
+  "campagna": {"titolo": "Collezione d'autunno", "descrizione": "Ritratti e quadri in mosaico"},
+  "gruppo": "Tessere tagliate e posate a mano sul banco di lavoro"
+}
 ```
 
 Le foto passano per gli stessi controlli del caricamento (JPEG, PNG o WebP; lato corto da 1080 px; al massimo 36 megapixel): quelle scartate si stampano con il motivo. I file si prendono in ordine alfabetico. Per la demo vera servono anche `AI_PROVIDER=litellm` in `backend/.env`, Mailpit acceso (`mailpit`, email su http://localhost:8025) e, per la pubblicazione, la configurazione Meta qui sotto. Per rifare la demo si riparte da un database vuoto.
