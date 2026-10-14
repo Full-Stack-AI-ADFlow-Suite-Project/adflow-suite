@@ -1,3 +1,4 @@
+# Congelato per l'MVP, ADR-114: non estendere.
 """Logica e operazioni per l'archivio della bottega (T2a-22, spec R-13, R-27)."""
 
 from sqlalchemy import func, select, text

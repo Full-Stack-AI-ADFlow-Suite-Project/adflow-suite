@@ -1,20 +1,25 @@
 import { useEffect, useState } from "react";
-import { Alert, Button, Loader, Select, SimpleGrid, Stack, Text } from "@mantine/core";
+import {
+  Alert,
+  Button,
+  Loader,
+  Select,
+  SimpleGrid,
+  Stack,
+  Text,
+} from "@mantine/core";
 import { leggiProfilo } from "../../../../api/artigiani";
 
 import type {
   DatiProfilo,
   SCELTE as ScelteTipo,
 } from "../../../../api/artigiani";
-import { SezioneLogo } from "./SezioneLogo";
 import { SezioneArchivio } from "./SezioneArchivio";
 
 export function Passo7({
   dati,
   cambia,
   scelte,
-  logo,
-  onLogoCambiato,
 }: {
   dati: DatiProfilo;
   cambia: <K extends keyof DatiProfilo>(
@@ -22,18 +27,24 @@ export function Passo7({
     valore: DatiProfilo[K],
   ) => void;
   scelte: typeof ScelteTipo;
-  logo: string | null;
-  onLogoCambiato: (nuovoLogo: string | null) => void;
 }) {
-  const [profilo, setProfilo] = useState<"caricamento" | "presente" | "assente" | "errore">("caricamento");
+  const [profilo, setProfilo] = useState<
+    "caricamento" | "presente" | "assente" | "errore"
+  >("caricamento");
   const [tentativo, setTentativo] = useState(0);
 
   useEffect(() => {
     let attivo = true;
     leggiProfilo()
-      .then((p) => { if (attivo) setProfilo(p ? "presente" : "assente"); })
-      .catch(() => { if (attivo) setProfilo("errore"); });
-    return () => { attivo = false; };
+      .then((p) => {
+        if (attivo) setProfilo(p ? "presente" : "assente");
+      })
+      .catch(() => {
+        if (attivo) setProfilo("errore");
+      });
+    return () => {
+      attivo = false;
+    };
   }, [tentativo]);
 
   const policy = (
@@ -67,27 +78,35 @@ export function Passo7({
       </SimpleGrid>
 
       {profilo === "presente" ? (
-        <>
-          <SezioneLogo logo={logo} onLogoCambiato={onLogoCambiato} />
-          <SezioneArchivio />
-        </>
+        <SezioneArchivio />
       ) : profilo === "assente" ? (
         <Alert color="blue" title="Prima salva il profilo">
-          Logo e archivio della bottega saranno disponibili dopo il primo salvataggio.
-          Completa il passo 9, poi riapri Profilo bottega e torna al passo 7 per caricare logo e foto.
+          L'archivio della bottega sarà disponibile dopo il primo salvataggio.
+          Completa il passo 9, poi riapri Profilo bottega e torna al passo 7 per
+          caricare le foto.
         </Alert>
       ) : profilo === "errore" ? (
-        <Alert color="red" title="Logo e archivio non disponibili">
-          <Text size="sm">Non riesco a verificare se il profilo è già salvato. Riprova.</Text>
-          <Button mt="sm" variant="default" onClick={() => {
-            setProfilo("caricamento");
-            setTentativo((n) => n + 1);
-          }}>Riprova</Button>
+        <Alert color="red" title="Archivio non disponibile">
+          <Text size="sm">
+            Non riesco a verificare se il profilo è già salvato. Riprova.
+          </Text>
+          <Button
+            mt="sm"
+            variant="default"
+            onClick={() => {
+              setProfilo("caricamento");
+              setTentativo((n) => n + 1);
+            }}
+          >
+            Riprova
+          </Button>
         </Alert>
       ) : (
         <Stack align="center" gap="xs">
           <Loader size="sm" aria-label="Verifica del profilo" />
-          <Text size="sm" c="dimmed">Verifico se logo e archivio sono disponibili.</Text>
+          <Text size="sm" c="dimmed">
+            Verifico se l'archivio è disponibile.
+          </Text>
         </Stack>
       )}
     </Stack>

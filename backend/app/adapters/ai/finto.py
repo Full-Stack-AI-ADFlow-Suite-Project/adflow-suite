@@ -66,8 +66,8 @@ class AIFinto(AIAdapter):
     """Provider simulato: lo stesso risultato a parità di dati.
 
     - Analisi: ogni foto è idonea e diversa dalle altre.
-    - Piano: una foto per post, le foto con la stella per prime, tutte le foto
-      disponibili fino ai post chiesti, poi i riempitivi: prima le foto
+    - Piano: una foto per post, tutte le foto disponibili fino ai post
+      chiesti, nell'ordine dei limiti, poi i riempitivi: prima le foto
       d'archivio già uscite sul canale, poi le cartoline; date distribuite
       sul periodo, Instagram il giorno dopo Facebook.
     - Testo: una frase con il tema e il nome della bottega, due hashtag.
@@ -190,10 +190,8 @@ class AIFinto(AIAdapter):
         gruppo_della_foto = {
             foto.id: gruppo for gruppo in gruppi for foto in gruppo.foto
         }
-        stelle = {foto.id for gruppo in gruppi for foto in gruppo.foto if foto.da_usare}
-        # Le foto con la stella per prime: così entrano sempre nel piano (R-23).
         foto_del_canale = {
-            canale: sorted(limite["foto_disponibili"], key=lambda f: f not in stelle)
+            canale: list(limite["foto_disponibili"])
             for canale, limite in limiti.items()
         }
         giorni = _giorni_utili(campagna.inizio, campagna.fine, non_prima_di)

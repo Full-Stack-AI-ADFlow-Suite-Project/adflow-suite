@@ -1,3 +1,4 @@
+# Congelato per l'MVP, ADR-114: non estendere.
 """Interfaccia dell'adattatore email (plan §5)."""
 
 from abc import ABC, abstractmethod

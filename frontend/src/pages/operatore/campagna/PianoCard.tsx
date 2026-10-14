@@ -74,8 +74,7 @@ export function PianoCard({
             </Text>
             {piano.debole && (
               <Text size="sm" c="yellow" fw={500}>
-                Piano debole: per i motivi vedi le verifiche sotto. Prosegui
-                riparte dai testi; Respingi chiude.
+                Piano debole: per i motivi vedi le verifiche sotto.
               </Text>
             )}
             <Stack gap={4}>

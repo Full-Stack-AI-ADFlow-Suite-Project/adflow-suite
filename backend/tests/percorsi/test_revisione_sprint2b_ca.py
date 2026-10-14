@@ -99,7 +99,6 @@ def altri_job(coda):
 def _pronta(api, entra, lavora):
     entra(ARTIGIANO)
     campagna, foto = _bozza(api, UNA_SETTIMANA, foto_per_gruppo=(2, 2))
-    assert api("PUT", f"/foto/{foto[-1]}", json={"da_usare": True}).status_code == 200
     assert api("POST", f"/campagne/{campagna}/invia").status_code == 200
     assert lavora() == [1]
     entra(OPERATORE)
@@ -565,28 +564,6 @@ def _cicli(db, campagna, post_id):
         for p in contenuti.post_della_campagna(db, campagna)
         if p.id == post_id
     )
-
-
-def test_ca31_piano_debole_privato_e_ca55_notifica(
-    api, entra, lavora, db, finti, altri_job
-):
-    entra(ARTIGIANO)
-    fine = INIZIO + timedelta(days=27)
-    campagna, _ = _bozza(api, fine, foto_per_gruppo=(2, 2))
-    _ok(api, "POST", f"/campagne/{campagna}/invia")
-    assert lavora() == [1]
-    dettaglio = _ok(api, "GET", f"/campagne/{campagna}")
-    assert dettaglio["stato"] == "piano_da_rivedere"
-    assert "piano" not in dettaglio and "post" not in dettaglio
-    assert api("GET", f"/campagne/{campagna}/post").status_code == 403
-    assert len(_notifiche(db, campagna, "piano_da_rivedere")) == 2
-    altri_job()
-    assert len(finti.email.inviate) == 2
-    entra(OPERATORE)
-    assert _vedi(api, campagna)["piano"] is not None
-    _ok(api, "POST", f"/campagne/{campagna}/prosegui")
-    assert lavora() == [1]
-    assert _stato(api, campagna) == "in_revisione"
 
 
 def test_ca30_un_post_scaduto_non_blocca_approvazione(api, entra, lavora, orologio):

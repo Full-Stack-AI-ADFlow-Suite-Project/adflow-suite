@@ -37,7 +37,7 @@ CAMPAGNA = CampagnaAI(titolo="Campagna di prova", inizio=INIZIO, fine=FINE)
 DUE_CANALI = ("facebook", "instagram")
 
 
-def _gruppo(n_foto: int, *, stelle=(), id: int = 1, da: int = 1) -> GruppoAI:
+def _gruppo(n_foto: int, *, id: int = 1, da: int = 1) -> GruppoAI:
     """Un gruppo con ``n_foto`` foto idonee e diverse, già analizzate."""
     return GruppoAI(
         id=id,
@@ -47,7 +47,6 @@ def _gruppo(n_foto: int, *, stelle=(), id: int = 1, da: int = 1) -> GruppoAI:
                 id=numero,
                 file=f"{numero}.jpg",
                 mime="image/jpeg",
-                da_usare=numero in stelle,
                 analisi={"idonea": True, "simile_a": None},
             )
             for numero in range(da, da + n_foto)
@@ -61,10 +60,7 @@ def _come_li_vede_il_controllo(gruppi: list[GruppoAI]) -> list:
         SimpleNamespace(
             id=gruppo.id,
             origine="caricate",
-            foto=[
-                SimpleNamespace(id=f.id, da_usare=f.da_usare, analisi_ai=f.analisi)
-                for f in gruppo.foto
-            ],
+            foto=[SimpleNamespace(id=f.id, analisi_ai=f.analisi) for f in gruppo.foto],
         )
         for gruppo in gruppi
     ]
@@ -73,9 +69,7 @@ def _come_li_vede_il_controllo(gruppi: list[GruppoAI]) -> list:
 def _voce(foto_id: int, *, mai_uscita: bool = True, gruppo_id: int = 9):
     """Una foto d'archivio, come la dà ``campagne.service.foto_di_archivio()``."""
     return SimpleNamespace(
-        foto=SimpleNamespace(
-            id=foto_id, da_usare=False, analisi_ai={"idonea": True, "simile_a": None}
-        ),
+        foto=SimpleNamespace(id=foto_id, analisi_ai={"idonea": True, "simile_a": None}),
         gruppo=SimpleNamespace(id=gruppo_id),
         mai_uscita=mai_uscita,
     )
@@ -295,7 +289,7 @@ def test_analisi_ogni_foto_idonea_con_i_campi_del_piano():
 
 
 def test_analisi_a_comando_non_idonea_e_doppione():
-    """CA-51, parte dell'adattatore."""
+    """A comando una foto è non idonea, un'altra è un doppione."""
     finto = AIFinto()
     finto.comanda_analisi(2, idonea=False, motivo="Foto sfocata")
     finto.comanda_analisi(3, simile_a=1)
@@ -413,8 +407,8 @@ def test_piano_con_piu_foto_d_archivio_gia_uscite_dei_riempitivi_che_servono():
 
 
 def test_piano_uguale_a_parita_di_dati():
-    primo, _ = _pianifica(AIFinto(), [_gruppo(5, stelle={4})])
-    secondo, _ = _pianifica(AIFinto(), [_gruppo(5, stelle={4})])
+    primo, _ = _pianifica(AIFinto(), [_gruppo(5)])
+    secondo, _ = _pianifica(AIFinto(), [_gruppo(5)])
     assert primo == secondo
 
 
@@ -467,20 +461,6 @@ def test_piano_a_periodo_finito_non_passa_il_controllo_delle_date():
     adesso = datetime(2030, 2, 1, 9, tzinfo=timezone.utc)
     _, violazioni = _pianifica(AIFinto(), [_gruppo(6)], adesso=adesso)
     assert {v["regola"] for v in violazioni} == {"data_nel_passato"}
-
-
-@pytest.mark.parametrize("stelle", [{9}, {7, 8, 9}, set(range(1, 10))])
-def test_piano_con_le_foto_con_la_stella_per_prime(stelle):
-    """CA-51, parte del piano: anche con più stelle che post chiesti (#45)."""
-    piano, violazioni = _pianifica(AIFinto(), [_gruppo(9, stelle=stelle)])
-
-    assert violazioni == []
-    usate = {
-        foto
-        for p in _post_del_canale(piano.contenuto, "facebook")
-        for foto in p["foto"]
-    }
-    assert len(usate & stelle) == min(len(stelle), 6)
 
 
 def test_piano_con_un_carosello_a_comando():

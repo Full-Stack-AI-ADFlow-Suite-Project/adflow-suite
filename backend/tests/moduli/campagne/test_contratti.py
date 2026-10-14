@@ -31,8 +31,6 @@ from tests.moduli.campagne.fabbrica import (
 AMMESSE = {
     ("bozza", "inviata"),
     ("inviata", "generazione_fallita"),
-    ("in_generazione", "piano_da_rivedere"),
-    ("piano_da_rivedere", "in_generazione"),
     ("piano_da_rivedere", "respinta"),
     ("piano_da_rivedere", "scaduta"),
     ("inviata", "in_generazione"),

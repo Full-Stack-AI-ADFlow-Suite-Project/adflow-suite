@@ -110,6 +110,8 @@ def _pubblica_post(db: Session, post, adesso: datetime) -> None:
         )
     }
     try:
+        # Congelato per l'MVP, ADR-114: non estendere. Nell'MVP un post ha
+        # una foto sola; la pubblicazione con più foto (caroselli, A8) resta.
         byte_foto = [
             archivio.leggi(foto_della_versione[legame.foto_id].file)
             for legame in versione.legami_foto

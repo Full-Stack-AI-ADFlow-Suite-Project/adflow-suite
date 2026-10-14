@@ -76,7 +76,7 @@ async function compila(page) {
       const salvato = await p.evaluate((k) => JSON.parse(localStorage.getItem(k)), chiave(42));
       assert.equal(salvato.nome, 'La bottega nuova'); assert.equal(salvato.tipo_prodotto, 'ceramica_vetro');
       assert.equal(salvato.storia, 'Una storia da conservare'); assert.deepEqual(salvato.canali, ['facebook']);
-      assert.equal(salvato.obiettivo, 'notorieta'); assert.equal(salvato.logo, null);
+      assert.equal(salvato.obiettivo, 'notorieta');
       await p.reload({ waitUntil: 'domcontentloaded' }); assert.match(p.url(), /\/campagna$/);
       await p.goto(base + '/profilo', { waitUntil: 'domcontentloaded' });
       assert.equal(await p.getByLabel('Nome della bottega', { exact: false }).inputValue(), salvato.nome);
@@ -118,15 +118,15 @@ async function compila(page) {
         await utente(p, 2, ruolo); await p.goto(base + '/profilo', { waitUntil: 'domcontentloaded' }); await p.waitForURL('**/da-approvare');
       }
     });
-    await prova('test_ca07_modifica_conserva_logo_e_non_tocca_snapshot', async (p) => {
+    await prova('test_ca07_modifica_conserva_gli_altri_dati_e_non_tocca_snapshot', async (p) => {
       await utente(p, 1); await p.goto(base + '/profilo', { waitUntil: 'domcontentloaded' }); await riepilogo(p);
       await p.getByRole('button', { name: 'Salva e vai alla campagna' }).click(); await p.waitForURL('**/campagna');
       const campagne = await p.evaluate(() => localStorage.getItem('adflow_esempi_campagne'));
-      await p.evaluate((k) => { const v = JSON.parse(localStorage.getItem(k)); v.logo = 'logo-precedente.png'; v.orari = { apertura: '9–18' }; localStorage.setItem(k, JSON.stringify(v)); }, chiave(1));
+      await p.evaluate((k) => { const v = JSON.parse(localStorage.getItem(k)); v.orari = { apertura: '9–18' }; localStorage.setItem(k, JSON.stringify(v)); }, chiave(1));
       await p.goto(base + '/profilo', { waitUntil: 'domcontentloaded' }); await p.getByLabel('Nome della bottega', { exact: false }).fill('Nuovo nome'); await riepilogo(p);
       await p.getByRole('button', { name: 'Salva e vai alla campagna' }).click(); await p.waitForURL('**/campagna');
       const v = await p.evaluate((k) => JSON.parse(localStorage.getItem(k)), chiave(1));
-      assert.equal(v.nome, 'Nuovo nome'); assert.equal(v.logo, 'logo-precedente.png'); assert.deepEqual(v.orari, { apertura: '9–18' });
+      assert.equal(v.nome, 'Nuovo nome'); assert.deepEqual(v.orari, { apertura: '9–18' });
       assert.equal(await p.evaluate(() => localStorage.getItem('adflow_esempi_campagne')), campagne);
     });
     await prova('test_ca05_errore_lettura_con_riprova', async (p) => {

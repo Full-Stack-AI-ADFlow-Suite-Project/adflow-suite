@@ -104,7 +104,6 @@ export function Profilo() {
   const naviga = useNavigate();
   const { utente } = useAuth();
   const [dati, setDati] = useState<DatiProfilo | null>(null);
-  const [logo, setLogo] = useState<string | null>(null);
   const [passo, setPasso] = useState(0);
   const [errori, setErrori] = useState<Record<string, string>>({});
   const [errore, setErrore] = useState("");
@@ -119,7 +118,6 @@ export function Profilo() {
       .then((p) => {
         if (attivo) {
           setDati(p ? datiScrittura(p) : profiloVuoto());
-          setLogo(p?.logo ?? null);
           setErrore("");
         }
       })
@@ -439,13 +437,7 @@ export function Profilo() {
                 )}
 
                 {passo === 6 && (
-                  <Passo7
-                    dati={dati}
-                    cambia={cambia}
-                    scelte={SCELTE}
-                    logo={logo}
-                    onLogoCambiato={setLogo}
-                  />
+                  <Passo7 dati={dati} cambia={cambia} scelte={SCELTE} />
                 )}
 
                 {passo === 7 && (
