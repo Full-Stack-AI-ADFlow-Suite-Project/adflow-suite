@@ -99,7 +99,14 @@ def altri_job(coda):
 def _pronta(api, entra, lavora):
     entra(ARTIGIANO)
     campagna, foto = _bozza(api, UNA_SETTIMANA, foto_per_gruppo=(2, 2))
-    assert api("POST", f"/campagne/{campagna}/invia").status_code == 200
+    assert (
+        api(
+            "POST",
+            f"/campagne/{campagna}/invia",
+            json={"dichiarazione": True},
+        ).status_code
+        == 200
+    )
     assert lavora() == [1]
     entra(OPERATORE)
     assert _stato(api, campagna) == "in_revisione"
@@ -482,7 +489,7 @@ def test_ca68_campagna_ferma_errore_e_riprova_e_ca30_senza_piano(
 ):
     entra(ARTIGIANO)
     campagna, _ = _bozza(api, UNA_SETTIMANA, foto_per_gruppo=(2, 2))
-    _ok(api, "POST", f"/campagne/{campagna}/invia")
+    _ok(api, "POST", f"/campagne/{campagna}/invia", json={"dichiarazione": True})
     orologio.ora += timedelta(minutes=31)
     worker.tick_pubblicazione(0)
     entra(OPERATORE)
