@@ -46,6 +46,12 @@ class Impostazioni(BaseSettings):
     # Indirizzo pubblico da cui Instagram scarica le foto (tunnel o host pubblico)
     foto_url_pubblico: str = ""
 
+    social_provider: Literal["finto", "meta"] = "finto"
+    meta_pagina_id: str = ""
+    meta_instagram_id: str = ""
+    meta_token_pagina: str = ""
+    meta_graph_versione: str = "v26.0"
+
     ai_provider: Literal["finto", "litellm"] = "finto"
     ai_modello_visione: str = ""
     ai_modello_testo: str = ""
