@@ -1,5 +1,6 @@
 """Interventi dell'operatore sul testo di un post (spec §3, R-30)."""
 
+from dataclasses import replace
 from datetime import datetime
 
 from sqlalchemy.orm import Session
@@ -8,7 +9,12 @@ from app.adapters.ai import PostAI, ottieni_ai
 from app.core.errori import DatiNonValidi, StatoNonValido
 from app.moduli.campagne import service as campagne
 
-from .domain import DA_APPROVARE, SCHEDE_CANALE, TIPI_INTERVENTO_IN_CORSO
+from .domain import (
+    DA_APPROVARE,
+    IMMAGINE_AI,
+    SCHEDE_CANALE,
+    TIPI_INTERVENTO_IN_CORSO,
+)
 from .generazione import (
     RISCRITTURE,
     _campagna_ai,
@@ -16,6 +22,7 @@ from .generazione import (
     _gruppo_dell_uscita,
     _snapshot,
 )
+from .immagini_ai import IMMAGINE_NON_CREATA, con_dicitura
 from .models import Post, Uscita, VersionePost, VersionePostFoto
 from .service import (
     _azzera_spunta,
@@ -210,8 +217,12 @@ def rigenera(
         data_ora=record.data_ora,
         riempitivo=record.riempitivo,
         descrizione_gruppo=gruppo.descrizione if gruppo is not None else None,
-        foto=[_foto_ai(una) for una in foto],
+        # Come in generazione: il testo di un'immagine AI si chiede dal tema.
+        foto=[]
+        if record.riempitivo == IMMAGINE_AI
+        else [_foto_ai(una) for una in foto],
     )
+    dicitura = record.riempitivo == IMMAGINE_AI and bool(foto)
     rifiutate = [v.testo for v in record.versioni if v.testo.strip()]
     snapshot = _snapshot(campagna)
     ai = ottieni_ai()
@@ -229,11 +240,20 @@ def rigenera(
             nota=nota,
         )
         registra_chiamata_ai(db, campagna.id, ai.ultimo_uso, post_id=record.id)
+        scritto_dall_ai = scritto.testo
+        if dicitura:
+            scritto = replace(scritto, testo=con_dicitura(scritto.testo))
         errori = valida_testo(scritto.testo, scritto.hashtag, record.canale, snapshot)
         if not errori:
             break
-        precedente = scritto.testo
+        precedente = scritto_dall_ai
     errori = [dict(errore) for errore in errori]
+    # Il testo nuovo non crea l'immagine che manca: il blocco resta.
+    errori = [
+        dict(vecchio)
+        for vecchio in corrente.errori_validazione or []
+        if vecchio["regola"] == IMMAGINE_NON_CREATA
+    ] + errori
 
     nuova = VersionePost(
         post_id=record.id,

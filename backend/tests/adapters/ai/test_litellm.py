@@ -5,6 +5,7 @@ oppure solleva l'eccezione da provare: un test per ogni riga della tabella degli
 errori, uno per ``ultimo_uso``.
 """
 
+import base64
 import json
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
@@ -17,7 +18,15 @@ import pytest
 from PIL import Image
 
 import app.adapters.ai.litellm as modulo
-from app.adapters.ai import CampagnaAI, ErroreAI, FotoAI, GruppoAI, PostAI, ottieni_ai
+from app.adapters.ai import (
+    CampagnaAI,
+    ErroreAI,
+    FotoAI,
+    GruppoAI,
+    PostAI,
+    ottieni_ai,
+    prompt_immagine,
+)
 from app.adapters.ai.litellm import AILiteLLM
 from app.adapters.ai.schemi import TipoFoto
 from app.adapters.archivio import ArchivioFinto, usa_archivio
@@ -95,6 +104,8 @@ def ai(monkeypatch) -> AILiteLLM:
             "ai_provider": "litellm",
             "ai_modello_visione": "visione-di-prova",
             "ai_modello_testo": "testo-di-prova",
+            "ai_modello_immagini": "immagini-di-prova",
+            "ai_prezzo_immagine": Decimal("0.04"),
             "openai_api_key": "chiave-di-prova",
             "ai_prezzo_ingresso_milione": Decimal("2"),
             "ai_prezzo_uscita_milione": Decimal("10"),
@@ -689,3 +700,231 @@ def test_i_tipi_di_foto_dello_schema_sono_quelli_di_campagne():
 @pytest.mark.parametrize("nome", ["analisi_v1", "piano_v1", "post_v1"])
 def test_i_prompt_esistono_e_hanno_la_versione_nel_nome(nome):
     assert modulo._prompt(nome).strip()
+
+
+# --- Immagini (T3-34) ----------------------------------------------------------------
+
+
+def _png(lato: int = 1024, formato: str = "PNG") -> str:
+    uscita = BytesIO()
+    Image.new("RGB", (lato, lato), (90, 120, 60)).save(uscita, formato)
+    return base64.b64encode(uscita.getvalue()).decode()
+
+
+def _immagine_ai(codificata: str | None, *, usage=None):
+    return SimpleNamespace(
+        data=[SimpleNamespace(b64_json=codificata, url=None)] if codificata else [],
+        usage=usage,
+    )
+
+
+@pytest.fixture
+def generazione(monkeypatch) -> Finta:
+    finta = Finta()
+    monkeypatch.setattr(litellm, "image_generation", finta)
+    monkeypatch.setattr(litellm, "completion_cost", lambda **_: 0.0425)
+    return finta
+
+
+def test_l_immagine_si_chiede_quadrata_di_qualita_media_senza_tentativi_di_litellm(
+    generazione, ai
+):
+    generazione.metti(_immagine_ai(_png()))
+
+    immagine = ai.genera_immagine("Un prompt")
+
+    (chiamata,) = generazione.chiamate
+    assert chiamata["prompt"] == "Un prompt"
+    assert chiamata["model"] == "immagini-di-prova"
+    assert (chiamata["size"], chiamata["quality"], chiamata["n"]) == (
+        "1024x1024",
+        "medium",
+        1,
+    )
+    assert chiamata["api_key"] == "chiave-di-prova"
+    assert chiamata["timeout"] == modulo.TIMEOUT_SECONDI
+    assert (immagine.mime, immagine.provider, immagine.modello) == (
+        "image/png",
+        "litellm",
+        "immagini-di-prova",
+    )
+    assert immagine.versione_prompt == "immagine_v1"
+    with Image.open(BytesIO(immagine.contenuto)) as aperta:
+        assert aperta.size == (1024, 1024)
+
+
+def test_un_jpeg_resta_un_jpeg(generazione, ai):
+    generazione.metti(_immagine_ai(_png(formato="JPEG")))
+    assert ai.genera_immagine("Un prompt").mime == "image/jpeg"
+
+
+def test_ultimo_uso_dell_immagine_ha_modello_token_immagini_e_costo_di_litellm(
+    generazione, ai
+):
+    generazione.metti(
+        _immagine_ai(_png(), usage=SimpleNamespace(input_tokens=60, output_tokens=1056))
+    )
+
+    ai.genera_immagine("Un prompt")
+
+    uso = ai.ultimo_uso
+    assert (uso.tipo, uso.provider, uso.modello) == (
+        "immagine",
+        "litellm",
+        "immagini-di-prova",
+    )
+    assert (uso.token_ingresso, uso.token_uscita, uso.immagini) == (60, 1056, 1)
+    assert uso.costo_usd == Decimal("0.0425")
+
+
+def test_senza_il_prezzo_di_litellm_l_immagine_costa_quanto_dice_la_configurazione(
+    generazione, ai, monkeypatch
+):
+    def sconosciuto(**_):
+        raise litellm.NotFoundError(message="senza prezzo", **ARGOMENTI)
+
+    monkeypatch.setattr(litellm, "completion_cost", sconosciuto)
+    generazione.metti(_immagine_ai(_png()))
+
+    ai.genera_immagine("Un prompt")
+
+    assert ai.ultimo_uso.costo_usd == Decimal("0.04")
+    assert (ai.ultimo_uso.token_ingresso, ai.ultimo_uso.token_uscita) == (None, None)
+
+
+@pytest.mark.parametrize(
+    ("eccezione", "tipo"),
+    [
+        (_errore(litellm.Timeout), "temporaneo"),
+        (_errore(litellm.RateLimitError, "Rate limit reached"), "temporaneo"),
+        (_errore(litellm.ServiceUnavailableError), "temporaneo"),
+        (_errore(litellm.AuthenticationError, "Incorrect API key"), "configurazione"),
+        (_errore(litellm.NotFoundError, "model not found"), "configurazione"),
+        (_errore(litellm.BadRequestError, "prompt non accettato"), "richiesta"),
+        (_errore(litellm.ContentPolicyViolationError), "rifiuto"),
+        (
+            _errore(
+                litellm.BadRequestError,
+                "Your request was rejected by the safety system. moderation_blocked",
+            ),
+            "rifiuto",
+        ),
+    ],
+)
+def test_ogni_errore_dell_immagine_diventa_uno_dei_cinque_tipi(
+    generazione, ai, eccezione, tipo
+):
+    generazione.metti(eccezione)
+
+    with pytest.raises(ErroreAI) as sollevato:
+        ai.genera_immagine("Un prompt")
+
+    assert sollevato.value.tipo == tipo
+    assert sollevato.value.foto_id is None
+    assert ai.ultimo_uso is None
+    assert "Incorrect API key" not in sollevato.value.messaggio
+
+
+@pytest.mark.parametrize(
+    "risposta_sbagliata",
+    [
+        _immagine_ai(None),
+        _immagine_ai("non è base64!"),
+        _immagine_ai(base64.b64encode(b"non e un immagine").decode()),
+        _immagine_ai(_png(formato="WEBP")),
+    ],
+    ids=["vuota", "non_base64", "non_immagine", "formato_non_ammesso"],
+)
+def test_un_immagine_vuota_illeggibile_o_di_un_altro_formato_e_di_tipo_risposta(
+    generazione, ai, risposta_sbagliata
+):
+    generazione.metti(risposta_sbagliata)
+
+    with pytest.raises(ErroreAI) as sollevato:
+        ai.genera_immagine("Un prompt")
+
+    assert sollevato.value.tipo == "risposta"
+    assert ai.ultimo_uso is None
+
+
+def test_senza_il_modello_delle_immagini_la_chiamata_e_di_configurazione(
+    generazione, ai, monkeypatch
+):
+    monkeypatch.setattr(ai, "_modello_immagini", " ")
+
+    with pytest.raises(ErroreAI) as sollevato:
+        ai.genera_immagine("Un prompt")
+
+    assert sollevato.value.tipo == "configurazione"
+    assert generazione.chiamate == []
+
+
+def test_il_prompt_dell_immagine_esiste_con_la_versione_nel_nome():
+    assert modulo._prompt("immagine_v1").strip()
+
+
+# --- Prompt dell'immagine (R-43) -----------------------------------------------------
+
+PROFILO = {
+    "nome": "Ceramiche Bianchi",
+    "citta": "Deruta",
+    "tipo_prodotto": "ceramica_vetro",
+    "tono": ["caldo", "professionale"],
+}
+
+
+def test_il_prompt_dell_immagine_e_quello_del_brief():
+    prompt = prompt_immagine(PROFILO, "Il tornio al lavoro", date(2030, 1, 7))
+
+    assert prompt == (
+        "Fotografia realistica, quadrata, per una bottega di ceramica e vetro a Deruta.\n"
+        "Soggetto: Il tornio al lavoro, mostrato attraverso ambiente, materiali o "
+        "attrezzi della lavorazione.\n"
+        "Stagione: inverno.\n"
+        "Tono: caldo, professionale.\n"
+        "Luce naturale.\n"
+        "Vincoli: nessun prodotto finito riconoscibile, nessuna persona riconoscibile, "
+        "nessun testo, logo o marchio."
+    )
+
+
+@pytest.mark.parametrize(
+    ("giorno", "stagione"),
+    [
+        (date(2030, 3, 1), "primavera"),
+        (date(2030, 6, 30), "estate"),
+        (date(2030, 9, 1), "autunno"),
+        (date(2030, 12, 31), "inverno"),
+    ],
+)
+def test_la_stagione_viene_dalla_data_del_post(giorno, stagione):
+    assert f"Stagione: {stagione}." in prompt_immagine(PROFILO, "Tema", giorno)
+
+
+def test_il_prompt_semplice_non_ha_ne_tono_ne_stagione_ma_tiene_i_vincoli():
+    prompt = prompt_immagine(PROFILO, "Tema", date(2030, 1, 7), semplice=True)
+
+    assert "Stagione" not in prompt and "Tono" not in prompt
+    assert "Soggetto: Tema," in prompt
+    assert "Luce naturale." in prompt
+    assert "Vincoli: nessun prodotto finito riconoscibile" in prompt
+
+
+def test_il_prompt_senza_citta_tono_o_tipo_di_prodotto_esce_comunque():
+    prompt = prompt_immagine(
+        {"tipo_prodotto": "altro", "tono": []}, "Tema", date(2030, 7, 1)
+    )
+
+    assert prompt.splitlines()[0] == (
+        "Fotografia realistica, quadrata, per una bottega di prodotti artigianali."
+    )
+    assert "Tono" not in prompt
+    assert "Stagione: estate." in prompt
+
+
+def test_un_tema_lungo_o_su_piu_righe_non_rompe_il_prompt():
+    prompt = prompt_immagine(PROFILO, "Una\nriga  " * 100, date(2030, 1, 7))
+
+    soggetto = next(r for r in prompt.splitlines() if r.startswith("Soggetto:"))
+    assert len(soggetto) < 400
+    assert len(prompt.splitlines()) == 6

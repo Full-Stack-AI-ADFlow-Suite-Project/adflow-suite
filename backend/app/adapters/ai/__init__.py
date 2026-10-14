@@ -13,6 +13,7 @@ from .base import (
     ErroreAI,
     FotoAI,
     GruppoAI,
+    ImmagineAI,
     PianoAI,
     PostAI,
     PostScritto,
@@ -20,6 +21,7 @@ from .base import (
     UsoAI,
 )
 from .finto import AIFinto
+from .immagini import prompt_immagine
 
 _istanza_ai: Optional[AIAdapter] = None
 
@@ -70,10 +72,12 @@ __all__ = [
     "ErroreAI",
     "FotoAI",
     "GruppoAI",
+    "ImmagineAI",
     "PianoAI",
     "PostAI",
     "PostScritto",
     "UsoAI",
+    "prompt_immagine",
     "ottieni_ai",
     "imposta_ai",
     "usa_ai",

@@ -55,6 +55,8 @@ class Impostazioni(BaseSettings):
     # prezzo del modello (spec R-44).
     ai_prezzo_ingresso_milione: Decimal = Decimal(0)
     ai_prezzo_uscita_milione: Decimal = Decimal(0)
+    # Dollari per immagine creata, con lo stesso scopo (spec R-44).
+    ai_prezzo_immagine: Decimal = Decimal(0)
 
     anticipo_minimo_giorni: int = 3
     margine_slot_minuti: int = 15

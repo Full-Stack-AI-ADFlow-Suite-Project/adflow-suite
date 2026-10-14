@@ -1,8 +1,7 @@
-"""T3-31: il costo di ogni chiamata all'AI si registra in `chiamata_ai` (spec R-44).
+"""T3-31, T3-34: il costo di ogni chiamata all'AI si registra in `chiamata_ai` (spec R-44).
 
-CA-82 per analisi, piano e testi (le immagini AI arrivano con T3-34): la
-generazione e la rigenerazione scrivono una riga per chiamata, Vedi campagna
-mostra il totale.
+CA-82 per analisi, piano, testi e immagini: la generazione e la rigenerazione
+scrivono una riga per chiamata, Vedi campagna mostra il totale.
 """
 
 from collections import Counter
@@ -72,14 +71,11 @@ def _righe(db, campagna_id: int) -> list[ChiamataAI]:
 
 
 def test_ca82_ogni_chiamata_della_generazione_ha_il_suo_costo(db, ai):
-    """6 foto, 3 post a settimana su 14 giorni, 2 canali: 1 analisi, 1 piano, 12 testi."""
+    """4 foto, 3 post a settimana su 14 giorni, 2 canali: 1 analisi, 1 piano, 12 testi, 2 immagini."""
     bottega = profilo(db, canali=CANALI, frequenza="f3_4")
     campagna = campagna_inviata(
         db, profilo_id=bottega.id, inizio=date(2030, 1, 7), fine=date(2030, 1, 20)
     )
-    mazzo = campagne.gruppi_della_campagna(db, campagna.id)[0]
-    for _ in range(2):
-        foto(db, gruppo=mazzo)
     db.commit()
 
     for esecuzione in range(1, 4):
@@ -92,17 +88,23 @@ def test_ca82_ogni_chiamata_della_generazione_ha_il_suo_costo(db, ai):
         "analisi": 1,
         "piano": 1,
         "testo": 12,
+        "immagine": 2,
     }
     assert {(r.provider_ai, r.modello_ai) for r in righe} == {("finto", "finto")}
     assert all(r.costo_usd == COSTO for r in righe)
-    # i testi portano il post, analisi e piano no
-    assert all((r.post_id is not None) == (r.tipo == "testo") for r in righe)
+    # testi e immagini portano il post, analisi e piano no
+    assert all(
+        (r.post_id is not None) == (r.tipo in ("testo", "immagine")) for r in righe
+    )
     assert {r.post_id for r in righe if r.tipo == "testo"} == set(
         db.scalars(select(Post.id).where(Post.campagna_id == campagna.id))
     )
+    # una sola immagine per uscita, anche se l'uscita ha due post
+    assert all(r.n_immagini == 1 for r in righe if r.tipo == "immagine")
+    assert all(r.n_immagini is None for r in righe if r.tipo != "immagine")
 
-    assert costo_ai_della_campagna(db, campagna.id) == COSTO * 14
-    assert vedi_campagna(db, campagna.id).costo_ai == COSTO * 14
+    assert costo_ai_della_campagna(db, campagna.id) == COSTO * 16
+    assert vedi_campagna(db, campagna.id).costo_ai == COSTO * 16
 
 
 def test_una_campagna_senza_chiamate_costa_zero(db):

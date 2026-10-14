@@ -4,7 +4,11 @@ from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta
 from decimal import Decimal
+from functools import lru_cache
+from io import BytesIO
 from typing import Any
+
+from PIL import Image
 
 from app.core.orologio import ROMA
 
@@ -17,6 +21,7 @@ from .base import (
     PianoAI,
     PostAI,
     PostScritto,
+    ImmagineAI,
     UsoAI,
 )
 
@@ -24,7 +29,7 @@ PROVIDER = "finto"
 MODELLO = "finto"
 VERSIONE_PROMPT = "finto-1"
 
-OPERAZIONI = ("analizza_gruppo", "pianifica_campagna", "genera_post")
+OPERAZIONI = ("analizza_gruppo", "pianifica_campagna", "genera_post", "genera_immagine")
 ORA_DI_USCITA = time(10, 0)
 # Il testo del post: la prima frase è quella di sempre, le altre servono alle rigenerazioni.
 FRASI = (
@@ -133,8 +138,14 @@ class AIFinto(AIAdapter):
         """Fa scrivere questo testo: vuoto, troppo lungo o con parole vietate."""
         self._testi.append(_Testo(testo, list(hashtag), volte, canale))
 
-    def _uso(self, tipo: str) -> UsoAI:
-        return UsoAI(tipo, PROVIDER, MODELLO, costo_usd=self.costo_chiamata)
+    def _uso(self, tipo: str, *, immagini: int | None = None) -> UsoAI:
+        return UsoAI(
+            tipo,
+            PROVIDER,
+            MODELLO,
+            immagini=immagini,
+            costo_usd=self.costo_chiamata,
+        )
 
     def _solleva(
         self,
@@ -340,6 +351,27 @@ class AIFinto(AIAdapter):
             modello=MODELLO,
             versione_prompt=VERSIONE_PROMPT,
         )
+
+    def genera_immagine(self, prompt: str) -> ImmagineAI:
+        self.ultimo_uso = None
+        self.chiamate.append({"operazione": "genera_immagine", "prompt": prompt})
+        self._solleva("genera_immagine")
+        self.ultimo_uso = self._uso("immagine", immagini=1)
+        return ImmagineAI(
+            contenuto=_immagine_fissa(),
+            mime="image/png",
+            provider=PROVIDER,
+            modello=MODELLO,
+            versione_prompt=VERSIONE_PROMPT,
+        )
+
+
+@lru_cache
+def _immagine_fissa() -> bytes:
+    """Lo stesso piccolo quadrato PNG, sempre: il finto non disegna nulla."""
+    file = BytesIO()
+    Image.new("RGB", (64, 64), (176, 92, 52)).save(file, "PNG")
+    return file.getvalue()
 
 
 def _giorni_utili(inizio: date, fine: date, non_prima_di: datetime) -> list[date]:
