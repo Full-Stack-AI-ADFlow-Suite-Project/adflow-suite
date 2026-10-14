@@ -9,6 +9,7 @@ from app.adapters.social import (
     imposta_social,
     ottieni_social,
 )
+from app.adapters.social.meta import _didascalia
 from app.core.config import leggi_impostazioni
 
 TOKEN = "token-di-prova-molto-segreto"
@@ -242,11 +243,7 @@ def test_ottieni_social_con_provider_meta(monkeypatch):
         imposta_social(None)
 
 
-def test_didascalia_senza_hashtag():
-    def handler(request: httpx.Request) -> httpx.Response:
-        assert b"Testo semplice" in request.content
-        assert b"#" not in request.content
-        return httpx.Response(200, json={"post_id": "p1"})
-
-    esito = _meta(handler).pubblica("facebook", "Testo semplice", [], FOTO, URL_FOTO)
-    assert esito.ok is True
+def test_didascalia_con_e_senza_hashtag():
+    assert _didascalia("Testo", []) == "Testo"
+    assert _didascalia("Testo", ["a", "b"]) == "Testo\n\n#a #b"
+    assert _didascalia("Testo", ["#gia"]) == "Testo\n\n#gia"
