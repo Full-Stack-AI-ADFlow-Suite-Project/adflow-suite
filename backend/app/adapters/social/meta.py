@@ -30,7 +30,6 @@ from .finto import SocialFinto
 URL_GRAPH = "https://graph.facebook.com"
 # Codici Graph di limite o temporanei (brief-meta §6)
 CODICI_TEMPORANEI: Final[frozenset[int]] = frozenset({1, 2, 4, 17, 32, 613})
-CANALI: Final[frozenset[str]] = frozenset({"facebook", "instagram"})
 # Controlli dello stato del contenitore: il primo più due nuovi tentativi
 CONTENITORE_CONTROLLI: Final[int] = 3
 CONTENITORE_ATTESA_SECONDI: Final[float] = 3.0
@@ -103,9 +102,10 @@ class SocialMeta(SocialAdapter):
         )
         if isinstance(esito, EsitoPubblicazione):
             return esito
-        return EsitoPubblicazione(
-            ok=True, id_esterno=esito.get("post_id") or esito.get("id")
-        )
+        id_post = esito.get("post_id") or esito.get("id")
+        if not id_post:
+            return _risposta_inattesa()
+        return EsitoPubblicazione(ok=True, id_esterno=id_post)
 
     # ------------------------------------------------------------------
     # Instagram
@@ -135,7 +135,9 @@ class SocialMeta(SocialAdapter):
         )
         if isinstance(esito, EsitoPubblicazione):
             return esito
-        contenitore = esito["id"]
+        contenitore = esito.get("id")
+        if not contenitore:
+            return _risposta_inattesa()
         pronto = self._attendi_contenitore(contenitore)
         if isinstance(pronto, EsitoPubblicazione):
             return pronto
@@ -145,7 +147,10 @@ class SocialMeta(SocialAdapter):
         )
         if isinstance(esito, EsitoPubblicazione):
             return esito
-        return EsitoPubblicazione(ok=True, id_esterno=esito["id"])
+        id_media = esito.get("id")
+        if not id_media:
+            return _risposta_inattesa()
+        return EsitoPubblicazione(ok=True, id_esterno=id_media)
 
     def _attendi_contenitore(self, contenitore: str) -> EsitoPubblicazione | None:
         """Controlla ``status_code`` fino a ``FINISHED``; oltre, errore temporaneo."""
@@ -233,6 +238,15 @@ class SocialMeta(SocialAdapter):
     def _senza_token(self, testo: str) -> str:
         """Il token della Pagina non finisce mai nei messaggi (constitution §3)."""
         return testo.replace(self._token, "***")
+
+
+def _risposta_inattesa() -> EsitoPubblicazione:
+    """Meta ha risposto 200 ma senza l'id atteso: non si riprova alla cieca."""
+    return EsitoPubblicazione(
+        ok=False,
+        errore="Risposta di Meta senza l'identificativo atteso.",
+        tipo_errore="definitivo",
+    )
 
 
 def _didascalia(testo: str, hashtag: list[str]) -> str:
