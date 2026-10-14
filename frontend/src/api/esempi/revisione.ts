@@ -24,6 +24,7 @@ interface RevisioneRecord {
   uscite: Uscita[];
   foto_non_usate: GruppoFotoNonUsate[];
   ultimo_errore: ErroreGenerazione | null;
+  costo_ai?: number;
 }
 
 const CHIAVE = "adflow_esempi_revisione";
@@ -689,6 +690,24 @@ export const esempiRevisione = {
       uscite: r.uscite,
       foto_non_usate: r.foto_non_usate,
       ultimo_errore: r.ultimo_errore,
+      costo_ai:
+        r.costo_ai ??
+        Number(
+          (
+            0.012 +
+            0.018 +
+            r.uscite.flatMap((u) => u.post).flatMap((p) => p.versioni).length *
+              0.002 +
+            r.uscite
+              .flatMap((u) => u.post)
+              .filter(
+                (p) =>
+                  p.riempitivo === "immagine_ai" ||
+                  p.riempitivo === "cartolina",
+              ).length *
+              0.04
+          ).toFixed(3),
+        ),
     };
   },
 

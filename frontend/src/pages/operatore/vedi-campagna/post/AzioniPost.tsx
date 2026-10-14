@@ -4,19 +4,9 @@
  * `da_approvare` (R-16, R-30); con un intervento in corso nessun altro
  * intervento (R-31); alla terza rigenerazione resta la modifica a mano (R-03).
  */
-import {
-  Alert,
-  Button,
-  Checkbox,
-  Group,
-  Loader,
-  Stack,
-  Text,
-} from "@mantine/core";
+import { Alert, Button, Group, Loader, Stack, Text } from "@mantine/core";
 import { useEffect, useState } from "react";
 
-import { ApiErrore } from "../../../../api/http";
-import { segnaControllato } from "../../../../api/interventi";
 import type { ModalitaRigenerazione } from "../../../../api/interventi";
 import type { PostVista } from "../../../../api/revisione";
 import { dataOra } from "../../campagna/util";
@@ -42,8 +32,6 @@ export function AzioniPost({
 }) {
   const [modifica, setModifica] = useState(false);
   const [rigenera, setRigenera] = useState<ModalitaRigenerazione | null>(null);
-  const [occupato, setOccupato] = useState(false);
-  const [errore, setErrore] = useState<string | null>(null);
 
   const inCorso = interventoAttivo(post);
   const scaduto = !!post.intervento_in_corso && !inCorso;
@@ -73,22 +61,7 @@ export function AzioniPost({
 
   const fatte = rigenerazioniFatte(post);
   const finite = fatte >= MAX_RIGENERAZIONI;
-  const fermo = inCorso || occupato;
-
-  const spunta = async (valore: boolean) => {
-    setOccupato(true);
-    setErrore(null);
-    try {
-      await segnaControllato(post.post_id, valore);
-      ricarica();
-    } catch (e) {
-      setErrore(
-        e instanceof ApiErrore ? e.message : "Non sono riuscita a salvare.",
-      );
-    } finally {
-      setOccupato(false);
-    }
-  };
+  const fermo = inCorso;
 
   const dopoIntervento = () => {
     setModifica(false);
@@ -124,21 +97,7 @@ export function AzioniPost({
         </Alert>
       )}
 
-      <Checkbox
-        label="Va bene"
-        checked={!!post.controllato_il}
-        disabled={fermo || (post.da_rivedere && !post.controllato_il)}
-        onChange={(e) => void spunta(e.currentTarget.checked)}
-        description={
-          post.controllato_il
-            ? `Controllato da operatore n. ${
-                post.controllato_da ?? "—"
-              } · ${dataOra(post.controllato_il)}`
-            : post.da_rivedere
-            ? "Un post da rivedere non si può spuntare: prima va sistemato."
-            : "La vedono tutti gli operatori; si toglie a ogni nuova versione."
-        }
-      />
+      {/* Congelato per l'MVP, ADR-114: la spunta 'va bene' sul post è nascosta */}
 
       <Group gap="xs" wrap="wrap">
         <Button
@@ -173,12 +132,6 @@ export function AzioniPost({
         <Text size="xs" c="dimmed">
           Le 3 rigenerazioni sono finite: resta la modifica a mano.
         </Text>
-      )}
-
-      {errore && (
-        <Alert color="red" variant="light" py="xs">
-          {errore}
-        </Alert>
       )}
 
       {modifica && (
