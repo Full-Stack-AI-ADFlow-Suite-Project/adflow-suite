@@ -43,6 +43,12 @@ class Impostazioni(BaseSettings):
     # 10 MB di una foto (R-13) più il margine del multipart
     richiesta_max_byte: int = Field(default=12 * 1024 * 1024, ge=1)
 
+    social_provider: Literal["finto", "meta"] = "finto"
+    meta_pagina_id: str = ""
+    meta_instagram_id: str = ""
+    meta_token_pagina: str = ""
+    meta_graph_versione: str = "v26.0"
+
     ai_provider: Literal["finto", "litellm"] = "finto"
     ai_modello_visione: str = ""
     ai_modello_testo: str = ""

@@ -34,17 +34,24 @@ class SocialAdapter(ABC):
     @abstractmethod
     def pubblica(
         self,
+        canale: str,
         testo: str,
         hashtag: list[str],
         foto: list[bytes],
+        url_foto: list[str],
     ) -> EsitoPubblicazione:
-        """Pubblica un post con testo, hashtag e una o più foto.
+        """Pubblica un post su un canale con testo, hashtag e una o più foto.
 
         Args:
+            canale: ``"facebook"`` o ``"instagram"``.
             testo: testo del post.
             hashtag: hashtag del post, senza il simbolo ``#``.
-            foto: contenuto dei file delle foto, almeno una, nell'ordine
-                in cui devono uscire.
+            foto: contenuto dei file delle foto (già sistemate per il canale,
+                spec R-42), almeno una, nell'ordine in cui devono uscire.
+                Servono alle piattaforme che accettano l'upload, come Facebook.
+            url_foto: indirizzi pubblici delle stesse foto, nello stesso
+                ordine. Servono alle piattaforme che scaricano la foto da
+                un URL, come Instagram (T3-23).
 
         Returns:
             ``EsitoPubblicazione`` con il risultato del tentativo.

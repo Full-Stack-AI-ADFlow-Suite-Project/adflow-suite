@@ -25,14 +25,22 @@ class SocialFinto(SocialAdapter):
 
     def pubblica(
         self,
+        canale: str,
         testo: str,
         hashtag: list[str],
         foto: list[bytes],
+        url_foto: list[str],
     ) -> EsitoPubblicazione:
         if not foto:
             raise ValueError("La pubblicazione richiede almeno una foto.")
         self.pubblicazioni.append(
-            {"testo": testo, "hashtag": list(hashtag), "n_foto": len(foto)}
+            {
+                "canale": canale,
+                "testo": testo,
+                "hashtag": list(hashtag),
+                "n_foto": len(foto),
+                "url_foto": list(url_foto or []),
+            }
         )
         testo_min = testo.lower()
         if MARCA_ERRORE_TEMPORANEO.lower() in testo_min:

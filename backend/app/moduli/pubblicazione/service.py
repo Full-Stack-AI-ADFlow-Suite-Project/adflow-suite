@@ -5,8 +5,8 @@ from datetime import datetime
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
-from app.adapters.archivio import ottieni_archivio
 from app.adapters.social import ottieni_social
+from app.core.errori import DatiNonValidi, NonTrovato
 from app.moduli.artigiani import service as artigiani
 from app.moduli.campagne import service as campagne
 from app.moduli.contenuti import service as contenuti
@@ -46,9 +46,10 @@ def pubblica_dovuti(
     Per ogni post dovuto (da ``contenuti.post_dovuti``):
     1. registra il tentativo di pubblicazione *prima* di chiamare il social
        (idempotenza — constitution §1.7);
-    2. chiama l'adattatore social con testo, hashtag e tutte le foto della
-       versione corrente, nell'ordine di ``versione_post_foto.posizione``
-       (per una cartolina la sua immagine);
+    2. chiama l'adattatore social con canale, testo, hashtag e tutte le foto
+       della versione corrente — i byte della foto **sistemata** per il
+       canale (R-42) e il suo indirizzo pubblico firmato (T3-23) — nell'ordine
+       di ``versione_post_foto.posizione`` (per una cartolina la sua immagine);
     3. registra l'esito: errore ``temporaneo`` lascia il tentativo
        ``in_corso`` per il tick successivo, fino a ``TENTATIVI_MAX``;
        dopo un ``ok`` segna su ogni foto ``caricata`` del post il canale e
@@ -99,7 +100,6 @@ def _pubblica_post(db: Session, post, adesso: datetime) -> None:
         _segna_errore(db, post, tentativo, problema, adesso)
         return
 
-    archivio = ottieni_archivio()
     # Le foto di una versione possono venire dall'archivio della bottega
     # (foto d'archivio e riempitivi ``archivio``, R-27/R-28):
     # ``foto_della_campagna`` non le restituirebbe (plan §6).
@@ -112,17 +112,29 @@ def _pubblica_post(db: Session, post, adesso: datetime) -> None:
     try:
         # Congelato per l'MVP, ADR-114: non estendere. Nell'MVP un post ha
         # una foto sola; la pubblicazione con più foto (caroselli, A8) resta.
+        # Byte della foto sistemata per il canale (R-42, T3-21) e suo
+        # indirizzo pubblico firmato (T3-23): li usa l'adattatore Meta.
         byte_foto = [
-            archivio.leggi(foto_della_versione[legame.foto_id].file)
+            campagne.foto_sistemata(db, legame.foto_id, canale=post.canale)[0]
             for legame in versione.legami_foto
         ]
-    except (KeyError, FileNotFoundError):
+        url_foto = [
+            campagne.url_foto_pubblica(db, legame.foto_id, canale=post.canale)
+            for legame in versione.legami_foto
+        ]
+    except (NonTrovato, DatiNonValidi):
         _segna_errore(
-            db, post, tentativo, "File della foto non trovato nell'archivio.", adesso
+            db,
+            post,
+            tentativo,
+            "File della foto non trovato o non processabile.",
+            adesso,
         )
         return
 
-    esito = ottieni_social().pubblica(versione.testo, list(versione.hashtag), byte_foto)
+    esito = ottieni_social().pubblica(
+        post.canale, versione.testo, list(versione.hashtag), byte_foto, url_foto
+    )
     if esito.ok:
         tentativo.stato = "ok"
         tentativo.id_esterno = esito.id_esterno

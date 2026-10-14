@@ -40,10 +40,21 @@ def archivio() -> Iterator[ArchivioFinto]:
         yield finto
 
 
+def _jpeg_di_prova() -> bytes:
+    """Un JPEG vero: la pubblicazione passa dalla sistemazione (R-42, Pillow)."""
+    import io
+
+    from PIL import Image
+
+    buffer = io.BytesIO()
+    Image.new("RGB", (1080, 1080), color=(80, 120, 160)).save(buffer, "JPEG")
+    return buffer.getvalue()
+
+
 def _archivia_foto(db, archivio: ArchivioFinto, campagna_id: int) -> None:
     """Rende leggibili dall'archivio i file delle foto della campagna."""
     for immagine in campagne.foto_della_campagna(db, campagna_id):
-        archivio._archivio[immagine.file] = b"foto-di-prova"
+        archivio._archivio[immagine.file] = _jpeg_di_prova()
     db.flush()
 
 
@@ -321,7 +332,7 @@ def test_ca76_foto_d_archivio_di_campagna_chiusa_si_segna(db, social, archivio):
     altra_id = legame.foto_id
     legame.foto_id = vecchia.id
     _archivia_foto(db, archivio, campagna.id)
-    archivio._archivio[vecchia.file] = b"foto-d-archivio"
+    archivio._archivio[vecchia.file] = _jpeg_di_prova()
 
     pubblica_dovuti(db, ADESSO)
 
@@ -342,7 +353,7 @@ def test_ca76_foto_di_gruppo_archivio_si_pubblica_e_si_segna(db, social, archivi
     [legame] = post.versione_corrente.legami_foto
     legame.foto_id = vecchia.id
     _archivia_foto(db, archivio, campagna.id)
-    archivio._archivio[vecchia.file] = b"foto-d-archivio"
+    archivio._archivio[vecchia.file] = _jpeg_di_prova()
 
     pubblica_dovuti(db, ADESSO)
 
