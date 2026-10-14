@@ -1,5 +1,6 @@
 """Risposta pubblica del calendario: contenuti approvati, senza note interne."""
 from datetime import date, datetime
+from decimal import Decimal
 
 from pydantic import BaseModel
 
@@ -40,3 +41,37 @@ class CalendarioCampagna(BaseModel):
     giorni: list[GiornoCalendario]
     canali_tolti: list[CanaleToltoCalendario]
     n_post_scaduti: int
+
+
+class ChiamateAIDiUnTipo(BaseModel):
+    """Le chiamate all'AI di un tipo (analisi, piano, testo, immagine) e ciò che sono costate."""
+
+    tipo: str
+    chiamate: int
+    modelli: list[str]
+    token_ingresso: int
+    token_uscita: int
+    immagini: int
+    costo_usd: Decimal
+
+
+class PostSegnalato(BaseModel):
+    """Un post la cui versione corrente ha blocchi o avvisi del validatore."""
+
+    post_id: int
+    canale: str
+    data_ora: datetime
+    con_blocco: bool
+    segnalazioni: list[str]
+
+
+class RiepilogoAI(BaseModel):
+    """Che cosa ha fatto e speso l'AI per una campagna (spec R-44, prova di T3-32)."""
+
+    campagna_id: int
+    per_tipo: list[ChiamateAIDiUnTipo]
+    costo_totale_usd: Decimal
+    n_post: int
+    riscritture_piano: int
+    riscritture_testi: int
+    post_segnalati: list[PostSegnalato]

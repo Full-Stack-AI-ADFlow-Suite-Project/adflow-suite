@@ -7,7 +7,7 @@ from decimal import Decimal
 from sqlalchemy import select, or_, and_, func
 from sqlalchemy.orm import Session, selectinload
 
-from app.adapters.ai import UsoAI
+from app.adapters.ai import TIPI_USO, UsoAI
 from app.core.config import leggi_impostazioni
 from app.core.errori import DatiNonValidi, NonTrovato, StatoNonValido
 from app.core.orologio import ROMA
@@ -26,7 +26,13 @@ from .domain import (
     STATI_CHIUSI,
 )
 from .models import ChiamataAI, Post, VersionePost, Piano, Uscita, ErroreGenerazione
-from .schemas import CalendarioCampagna
+from .validatore import BLOCCO
+from .schemas import (
+    CalendarioCampagna,
+    ChiamateAIDiUnTipo,
+    PostSegnalato,
+    RiepilogoAI,
+)
 
 
 def post_della_campagna(
@@ -249,6 +255,86 @@ def costo_ai_della_campagna(db: Session, campagna_id: int) -> Decimal:
         )
     )
     return totale if totale is not None else Decimal(0)
+
+
+def riepilogo_ai_della_campagna(db: Session, campagna_id: int) -> RiepilogoAI:
+    """Chiamate per tipo, costo, riscritture e post con segnalazioni (R-44, R-09).
+
+    Conta le righe di ``chiamata_ai``: una chiamata fallita non c'è. Le
+    riscritture sono le chiamate oltre la prima: del piano, e dei testi di
+    ogni post. Dei post segnalati conta la versione corrente.
+    """
+    per_tipo = []
+    for tipo, chiamate, ingresso, uscita, immagini, costo in db.execute(
+        select(
+            ChiamataAI.tipo,
+            func.count(),
+            func.coalesce(func.sum(ChiamataAI.token_ingresso), 0),
+            func.coalesce(func.sum(ChiamataAI.token_uscita), 0),
+            func.coalesce(func.sum(ChiamataAI.n_immagini), 0),
+            func.coalesce(func.sum(ChiamataAI.costo_usd), 0),
+        )
+        .where(ChiamataAI.campagna_id == campagna_id)
+        .group_by(ChiamataAI.tipo)
+    ):
+        modelli = db.scalars(
+            select(ChiamataAI.modello_ai)
+            .where(ChiamataAI.campagna_id == campagna_id, ChiamataAI.tipo == tipo)
+            .distinct()
+            .order_by(ChiamataAI.modello_ai)
+        )
+        per_tipo.append(
+            ChiamateAIDiUnTipo(
+                tipo=tipo,
+                chiamate=chiamate,
+                modelli=list(modelli),
+                token_ingresso=ingresso,
+                token_uscita=uscita,
+                immagini=immagini,
+                costo_usd=Decimal(costo),
+            )
+        )
+    ordine = {tipo: posto for posto, tipo in enumerate(TIPI_USO)}
+    per_tipo.sort(key=lambda riga: ordine.get(riga.tipo, len(ordine)))
+
+    piano = next((riga.chiamate for riga in per_tipo if riga.tipo == "piano"), 0)
+    testi_per_post = db.scalars(
+        select(func.count())
+        .where(
+            ChiamataAI.campagna_id == campagna_id,
+            ChiamataAI.tipo == "testo",
+            ChiamataAI.post_id.is_not(None),
+        )
+        .group_by(ChiamataAI.post_id)
+    )
+
+    post = post_della_campagna(db, campagna_id)
+    segnalati = []
+    for uno in post:
+        versione = uno.versione_corrente
+        errori = (versione.errori_validazione if versione else None) or []
+        if not errori:
+            continue
+        segnalati.append(
+            PostSegnalato(
+                post_id=uno.id,
+                canale=uno.canale,
+                data_ora=uno.data_ora,
+                con_blocco=any(e["livello"] == BLOCCO for e in errori),
+                segnalazioni=[
+                    f"{e['livello']} · {e['regola']}: {e['messaggio']}" for e in errori
+                ],
+            )
+        )
+    return RiepilogoAI(
+        campagna_id=campagna_id,
+        per_tipo=per_tipo,
+        costo_totale_usd=costo_ai_della_campagna(db, campagna_id),
+        n_post=len(post),
+        riscritture_piano=max(0, piano - 1),
+        riscritture_testi=sum(max(0, chiamate - 1) for chiamate in testi_per_post),
+        post_segnalati=segnalati,
+    )
 
 
 def ultimo_errore(db: Session, campagna_id: int) -> ErroreGenerazione | None:
