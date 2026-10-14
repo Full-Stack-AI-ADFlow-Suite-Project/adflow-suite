@@ -380,7 +380,7 @@ La tariffa di 30 €/ora è un valore di riferimento per sviluppatori junior: va
 
 **AI.** Il modello scelto per l'MVP è **GPT-4o** (via OpenRouter/LiteLLM: `openrouter/openai/gpt-4o` per visione e testo; `openrouter/openai/gpt-5-image-mini` per le immagini), validato empiricamente con la prova su 10 post (T3-32).
 Costo medio misurato per chiamata:
-- Analisi foto: ≈ 0,004 $ per gruppo di foto (fino a 9 foto)
+- Analisi foto: ≈ 0,072 $ per un gruppo di 9 foto con GPT-4o (≈ 2.900 token per foto: è la voce più cara di una campagna con foto). Nella prova l'analisi è andata con gpt-4o-mini (≈ 0,004 $) ed è stata registrata a 0 $, perché i prezzi in `.env` non erano ancora impostati: la cifra con GPT-4o è calcolata dai token misurati
 - Piano editoriale: ≈ 0,011 $ per piano (senza riscritture)
 - Generazione testo post: ≈ 0,0045 $ per post
 - Immagine AI di rimpiazzo: ≈ 0,02–0,04 $ per immagine
@@ -391,11 +391,11 @@ Il costo di una campagna è la somma delle sue chiamate, tutte registrate (R-44)
 
 | Esempio | Chiamate | Costo per campagna |
 |---|---|---|
-| 7 giorni, 5 post/settimana, 2 canali (10 post), foto reali | 1 analisi (9 foto), 1 piano, 10 testi, 0 immagini | 0,056 $ (misurato con T3-32) |
-| 7 giorni, 3 post/settimana, 2 canali, 2 gruppi di foto, 1 uscita senza foto | 2 analisi, 1 piano, 6 testi, 1 immagine | ≈ 0,07–0,10 $ |
+| 7 giorni, 5 post/settimana, 2 canali (10 post), foto reali | 1 analisi (9 foto), 1 piano, 10 testi, 0 immagini | ≈ 0,13 $ (token misurati con T3-32: analisi 0,072 $, piano 0,012 $, testi 0,045 $) |
+| 7 giorni, 3 post/settimana, 2 canali, 2 gruppi di foto, 1 uscita senza foto | 2 analisi, 1 piano, 6 testi, 1 immagine | ≈ 0,13–0,15 $ |
 | 4 settimane, 3 post/settimana, 2 canali, nessuna foto | 0 analisi, 1 piano, 24 testi, 12 immagini | ≈ 0,40–0,60 $ |
 
-L'immagine è la voce che pesa di più: con le foto della bottega la campagna costa pochi centesimi (≈ 0,05–0,06 $ per 10 post), senza foto qualche decina di centesimi. Per un consorzio di 50 botteghe con una campagna di 4 settimane al mese ciascuna: ≈ 20–30 $ al mese (con foto della bottega) o ≈ 40–50 $ al mese (senza foto). Il tetto di spesa si imposta sul conto del provider; il codice non lo limita, ma l'operatore vede il costo di ogni campagna.
+Con le foto della bottega pesa l'analisi delle foto, senza foto pesano le immagini: una campagna di 10 post con foto costa ≈ 0,13 $, una di 4 settimane senza foto qualche decina di centesimi. Per un consorzio di 50 botteghe con una campagna di 4 settimane al mese ciascuna (3 post/settimana, 2 canali): ≈ 10–15 $ al mese con le foto della bottega (≈ 12 foto analizzate, ≈ 0,21 $ a campagna) o ≈ 20–30 $ al mese senza foto. Il tetto di spesa si imposta sul conto del provider; il codice non lo limita, ma l'operatore vede il costo di ogni campagna. Con OpenRouter LiteLLM non conosce i prezzi dei modelli: il costo registrato viene dai prezzi di `backend/.env` (`AI_PREZZO_INGRESSO_MILIONE`, `AI_PREZZO_USCITA_MILIONE`, `AI_PREZZO_IMMAGINE`), che devono essere quelli del modello scelto.
 
 **Hosting.**
 
@@ -457,6 +457,6 @@ Dalla roadmap (`docs/ROADMAP.md`), in ordine indicativo:
 | Responsabili dei capitoli e collega che rilegge | Team | Subito |
 | Ore reali per persona e per sprint (3.3) | Ogni membro del team | Prima della consegna |
 | Tariffa oraria di riferimento (3.4) | Team e tutor | Prima della consegna |
-| Modello AI scelto, costo per chiamata, tempi della generazione (1.4, 3.5) | Confermato con T3-32 (GPT-4o, ~0,056 $/campagna, ~1 min 18 s) | Confermato il 14/10 |
+| Modello AI scelto, costo per chiamata, tempi della generazione (1.4, 3.5) | Confermato con T3-32 (GPT-4o, ≈ 0,13 $ per 10 post con l'analisi di 9 foto, ~1 min 18 s) | Confermato il 14/10; costo dell'analisi corretto il 14/10 |
 | Instagram reale o simulato (3.2, 3.6) | Area Meta, T3-43 | Entro il 23/10 |
 | Server e fornitore dell'hosting (3.5) | Team | Prima del pitch |
