@@ -1,10 +1,20 @@
 /**
  * Passo 12 · Riepilogo e invio: riepilogo in sola lettura, la stima di ciò
- * che uscirà, gli avvisi R-25 dal dettaglio e i
- * blocchi ricontrollati prima di "Invia all'operatore".
+ * che uscirà (foto dell'artigiano e immagini AI, R-28), gli avvisi R-25 dal
+ * dettaglio, la dichiarazione obbligatoria (R-41) e i blocchi ricontrollati
+ * prima di "Invia all'operatore". Nessun minimo di foto.
  */
 import { useEffect, useState } from "react";
-import { Alert, Button, Group, Paper, Stack, Text, Title } from "@mantine/core";
+import {
+  Alert,
+  Button,
+  Checkbox,
+  Group,
+  Paper,
+  Stack,
+  Text,
+  Title,
+} from "@mantine/core";
 
 import { invia, type CampagnaDettaglio } from "../../../api/campagne";
 import {
@@ -21,14 +31,30 @@ const POST_A_SETTIMANA: Record<string, number> = {
   decidete_voi: 3,
 };
 
-const TESTI_AVVISI: Record<string, string> = {
-  foto_poche:
-    "Le foto sono meno dei post chiesti: i post che mancano saranno cartoline.",
-  riempitivi_molti:
-    "Più di un post su due sarà una cartolina: con qualche foto in più escono più post con le tue foto.",
-  frequenza_alta:
-    "Il ritmo è alto rispetto alle foto che hai dichiarato di poter fare: valuta se abbassarlo nel profilo.",
-};
+/** I testi degli avvisi di R-25; `foto_poche` dice quanti post avranno un'immagine AI. */
+function testoAvviso(avviso: string, daCreareConAI: number): string | null {
+  switch (avviso) {
+    case "foto_poche":
+      return `Le foto caricate sono meno dei post chiesti: ${daCreareConAI} post per canale avranno un'immagine creata con l'AI.`;
+    case "riempitivi_molti":
+      return "I post senza una tua foto sono più di uno ogni due foto caricate: aggiungine qualcuna, se puoi.";
+    case "frequenza_alta":
+      return "Il ritmo è alto rispetto alle foto che hai dichiarato di poter fare: valuta se abbassarlo nel profilo.";
+    default:
+      return null;
+  }
+}
+
+/** Che cosa uscirà su un canale, con `n` post chiesti e `nFoto` foto caricate. */
+function stimaCanale(n: number, nFoto: number): string {
+  if (nFoto === 0) return `${n} post, tutti con un'immagine creata dall'AI`;
+  if (nFoto < n)
+    return `${n} post · ${nFoto} con le tue foto · ${
+      n - nFoto
+    } con un'immagine creata dall'AI`;
+  if (nFoto === n) return `${n} post con le tue foto`;
+  return `${n} post con le tue foto · usiamo le ${n} migliori secondo l'analisi; le altre restano tra le foto della campagna`;
+}
 
 function dataIT(iso: string): string {
   const [a, m, g] = iso.split("-");
@@ -49,6 +75,7 @@ export function Passo12({
   const [errore, setErrore] = useState("");
   const [inCorso, setInCorso] = useState(false);
   const [collegati, setCollegati] = useState<string[]>([]);
+  const [dichiarazione, setDichiarazione] = useState(false);
 
   useEffect(() => {
     apiCanali()
@@ -73,8 +100,11 @@ export function Passo12({
         86400000,
     ) + 1;
 
+  const avvisi = campagna.avvisi
+    .map((a) => testoAvviso(a, mancanti))
+    .filter((t): t is string => t !== null);
+
   const blocchi: string[] = [];
-  if (nFoto < 4) blocchi.push("Servono almeno 4 foto caricate.");
   campagna.gruppi.forEach((g, i) => {
     if (!g.descrizione?.trim())
       blocchi.push(`Il gruppo ${i + 1} non ha la descrizione.`);
@@ -89,7 +119,7 @@ export function Passo12({
     setErrore("");
     setInCorso(true);
     try {
-      await invia(campagna.id);
+      await invia(campagna.id, dichiarazione);
       await onInviata();
     } catch (e) {
       setErrore(e instanceof ApiErrore ? e.dettaglio : "Errore inatteso.");
@@ -183,40 +213,44 @@ export function Passo12({
             <Riga
               key={c}
               nome={c}
-              valore={
-                mancanti > 0
-                  ? `${
-                      campagna.post_chiesti_per_canale[c] ?? chiesti
-                    } post · ${Math.min(
-                      nFoto,
-                      campagna.post_chiesti_per_canale[c] ?? chiesti,
-                    )} con le foto di questa campagna · ${Math.max(
-                      0,
-                      (campagna.post_chiesti_per_canale[c] ?? chiesti) - nFoto,
-                    )} cartoline`
-                  : `${
-                      campagna.post_chiesti_per_canale[c] ?? chiesti
-                    } post con le foto di questa campagna`
-              }
+              valore={stimaCanale(
+                campagna.post_chiesti_per_canale[c] ?? chiesti,
+                nFoto,
+              )}
             />
           ))}
         </div>
-        {mancanti > 0 && (
+        {avvisi.length > 0 && (
           <Alert color="orange" variant="light">
-            <b>Avviso, puoi inviare lo stesso.</b> Con {nFoto} foto, {mancanti}{" "}
-            dei {chiesti} post per canale saranno cartoline. Aggiungine{" "}
-            {mancanti} per avere solo foto.
+            <b>Avvisi, puoi inviare lo stesso.</b>
+            <ul style={{ margin: "6px 0 0", paddingLeft: 20 }}>
+              {avvisi.map((a) => (
+                <li key={a}>{a}</li>
+              ))}
+            </ul>
           </Alert>
         )}
-        {campagna.avvisi.map((a) =>
-          a in TESTI_AVVISI &&
-          a !== "foto_poche" &&
-          a !== "riempitivi_molti" ? (
-            <Alert key={a} color="orange" variant="light">
-              {TESTI_AVVISI[a]}
-            </Alert>
-          ) : null,
+        {mancanti > 0 && (
+          <Alert color="verde" variant="light">
+            Le immagini create dall'AI mostrano ambienti, materiali, attrezzi,
+            lavorazioni, atmosfere e stagioni: mai un prodotto finito come se
+            fosse tuo, mai persone riconoscibili, testi o marchi. Sono quadrate
+            e il post dice "Immagine creata con AI". Le controlla il consorzio
+            prima che escano.
+          </Alert>
         )}
+        <Checkbox
+          color="verde"
+          required
+          checked={dichiarazione}
+          onChange={(e) => setDichiarazione(e.currentTarget.checked)}
+          label="Le foto mostrano prodotti della mia bottega; le persone riconoscibili hanno dato il consenso."
+          error={
+            dichiarazione
+              ? undefined
+              : "Per inviare conferma la dichiarazione sulle foto."
+          }
+        />
         {blocchi.length > 0 && (
           <Alert
             color="red"
@@ -247,7 +281,7 @@ export function Passo12({
             color="verde"
             size="lg"
             loading={inCorso}
-            disabled={blocchi.length > 0}
+            disabled={blocchi.length > 0 || !dichiarazione}
             onClick={manda}
           >
             Invia all'operatore
