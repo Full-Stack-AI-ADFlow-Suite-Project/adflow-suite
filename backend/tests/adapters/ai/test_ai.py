@@ -8,10 +8,13 @@ import os
 import subprocess
 import sys
 from datetime import date, datetime, timedelta, timezone
+from decimal import Decimal
+from io import BytesIO
 from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
+from PIL import Image
 
 import app.adapters.ai as modulo_ai
 from app.adapters.ai import (
@@ -215,6 +218,8 @@ def _chiama(finto: AIFinto, operazione: str):
         return finto.analizza_gruppo(_gruppo(2))
     if operazione == "pianifica_campagna":
         return _pianifica(finto, [_gruppo(6)])[0]
+    if operazione == "genera_immagine":
+        return finto.genera_immagine("Un prompt di prova")
     return _scrivi(finto)
 
 
@@ -565,3 +570,36 @@ def test_testo_a_comando_solo_su_un_canale():
     assert len(_scrivi(finto, "facebook").testo) > 500
     assert _scrivi(finto, "facebook").hashtag == ["uno", "due"]
     assert len(_scrivi(finto, "instagram").testo) < 500
+
+
+# --- Immagini AI (T3-34, spec R-28, R-43, R-44) -----------------------------------
+
+
+def test_il_finto_crea_sempre_la_stessa_immagine_quadrata():
+    finto = AIFinto()
+
+    prima = finto.genera_immagine("Un prompt")
+    seconda = finto.genera_immagine("Un altro prompt")
+
+    assert prima.contenuto == seconda.contenuto
+    assert (prima.mime, prima.provider, prima.modello) == (
+        "image/png",
+        "finto",
+        "finto",
+    )
+    assert prima.versione_prompt == "finto-1"
+    with Image.open(BytesIO(prima.contenuto)) as aperta:
+        assert aperta.format == "PNG"
+        assert aperta.width == aperta.height
+
+
+def test_il_finto_registra_la_chiamata_e_il_suo_uso():
+    finto = AIFinto(costo_chiamata=Decimal("0.04"))
+
+    finto.genera_immagine("Un prompt")
+
+    assert finto.chiamate == [{"operazione": "genera_immagine", "prompt": "Un prompt"}]
+    uso = finto.ultimo_uso
+    assert (uso.tipo, uso.provider, uso.modello) == ("immagine", "finto", "finto")
+    assert (uso.immagini, uso.costo_usd) == (1, Decimal("0.04"))
+    assert (uso.token_ingresso, uso.token_uscita) == (None, None)

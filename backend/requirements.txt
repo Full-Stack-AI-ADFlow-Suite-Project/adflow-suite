@@ -16,7 +16,7 @@ procrastinate==3.10.0
 # AI: provider vero dietro adapters/ai (nei test si usa il provider finto)
 litellm==1.104.2
 
-# Immagini: le cartoline dei post riempitivo (spec R-28)
+# Immagini: sistemazione delle foto (spec R-42) e immagini AI di rimpiazzo (R-28)
 pillow==12.3.0
 
 # Test e formattazione
