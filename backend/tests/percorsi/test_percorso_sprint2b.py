@@ -225,7 +225,14 @@ def _nuova_campagna(
         )
         assert risposta.status_code == 201, risposta.text
         foto_ids.append(risposta.json()["id"])
-    assert api("POST", f"/campagne/{campagna_id}/invia").status_code == 200
+    assert (
+        api(
+            "POST",
+            f"/campagne/{campagna_id}/invia",
+            json={"dichiarazione": True},
+        ).status_code
+        == 200
+    )
     assert lavora()
     return campagna_id, foto_ids
 
@@ -773,7 +780,14 @@ def test_percorso_completo_sprint2b(
             files={"file": (f"g{i}.jpg", _foto_jpeg(30 + i), "image/jpeg")},
             data={"gruppo_id": str(gruppo_g)},
         )
-    assert api("POST", f"/campagne/{g_id}/invia").status_code == 200
+    assert (
+        api(
+            "POST",
+            f"/campagne/{g_id}/invia",
+            json={"dichiarazione": True},
+        ).status_code
+        == 200
+    )
     # Il worker è spento: tolgo il job accodato, la generazione non parte.
     for id_job, job in list(coda.jobs.items()):
         if job["task_name"] == GENERA_CAMPAGNA and job["args"]["campagna_id"] == g_id:

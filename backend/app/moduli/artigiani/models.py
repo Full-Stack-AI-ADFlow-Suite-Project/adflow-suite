@@ -1,4 +1,4 @@
-"""Tabelle dello sprint 1 (plan §2)."""
+"""Tabelle del modulo artigiani (plan §2)."""
 from datetime import datetime
 from typing import Any
 

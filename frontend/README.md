@@ -1,8 +1,8 @@
 # AdFlow Suite · Frontend
 
 React + TypeScript + Vite, con Mantine. Riferimenti: `docs/agenti/plan.md` §3,
-`docs/agenti/constitution.md` §2 e §4, spec R-29; pagine statiche approvate
-in `docs/appunti/pagine/`.
+`docs/agenti/constitution.md` §2 e §4, spec R-29; pagine statiche dell'MVP
+in `docs/pagine/` (mappa in `index.html`).
 
 ## Installazione e avvio
 
@@ -22,9 +22,8 @@ Di default le pagine chiamano le API vere: serve il backend avviato
 (`uv run uvicorn app.main:app --reload` da `backend/`), con il worker per la
 generazione e la pubblicazione e gli utenti del seed (README della radice).
 
-Fa eccezione il riassunto del profilo nella pagina Campagna: `GET /profilo`
-arriva con lo sprint 2a, fino ad allora resta quello di esempio
-(`PROFILO_SU_MAIN` in `src/api/artigiani.ts`).
+Una pagina il cui endpoint non è ancora su `main` usa i dati di esempio
+finché il suo task non la passa alle API vere (AGENTS.md).
 
 Per lavorare a una pagina senza il backend ci sono i dati di esempio di
 `src/api/esempi/`, con la forma delle API di plan §3. Si accendono con un file
