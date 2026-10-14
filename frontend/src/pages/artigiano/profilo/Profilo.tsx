@@ -389,7 +389,7 @@ export function Profilo() {
                     {scelta("frequenza", "Post a settimana per ogni canale")}
                     <Text c="dimmed" size="xs">
                       La frequenza è un impegno: i post che le foto non coprono
-                      saranno completati con i riempitivi.
+                      avranno un'immagine creata con l'AI.
                     </Text>
                     <Checkbox.Group
                       label="Social già usati"

@@ -1,7 +1,8 @@
 /**
  * Passo 11 · Foto della campagna: gruppi `caricate` con descrizione e
  * data facoltativa (R-13). I gruppi `create_ai` restano nascosti
- * (R-19). Servono almeno 4 foto per l'invio.
+ * (spec §7). Le foto sono facoltative: quelle che mancano diventano
+ * immagini AI (R-28), senza un minimo all'invio.
  */
 import { useRef, useState } from "react";
 import {
@@ -29,7 +30,6 @@ import {
 } from "../../../api/campagne";
 import { ApiErrore } from "../../../api/http";
 
-const MIN_FOTO = 4;
 const MAX_MB = 10;
 const MIN_LATO = 1080;
 const TIPI_AMMESSI = ["image/jpeg", "image/png", "image/webp"];
@@ -102,9 +102,10 @@ export function Passo11({
       </Text>
       <Alert color="verde" variant="light" mb="lg">
         Le foto si caricano a gruppi: da 1 a 20 per gruppo, con una descrizione.
-        I post nascono dai gruppi. Per inviare servono almeno {MIN_FOTO} foto
-        caricate in tutto. JPG, PNG o WEBP, fino a {MAX_MB} MB, lato corto di
-        almeno {MIN_LATO} px.
+        Sono facoltative: per i post che le foto non coprono creiamo un'immagine
+        con l'AI, e i post che hai scelto escono sempre tutti. Se le foto sono
+        di più, usiamo le migliori. JPG, PNG o WEBP, fino a {MAX_MB} MB, lato
+        corto di almeno {MIN_LATO} px.
       </Alert>
       <Stack gap="lg">
         {campagna.gruppi.map((g, i) => (

@@ -80,6 +80,9 @@ export interface ProfiloSnapshot {
   tono?: string[] | null;
   clienti_ideali?: string;
   vincoli?: string | null;
+  /** Dichiarazione dell'artigiano all'invio (R-41) e quando l'ha data. */
+  dichiarazione?: boolean;
+  dichiarazione_data?: string;
 }
 
 /** DecisioneSintetica di schemas.py: le decisioni dell'operatore. */
@@ -215,7 +218,13 @@ export function eliminaFoto(fotoId: number): Promise<void> {
   return richiesta<void>("DELETE", `/foto/${fotoId}`);
 }
 
-export function invia(campagnaId: number): Promise<CampagnaDettaglio> {
-  if (USA_ESEMPI) return esempiCampagne.invia(campagnaId);
-  return richiesta<CampagnaDettaglio>("POST", `/campagne/${campagnaId}/invia`);
+/** `dichiarazione` è la spunta obbligatoria dell'artigiano (R-41, CampagnaInvia). */
+export function invia(
+  campagnaId: number,
+  dichiarazione: boolean,
+): Promise<CampagnaDettaglio> {
+  if (USA_ESEMPI) return esempiCampagne.invia(campagnaId, dichiarazione);
+  return richiesta<CampagnaDettaglio>("POST", `/campagne/${campagnaId}/invia`, {
+    dichiarazione,
+  });
 }
