@@ -1,4 +1,4 @@
-"""T2a-01: apertura dello sprint 2a (colonna, firme e fabbriche)."""
+"""Archivio della bottega: `foto.pubblicata_su`, firme di plan §6 e fabbriche (archivio congelato, ADR-114)."""
 import inspect
 from datetime import datetime, timezone
 
@@ -51,7 +51,7 @@ def test_pubblicata_su_non_resta_vuota_nel_database(db):
         ("foto_per_id", ["db", "ids"]),
     ],
 )
-def test_firme_dello_sprint_2a(funzione, parametri):
+def test_firme_dell_archivio_e_di_foto_per_id(funzione, parametri):
     """Le firme di plan §6: chi le scrive e chi le usa parte da queste."""
     firma = inspect.signature(getattr(campagne, funzione))
     assert list(firma.parameters) == parametri
