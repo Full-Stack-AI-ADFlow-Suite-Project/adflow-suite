@@ -155,7 +155,7 @@ def test_genera_url_pubblico():
         "https://adflow.bottega.it/api/foto/5/pubblica?canale=instagram&firma="
     )
 
-    # Con FOTO_URL_PUBBLICO in ambiente
+    # Con FOTO_URL_PUBBLICO in ambiente (fallback)
     with patch.dict(
         os.environ, {"FOTO_URL_PUBBLICO": "https://tunnel.trycloudflare.com/"}
     ):
@@ -163,6 +163,20 @@ def test_genera_url_pubblico():
         assert url_env.startswith(
             "https://tunnel.trycloudflare.com/api/foto/5/pubblica?canale=instagram&firma="
         )
+
+    # Con foto_url_pubblico configurato in Impostazioni (da .env tramite pydantic-settings)
+    from app.core.config import leggi_impostazioni
+
+    impostazioni_curr = leggi_impostazioni()
+    valore_orig = getattr(impostazioni_curr, "foto_url_pubblico", "")
+    try:
+        impostazioni_curr.foto_url_pubblico = "https://adflow.ngrok-free.app/"
+        url_cfg = foto_pubblica.genera_url_pubblico(foto_id, canale="instagram")
+        assert url_cfg.startswith(
+            "https://adflow.ngrok-free.app/api/foto/5/pubblica?canale=instagram&firma="
+        )
+    finally:
+        impostazioni_curr.foto_url_pubblico = valore_orig
 
     # Canale o ID non validi sollevano DatiNonValidi
     with pytest.raises(DatiNonValidi):

@@ -144,10 +144,14 @@ def genera_url_pubblico(
     scadenza_ts = int(istante_utc.timestamp()) + max(1, durata_secondi)
     firma = componi_firma(foto_id, canale_norm, scadenza_ts)
 
-    base = (
-        url_base if url_base is not None else os.getenv("FOTO_URL_PUBBLICO", "").strip()
-    )
-    base_pulita = base.rstrip("/") if base else ""
+    if url_base is not None:
+        base = url_base
+    else:
+        impostazioni = leggi_impostazioni()
+        base = getattr(impostazioni, "foto_url_pubblico", "") or os.getenv(
+            "FOTO_URL_PUBBLICO", ""
+        )
+    base_pulita = base.strip().rstrip("/") if base else ""
 
     params = {"canale": canale_norm, "firma": firma}
     query_string = urlencode(params)
