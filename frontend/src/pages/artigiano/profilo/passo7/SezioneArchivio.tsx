@@ -1,3 +1,4 @@
+// Congelato per l'MVP, ADR-114: non estendere.
 import { useEffect, useState } from "react";
 import {
   ActionIcon,

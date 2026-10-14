@@ -1,7 +1,7 @@
 /**
  * La barra della decisione in cima a Vedi campagna: cosa chiede lo stato
- * corrente e le tre azioni dello sprint 1 (Approva, Prosegui, Riprova),
- * con l'ultimo errore della generazione accanto a Riprova (R-35).
+ * corrente, Approva e Riprova (le altre decisioni sono in
+ * vedi-campagna/decisioni/), con l'ultimo errore della generazione accanto a Riprova (R-35).
  */
 import {
   Alert,
@@ -19,7 +19,7 @@ import { useState } from "react";
 
 import { ApiErrore } from "../../../api/http";
 import type { VediCampagna } from "../../../api/revisione";
-import { approva, prosegui, riprova } from "../../../api/revisione";
+import { approva, riprova } from "../../../api/revisione";
 import { Riga } from "../../artigiano/campagna/Riga";
 import { dataOra, erroriDi, NOME_CANALE } from "./util";
 
@@ -187,33 +187,19 @@ export function Decidi({
       </Group>
     );
   } else if (stato === "piano_da_rivedere") {
+    // Dall'MVP nessuna campagna entra in questo stato (ADR-114, A3): resta
+    // per le campagne vecchie, che si possono solo respingere.
     contenuto = (
-      <Group justify="space-between" align="flex-start" wrap="wrap">
-        <Stack gap={6} style={{ flex: "1 1 420px" }}>
-          <Title order={2} size="h3">
-            Piano da rivedere
-          </Title>
-          <Text size="sm" c="dimmed">
-            Il piano è debole e la generazione si è fermata prima dei testi:
-            guarda il piano e le foto, poi decidi.
-          </Text>
-          {primoDaApprovare(vista) && (
-            <Text size="sm">
-              <b>Entro quando:</b> il primo post da approvare è{" "}
-              {dataOra(primoDaApprovare(vista) ?? "")}. Senza piano la campagna
-              scade alle 00:00 del giorno di inizio.
-            </Text>
-          )}
-          <Conti vista={vista} />
-        </Stack>
-        <Button
-          color="verde"
-          loading={occupato}
-          onClick={() => void agisci(() => prosegui(vista.campagna.id))}
-        >
-          Prosegui: scrivi i testi
-        </Button>
-      </Group>
+      <Stack gap={6}>
+        <Title order={2} size="h3">
+          Piano da rivedere
+        </Title>
+        <Text size="sm" c="dimmed">
+          La generazione si è fermata prima dei testi per un piano debole. La
+          campagna non può più proseguire: respingila qui sotto.
+        </Text>
+        <Conti vista={vista} />
+      </Stack>
     );
   } else if (stato === "in_revisione") {
     contenuto = (

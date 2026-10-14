@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Profilo bottega</title>
+  <link rel="stylesheet" href="assets/adflow.css">
+</head>
+<body>
+
+<div class="app-container">
+  <!-- Left Sidebar (Artigiano Mode) -->
+  <aside class="app-sidebar">
+    <div class="sidebar-header">
+      <div class="brand-icon-wrapper" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%);">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>AdFlow</h1>
+        <span>Suite · Artigiano</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Area Bottega</div>
+      <a href="AdFlow-campagna.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+        <span>Nuova Campagna</span>
+      </a>
+      <a href="AdFlow-campagna-stati.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        <span>Stati & Calendario</span>
+      </a>
+      <a href="AdFlow-profilo-bottega.html" class="nav-link active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        <span>Profilo Bottega</span>
+      </a>
+
+      <div class="nav-section-label">Riferimenti</div>
+      <a href="index.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <span>Mappa Pagine</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-profile-card">
+        <img src="assets/img/bottega-logo.jpg" alt="Mario Bianchi" class="user-avatar" onerror="this.outerHTML='<div class=\'user-avatar placeholder\'>MB</div>'">
+        <div class="user-info">
+          <div class="user-name">Mario Bianchi</div>
+          <div class="user-role">Falegnameria Bianchi</div>
+        </div>
+      </div>
+      <a href="AdFlow-operatore-da-approvare.html" class="role-switch-btn" title="Passa alla vista Operatore Consorzio">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+        <span>Vista Operatore (Laura Rossi)</span>
+      </a>
+    </div>
+  </aside>
+
+  <div class="app-main">
+    <!-- fascia-mappa: stato della pagina statica e ritorno alla mappa. Non fa parte della schermata. -->
+    <header class="app-topbar">
+      <div class="topbar-left">
+        <div class="stato-pagina">Pagina statica · <strong>MVP</strong> · ADR-47 · frequenza: ADR-81, ADR-87 · stile: ADR-113 · perimetro: ADR-114 (passo 7 senza archivio né logo)</div>
+      </div>
+
+      <div class="topbar-right">
+        <a href="index.html" class="icon-btn" title="Mappa delle pagine">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        </a>
+        <a href="AdFlow-login.html" class="icon-btn" title="Esci">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        </a>
+      </div>
+    </header>
+    <!-- /fascia-mappa -->
+
+    <main class="content-wrapper">
+      <nav class="breadcrumb-trail">
+        <a href="AdFlow-campagna.html">Area Bottega</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">Profilo bottega (sezioni 1–9)</span>
+      </nav>
+
+      <div class="page-header">
+        <div class="page-title-group">
+          <h1 class="page-title">Profilo bottega</h1>
+          <span class="status-pill neutral">Pagina 1 di 2 · nove sezioni</span>
+        </div>
+        <div class="page-actions">
+          <button type="button" class="btn btn-secondary">Salva</button>
+          <a href="AdFlow-campagna.html" class="btn btn-primary">Salva e vai alla campagna →</a>
+        </div>
+      </div>
+
+      <p class="lead">
+        Percorso guidato in nove sezioni per raccogliere il profilo dell'artigiano. Si compila una volta e poi si aggiorna quando serve; le campagne si creano nella pagina <a href="AdFlow-campagna.html">Campagna</a>.
+      </p>
+
+      <div class="pila larga">
+
+        <!-- 01 · Identità -->
+        <div class="surface-card" id="s01">
+          <div class="surface-card-header">
+            <div>
+              <h3 class="surface-card-title">01 · Identità · Chi è l'artigiano</h3>
+              <span class="sotto">I dati anagrafici della bottega, per intestare correttamente profilo e campagne.</span>
+            </div>
+          </div>
+          <div class="surface-card-body">
+            <div class="griglia-2">
+              <div class="form-group">
+                <label class="form-label" for="id_nome">Nome della bottega o attività *</label>
+                <input type="text" id="id_nome" class="form-input" value="Falegnameria Bianchi">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="id_referente">Nome del referente *</label>
+                <input type="text" id="id_referente" class="form-input" value="Mario Bianchi">
+              </div>
+            </div>
+            <div class="griglia-2">
+              <div class="form-group">
+                <label class="form-label" for="id_citta">Città / paese *</label>
+                <input type="text" id="id_citta" class="form-input" value="Bra (CN)">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="id_anni">Da quanti anni esiste l'attività</label>
+                <input type="text" id="id_anni" class="form-input" value="12 anni, dal 2014">
+              </div>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="id_sito">Sito web o altro profilo online (opzionale)</label>
+              <input type="text" id="id_sito" class="form-input" value="www.falegnameriabianchi.it">
+            </div>
+          </div>
+        </div>
+
+        <!-- 02 · Storia -->
+        <div class="surface-card" id="s02">
+          <div class="surface-card-header">
+            <div>
+              <h3 class="surface-card-title">02 · Storia · La storia da raccontare</h3>
+              <span class="sotto">Il materiale grezzo con cui l'AI scriverà i testi: più è concreto, meno i post sembreranno generici.</span>
+            </div>
+          </div>
+          <div class="surface-card-body">
+            <div class="form-group">
+              <label class="form-label" for="st_cosa">In poche parole, cosa fai e cosa rende unico il tuo lavoro?</label>
+              <textarea id="st_cosa" class="form-input">Costruisco mobili su misura in legno massello, ogni pezzo è unico e nasce da un disegno condiviso con il cliente.</textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label" for="st_nata">Come è nata la tua attività?</label>
+              <textarea id="st_nata" class="form-input">Ho imparato il mestiere da mio padre, ho aperto la bottega nel 2014 dopo anni come dipendente.</textarea>
+            </div>
+            <div class="form-group">
+              <label class="form-label">Valori che vuoi che si sentano sempre nei post</label>
+              <div class="scelte">
+                <label class="scelta attiva"><input type="checkbox" checked> Artigianalità e lavoro manuale</label>
+                <label class="scelta"><input type="checkbox"> Sostenibilità e materiali naturali</label>
+                <label class="scelta attiva"><input type="checkbox" checked> Tradizione e storia di famiglia</label>
+                <label class="scelta"><input type="checkbox"> Innovazione e sperimentazione</label>
+                <label class="scelta"><input type="checkbox"> Legame con il territorio</label>
+                <label class="scelta"><input type="checkbox"> Prodotti su misura</label>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 03 · Prodotti · 04 · Pubblico e obiettivo -->
+        <div class="griglia-2 card">
+          <div class="surface-card" id="s03">
+            <div class="surface-card-header">
+              <div>
+                <h3 class="surface-card-title">03 · Prodotti · Cosa vendi</h3>
+                <span class="sotto">Guida il tono dei testi, gli hashtag e le linee guida per le foto.</span>
+              </div>
+            </div>
+            <div class="surface-card-body">
+              <div class="form-group">
+                <label class="form-label" for="pr_tipo">Tipo di prodotto principale *</label>
+                <select id="pr_tipo" class="form-select">
+                  <option selected>Legno e mobili</option>
+                  <option>Ceramica e vetro</option>
+                  <option>Gioielli e metalli</option>
+                  <option>Tessile e pelle</option>
+                  <option>Alimentare</option>
+                  <option>Altro</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="pr_gamma">Descrivi la tua gamma di prodotti</label>
+                <textarea id="pr_gamma" class="form-input">Tavoli e sedie su misura, piccoli oggetti da regalo, restauro mobili antichi.</textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="pr_fascia">Fascia di prezzo</label>
+                <select id="pr_fascia" class="form-select">
+                  <option>Accessibile</option>
+                  <option selected>Media</option>
+                  <option>Alta / su misura</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="pr_stagionalita">Prodotti stagionali o legati a ricorrenze</label>
+                <input type="text" id="pr_stagionalita" class="form-input" value="Presepi a Natale, regali laurea">
+              </div>
+            </div>
+          </div>
+
+          <div class="surface-card" id="s04">
+            <div class="surface-card-header">
+              <h3 class="surface-card-title">04 · Pubblico e obiettivo · Per chi lavori e cosa vuoi ottenere</h3>
+            </div>
+            <div class="surface-card-body">
+              <div class="form-group">
+                <label class="form-label" for="pu_clienti">Chi sono i tuoi clienti ideali? *</label>
+                <textarea id="pu_clienti" class="form-input">Coppie che stanno arredando casa, 30-50 anni, zona Cuneo e Torino.</textarea>
+              </div>
+              <div class="form-group">
+                <label class="form-label">Obiettivo principale dei social *</label>
+                <div class="scelte">
+                  <label class="scelta"><input type="radio" name="obiettivo"> Vendere online o su ordinazione</label>
+                  <label class="scelta"><input type="radio" name="obiettivo"> Portare persone in negozio o al mercatino</label>
+                  <label class="scelta attiva"><input type="radio" name="obiettivo" checked> Farmi conoscere</label>
+                  <label class="scelta"><input type="radio" name="obiettivo"> Fidelizzare i clienti che ho già</label>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="pu_zona">Zona geografica di riferimento (opzionale)</label>
+                <input type="text" id="pu_zona" class="form-input" value="Provincia di Cuneo">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 05 · Voce e vincoli · 06 · Presenza social -->
+        <div class="griglia-2 card">
+          <div class="surface-card" id="s05">
+            <div class="surface-card-header">
+              <h3 class="surface-card-title">05 · Voce e vincoli · Come devono suonare i post</h3>
+            </div>
+            <div class="surface-card-body">
+              <div class="form-group">
+                <label class="form-label">Tono di voce (scegli 1 o 2)</label>
+                <div class="scelte">
+                  <label class="scelta attiva"><input type="checkbox" checked> Caldo e familiare</label>
+                  <label class="scelta"><input type="checkbox"> Elegante e raffinato</label>
+                  <label class="scelta"><input type="checkbox"> Diretto e concreto</label>
+                  <label class="scelta"><input type="checkbox"> Ironico e leggero</label>
+                  <label class="scelta"><input type="checkbox"> Professionale e tecnico</label>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="vo_cortesia">Come ti rivolgi ai clienti</label>
+                <select id="vo_cortesia" class="form-select">
+                  <option selected>Do sempre del tu</option>
+                  <option>Do sempre del lei</option>
+                  <option>Dipende dal cliente</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="vo_mai">Cose da non dire mai</label>
+                <textarea id="vo_mai" class="form-input">Niente prezzi dei concorrenti, niente sconti non autorizzati dal consorzio.</textarea>
+                <div class="form-hint">Parole, argomenti o promesse che non devono mai comparire nei post.</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="surface-card" id="s06">
+            <div class="surface-card-header">
+              <h3 class="surface-card-title">06 · Presenza social · Dove sei già presente</h3>
+            </div>
+            <div class="surface-card-body">
+              <div class="form-group">
+                <label class="form-label">Canali attivi oggi</label>
+                <div class="scelte">
+                  <label class="scelta attiva"><input type="checkbox" checked> Facebook</label>
+                  <label class="scelta"><input type="checkbox"> Instagram</label>
+                  <label class="scelta"><input type="checkbox"> Nessuno dei due, ancora</label>
+                </div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="so_handle">Nome utente o link dei profili esistenti</label>
+                <input type="text" id="so_handle" class="form-input" value="@falegnameriabianchi">
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="so_funziona">Cosa ha funzionato bene finora, se lo sai (opzionale)</label>
+                <textarea id="so_funziona" class="form-input">I video brevi mentre lavoro il legno hanno sempre molte condivisioni.</textarea>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 07 · Foto e contenuti -->
+        <div class="surface-card" id="s07">
+          <div class="surface-card-header">
+            <div>
+              <h3 class="surface-card-title">07 · Foto e contenuti · Cosa possiamo fotografare</h3>
+              <span class="sotto">Le foto reali alimentano ogni post: più chiarezza qui, meno rilavorazioni dopo.</span>
+            </div>
+            <span class="status-pill neutral">Senza archivio né logo (ADR-114)</span>
+          </div>
+          <div class="surface-card-body">
+            <div class="griglia-3">
+              <div class="form-group">
+                <label class="form-label" for="fo_quantita">Foto nuove disponibili ogni mese, in media</label>
+                <select id="fo_quantita" class="form-select">
+                  <option>Meno di 5</option>
+                  <option selected>Tra 5 e 12</option>
+                  <option>Tra 12 e 20</option>
+                  <option>Più di 20</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="fo_chi">Chi scatterà le foto</label>
+                <select id="fo_chi" class="form-select">
+                  <option selected>Io stesso, con il telefono</option>
+                  <option>Un fotografo o un familiare</option>
+                  <option>Mi serve aiuto dal consorzio</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="fo_persone">Persone riconoscibili nelle foto (te compreso, dipendenti, clienti)</label>
+                <select id="fo_persone" class="form-select">
+                  <option>Mai persone riconoscibili</option>
+                  <option selected>A volte, sempre con consenso scritto</option>
+                  <option>Spesso (es. io al lavoro)</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="avviso-box info" style="margin-bottom: 0;">
+              Le foto si caricano in ogni campagna, a gruppi. Se in una campagna le foto non bastano per i post a settimana che hai scelto, per quelli che mancano creiamo un'immagine con l'AI: ambienti, materiali, attrezzi e atmosfere, mai un prodotto che non è tuo. Se hai un logo, caricalo come una foto qualsiasi.
+            </div>
+          </div>
+        </div>
+
+        <!-- 08 · Calendario eventi · 09 · Logistica -->
+        <div class="griglia-2 card">
+          <div class="surface-card" id="s08">
+            <div class="surface-card-header">
+              <div>
+                <h3 class="surface-card-title">08 · Calendario eventi · Date da tenere a mente</h3>
+                <span class="sotto">Fiere, mercatini, lanci di prodotto, promozioni, ferie: tutto ciò che deve trovare posto nel calendario delle pubblicazioni.</span>
+              </div>
+            </div>
+            <div class="surface-card-body">
+              <div class="gruppo-foto">
+                <div class="testa">
+                  <strong>Evento 1</strong>
+                  <button type="button" class="btn btn-secondary btn-sm" aria-label="Togli l'evento">×</button>
+                </div>
+                <div class="griglia-2">
+                  <div class="form-group">
+                    <label class="form-label">Nome evento</label>
+                    <input type="text" class="form-input" value="Mercatino di Natale">
+                  </div>
+                  <div class="form-group">
+                    <label class="form-label">Quando</label>
+                    <input type="text" class="form-input" value="6-8 dicembre 2026">
+                  </div>
+                </div>
+                <div class="form-group">
+                  <label class="form-label">Tipo</label>
+                  <select class="form-select">
+                    <option selected>Fiera o mercatino</option>
+                    <option>Festività o ricorrenza</option>
+                    <option>Lancio di un nuovo prodotto</option>
+                    <option>Promozione speciale</option>
+                    <option>Chiusura o ferie</option>
+                    <option>Altro</option>
+                  </select>
+                </div>
+              </div>
+              <button type="button" class="btn btn-secondary btn-sm" style="margin-bottom: 18px;">+ Aggiungi evento</button>
+              <div class="form-group">
+                <label class="form-label" for="ev_chiusure">Periodi di chiusura ricorrenti</label>
+                <textarea id="ev_chiusure" class="form-input">Ferie dal 10 al 24 agosto, chiuso la domenica.</textarea>
+              </div>
+            </div>
+          </div>
+
+          <div class="surface-card" id="s09">
+            <div class="surface-card-header">
+              <h3 class="surface-card-title">09 · Logistica · Come gestire le pubblicazioni</h3>
+            </div>
+            <div class="surface-card-body">
+              <div class="form-group">
+                <label class="form-label">Canali su cui vuoi essere presente *</label>
+                <div class="scelte">
+                  <label class="scelta canale"><input type="checkbox" checked> <span class="status-pill fb">Facebook</span></label>
+                  <label class="scelta canale"><input type="checkbox" checked> <span class="status-pill ig">Instagram</span></label>
+                </div>
+                <div class="form-hint">Sono la proposta di partenza: i canali di ogni campagna si scelgono nella pagina Campagna, tra quelli collegati.</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="lo_frequenza">Post a settimana, per ogni canale, che ti sembrano sostenibili da rivedere</label>
+                <select id="lo_frequenza" class="form-select">
+                  <option>1-2 a settimana</option>
+                  <option selected>3-4 a settimana</option>
+                  <option>5 o più a settimana</option>
+                  <option>Non so, decidete voi</option>
+                </select>
+                <div class="form-hint">È il ritmo che ci impegniamo a tenere su ogni canale della campagna: 3 a settimana su due canali sono 6 post a settimana (ADR-81). Se le foto non bastano, i post che mancano hanno un'immagine creata con l'AI.</div>
+              </div>
+              <div class="form-group">
+                <label class="form-label" for="lo_orari">Giorno o orario in cui i tuoi clienti sono più attivi (opzionale)</label>
+                <input type="text" id="lo_orari" class="form-input" value="La sera e nel weekend">
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Fine del profilo -->
+        <div class="surface-card bordo-ok">
+          <div class="surface-card-header">
+            <div>
+              <h3 class="surface-card-title">Salva il profilo</h3>
+              <span class="sotto">Fine del profilo</span>
+            </div>
+          </div>
+          <div class="surface-card-body">
+            <p class="testo-card" style="margin-bottom: 16px;">Il profilo si salva uscendo dalla sezione 9. Se manca un campo obbligatorio (*) la pagina lo evidenzia e non salva. Le modifiche valgono dalla prossima campagna inviata: quelle già inviate usano la fotografia del profilo fatta all'invio.</p>
+            <div class="azioni-riga fine">
+              <button type="button" class="btn btn-secondary">Salva</button>
+              <a href="AdFlow-campagna.html" class="btn btn-primary">Salva e vai alla campagna →</a>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Note della pagina statica: non fanno parte della schermata -->
+      <div class="note-pagina">
+        <p><strong>Schema statico, non interattivo</strong> (v5.0, ADR-47): mostra in sequenza tutte le sezioni della pagina con dati di esempio. Non salva né valida nulla — è lo scheletro da cui costruire la pagina reale nel software.</p>
+        <p><strong>Cosa cambia con l'MVP (ADR-114).</strong> Il passo 7 non ha più l'archivio della bottega (A10, congelato: codice e API restano, la sezione è nascosta) né il logo (A7, tolto: è una foto come le altre). Le foto che mancano in una campagna diventano immagini AI (A4, spec R-28). Nessun prezzo nella pagina (spec R-26). Il resto è com'era.</p>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+</body>
+</html>

@@ -1,6 +1,6 @@
 /**
  * Passo 12 · Riepilogo e invio: riepilogo in sola lettura, la stima di ciò
- * che uscirà (sprint 1: le cartoline), gli avvisi R-25 dal dettaglio e i
+ * che uscirà, gli avvisi R-25 dal dettaglio e i
  * blocchi ricontrollati prima di "Invia all'operatore".
  */
 import { useEffect, useState } from "react";
@@ -60,10 +60,6 @@ export function Passo12({
 
   const gruppiFoto = campagna.gruppi.filter((g) => g.origine === "caricate");
   const nFoto = gruppiFoto.reduce((n, g) => n + g.foto.length, 0);
-  const nStelle = gruppiFoto.reduce(
-    (n, g) => n + g.foto.filter((f) => f.da_usare).length,
-    0,
-  );
   const chiesti = Math.max(
     0,
     ...Object.values(campagna.post_chiesti_per_canale),
@@ -176,7 +172,7 @@ export function Passo12({
           </Title>
           <Riga
             nome="Foto caricate"
-            valore={`${nFoto} foto in ${gruppiFoto.length} gruppi · ${nStelle} con la stella`}
+            valore={`${nFoto} foto in ${gruppiFoto.length} gruppi`}
           />
         </div>
         <div>

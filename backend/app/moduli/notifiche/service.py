@@ -1,3 +1,4 @@
+# Congelato per l'MVP, ADR-114: non estendere.
 """Logica del modulo notifiche: l'unica parte che gli altri moduli possono importare."""
 
 from datetime import datetime, timezone

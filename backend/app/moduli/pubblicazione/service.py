@@ -110,6 +110,8 @@ def _pubblica_post(db: Session, post, adesso: datetime) -> None:
         )
     }
     try:
+        # Congelato per l'MVP, ADR-114: non estendere. Nell'MVP un post ha
+        # una foto sola; la pubblicazione con più foto (caroselli, A8) resta.
         byte_foto = [
             archivio.leggi(foto_della_versione[legame.foto_id].file)
             for legame in versione.legami_foto
@@ -184,8 +186,8 @@ def _verifica_pubblicabile(db: Session, post, versione) -> str | None:
 
     Controlli prima della chiamata al social: il post deve avere almeno una
     foto nella versione corrente e il suo canale deve avere l'account
-    collegato (la sospensione della campagna per permesso scaduto, R-07,
-    arriva nello sprint 3).
+    collegato. La sospensione della campagna per permesso scaduto (R-07) è
+    fuori MVP: il post diventa ``fallito``.
     """
     if not versione.legami_foto:
         return "Il post non ha foto da pubblicare."

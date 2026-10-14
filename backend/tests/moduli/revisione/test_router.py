@@ -1,4 +1,4 @@
-"""Test degli endpoint di revisione: Vedi campagna, Approva e Prosegui (T1-42)."""
+"""Test degli endpoint di revisione: Vedi campagna e Approva (T1-42)."""
 
 from datetime import datetime, timedelta, timezone
 
@@ -6,7 +6,7 @@ import pytest
 from sqlalchemy import select
 
 from app.adapters.archivio import ArchivioFinto, usa_archivio
-from app.moduli.campagne.models import DecisioneCampagna, Foto
+from app.moduli.campagne.models import DecisioneCampagna
 from app.moduli.contenuti.models import ErroreGenerazione, Post
 from app.moduli.revisione.models import Approvazione
 from tests.moduli.campagne.fabbrica import (
@@ -288,58 +288,12 @@ def test_approva_artigiano_403(db, client, utente_di_prova):
     assert client.post(f"/api/campagne/{campagna.id}/approva").status_code == 403
 
 
-def test_ca49_prosegui_riparte_la_generazione(db, client, utente_di_prova, coda):
-    """piano_da_rivedere → in_generazione, decisione e job accodato."""
-    campagna = campagna_con_piano_da_rivedere(db)
-    post = post_da_approvare(db, campagna_id=campagna.id)
-    foto_idonea = db.get(Foto, post.versione_corrente.legami_foto[0].foto_id)
-    foto_idonea.analisi_ai = {"idonea": True}
-    db.flush()
-    operatore = utente_di_prova("operatore")
-
-    risposta = client.post(f"/api/campagne/{campagna.id}/prosegui")
-    assert risposta.status_code == 200
-    assert risposta.json() == {"stato": "in_generazione"}
-
-    db.refresh(campagna)
-    assert campagna.stato == "in_generazione"
-
-    decisione = db.scalar(
-        select(DecisioneCampagna).where(DecisioneCampagna.campagna_id == campagna.id)
-    )
-    assert decisione.esito == "proseguita"
-    assert decisione.utente_id == operatore.id
-
-    job = list(coda.jobs.values())
-    assert len(job) == 1
-    assert job[0]["task_name"] == "genera_campagna"
-    assert job[0]["args"] == {"campagna_id": campagna.id}
-
-
-def test_prosegui_fuori_da_piano_da_rivedere_409(db, client, utente_di_prova):
-    campagna = campagna_in_revisione(db)
-    utente_di_prova("operatore")
-
-    assert client.post(f"/api/campagne/{campagna.id}/prosegui").status_code == 409
-
-
-def test_prosegui_senza_post_409(db, client, utente_di_prova):
-    """Il piano non ha post: Prosegui non è ammesso."""
+def test_prosegui_non_esiste_piu(db, client, utente_di_prova):
+    """ADR-114, A3: l'endpoint è tolto e una campagna vecchia resta ferma."""
     campagna = campagna_con_piano_da_rivedere(db)
     utente_di_prova("operatore")
 
-    assert client.post(f"/api/campagne/{campagna.id}/prosegui").status_code == 409
-
-
-def test_prosegui_senza_foto_disponibili_409(db, client, utente_di_prova):
-    """Post nel piano ma nessuna foto idonea: resta ferma (R-20)."""
-    campagna = campagna_con_piano_da_rivedere(db)
-    post_da_approvare(db, campagna_id=campagna.id)
-    # Le foto del gruppo non hanno analisi: nessuna è idonea.
-    utente_di_prova("operatore")
-
-    risposta = client.post(f"/api/campagne/{campagna.id}/prosegui")
-    assert risposta.status_code == 409
+    assert client.post(f"/api/campagne/{campagna.id}/prosegui").status_code == 404
 
     db.refresh(campagna)
     assert campagna.stato == "piano_da_rivedere"

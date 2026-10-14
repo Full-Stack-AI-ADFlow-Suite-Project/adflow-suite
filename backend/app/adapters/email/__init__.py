@@ -1,3 +1,4 @@
+# Congelato per l'MVP, ADR-114: non estendere.
 """Adattatore email: invio delle notifiche (plan §5)."""
 
 from collections.abc import Iterator

@@ -1,8 +1,8 @@
 /**
  * Vista per stato della campagna dopo l'invio
- * (docs/appunti/pagine/AdFlow-campagna-stati.html). L'artigiano vede
+ * (docs/pagine/AdFlow-campagna-stati.html). L'artigiano vede
  * l'esito del lavoro, mai il lavoro in corso: niente piano né post fino
- * all'approvazione (spec §4); calendario e metriche dagli sprint 3 e 4.
+ * all'approvazione (spec §4); dopo, il piano approvato (R-45).
  */
 import {
   Alert,
@@ -240,7 +240,9 @@ export function VistaStato({
                       >
                         <Image
                           src={urlFotoFile(f.file, f.id)}
-                          alt={`Foto ${f.id}${segnate.has(f.id) ? " — da rifare" : ""}`}
+                          alt={`Foto ${f.id}${
+                            segnate.has(f.id) ? " — da rifare" : ""
+                          }`}
                           h={72}
                           w={72}
                           fit="cover"
@@ -294,9 +296,8 @@ export function VistaStato({
         return (
           <>
             <Alert color="verde" variant="light" mb="md">
-              <b>Il piano di questa campagna.</b> La strategia e il calendario
-              dei post approvati, pubblicati o non pubblicati arrivano con lo
-              sprint 3; le metriche con lo sprint 4.
+              <b>Il piano di questa campagna.</b> I post escono da soli alle
+              date approvate dal consorzio.
             </Alert>
             <RiepilogoLettura campagna={campagna} />
             <ContattoConsorzio />
@@ -328,8 +329,7 @@ export function VistaStato({
         return (
           <>
             <Alert color="verde" variant="light" mb="md">
-              La campagna è conclusa. L'elenco dei post pubblicati e le metriche
-              finali arrivano con gli sprint 3 e 4. Da qui si riparte.
+              La campagna è conclusa. Da qui si riparte.
             </Alert>
             <Button color="verde" onClick={onNuovaCampagna}>
               Crea una nuova campagna →

@@ -1,4 +1,4 @@
-"""T1-32: limiti e controllo del piano (spec R-05, R-08, R-20, R-21, R-23, R-28).
+"""T1-32: limiti e controllo del piano (spec R-05, R-08, R-21, R-28).
 
 - CA-17 (limiti): 14 giorni, 3 post/sett., 2 canali, 5 foto idonee e diverse
   → 6 post chiesti per canale, 5 con una foto e 1 cartolina.
@@ -18,10 +18,8 @@ from app.moduli.campagne import service as campagne
 from app.moduli.contenuti import domain, piano
 from app.moduli.contenuti.piano import (
     controlla_piano,
-    foto_con_stella,
     foto_disponibili,
     limiti_per_canale,
-    piano_debole,
 )
 from tests.moduli.artigiani.fabbrica import profilo
 from tests.moduli.campagne.fabbrica import campagna_in_bozza, campagna_inviata, foto
@@ -34,9 +32,9 @@ IDONEA = {"idonea": True, "simile_a": None}
 DUE_CANALI = ("facebook", "instagram")
 
 
-def _foto(id: int, *, idonea=True, simile_a=None, stella=False, analizzata=True):
+def _foto(id: int, *, idonea=True, simile_a=None, analizzata=True):
     analisi = {"idonea": idonea, "simile_a": simile_a} if analizzata else None
-    return SimpleNamespace(id=id, da_usare=stella, analisi_ai=analisi)
+    return SimpleNamespace(id=id, analisi_ai=analisi)
 
 
 def _gruppo(id: int, foto: list, *, origine: str = "caricate"):
@@ -178,7 +176,6 @@ def test_ca17_limiti_sei_post_chiesti_cinque_foto_e_una_cartolina(db):
         assert limite["post_chiesti"] == 6
         assert len(limite["foto_disponibili"]) == 5
         assert limite["riempitivi"] == 1
-    assert piano_debole(limiti, gruppi) is False
 
     # 6 uscite, 6 post per canale: 5 con una foto e 1 cartolina, nessuna ripetuta.
     contenuto = _piano_valido(limiti, gruppo_id=mazzo.id)
@@ -242,21 +239,6 @@ def test_foto_disponibili_idonee_e_senza_doppioni_sommate_sui_gruppi():
 
 def test_foto_disponibili_senza_gruppi_sono_nessuna():
     assert foto_disponibili([]) == []
-
-
-def test_foto_con_stella_solo_se_idonee():
-    gruppi = [
-        _gruppo(
-            1,
-            [
-                _foto(1, stella=True),
-                _foto(2, stella=True, idonea=False),
-                _foto(3),
-                _foto(4, stella=True, analizzata=False),
-            ],
-        )
-    ]
-    assert foto_con_stella(gruppi) == [1]
 
 
 def test_limiti_per_canale_riempitivi_solo_se_le_foto_non_bastano():
@@ -336,68 +318,6 @@ def test_limiti_senza_archivio_per_un_canale():
     limiti = limiti_per_canale(DUE_CANALI, 3, INIZIO, FINE, [_gruppo_di(2)], archivio)
     assert limiti["instagram"]["foto_disponibili"] == [1, 2]
     assert limiti["facebook"]["foto_disponibili"] == [1, 2, 10]
-
-
-@pytest.mark.parametrize(
-    ("n_foto", "debole"),
-    [
-        (0, True),  # nessuna foto
-        (2, True),  # 2 su 6: sotto la metà
-        (3, False),  # 3 su 6: la metà esatta non è debole
-        (6, False),
-    ],
-)
-def test_piano_debole_con_foto_sotto_la_meta_dei_post_chiesti(n_foto, debole):
-    """CA-49, parte dei limiti."""
-    limiti, _ = _limiti(n_foto)
-    # il gruppo senza idonee si prova a parte: qui conta solo la metà
-    gruppi = [_gruppo(1, [_foto(99)])]
-    assert piano_debole(limiti, gruppi) is debole
-
-
-def test_piano_debole_con_meta_dispari():
-    """5 post chiesti: 2 foto sono sotto la metà, 3 no."""
-    gruppi = [_gruppo_di(2)]
-    limiti = limiti_per_canale(["instagram"], 5, INIZIO, INIZIO + timedelta(6), gruppi)
-    assert limiti["instagram"]["post_chiesti"] == 5
-    assert piano_debole(limiti, gruppi) is True
-
-    gruppi = [_gruppo_di(3)]
-    limiti = limiti_per_canale(["instagram"], 5, INIZIO, INIZIO + timedelta(6), gruppi)
-    assert piano_debole(limiti, gruppi) is False
-
-
-def test_piano_debole_con_un_gruppo_caricate_senza_foto_idonee():
-    gruppi = [
-        _gruppo_di(8),
-        _gruppo(2, [_foto(20, idonea=False), _foto(21, analizzata=False)]),
-    ]
-    limiti = limiti_per_canale(["facebook"], 3, INIZIO, FINE, gruppi)
-    assert limiti["facebook"]["riempitivi"] == 0
-    assert piano_debole(limiti, gruppi) is True
-
-
-def test_piano_non_debole_con_un_gruppo_di_doppioni_idonei():
-    """R-20 guarda le foto idonee del gruppo, non i doppioni."""
-    gruppi = [_gruppo_di(8), _gruppo(2, [_foto(20, simile_a=1)])]
-    limiti = limiti_per_canale(["facebook"], 3, INIZIO, FINE, gruppi)
-    assert piano_debole(limiti, gruppi) is False
-
-
-def test_piano_non_debole_per_un_gruppo_create_ai():
-    """Un gruppo `create_ai` non ha foto: la generazione lo ignora (R-19)."""
-    gruppi = [_gruppo_di(8), _gruppo(2, [], origine="create_ai")]
-    limiti = limiti_per_canale(["facebook"], 3, INIZIO, FINE, gruppi)
-    assert piano_debole(limiti, gruppi) is False
-
-
-def test_piano_debole_conta_le_foto_d_archivio_mai_uscite_non_quelle_gia_uscite():
-    """R-20 con R-05: 2 foto su 6 post, la terza arriva dall'archivio."""
-    limiti, gruppi, _ = _limiti_con_archivio(2, mai_uscite=[10])
-    assert piano_debole(limiti, gruppi) is False
-
-    limiti, gruppi, _ = _limiti_con_archivio(2, gia_uscite=[10])
-    assert piano_debole(limiti, gruppi) is True
 
 
 # --- Controllo del piano ------------------------------------------------------
@@ -644,76 +564,16 @@ def test_data_prima_del_periodo_e_nel_passato_sono_due_regole():
     assert _regole(violazioni) == ["data_fuori_periodo", "data_nel_passato"]
 
 
-def test_regola_foto_con_la_stella_fuori_dal_piano():
-    """CA-51, parte del controllo: la foto con la stella, se idonea, è nel piano."""
-    gruppi = [_gruppo(1, [_foto(n) for n in range(1, 8)] + [_foto(8, stella=True)])]
+def test_una_stella_gia_salvata_non_e_piu_una_regola():
+    """ADR-114, A11: `foto.da_usare` resta nel database, il controllo non lo legge."""
+    con_stella = _foto(8)
+    con_stella.da_usare = True
+    gruppi = [_gruppo(1, [_foto(n) for n in range(1, 8)] + [con_stella])]
     limiti = limiti_per_canale(["facebook", "instagram"], 3, INIZIO, FINE, gruppi)
     contenuto = _piano_valido(limiti)  # usa le foto da 1 a 6
 
-    violazioni = _controlla(contenuto, limiti, gruppi)
-
-    assert violazioni == [
-        {
-            "regola": "foto_con_stella",
-            "canale": None,
-            "messaggio": "La foto 8 ha la stella e non è in nessun post.",
-        }
-    ]
-
-    # basta un post del piano, su un canale qualsiasi
-    contenuto["uscite"][0]["post"][0]["foto"] = [8]
     assert _controlla(contenuto, limiti, gruppi) == []
-
-
-def test_una_foto_con_la_stella_non_idonea_resta_fuori_dal_piano():
-    gruppi = [
-        _gruppo(
-            1,
-            [_foto(n) for n in range(1, 7)] + [_foto(8, stella=True, idonea=False)],
-        )
-    ]
-    limiti = limiti_per_canale(["instagram"], 3, INIZIO, FINE, gruppi)
-    assert _controlla(_piano_valido(limiti), limiti, gruppi) == []
-
-
-def test_regola_foto_con_la_stella_quando_sono_piu_dei_post_chiesti():
-    """R-23 (#45): con 8 stelle e 6 post chiesti il piano ne usa almeno 6."""
-    gruppi = [_gruppo(1, [_foto(n, stella=n > 2) for n in range(1, 11)])]
-    limiti = limiti_per_canale(["instagram"], 3, INIZIO, FINE, gruppi)
-    assert len(foto_con_stella(gruppi)) == 8
-    contenuto = _piano_valido(limiti)  # foto da 1 a 6: solo 4 con la stella
-
-    violazioni = _controlla(contenuto, limiti, gruppi)
-
-    assert violazioni == [
-        {
-            "regola": "foto_con_stella",
-            "canale": None,
-            "messaggio": (
-                "Le foto con la stella sono 8, più dei post chiesti: "
-                "il piano ne deve usare almeno 6, ne usa 4."
-            ),
-        }
-    ]
-
-    # una foto con la stella per post: il piano passa anche se due restano fuori
-    for uscita, foto_del_post in zip(contenuto["uscite"], range(3, 9)):
-        uscita["post"][0]["foto"] = [foto_del_post]
-    assert _controlla(contenuto, limiti, gruppi) == []
-
-
-def test_tante_stelle_quanti_i_post_chiesti_devono_esserci_tutte():
-    gruppi = [_gruppo(1, [_foto(n, stella=n > 2) for n in range(1, 9)])]
-    limiti = limiti_per_canale(["instagram"], 3, INIZIO, FINE, gruppi)
-    assert len(foto_con_stella(gruppi)) == 6
-    contenuto = _piano_valido(limiti)  # foto da 1 a 6: mancano la 7 e la 8
-
-    violazioni = _controlla(contenuto, limiti, gruppi)
-
-    assert [v["messaggio"] for v in violazioni] == [
-        "La foto 7 ha la stella e non è in nessun post.",
-        "La foto 8 ha la stella e non è in nessun post.",
-    ]
+    assert "foto_con_stella" not in piano.REGOLE
 
 
 @pytest.mark.parametrize("canale", sorted(domain.SCHEDE_CANALE))
