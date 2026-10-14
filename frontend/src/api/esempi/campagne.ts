@@ -948,15 +948,18 @@ export const esempiCampagne = {
     throw new ApiErrore(404, "Foto non trovata.");
   },
 
-  async invia(campagnaId: number): Promise<CampagnaDettaglio> {
+  async invia(
+    campagnaId: number,
+    dichiarazione: boolean,
+  ): Promise<CampagnaDettaglio> {
     const campagne = carica();
     const c = trova(campagne, campagnaId);
     soloBozza(c);
-    const nFoto = c.gruppi
-      .filter((g) => g.origine === "caricate")
-      .reduce((n, g) => n + g.foto.length, 0);
-    if (nFoto < 4)
-      throw new ApiErrore(422, "Per inviare servono almeno 4 foto caricate.");
+    if (!dichiarazione)
+      throw new ApiErrore(
+        422,
+        "Confermare la dichiarazione sulle foto prima dell'invio.",
+      );
     if (c.gruppi.some((g) => !g.descrizione?.trim()))
       throw new ApiErrore(422, "Ogni gruppo vuole la sua descrizione.");
     const collegati = canaliEsempio
@@ -966,7 +969,11 @@ export const esempiCampagne = {
       throw new ApiErrore(409, "Un canale della campagna non è collegato.");
     c.stato = "inviata";
     c.inviata_il = new Date().toISOString();
-    c.profilo_snapshot = fotografia(1);
+    c.profilo_snapshot = {
+      ...fotografia(1),
+      dichiarazione: true,
+      dichiarazione_data: new Date().toISOString(),
+    };
     salva(campagne);
     return conAvvisi(c);
   },
