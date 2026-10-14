@@ -1,4 +1,4 @@
-"""T2b-21: corpi di ``campagne_di()``, ``togli_canale()`` e ``ultima_nota()``."""
+"""``campagne_di()``, ``togli_canale()`` (congelato) e ``ultima_nota()`` di campagne (plan §6)."""
 
 from datetime import date
 

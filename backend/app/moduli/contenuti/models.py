@@ -1,4 +1,4 @@
-"""Tabelle dello sprint 1 (plan §2)."""
+"""Tabelle del modulo contenuti (plan §2)."""
 from datetime import datetime
 from typing import Any
 
@@ -128,7 +128,7 @@ class VersionePost(Base):
     tipo_intervento: Mapped[str] = mapped_column(Text, nullable=False)
     testo_proposto: Mapped[str | None] = mapped_column(Text, nullable=True)
     nota: Mapped[str | None] = mapped_column(Text, nullable=True)
-    # Vuoti negli interventi senza AI (es. scelta_foto, sprint 3).
+    # Vuoti nelle versioni scritte dall'operatore (es. modifica_operatore).
     provider_ai: Mapped[str | None] = mapped_column(Text, nullable=True)
     modello_ai: Mapped[str | None] = mapped_column(Text, nullable=True)
     versione_prompt: Mapped[str | None] = mapped_column(Text, nullable=True)

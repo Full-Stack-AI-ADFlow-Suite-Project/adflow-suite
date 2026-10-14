@@ -117,25 +117,11 @@ I test usano `adflow_test` e lo svuotano a ogni esecuzione: non metterci dati da
 ## 🔧 Regole di Git (Leggere attentamente!)
 
 1. **NON** lavorare mai direttamente sul branch `main`.
-2. Prima di iniziare un task, crea un branch: `git switch -c feature/<id>-<breve>` (es. `feature/T1-24-invio-riprova`). Il nome te lo propone `allinea.py`.
+2. Prima di iniziare un task, crea un branch: `git switch -c feature/<id>-<breve>` (es. `feature/T3-22-invio-mvp`). Il nome te lo propone `allinea.py`.
 3. `pre-commit` (installato da `allinea.py`) formatta il codice a ogni `git commit`: Python con black, frontend con prettier. Se un hook modifica dei file, rifai `git add` e ripeti il commit.
 4. Una libreria nuova entra in `backend/requirements.txt` nella PR del task che la usa, con nome, motivo e licenza.
 5. Quando hai finito, pusha il branch e apri una **Pull Request** su GitHub. La rivede un collega; se cambia composizione, `core/`, `alembic/`, `requirements.txt` o un `domain.py`, la rivede il referente dei file comuni. I controlli devono essere verdi; il merge lo fa l'admin.
 
-## Protezioni dell'accesso (#16–19)
+## Sicurezza in produzione
 
-La migrazione 009 aggiunge i contatori condivisi dei tentativi di login in PostgreSQL.
-Prima dell'avvio aggiornare lo schema. La politica predefinita ammette cinque
-richieste per IP e cinque per account ogni 900 secondi, anche con più worker;
-contano anche gli accessi riusciti. Il blocco risponde 429 con `Retry-After`.
-
-In produzione impostare `AMBIENTE=produzione`, un `LOGIN_LIMITE_SEGRETO` casuale
-di almeno 32 caratteri identico su tutte le istanze e `EMAIL_TEST_ENVIRONMENT=false`.
-I cookie sono sempre Secure in produzione. Per il proxy fidato, i log e le prove
-HTTPS leggere [la procedura di sicurezza](docs/sicurezza-accesso.md).
-Non usare il segreto finto di `.env.example` in produzione.
-
-La creazione utenti richiede email valide secondo email-validator, senza DNS.
-Il login mantiene la compatibilità con gli indirizzi storici; `.test` è ammesso
-nelle nuove creazioni solo con `EMAIL_TEST_ENVIRONMENT=true` in sviluppo/test.
-La suite comprende prove TLS locali con certificati temporanei generati da cryptography.
+Prima di installare AdFlow in un ambiente reale (segreti, cookie, proxy HTTPS, log): [docs/sicurezza-accesso.md](docs/sicurezza-accesso.md).

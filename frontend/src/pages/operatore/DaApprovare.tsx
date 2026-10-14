@@ -130,9 +130,6 @@ export function DaApprovare() {
           </Stack>
         </>
       )}
-      <Text size="xs" c="dimmed" mt="lg">
-        Lo storico della bottega arriva con lo sprint 3.
-      </Text>
     </Guscio>
   );
 }

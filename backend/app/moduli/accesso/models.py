@@ -1,4 +1,4 @@
-"""Tabelle dello sprint 1 (plan §2)."""
+"""Tabelle del modulo accesso (plan §2)."""
 from datetime import datetime
 
 from sqlalchemy import (
