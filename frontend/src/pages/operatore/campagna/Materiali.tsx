@@ -71,10 +71,12 @@ export function Materiali({
   for (const g of vista.foto_non_usate)
     for (const f of g.foto) nonUsate.set(f.foto_id, f.motivo ?? "senza motivo");
 
-  const cartoline = vista.uscite
+  const immaginiAi = vista.uscite
     .flatMap((u) =>
       u.post
-        .filter((p) => p.riempitivo === "cartolina")
+        .filter(
+          (p) => p.riempitivo === "immagine_ai" || p.riempitivo === "cartolina",
+        )
         .map((p) => ({ uscita: u.numero, post: p })),
     )
     .reduce<{ uscita: number; tema: string; canali: string[] }[]>((acc, x) => {
@@ -146,25 +148,25 @@ export function Materiali({
             </Stack>
           </Card>
         ))}
-        {cartoline.length > 0 && (
+        {immaginiAi.length > 0 && (
           <Card withBorder radius="lg" p="lg">
             <Text size="xs" c="dimmed">
-              Cartoline
+              Immagini AI
             </Text>
             <Text fw={600} mt={2}>
-              Disegnate, non foto
+              Create dall'AI · 1:1
             </Text>
             <Stack gap={6} mt="sm">
-              {cartoline.map((c) => (
+              {immaginiAi.map((c) => (
                 <Paper key={c.uscita} withBorder radius="md" p="xs">
                   <Text size="xs" ff="monospace">
-                    cartolina-{c.uscita}.png
+                    immagine-ai-u{c.uscita}.jpg
                   </Text>
                   <Text size="xs" c="dimmed">
                     Tema: {c.tema} · {c.canali.join(", ")}
                   </Text>
-                  <Badge size="xs" variant="light" mt={4}>
-                    U{c.uscita}
+                  <Badge size="xs" variant="light" color="grape" mt={4}>
+                    U{c.uscita} · Immagine AI
                   </Badge>
                 </Paper>
               ))}

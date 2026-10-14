@@ -134,6 +134,7 @@ export interface VediCampagna {
   uscite: Uscita[];
   foto_non_usate: GruppoFotoNonUsate[];
   ultimo_errore: ErroreGenerazione | null;
+  costo_ai: number;
 }
 
 export function vediCampagna(campagnaId: number): Promise<VediCampagna> {

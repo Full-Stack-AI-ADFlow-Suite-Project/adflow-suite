@@ -28,7 +28,6 @@ import { Decidi } from "./campagna/Decidi";
 import { Materiali } from "./campagna/Materiali";
 import { PianoCard } from "./campagna/PianoCard";
 import { UscitaCard } from "./campagna/UscitaCard";
-import { AzioniCampagna } from "./vedi-campagna/decisioni/AzioniCampagna";
 import { coloreCampagna, data, giorni, NOME_CANALE } from "./campagna/util";
 
 const BOTTEGA_SCONOSCIUTA = "Bottega";
@@ -126,12 +125,21 @@ export function VediCampagna() {
               {vista.campagna.inviata_il
                 ? ` · inviata il ${data(vista.campagna.inviata_il)}`
                 : ""}
+              {vista.costo_ai != null
+                ? ` · Costo AI: ${Number(vista.costo_ai)
+                    .toFixed(2)
+                    .replace(".", ",")} $`
+                : ""}
             </Text>
           </div>
 
-          <Decidi vista={vista} ricarica={carica} />
-          <AzioniCampagna vista={vista} campagna={campagna} ricarica={carica} />
-          <PianoCard piano={vista.piano} uscite={vista.uscite} />
+          <Decidi vista={vista} campagna={campagna} ricarica={carica} />
+          {/* Congelato per l'MVP, ADR-114: le azioni di AzioniCampagna (nota interna, togli canale, sospendi, riattiva, annulla) sono nascoste */}
+          <PianoCard
+            piano={vista.piano}
+            uscite={vista.uscite}
+            costoAi={vista.costo_ai}
+          />
 
           <Tabs defaultValue="uscite">
             <Tabs.List>

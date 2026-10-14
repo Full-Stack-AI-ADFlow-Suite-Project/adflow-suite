@@ -17,10 +17,12 @@ import {
 } from "@mantine/core";
 import { useState } from "react";
 
+import type { CampagnaDettaglio } from "../../../api/campagne";
 import { ApiErrore } from "../../../api/http";
 import type { VediCampagna } from "../../../api/revisione";
 import { approva, riprova } from "../../../api/revisione";
 import { Riga } from "../../artigiano/campagna/Riga";
+import { Respingi } from "../vedi-campagna/decisioni/Respingi";
 import { dataOra, erroriDi, NOME_CANALE } from "./util";
 
 function Conti({ vista }: { vista: VediCampagna }) {
@@ -30,6 +32,9 @@ function Conti({ vista }: { vista: VediCampagna }) {
   const rivedere = da.filter((p) => p.da_rivedere).length;
   const conAvvisi = da.filter((p) =>
     erroriDi(p).some((e) => e.livello === "avviso"),
+  ).length;
+  const conAi = post.filter(
+    (p) => p.riempitivo === "immagine_ai" || p.riempitivo === "cartolina",
   ).length;
   return (
     <Group gap={6} mt="xs">
@@ -42,6 +47,11 @@ function Conti({ vista }: { vista: VediCampagna }) {
       {conAvvisi > 0 && (
         <Badge color="yellow" variant="light">
           {conAvvisi} con avvisi
+        </Badge>
+      )}
+      {conAi > 0 && (
+        <Badge color="grape" variant="light">
+          {conAi} con immagine AI
         </Badge>
       )}
       {n("approvato") > 0 && (
@@ -70,6 +80,11 @@ function Conti({ vista }: { vista: VediCampagna }) {
           {n("annullato")} annullati
         </Badge>
       )}
+      {vista.costo_ai != null && (
+        <Badge variant="light">
+          costo AI {Number(vista.costo_ai).toFixed(2).replace(".", ",")} $
+        </Badge>
+      )}
     </Group>
   );
 }
@@ -85,13 +100,16 @@ function primoDaApprovare(vista: VediCampagna): string | null {
 
 export function Decidi({
   vista,
+  campagna,
   ricarica,
 }: {
   vista: VediCampagna;
+  campagna: CampagnaDettaglio | null;
   ricarica: () => void;
 }) {
   const stato = vista.campagna.stato;
   const [conferma, setConferma] = useState(false);
+  const [respingiAperto, setRespingiAperto] = useState(false);
   const [occupato, setOccupato] = useState(false);
   const [errore, setErrore] = useState<string | null>(null);
 
@@ -190,16 +208,26 @@ export function Decidi({
     // Dall'MVP nessuna campagna entra in questo stato (ADR-114, A3): resta
     // per le campagne vecchie, che si possono solo respingere.
     contenuto = (
-      <Stack gap={6}>
-        <Title order={2} size="h3">
-          Piano da rivedere
-        </Title>
-        <Text size="sm" c="dimmed">
-          La generazione si è fermata prima dei testi per un piano debole. La
-          campagna non può più proseguire: respingila qui sotto.
-        </Text>
-        <Conti vista={vista} />
-      </Stack>
+      <Group justify="space-between" align="flex-start" wrap="wrap">
+        <Stack gap={6} style={{ flex: "1 1 420px" }}>
+          <Title order={2} size="h3">
+            Piano da rivedere
+          </Title>
+          <Text size="sm" c="dimmed">
+            La generazione si è fermata prima dei testi per un piano debole. La
+            campagna non può più proseguire: respingila qui a lato.
+          </Text>
+          <Conti vista={vista} />
+        </Stack>
+        <Button
+          color="red"
+          variant="default"
+          disabled={!campagna}
+          onClick={() => setRespingiAperto(true)}
+        >
+          Respingi
+        </Button>
+      </Group>
     );
   } else if (stato === "in_revisione") {
     contenuto = (
@@ -220,13 +248,23 @@ export function Decidi({
             )}
             <Conti vista={vista} />
           </Stack>
-          <Button
-            color="verde"
-            disabled={blocca}
-            onClick={() => setConferma(true)}
-          >
-            Approva {daApprovare.length} post
-          </Button>
+          <Group gap="xs">
+            <Button
+              color="verde"
+              disabled={blocca}
+              onClick={() => setConferma(true)}
+            >
+              Approva {daApprovare.length} post
+            </Button>
+            <Button
+              color="red"
+              variant="default"
+              disabled={!campagna}
+              onClick={() => setRespingiAperto(true)}
+            >
+              Respingi
+            </Button>
+          </Group>
         </Group>
         {daRivedere.length > 0 && (
           <Text size="sm" mt="sm">
@@ -338,15 +376,27 @@ export function Decidi({
   }
 
   return (
-    <Card withBorder radius="lg" p="lg" aria-label="Decisione sulla campagna">
-      <Stack gap="sm">
-        {contenuto}
-        {errore && (
-          <Alert color="red" variant="light">
-            {errore}
-          </Alert>
-        )}
-      </Stack>
-    </Card>
+    <>
+      <Card withBorder radius="lg" p="lg" aria-label="Decisione sulla campagna">
+        <Stack gap="sm">
+          {contenuto}
+          {errore && (
+            <Alert color="red" variant="light">
+              {errore}
+            </Alert>
+          )}
+        </Stack>
+      </Card>
+      {respingiAperto && campagna && (
+        <Respingi
+          campagna={campagna}
+          chiudi={() => setRespingiAperto(false)}
+          fatto={() => {
+            setRespingiAperto(false);
+            ricarica();
+          }}
+        />
+      )}
+    </>
   );
 }
