@@ -1,5 +1,5 @@
 /* Token del foglio di stile delle pagine statiche
-   (docs/appunti/pagine/assets/adflow.css, ADR-113), con gli stessi nomi.
+   (docs/pagine/assets/adflow.css, ADR-113), con gli stessi nomi.
    I valori stanno in tema.ts. Solo tema chiaro. */
 :root {
   --bg-app: var(--mantine-color-gray-0);

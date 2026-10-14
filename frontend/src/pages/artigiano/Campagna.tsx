@@ -1,5 +1,5 @@
 /**
- * Pagina Campagna (docs/appunti/pagine/AdFlow-campagna*.html):
+ * Pagina Campagna (docs/pagine/AdFlow-campagna*.html):
  * niente campagne → Bentornato; una bozza → passi 10–12; dopo l'invio
  * una vista per stato. Una campagna alla volta: con più campagne si apre
  * quella che chiede qualcosa e in cima c'è la riga di scelta (spec §4).
