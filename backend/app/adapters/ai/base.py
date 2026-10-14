@@ -9,8 +9,8 @@ piano ha la forma che ``contenuti`` controlla (``piano.contenuto``):
                            "foto": [12], "riempitivo": null,
                            "data_ora": "2030-01-07T10:00:00+01:00"}]}]}
 
-``riempitivo`` è vuoto, ``"archivio"`` (con una foto tra le
-``foto_riempitivo`` del canale) o ``"cartolina"`` (senza foto).
+``riempitivo`` è vuoto (un post con la sua foto) o ``"immagine_ai"`` (senza
+foto: la sua immagine nasce dopo il piano, R-28).
 """
 
 from abc import ABC, abstractmethod
@@ -177,10 +177,11 @@ class AIAdapter(ABC):
                 campagna e, dopo, quelli dell'archivio della bottega.
             limiti: per canale ``post_chiesti``, ``foto_disponibili``,
                 ``foto_riempitivo`` e ``riempitivi``: il numero dei post non
-                lo decide l'AI (R-05). Le ``foto_riempitivo`` sono foto
-                d'archivio già uscite sul canale: servono solo per i
-                riempitivi ``archivio``, che vengono prima delle cartoline
-                (R-28).
+                lo decide l'AI (R-05). Le ``foto_disponibili`` sono già le
+                migliori per punteggio, al massimo ``post_chiesti``: ogni
+                post ne usa una; i ``riempitivi`` sono post ``immagine_ai``,
+                senza foto (R-28). ``foto_riempitivo`` è congelato (R-27) e
+                resta vuoto.
             schede: la scheda di ogni canale (R-21).
             non_prima_di: nessun post può uscire prima di questo momento (R-08).
             piano_precedente, violazioni: nelle riscritture, il piano che non

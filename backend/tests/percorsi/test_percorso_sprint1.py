@@ -302,8 +302,8 @@ def test_percorso_dalla_bozza_alla_campagna_conclusa(
     assert [riga["stato"] for riga in api("GET", "/campagne").json()] == ["conclusa"]
 
 
-def test_percorso_con_poche_foto_e_le_cartoline(api, entra, lavora, orologio, finti):
-    """Converge §3, passo 7: 4 settimane con 4 foto, 8 cartoline (R-28).
+def test_percorso_con_poche_foto_e_le_immagini_ai(api, entra, lavora, orologio, finti):
+    """Converge §3, passo 7: 4 settimane con 4 foto, 8 post `immagine_ai` (R-28).
 
     Dall'MVP il piano non è mai debole (ADR-114, A3): si arriva in revisione.
     """
@@ -330,20 +330,20 @@ def test_percorso_con_poche_foto_e_le_cartoline(api, entra, lavora, orologio, fi
     for post in _post_per_canale(vista).values():
         assert len(post) == 12
         con_foto = [uno for uno in post if uno["riempitivo"] is None]
-        cartoline = [uno for uno in post if uno["riempitivo"] == "cartolina"]
-        assert (len(con_foto), len(cartoline)) == (4, 8)
+        immagini_ai = [uno for uno in post if uno["riempitivo"] == "immagine_ai"]
+        assert (len(con_foto), len(immagini_ai)) == (4, 8)
         assert {foto_id for uno in con_foto for foto_id in _foto_del_post(uno)} == set(
             foto
         )
-        # ogni cartolina ha la sua immagine e il suo testo
-        immagini = [foto_id for uno in cartoline for foto_id in _foto_del_post(uno)]
-        assert len(immagini) == len(set(immagini)) == 8
-        assert all(uno["versione_corrente"]["testo"] for uno in cartoline)
+        # ogni post `immagine_ai` ha il suo testo; l'immagine nasce dopo il piano
+        assert all(_foto_del_post(uno) == [] for uno in immagini_ai)
+        assert all(uno["versione_corrente"]["testo"] for uno in immagini_ai)
 
     assert api("POST", f"/campagne/{campagna_id}/approva").status_code == 200
     orologio.dopo(QUATTRO_SETTIMANE)
     worker.tick_pubblicazione(0)
-    assert len(finti.social.pubblicazioni) == 24
+    # escono i post con una foto; quelli `immagine_ai` aspettano l'immagine (T3-34)
+    assert len(finti.social.pubblicazioni) == 8
     entra(OPERATORE)
     assert _stato(api, campagna_id) == "conclusa"
 

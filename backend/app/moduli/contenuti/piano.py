@@ -5,9 +5,9 @@ ha a disposizione (R-05); il controllo dice se un piano scritto dall'AI li
 rispetta (R-05, R-08, R-21, R-28). Nessuna funzione legge l'orologio o
 la configurazione: periodo, ora e margine arrivano da chi chiama.
 
-Gruppi e foto sono quelli di ``campagne.service.gruppi_della_campagna()``,
-l'archivio è, canale per canale, l'elenco di
-``campagne.service.foto_di_archivio()`` (R-27): si leggono, non si modificano.
+Gruppi e foto sono quelli di ``campagne.service.gruppi_della_campagna()``: si
+leggono, non si modificano. L'archivio della bottega (R-27) è congelato: chi
+genera non lo passa, e ``limiti_per_canale()`` lavora con un archivio vuoto.
 Il piano è il JSON come lo ha scritto l'AI (``piano.contenuto``):
 
     {"strategia": "...",
@@ -16,8 +16,8 @@ Il piano è il JSON come lo ha scritto l'AI (``piano.contenuto``):
                            "foto": [12], "riempitivo": null,
                            "data_ora": "2030-01-07T10:00:00+01:00"}]}]}
 
-Una cartolina non ha foto: la sua immagine nasce dopo il piano. Un riempitivo
-`archivio` ha la sua foto, una di quelle già uscite sul canale (R-28).
+Un post con `riempitivo` = `immagine_ai` non ha foto: la sua immagine nasce dopo
+il piano (R-28). Gli altri post hanno la loro foto, tra quelle preselezionate.
 """
 
 from collections import Counter
@@ -30,8 +30,9 @@ from app.moduli.campagne import service as campagne
 
 from .domain import FORMATI_POST, SCHEDE_CANALE
 
-# R-28: i riempitivi che un piano può chiedere, in ordine di preferenza.
-RIEMPITIVI_DEL_PIANO = ("archivio", "cartolina")
+# R-28, ADR-114: l'unico riempitivo che un piano può chiedere. `archivio` e
+# `cartolina` restano solo come valori ammessi, per le righe vecchie.
+RIEMPITIVI_DEL_PIANO = ("immagine_ai",)
 
 PIANO_MALFORMATO = "piano_malformato"
 POST_PER_CANALE = "post_per_canale"
@@ -59,8 +60,9 @@ class LimitiCanale(TypedDict):
     """Limiti di un canale: un dizionario semplice, che si può dare all'AI."""
 
     post_chiesti: int
+    # Le foto preselezionate (R-05): al massimo `post_chiesti`, le migliori.
     foto_disponibili: list[int]
-    # Foto d'archivio già uscite sul canale: solo per i riempitivi `archivio`.
+    # Congelato (R-27): sempre vuoto, finché l'archivio non è un rimpiazzo.
     foto_riempitivo: list[int]
     riempitivi: int
 
@@ -91,18 +93,40 @@ def _senza_doppioni(foto: Any) -> bool:
     return _idonea(foto) and not _analisi(foto).get("simile_a")
 
 
-def foto_disponibili(gruppi: Iterable[Any]) -> list[int]:
-    """Id delle foto caricate, idonee e senza `simile_a`, sommate sui gruppi (R-05).
+def _punteggio(foto: Any) -> float:
+    """Il punteggio dell'analisi; una foto senza punteggio vale meno di ogni altra."""
+    valore = _analisi(foto).get("punteggio")
+    if isinstance(valore, bool) or not isinstance(valore, int | float):
+        return float("-inf")
+    return float(valore)
 
-    Sono le foto della campagna, le stesse su ogni canale: quelle d'archivio,
-    che cambiano da un canale all'altro, le aggiunge ``limiti_per_canale()``.
-    """
+
+def _idonee(gruppi: Iterable[Any]) -> list[Any]:
+    """Le foto caricate, idonee e senza `simile_a`, sommate sui gruppi."""
     return [
-        foto.id
+        foto
         for gruppo in _caricate(gruppi)
         for foto in gruppo.foto
         if _senza_doppioni(foto)
     ]
+
+
+def foto_disponibili(gruppi: Iterable[Any]) -> list[int]:
+    """Id delle foto caricate, idonee e senza `simile_a`, sommate sui gruppi (R-05).
+
+    Sono tutte le foto che la campagna potrebbe usare: il piano ne vede solo
+    quelle di ``foto_preselezionate()``.
+    """
+    return [foto.id for foto in _idonee(gruppi)]
+
+
+def foto_preselezionate(gruppi: Iterable[Any], post_chiesti: int) -> list[int]:
+    """Le foto che vanno all'AI: le migliori per punteggio, fino ai post chiesti (R-05).
+
+    A parità di punteggio vale l'id più basso. Le altre foto restano non usate.
+    """
+    migliori = sorted(_idonee(gruppi), key=lambda foto: (-_punteggio(foto), foto.id))
+    return [foto.id for foto in migliori[:post_chiesti]]
 
 
 def limiti_per_canale(
@@ -113,20 +137,21 @@ def limiti_per_canale(
     gruppi: Iterable[Any],
     archivio: Mapping[str, Iterable[Any]] | None = None,
 ) -> dict[str, LimitiCanale]:
-    """Post chiesti, foto disponibili e riempitivi di ogni canale (R-05, R-28).
+    """Post chiesti, foto preselezionate e riempitivi di ogni canale (R-05, R-28).
 
     ``canali`` sono quelli su cui la campagna esce ancora: un canale tolto non
     si passa. I post chiesti li calcola ``campagne.service.post_chiesti()``;
-    i riempitivi sono i post chiesti che le foto non coprono.
+    le foto sono le migliori per punteggio, fino ai post chiesti
+    (``foto_preselezionate()``); i riempitivi sono i post chiesti che quelle
+    foto non coprono: ognuno avrà un'immagine AI.
 
-    ``archivio`` ha, per canale, le foto di
-    ``campagne.service.foto_di_archivio()``: quelle mai uscite lì si aggiungono
-    alle foto disponibili, dopo quelle della campagna; quelle già uscite vanno
-    in ``foto_riempitivo`` (R-27). Anche qui contano solo le foto idonee e
-    senza `simile_a`.
+    ``archivio`` (R-27) è congelato: chi genera non lo passa. Se c'è, ha per
+    canale le foto di ``campagne.service.foto_di_archivio()``: quelle mai
+    uscite lì si aggiungono alle foto disponibili, quelle già uscite vanno in
+    ``foto_riempitivo``. Contano solo le foto idonee e senza `simile_a`.
     """
     chiesti = campagne.post_chiesti(post_a_settimana, inizio, fine)
-    della_campagna = foto_disponibili(gruppi)
+    della_campagna = foto_preselezionate(gruppi, chiesti)
     limiti = {}
     for canale in canali:
         voci = [
@@ -190,15 +215,10 @@ def _difetti_del_post(post: Any, dove: str) -> list[str]:
     if difetti:
         return difetti
 
-    if riempitivo == "archivio":
-        if len(foto) != 1 or formato != "singola":
-            difetti.append(
-                f"{dove}: un riempitivo d'archivio è un post singolo, con una sola foto."
-            )
-    elif riempitivo is not None:
+    if riempitivo is not None:
         if foto or formato != "singola":
             difetti.append(
-                f"{dove}: una cartolina è un post singolo, senza foto del piano."
+                f"{dove}: un'immagine AI è un post singolo, senza foto del piano."
             )
     elif formato == "singola" and len(foto) != 1:
         difetti.append(f"{dove}: un post singolo ha una sola foto.")
@@ -284,8 +304,9 @@ def controlla_piano(
         inizio, fine: il periodo della campagna, estremi compresi (Europe/Rome).
         adesso: l'ora di riferimento, con il fuso.
         margine_minuti: anticipo minimo di un post su ``adesso`` (R-08).
-        archivio: le foto d'archivio date a ``limiti_per_canale()``: un'uscita
-            può avere il gruppo di una di queste.
+        archivio: congelato (R-27): le foto d'archivio date a
+            ``limiti_per_canale()``, se ce ne sono; un'uscita può avere il
+            gruppo di una di queste.
     """
     gruppi = list(gruppi)
     gruppi_ammessi = {gruppo.id for gruppo in _caricate(gruppi)} | {
@@ -320,22 +341,9 @@ def controlla_piano(
             con_riempitivi.add(canale)
         if presenti != limite["riempitivi"]:
             messaggio = (
-                f"Su {canale} i riempitivi devono essere {limite['riempitivi']}, "
-                f"cioè i post chiesti che le foto disponibili non coprono: "
-                f"sono {presenti}."
-            )
-            violazioni.append(_violazione(RIEMPITIVI, canale, messaggio))
-            continue
-        # R-28: una cartolina solo quando le foto d'archivio sono finite.
-        d_archivio = sum(
-            1 for _, p in del_canale[canale] if p["riempitivo"] == "archivio"
-        )
-        attesi = min(limite["riempitivi"], len(limite["foto_riempitivo"]))
-        if d_archivio != attesi:
-            messaggio = (
-                f"Su {canale} i riempitivi `archivio` devono essere {attesi}, "
-                f"perché le foto d'archivio vengono prima delle cartoline: "
-                f"sono {d_archivio}."
+                f"Su {canale} i riempitivi `immagine_ai` devono essere "
+                f"{limite['riempitivi']}, cioè i post chiesti che le foto "
+                f"disponibili non coprono: sono {presenti}."
             )
             violazioni.append(_violazione(RIEMPITIVI, canale, messaggio))
 
@@ -361,21 +369,8 @@ def controlla_piano(
 
     for canale, limite in limiti.items():
         disponibili = set(limite["foto_disponibili"])
-        di_riempitivo = set(limite["foto_riempitivo"])
-        # (foto, è di un riempitivo `archivio`), una volta sola
-        usate = dict.fromkeys(
-            (foto, p["riempitivo"] == "archivio")
-            for _, p in del_canale[canale]
-            for foto in p["foto"]
-        )
-        for foto, da_archivio in usate:
-            if da_archivio and foto not in di_riempitivo:
-                messaggio = (
-                    f"Su {canale} la foto {foto} non è tra le foto d'archivio "
-                    f"per i riempitivi."
-                )
-                violazioni.append(_violazione(FOTO_NON_DISPONIBILE, canale, messaggio))
-            elif not da_archivio and foto not in disponibili:
+        for foto in dict.fromkeys(f for _, p in del_canale[canale] for f in p["foto"]):
+            if foto not in disponibili:
                 messaggio = f"Su {canale} la foto {foto} non è tra le foto disponibili."
                 violazioni.append(_violazione(FOTO_NON_DISPONIBILE, canale, messaggio))
 

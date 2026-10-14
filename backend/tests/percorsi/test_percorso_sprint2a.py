@@ -7,12 +7,11 @@ Verifica l'intero flusso attraverso le API:
 4. Campagna A: bozza, modifica bozza PATCH (cambio titolo e fine, data gruppo fuori periodo -> 422, CA-08),
    invio, approvazione, avanzamento temporale di 12 giorni, pubblicazione con marcatura foto.pubblicata_su (CA-76);
 5. Campagna B: 4 settimane, fallimento per configurazione AI, cambio nome bottega,
-   riprova con AI finta -> in_revisione. Post con foto nuove, foto d'archivio mai uscite e cartoline
-   con il vecchio nome dello snapshot immutato (CA-16);
-6. Campagna C dopo 110 giorni: post riempitivi d'archivio con foto di A uscite da > 90 giorni prima
-   delle cartoline; foto di B escluse perché uscite da < 90 giorni (CA-76);
-7. Prove negative: modifica campagna non in bozza (409), archivio altrui (404), eliminazione foto
-   archivio con n_utilizzi > 0 (409).
+   riprova con AI finta -> in_revisione. Post con le foto nuove e post `immagine_ai`
+   (l'archivio è congelato: non entra nel piano, ADR-114 A10), con lo snapshot immutato (CA-16);
+6. Campagna C dopo 110 giorni: ancora 4 foto nuove e post `immagine_ai`, anche se l'archivio
+   e le foto di A (uscite da > 90 giorni) ci sarebbero;
+7. Prove negative: modifica campagna non in bozza (409), archivio altrui (404).
 """
 
 from collections import defaultdict
@@ -439,13 +438,9 @@ def test_percorso_completo_sprint2a(
             assert canale in DUE_CANALI
             assert datetime.fromisoformat(dt_str)
 
-    # Identifichiamo quali foto di A non sono uscite su ciascun canale
-    foto_mai_uscite_a = {
-        canale: [f.id for f in foto_db_a if canale not in f.pubblicata_su]
-        for canale in DUE_CANALI
-    }
+    # 4 foto totali - 3 uscite = 1 non uscita su ciascun canale
     for canale in DUE_CANALI:
-        assert len(foto_mai_uscite_a[canale]) == 1  # 4 foto totali - 3 uscite = 1
+        assert len([f for f in foto_db_a if canale not in f.pubblicata_su]) == 1
 
     # =========================================================================
     # 5. Campagna B (4 settimane con 4 foto nuove, AI fallita, modifica profilo,
@@ -519,24 +514,17 @@ def test_percorso_completo_sprint2a(
     for canale, post_canale in per_canale_b.items():
         assert len(post_canale) == 12
         post_foto = [p for p in post_canale if p["riempitivo"] is None]
-        post_cartoline = [p for p in post_canale if p["riempitivo"] == "cartolina"]
-        # 4 foto nuove + 2 archivio permanente + 1 di A mai uscita lì = 7 foto
-        assert len(post_foto) == 7
-        assert len(post_cartoline) == 5
+        post_immagini_ai = [p for p in post_canale if p["riempitivo"] == "immagine_ai"]
+        # solo le 4 foto nuove: le altre foto della bottega non entrano nel piano
+        assert len(post_foto) == 4
+        assert len(post_immagini_ai) == 8
 
         foto_usate = [f_id for p in post_foto for f_id in _foto_del_post(p)]
         # Nessuna foto compare due volte sullo stesso canale
-        assert len(foto_usate) == len(set(foto_usate))
-        # Contiene le 4 nuove di B
-        assert set(foto_b_nuove).issubset(set(foto_usate))
-        # Contiene le 2 di archivio permanente
-        assert {foto_arc_1, foto_arc_2}.issubset(set(foto_usate))
-        # Contiene quella di A mai uscita su questo canale
-        f_mai_uscita = foto_mai_uscite_a[canale][0]
-        assert f_mai_uscita in foto_usate
-        # Nessuna foto di A uscita su questo canale in Campagna A compare qui!
-        uscite_in_a = [f.id for f in foto_db_a if canale in f.pubblicata_su]
-        assert not any(f_a in foto_usate for f_a in uscite_in_a)
+        assert sorted(foto_usate) == sorted(foto_b_nuove)
+        assert not {foto_arc_1, foto_arc_2} & set(foto_usate)
+        assert not set(foto_a) & set(foto_usate)
+        assert all(_foto_del_post(p) == [] for p in post_immagini_ai)
 
     # Operatore approva campagna B
     assert api("POST", f"/campagne/{b_id}/approva").status_code == 200
@@ -544,7 +532,7 @@ def test_percorso_completo_sprint2a(
 
     # =========================================================================
     # 6. Campagna C: orologio avanti di 110 giorni (B conclusa)
-    #    Tra i riempitivi compaiono post archivio con le foto di A (> 90 gg) (CA-76)
+    #    Le foto di A (> 90 gg) non tornano: i riempitivi sono immagini AI (A10)
     # =========================================================================
     orologio.ora = orologio.ora + timedelta(days=110)
     worker.tick_pubblicazione(0)
@@ -595,28 +583,13 @@ def test_percorso_completo_sprint2a(
     per_canale_c = _post_per_canale(vista_c)
     for canale, post_canale in per_canale_c.items():
         assert len(post_canale) == 12
-        riempitivi_archivio = [p for p in post_canale if p["riempitivo"] == "archivio"]
-        riempitivi_cartolina = [
-            p for p in post_canale if p["riempitivo"] == "cartolina"
-        ]
-
-        # Tra i riempitivi compaiono post archivio prima delle cartoline (CA-76)
-        assert len(riempitivi_archivio) > 0
-        assert len(riempitivi_cartolina) > 0
-
-        # L'indice del primo post archivio precede l'indice del primo post cartolina
-        idx_primo_archivio = min(post_canale.index(p) for p in riempitivi_archivio)
-        idx_primo_cartolina = min(post_canale.index(p) for p in riempitivi_cartolina)
-        assert idx_primo_archivio < idx_primo_cartolina
-
-        # I post archivio usano le foto di A (uscite da > 90 giorni)
-        foto_nei_post_archivio = [
-            f_id for p in riempitivi_archivio for f_id in _foto_del_post(p)
-        ]
-        assert all(f_id in foto_a for f_id in foto_nei_post_archivio)
-
-        # Le foto uscite in B (uscite da meno di 90 giorni) non compaiono!
-        assert not any(f_id in foto_b_nuove for f_id in foto_nei_post_archivio)
+        assert [p["riempitivo"] for p in post_canale].count(None) == 4
+        assert [p["riempitivo"] for p in post_canale].count("immagine_ai") == 8
+        foto_usate = [f_id for p in post_canale for f_id in _foto_del_post(p)]
+        assert len(foto_usate) == 4
+        # né le foto di A né quelle di B né l'archivio entrano nel piano
+        assert not set(foto_usate) & (set(foto_a) | set(foto_b_nuove))
+        assert not set(foto_usate) & {foto_arc_1, foto_arc_2}
 
     # =========================================================================
     # 7. Prove negative dello Sprint 2a
@@ -648,13 +621,6 @@ def test_percorso_completo_sprint2a(
     assert r_del_gruppo_altrui.status_code == 404
     r_del_foto_altrui = api("DELETE", f"/archivio/foto/{foto_arc_1}")
     assert r_del_foto_altrui.status_code == 404
-
-    # Eliminazione foto d'archivio già usata in un post (n_utilizzi > 0) -> 409
-    assert entra(ARTIGIANO)["ruolo"] == "artigiano"
-    # foto_arc_1 è stata usata nella campagna B e/o C
-    r_del_usata = api("DELETE", f"/archivio/foto/{foto_arc_1}")
-    assert r_del_usata.status_code == 409
-    assert "utilizzata" in r_del_usata.json()["detail"].lower()
 
 
 def test_prove_negative_del_percorso_sprint2a(api, entra, lavora, db, finti):
