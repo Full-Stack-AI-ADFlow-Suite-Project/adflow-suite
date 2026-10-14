@@ -33,6 +33,12 @@ from .domain import (
 )
 from .immagini import MAX_FOTO_PER_GRUPPO, analizza_e_valida_immagine
 from .sistemazione_foto import sistema_foto_buffer
+from .foto_pubblica import (
+    DURATA_PREDEFINITA_SECONDI,
+    componi_firma as componi_firma_foto,
+    genera_url_pubblico as genera_url_pubblico_foto,
+    verifica_firma as verifica_firma_foto,
+)
 from .models import Campagna, DecisioneCampagna, Foto, GruppoFoto
 from .schemas import (
     CampagnaCrea,
@@ -1320,3 +1326,29 @@ def foto_sistemata(
 
     elaborata = sistema_foto_buffer(originale, canale=canale, proporzione=proporzione)
     return elaborata, "image/jpeg"
+
+
+def url_foto_pubblica(
+    db: Session,
+    foto_id: int,
+    canale: str = "instagram",
+    durata_secondi: int = DURATA_PREDEFINITA_SECONDI,
+    url_base: str | None = None,
+) -> str:
+    """Restituisce l'URL pubblico firmato a tempo per il canale (spec R-42, CA-81).
+
+    Usato da ``pubblicazione`` e dall'adattatore Meta per Instagram (plan §5, brief-meta §1).
+    Verifica che la foto esista nel database prima di generare l'indirizzo.
+
+    Raises:
+        NonTrovato: se non esiste nessuna foto con quell'id.
+    """
+    foto = db.get(Foto, foto_id)
+    if foto is None:
+        raise NonTrovato("Foto non trovata.")
+    return genera_url_pubblico_foto(
+        foto_id=foto_id,
+        canale=canale,
+        durata_secondi=durata_secondi,
+        url_base=url_base,
+    )
