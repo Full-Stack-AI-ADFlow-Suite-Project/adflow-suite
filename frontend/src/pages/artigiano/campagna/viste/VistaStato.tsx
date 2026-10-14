@@ -1,6 +1,6 @@
 /**
  * Vista per stato della campagna dopo l'invio
- * (docs/appunti/pagine/AdFlow-campagna-stati.html). L'artigiano vede
+ * (docs/pagine/AdFlow-campagna-stati.html). L'artigiano vede
  * l'esito del lavoro, mai il lavoro in corso: niente piano né post fino
  * all'approvazione (spec §4); calendario e metriche dagli sprint 3 e 4.
  */
@@ -240,7 +240,9 @@ export function VistaStato({
                       >
                         <Image
                           src={urlFotoFile(f.file, f.id)}
-                          alt={`Foto ${f.id}${segnate.has(f.id) ? " — da rifare" : ""}`}
+                          alt={`Foto ${f.id}${
+                            segnate.has(f.id) ? " — da rifare" : ""
+                          }`}
                           h={72}
                           w={72}
                           fit="cover"

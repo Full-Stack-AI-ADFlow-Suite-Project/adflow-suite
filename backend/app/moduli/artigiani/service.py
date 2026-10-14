@@ -90,7 +90,7 @@ def leggi_profilo_personale(db: Session, utente_id: int) -> ProfiloBottega:
 def salva_profilo_personale(
     db: Session, utente_id: int, dati: "ProfiloScrittura", ora: "datetime"
 ) -> ProfiloBottega:
-    """Sostituisce i dati del profilo, preservando logo, account e snapshot.
+    """Sostituisce i dati del profilo, preservando account e snapshot.
 
     L'upsert PostgreSQL evita due profili anche con prime scritture concorrenti.
     Il commit resta alla sessione del router.

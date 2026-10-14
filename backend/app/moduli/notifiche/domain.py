@@ -1,3 +1,4 @@
+# Congelato per l'MVP, ADR-114: non estendere.
 """Tipi di notifica, destinatari e stati di invio (plan §2, spec R-32)."""
 
 ARTIGIANO = "artigiano"

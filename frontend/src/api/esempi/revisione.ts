@@ -1,7 +1,7 @@
 /**
  * Dati di esempio del modulo revisione (plan §3): Vedi campagna dell'operatore
  * con piano, uscite, post dei canali, foto non usate e ultimo errore, più le
- * tre azioni dello sprint 1 (approva, prosegui, riprova). Le mutazioni tengono
+ * due azioni dello sprint 1 (approva, riprova). Le mutazioni tengono
  * il passo con il magazzino campagne (stessa fonte di verità locale).
  */
 import { ApiErrore } from "../http";
@@ -174,7 +174,6 @@ function seed(): Record<number, RevisioneRecord> {
           "Post per canale uguali a quelli chiesti",
           "Riempitivi solo dove le foto non bastano",
           "Nessuna foto due volte sullo stesso canale",
-          "La foto con la stella c'è",
           "Date dentro il periodo",
         ],
         debole: false,
@@ -463,7 +462,6 @@ function seed(): Record<number, RevisioneRecord> {
           "Quattro temi in un mese: la sciarpa in lana, il plaid, il telaio al lavoro, i colori d'autunno.",
         esito_controllo: [
           "Post per canale uguali a quelli chiesti",
-          "La foto con la stella c'è",
           "Date dentro il periodo",
         ],
         debole: false,
@@ -731,28 +729,6 @@ export const esempiRevisione = {
     dati[campagnaId] = r;
     salva(dati);
     return { stato: "attiva" };
-  },
-
-  /** Prosegui da piano_da_rivedere: riparte la generazione (R-20). */
-  async prosegui(campagnaId: number): Promise<{ stato: string }> {
-    operatore();
-    const c = leggiCampagna(campagnaId);
-    if (c.stato !== "piano_da_rivedere")
-      throw new ApiErrore(409, "Si prosegue solo un piano da rivedere.");
-    const r = record(carica(), campagnaId);
-    if (!r.piano) throw new ApiErrore(409, "Il piano non c'è ancora.");
-    c.stato = "in_generazione";
-    (c.decisioni ??= []).push({
-      id: nuovoIdDecisione(c),
-      esito: "proseguita",
-      canale: null,
-      post_id: null,
-      motivo: null,
-      nota: null,
-    });
-    salvaCampagna(c);
-    salva(carica());
-    return { stato: "in_generazione" };
   },
 
   /** Riprova da generazione_fallita: torna a inviata e riaccoda il job. */

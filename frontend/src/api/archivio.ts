@@ -1,45 +1,15 @@
 /**
- * Modulo archivio e logo della bottega (plan §3, spec R-13, R-27, R-40).
- * Gestisce il caricamento del logo e la gestione dell'archivio permanente della bottega.
+ * Modulo archivio della bottega (plan §3, spec R-13, R-27).
+ * Gestisce l'archivio permanente della bottega.
  */
 import { ApiErrore, leggiDettaglio, richiesta } from "./http";
 import type { FotoSintetica, GruppoSintetico } from "./campagne";
-import type { ProfiloPubblico } from "./artigiani";
 import { esempiArchivio, USA_ESEMPI } from "./esempi/archivio";
 
 export type { FotoSintetica, GruppoSintetico };
 
-export interface FotoDettaglio {
-  id: number;
-  profilo_id: number;
-  campagna_id: number | null;
-  gruppo_id: number | null;
-  origine: string;
-  file: string;
-  mime: string;
-  larghezza: number;
-  altezza: number;
-  da_usare: boolean;
-  n_utilizzi: number;
-}
-
 export interface GruppoArchivioCrea {
   descrizione: string;
-}
-
-export function urlLogo(logo?: string | null): string | null {
-  if (!logo) return null;
-  if (
-    logo.startsWith("data:") ||
-    logo.startsWith("blob:") ||
-    logo.startsWith("http")
-  ) {
-    return logo;
-  }
-  if (USA_ESEMPI) {
-    return `/assets/img/${logo}`;
-  }
-  return `/api/profilo/logo?v=${encodeURIComponent(logo)}`;
 }
 
 export function urlFotoFile(file: string, id?: number): string {
@@ -96,25 +66,4 @@ export async function caricaFotoArchivio(
 export async function eliminaFotoArchivio(fotoId: number): Promise<void> {
   if (USA_ESEMPI) return esempiArchivio.eliminaFoto(fotoId);
   return richiesta<void>("DELETE", `/archivio/foto/${fotoId}`);
-}
-
-export async function caricaLogo(file: File): Promise<ProfiloPubblico> {
-  if (USA_ESEMPI) return esempiArchivio.salvaLogo(file);
-  const corpo = new FormData();
-  corpo.append("file", file);
-  const risposta = await fetch("/api/profilo/logo", {
-    method: "PUT",
-    body: corpo,
-  });
-  if (risposta.status === 401) throw new ApiErrore(401, "Sessione scaduta.");
-  if (!risposta.ok) {
-    const dati: unknown = await risposta.json().catch(() => null);
-    throw new ApiErrore(risposta.status, leggiDettaglio(dati));
-  }
-  return (await risposta.json()) as ProfiloPubblico;
-}
-
-export async function eliminaLogo(): Promise<void> {
-  if (USA_ESEMPI) return esempiArchivio.eliminaLogo();
-  return richiesta<void>("DELETE", "/profilo/logo");
 }

@@ -37,6 +37,8 @@ Database pulito a ogni test con le fixture `db` e `client` di `tests/conftest.py
 
 ## 3. Chiusura dello sprint 1 (T1-07)
 
+*Storia.* I percorsi dei §3 e §4 per gli sprint 1, 2a e 2b sono quelli con cui gli sprint si sono chiusi: citano cose che l'MVP ha tolto o congelato (stella, piano debole e Prosegui, logo, cartoline, archivio, nota interna, togli canale, sospensione). Non si rifanno: per lo sprint 3 vale il percorso della demo in fondo al §4.
+
 Su `main` pulito, da database vuoto: comandi del §1 verdi, tutti i CA con S = 1 coperti, frontend sulle API vere, poi a mano:
 
 1. seed → avvio di API, worker, frontend;
@@ -47,7 +49,7 @@ Su `main` pulito, da database vuoto: comandi del §1 verdi, tutti i CA con S = 1
 6. prove negative: inizio tra 1 giorno, durata di 3 giorni, un PDF come foto, invio con 3 foto, canale non collegato, artigiano su pagina operatore (l'admin invece entra), errore di configurazione dell'AI (con `AI_PROVIDER=litellm`, finché il provider vero non c'è): generazione fallita subito, con il motivo accanto a Riprova;
 7. piano debole: 4 settimane con 4 foto → `piano_da_rivedere`; Prosegui → in_revisione, con 12 post per canale: 4 con le foto e 8 cartoline (R-28).
 
-Il controllo visivo contro le pagine statiche lo fa una persona (vedi gli appunti).
+Il controllo visivo contro le pagine statiche (`docs/pagine/`) lo fa una persona.
 
 ## 4. Chiusura degli sprint successivi (T2a-07, T2b-07, T3-07)
 

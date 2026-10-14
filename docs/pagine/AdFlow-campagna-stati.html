@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Campagna · Stati</title>
+  <link rel="stylesheet" href="assets/adflow.css">
+</head>
+<body>
+
+<div class="app-container">
+  <!-- Left Sidebar (Artigiano Mode) -->
+  <aside class="app-sidebar">
+    <div class="sidebar-header">
+      <div class="brand-icon-wrapper" style="background: linear-gradient(135deg, #10B981 0%, #059669 100%);">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect>
+          <line x1="16" y1="2" x2="16" y2="6"></line>
+          <line x1="8" y1="2" x2="8" y2="6"></line>
+          <line x1="3" y1="10" x2="21" y2="10"></line>
+        </svg>
+      </div>
+      <div class="brand-text">
+        <h1>AdFlow</h1>
+        <span>Suite · Artigiano</span>
+      </div>
+    </div>
+
+    <nav class="sidebar-nav">
+      <div class="nav-section-label">Area Bottega</div>
+      <a href="AdFlow-campagna.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
+        <span>Nuova Campagna</span>
+      </a>
+      <a href="AdFlow-campagna-stati.html" class="nav-link active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        <span>Stati & Calendario</span>
+      </a>
+      <a href="AdFlow-profilo-bottega.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+        <span>Profilo Bottega</span>
+      </a>
+
+      <div class="nav-section-label">Riferimenti</div>
+      <a href="index.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+        <span>Mappa Pagine</span>
+      </a>
+    </nav>
+
+    <div class="sidebar-footer">
+      <div class="user-profile-card">
+        <img src="assets/img/bottega-logo.jpg" alt="Mario Bianchi" class="user-avatar" onerror="this.outerHTML='<div class=\'user-avatar placeholder\'>MB</div>'">
+        <div class="user-info">
+          <div class="user-name">Mario Bianchi</div>
+          <div class="user-role">Falegnameria Bianchi</div>
+        </div>
+      </div>
+      <a href="AdFlow-operatore-da-approvare.html" class="role-switch-btn" title="Passa alla vista Operatore Consorzio">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
+        <span>Vista Operatore (Laura Rossi)</span>
+      </a>
+    </div>
+  </aside>
+
+  <div class="app-main">
+    <!-- fascia-mappa: stato della pagina statica e ritorno alla mappa. Non fa parte della schermata. -->
+    <header class="app-topbar">
+      <div class="topbar-left">
+        <div class="stato-pagina">Pagina statica · <strong>MVP</strong> · ADR-55, ADR-68, ADR-87 · si fonde nella pagina Campagna · domande chiuse: ADR-104 · stile: ADR-113 · perimetro: ADR-114</div>
+      </div>
+
+      <div class="topbar-right">
+        <a href="index.html" class="icon-btn" title="Mappa delle pagine">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
+        </a>
+        <a href="AdFlow-login.html" class="icon-btn" title="Esci">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path><polyline points="16 17 21 12 16 7"></polyline><line x1="21" y1="12" x2="9" y2="12"></line></svg>
+        </a>
+      </div>
+    </header>
+    <!-- /fascia-mappa -->
+
+    <main class="content-wrapper">
+      <nav class="breadcrumb-trail">
+        <a href="AdFlow-campagna.html">Area Bottega</a>
+        <span class="breadcrumb-sep">/</span>
+        <span class="breadcrumb-current">Campagna dopo l'invio · viste di stato</span>
+      </nav>
+
+      <div class="page-header">
+        <div class="page-title-group">
+          <h1 class="page-title">Campagna · viste di stato</h1>
+          <span id="active-state-pill" class="status-pill review">in_revisione</span>
+        </div>
+        <div class="page-actions">
+          <a href="AdFlow-campagna.html#gate" class="btn btn-secondary">+ Nuova campagna</a>
+        </div>
+      </div>
+
+      <p class="lead">
+        Dopo "Invia all'operatore" la pagina <a href="AdFlow-campagna.html">Campagna</a> non mostra più i passi 10–12: mostra una di queste viste, scelta dallo stato della campagna. L'artigiano vede l'esito del lavoro dell'operatore, mai il lavoro in corso.
+      </p>
+
+      <!-- Scelta della vista: una per stato -->
+      <div class="surface-card" style="padding: 14px 18px; margin-bottom: 24px;">
+        <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;">
+          Viste per stato (ADR-104)
+        </div>
+        <div style="display: flex; gap: 8px; flex-wrap: wrap;" id="scelta-stato">
+          <button type="button" class="btn btn-secondary btn-sm" data-vista="generazione" data-pill="info" data-testo="inviata · in_generazione">inviata · in_generazione</button>
+          <button type="button" class="btn btn-secondary btn-sm" data-vista="fallita" data-pill="danger" data-testo="generazione_fallita">generazione_fallita</button>
+          <button type="button" class="btn btn-primary btn-sm" data-vista="revisione" data-pill="review" data-testo="in_revisione">in_revisione</button>
+          <button type="button" class="btn btn-secondary btn-sm" data-vista="respinta" data-pill="danger" data-testo="respinta">respinta</button>
+          <button type="button" class="btn btn-secondary btn-sm" data-vista="scaduta" data-pill="danger" data-testo="scaduta">scaduta</button>
+          <button type="button" class="btn btn-secondary btn-sm" data-vista="attiva" data-pill="success" data-testo="attiva">attiva (calendario)</button>
+          <button type="button" class="btn btn-secondary btn-sm" data-vista="conclusa" data-pill="success" data-testo="conclusa">conclusa</button>
+        </div>
+      </div>
+
+      <!-- inviata · in_generazione -->
+      <div id="generazione" class="state-panel" style="display:none;">
+        <div class="surface-card bordo-primario" style="margin-bottom: 24px;">
+          <div class="surface-card-header">
+            <div>
+              <h3 class="surface-card-title">Campagna inviata</h3>
+              <span class="sotto">Stato · inviata · in_generazione</span>
+            </div>
+            <span class="status-pill info">Preparazione dei post</span>
+          </div>
+          <div class="surface-card-body">
+            <div class="avviso-box info">
+              <strong>Generazione dei post in corso…</strong> Stiamo preparando i post di "Campagna Ottobre 2026". Poi li rivede il consorzio: non devi fare nulla.
+            </div>
+            <div class="passi">
+              <div class="passo fatto"><div class="segno">✓</div>Inviata<span class="sotto">il 25/09/2026 alle 10:12</span></div>
+              <div class="passo ora"><div class="segno">●</div>Preparazione dei post<span class="sotto">in corso</span></div>
+              <div class="passo"><div class="segno">○</div>Revisione del consorzio</div>
+              <div class="passo"><div class="segno">○</div>Pubblicazione<span class="sotto">dal 01/10/2026</span></div>
+            </div>
+            <dl class="dati-lista sinistra">
+              <div><dt>Periodo</dt><dd>01/10/2026 → 31/10/2026</dd></div>
+              <div><dt>Canali</dt><dd>Facebook, Instagram</dd></div>
+              <div><dt>Ritmo scelto</dt><dd>3 post a settimana per canale · 13 per canale nel periodo</dd></div>
+              <div><dt>Foto</dt><dd>6 foto in 3 gruppi</dd></div>
+              <div><dt>Immagini AI</dt><dd>Per i post che le foto non coprono: circa 7 per canale</dd></div>
+            </dl>
+            <p class="nota-card">Dati e foto in sola lettura: dopo l'invio non si modificano.</p>
+            <p class="nota-card">Subito dopo l'invio (T1-52). I due stati hanno la stessa vista: per l'artigiano cambia solo l'attesa.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- generazione_fallita -->
+      <div id="fallita" class="state-panel" style="display:none;">
+        <div class="surface-card bordo-errore" style="margin-bottom: 24px;">
+          <div class="surface-card-header">
+            <div>
+              <h3 class="surface-card-title">C'è stato un problema tecnico</h3>
+              <span class="sotto">Stato · generazione_fallita</span>
+            </div>
+            <span class="status-pill danger">In attesa del consorzio</span>
+          </div>
+          <div class="surface-card-body">
+            <div class="avviso-box errore">
+              <strong>Non siamo riusciti a preparare i post.</strong> Il problema è nostro, non della tua campagna: il consorzio la fa ripartire. Dati e foto sono al sicuro, non devi reinviarli.
+            </div>
+            <div class="passi">
+              <div class="passo fatto"><div class="segno">✓</div>Inviata<span class="sotto">il 25/09/2026 alle 10:12</span></div>
+              <div class="passo fermo"><div class="segno">!</div>Preparazione dei post<span class="sotto">in attesa del consorzio</span></div>
+              <div class="passo"><div class="segno">○</div>Revisione del consorzio</div>
+              <div class="passo"><div class="segno">○</div>Pubblicazione<span class="sotto">dal 01/10/2026</span></div>
+            </div>
+            <p class="nota-card">L'artigiano non ha un pulsante: la Riprova è dell'operatore (R-35).</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- in_revisione -->
+      <div id="revisione" class="state-panel">
+        <div class="surface-card bordo-attn" style="margin-bottom: 24px;">
+          <div class="surface-card-header">
+            <div>
+              <h3 class="surface-card-title">Il consorzio sta rivedendo i post</h3>
+              <span class="sotto">Stato · in_revisione</span>
+            </div>
+            <span class="status-pill review">Revisione del consorzio</span>
+          </div>
+          <div class="surface-card-body">
+            <div class="avviso-box info">
+              I post sono pronti e li sta controllando un operatore. Ti scriviamo per email appena c'è una decisione. La campagna parte il <strong>01/10/2026</strong>.
+            </div>
+            <div class="passi">
+              <div class="passo fatto"><div class="segno">✓</div>Inviata<span class="sotto">il 25/09/2026 alle 10:12</span></div>
+              <div class="passo fatto"><div class="segno">✓</div>Post preparati</div>
+              <div class="passo ora"><div class="segno">●</div>Revisione del consorzio<span class="sotto">in corso</span></div>
+              <div class="passo"><div class="segno">○</div>Pubblicazione<span class="sotto">dal 01/10/2026</span></div>
+            </div>
+            <p class="nota-card">Nessun piano e nessun post visibile (spec §4, CA-31). Una campagna vecchia rimasta in <code>piano_da_rivedere</code> ha la stessa vista.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- respinta -->
+      <div id="respinta" class="state-panel" style="display:none;">
+        <div class="surface-card bordo-attn" style="margin-bottom: 24px;">
+          <div class="surface-card-header">
+            <div>
+              <h3 class="surface-card-title">La campagna non è stata approvata</h3>
+              <span class="sotto">Stato · respinta</span>
+            </div>
+            <span class="status-pill danger">Respinta il 22/06/2026</span>
+          </div>
+          <div class="surface-card-body">
+            <div class="avviso-box attn">
+              <strong>Motivo: foto scattate male.</strong> Richiesta del consorzio: "Le foto del laboratorio sono troppo buie: ricaricale con più luce e aggiungi il tavolo finito."
+            </div>
+            <h4 class="titolo-sezione" style="font-size: 14px; margin-bottom: 10px;">Foto da rifare (2 su 6)</h4>
+            <div class="foto-griglia">
+              <div class="foto piccola rifare">laboratorio-1.jpg</div>
+              <div class="foto piccola rifare">laboratorio-2.jpg</div>
+              <div class="foto piccola">tavolo-rovere-01.jpg</div>
+              <div class="foto piccola">tavolo-rovere-02.jpg</div>
+              <div class="foto piccola">sedie-01.jpg</div>
+              <div class="foto piccola">sedie-02.jpg</div>
+            </div>
+            <dl class="dati-lista sinistra" style="margin-bottom: 16px;">
+              <div><dt>Campagna</dt><dd>Campagna Luglio 2026 · 01/07 → 31/07/2026</dd></div>
+              <div><dt>Respinta il</dt><dd>22/06/2026</dd></div>
+            </dl>
+            <a href="AdFlow-campagna.html#gate" class="btn btn-primary">Crea una nuova campagna →</a>
+            <p class="nota-card">Variante con motivo "altro": solo la nota, senza le foto segnate.</p>
+            <p class="nota-card">Motivo, nota e foto da rifare: gli stessi dell'email e dell'avviso nel Bentornato. La campagna è chiusa (R-15): se ne crea una nuova, con foto e testi da inserire di nuovo.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- scaduta -->
+      <div id="scaduta" class="state-panel" style="display:none;">
+        <div class="surface-card bordo-errore" style="margin-bottom: 24px;">
+          <div class="surface-card-header">
+            <div>
+              <h3 class="surface-card-title">La campagna non è partita</h3>
+              <span class="sotto">Stato · scaduta</span>
+            </div>
+            <span class="status-pill danger">Scaduta</span>
+          </div>
+          <div class="surface-card-body">
+            <div class="avviso-box attn">
+              <strong>La campagna non è stata approvata in tempo.</strong> "Campagna Agosto 2026" doveva partire il 01/08/2026 e il consorzio non è riuscito ad approvarla prima. Nessun post è stato pubblicato. Per la prossima campagna carica di nuovo le foto che vuoi usare.
+            </div>
+            <a href="AdFlow-campagna.html#gate" class="btn btn-primary">Crea una nuova campagna →</a>
+            <p class="nota-card">Scadenza morbida (R-06, ADR-95): i post scadono uno per uno quando passa la loro data, e la campagna scade quando ne restano da approvare meno della metà di quelli chiesti; senza piano, alle 00:00 del giorno di inizio. Chiusa: se ne crea una nuova.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- attiva -->
+      <div id="attiva" class="state-panel" style="display:none;">
+        <div class="surface-card bordo-ok" style="margin-bottom: 24px;">
+          <div class="surface-card-header">
+            <div>
+              <h3 class="surface-card-title">Campagna Ottobre 2026</h3>
+              <span class="sotto">Stato · attiva</span>
+            </div>
+            <span class="status-pill success">in corso · 10 pubblicati su 26</span>
+          </div>
+          <div class="surface-card-body">
+            <div class="avviso-box info">
+              <strong>Il piano di questa campagna.</strong> Tredici temi in ottobre: il tavolo in rovere, le sedie su misura, il laboratorio, le porte aperte del 17 e, dove le foto non bastavano, immagini create dall'AI con il legno, gli attrezzi e la bottega in autunno. Ogni tema esce prima su Facebook, con un testo che racconta, e il giorno dopo su Instagram, con la foto in primo piano e poche righe.
+            </div>
+
+            <dl class="dati-lista sinistra" style="margin-bottom: 20px;">
+              <div><dt>Post</dt><dd><strong>26</strong> post · <strong>10</strong> pubblicati · <strong>15</strong> in programma · <strong>1</strong> non pubblicato · <strong>0</strong> scaduti prima dell'approvazione</dd></div>
+              <div><dt>Canali e foto</dt><dd>Facebook <strong>13</strong> · Instagram <strong>13</strong> · Con le tue foto <strong>12</strong> · Con immagine AI <strong>14</strong></dd></div>
+            </dl>
+
+            <h4 class="titolo-sezione" style="font-size: 15px; margin-bottom: 8px;">Calendario · per giorno</h4>
+            <div class="legenda-riga">
+              <span class="status-pill success piccola">pubblicato</span>
+              <span class="status-pill neutral piccola">in programma</span>
+              <span class="status-pill danger piccola">non pubblicato</span>
+              <span class="status-pill neutral tratteggio piccola">immagine AI</span>
+              <span>Oggi è mercoledì 14 ottobre.</span>
+            </div>
+
+            <p class="nota-card" style="margin: 12px 0;">Dal 01/10 all'08/10: 8 post pubblicati, uno al giorno, Facebook e Instagram alternati.</p>
+
+            <div class="sotto" style="font-weight: 700; margin: 16px 0 6px;">Venerdì 9 ottobre</div>
+            <div class="post-riga">
+              <div class="foto piccola">mani-sgorbia.jpg</div>
+              <div>
+                <div class="quando"><span>ore 12:30 · Instagram</span><span class="status-pill danger piccola">non pubblicato</span></div>
+                <p>"Ogni nodo del legno racconta una stagione…"</p>
+                <div class="numeri"><span>Non è stato possibile pubblicarlo. Il consorzio è già stato avvisato.</span></div>
+              </div>
+            </div>
+
+            <div class="sotto" style="font-weight: 700; margin: 16px 0 6px;">Sabato 10 · domenica 11 ottobre</div>
+            <p class="nota-card" style="margin: 0 0 6px;">2 post pubblicati.</p>
+
+            <div class="sotto" style="font-weight: 700; margin: 16px 0 6px;">Martedì 13 ottobre</div>
+            <div class="post-riga">
+              <div class="foto piccola">laboratorio-2.jpg</div>
+              <div>
+                <div class="quando"><span>ore 18:30 · Facebook</span><span class="status-pill success piccola">pubblicato</span></div>
+                <p>"Chi entra in laboratorio chiede sempre la stessa cosa: quanto ci vuole per un tavolo? Dipende dal legno, e dalla pazienza…" #falegnameria #bra</p>
+              </div>
+            </div>
+
+            <div class="sotto" style="font-weight: 700; margin: 16px 0 6px;">Mercoledì 14 ottobre · oggi</div>
+            <div class="post-riga">
+              <div class="foto piccola">laboratorio-2.jpg</div>
+              <div>
+                <div class="quando"><span>ore 12:30 · Instagram</span><span class="status-pill neutral piccola">in programma</span></div>
+                <p>"Il banco, la luce del mattino, i trucioli: qui prende forma ogni pezzo…" #laboratorio #fattoamano</p>
+              </div>
+            </div>
+
+            <div class="sotto" style="font-weight: 700; margin: 16px 0 6px;">Giovedì 15 ottobre</div>
+            <div class="post-riga">
+              <div class="foto piccola">immagine AI</div>
+              <div>
+                <div class="quando"><span>ore 18:30 · Facebook</span><span class="status-pill neutral piccola">in programma</span><span class="status-pill neutral tratteggio piccola">immagine AI</span></div>
+                <p>"Sabato 17 ottobre la bottega è aperta a tutti: vieni a vedere come nasce un tavolo, dalle 10 alle 18…" #porteaperte #bra · Immagine creata con AI</p>
+              </div>
+            </div>
+
+            <div class="sotto" style="font-weight: 700; margin: 16px 0 6px;">Venerdì 16 ottobre</div>
+            <div class="post-riga">
+              <div class="foto piccola">immagine AI</div>
+              <div>
+                <div class="quando"><span>ore 12:30 · Instagram</span><span class="status-pill neutral piccola">in programma</span><span class="status-pill neutral tratteggio piccola">immagine AI</span></div>
+                <p>"Porte aperte sabato: trucioli, profumo di rovere e un caffè." #porteaperte #fattoamano · Immagine creata con AI</p>
+                <div class="numeri"><span>La stessa immagine del post Facebook del giorno prima.</span></div>
+              </div>
+            </div>
+
+            <p class="nota-card" style="margin: 12px 0 0;">Dal 17/10 al 30/10: altri 12 post in programma.</p>
+
+            <p class="nota-card">Il piano approvato: la strategia in breve e, giorno per giorno, i post approvati, pubblicati, falliti o annullati, con ora, canale, stato, testo e foto, letti da <code>GET /campagne/{id}/calendario</code> (spec R-45, CA-56; T3-12 e T3-53). Un elenco, non una griglia del mese: nessuna libreria nuova (E1). Si vede solo dopo l'approvazione (ADR-68): mai post da approvare, scartati o scaduti, di cui dice solo il numero. Nell'esempio i giorni senza nulla da dire sono riassunti in una riga.</p>
+            <p class="nota-card">I numeri dell'esempio (ADR-81). Ritmo scelto: 3 a settimana per canale, 13 post per canale in ottobre. Escono sempre tutti. Con 6 foto: 6 temi con le foto e 7 con un'immagine creata dall'AI, la stessa sui due canali (spec R-28). Metriche: in roadmap (E2).</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- conclusa -->
+      <div id="conclusa" class="state-panel" style="display:none;">
+        <div class="surface-card bordo-ok" style="margin-bottom: 24px;">
+          <div class="surface-card-header">
+            <div>
+              <h3 class="surface-card-title">Campagna Settembre 2026</h3>
+              <span class="sotto">Stato · conclusa</span>
+            </div>
+            <span class="status-pill success">conclusa</span>
+          </div>
+          <div class="surface-card-body">
+            <dl class="dati-lista sinistra" style="margin-bottom: 16px;">
+              <div><dt>Post</dt><dd><strong>12</strong> post · <strong>11</strong> pubblicati · <strong>1</strong> non pubblicato</dd></div>
+            </dl>
+            <a href="AdFlow-campagna.html#gate" class="btn btn-primary">Crea una nuova campagna →</a>
+            <p class="nota-card">Stesso calendario per giorno della vista "attiva", con i post pubblicati o non pubblicati e i totali. Da qui si riparte. Nell'esempio 12 post su 12 chiesti: 4 con le foto di settembre e 8 con un'immagine creata dall'AI.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Note della pagina statica: non fanno parte della schermata -->
+      <div class="note-pagina">
+        <p><strong>Pagina statica.</strong> I pulsanti in alto mostrano una vista alla volta, con dati di esempio (Falegnameria Bianchi); nient'altro è interattivo. Le viste si fondono nella pagina Campagna: una campagna alla volta, con una riga di scelta in cima quando ce n'è più di una e l'elenco delle campagne passate in fondo (ADR-104). La barra laterale è la stessa nelle pagine Profilo e Campagna.</p>
+        <p><strong>Cosa cambia con l'MVP (ADR-114).</strong> Tolti: <code>piano_da_rivedere</code> (A3), le metriche (E2, in roadmap), la vista sospesa · annullata (B5 congelato, sospensione automatica D5 in roadmap: nell'MVP nessuna campagna ci arriva; il frontend la conserva per le righe vecchie), le foto d'archivio, le cartoline e le immagini chieste dall'artigiano (A10, A6, A4). Nuovi: il calendario come elenco per giorno nelle viste dopo l'approvazione (E1, spec R-45) e le immagini AI di rimpiazzo, segnate sui post (R-28).</p>
+      </div>
+
+    </main>
+  </div>
+</div>
+
+<script>
+  // Una vista alla volta: la sceglie un pulsante o l'ancora dell'indirizzo (#attiva, #respinta…)
+  function mostraVista(id) {
+    const scelto = document.querySelector('#scelta-stato [data-vista="' + id + '"]');
+    if (!scelto) return;
+    document.querySelectorAll('.state-panel').forEach(p => { p.style.display = p.id === id ? 'block' : 'none'; });
+    document.querySelectorAll('#scelta-stato .btn').forEach(b => {
+      b.classList.toggle('btn-primary', b === scelto);
+      b.classList.toggle('btn-secondary', b !== scelto);
+    });
+    const pill = document.getElementById('active-state-pill');
+    pill.textContent = scelto.dataset.testo;
+    pill.className = 'status-pill ' + scelto.dataset.pill;
+  }
+  document.querySelectorAll('#scelta-stato .btn').forEach(b => b.addEventListener('click', () => mostraVista(b.dataset.vista)));
+  const daAncora = () => mostraVista(location.hash.replace('#', ''));
+  window.addEventListener('hashchange', daAncora);
+  daAncora();
+</script>
+</body>
+</html>

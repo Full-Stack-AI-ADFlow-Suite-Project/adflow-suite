@@ -170,5 +170,4 @@ class ProfiloScrittura(DatiProfilo):
 
 class ProfiloPubblico(DatiProfilo):
     id: int
-    logo: str | None = None
     aggiornato_il: datetime
