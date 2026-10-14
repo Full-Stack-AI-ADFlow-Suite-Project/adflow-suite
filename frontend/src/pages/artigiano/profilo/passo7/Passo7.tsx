@@ -1,20 +1,15 @@
-import { useEffect, useState } from "react";
-import {
-  Alert,
-  Button,
-  Loader,
-  Select,
-  SimpleGrid,
-  Stack,
-  Text,
-} from "@mantine/core";
-import { leggiProfilo } from "../../../../api/artigiani";
+/**
+ * Passo 7 · Foto e contenuti: solo le tre preferenze sulle foto. Nell'MVP
+ * non ci sono né l'archivio della bottega (A10, congelato: SezioneArchivio
+ * resta nel codice, nascosta) né il logo (A7, tolto: è una foto come le
+ * altre). Le foto si caricano in ogni campagna.
+ */
+import { Alert, Select, SimpleGrid, Stack } from "@mantine/core";
 
 import type {
   DatiProfilo,
   SCELTE as ScelteTipo,
 } from "../../../../api/artigiani";
-import { SezioneArchivio } from "./SezioneArchivio";
 
 export function Passo7({
   dati,
@@ -28,25 +23,6 @@ export function Passo7({
   ) => void;
   scelte: typeof ScelteTipo;
 }) {
-  const [profilo, setProfilo] = useState<
-    "caricamento" | "presente" | "assente" | "errore"
-  >("caricamento");
-  const [tentativo, setTentativo] = useState(0);
-
-  useEffect(() => {
-    let attivo = true;
-    leggiProfilo()
-      .then((p) => {
-        if (attivo) setProfilo(p ? "presente" : "assente");
-      })
-      .catch(() => {
-        if (attivo) setProfilo("errore");
-      });
-    return () => {
-      attivo = false;
-    };
-  }, [tentativo]);
-
   const policy = (
     campo: "quantita_mese" | "chi_scatta" | "persone",
     label: string,
@@ -77,38 +53,13 @@ export function Passo7({
         {policy("persone", "Persone riconoscibili nelle foto")}
       </SimpleGrid>
 
-      {profilo === "presente" ? (
-        <SezioneArchivio />
-      ) : profilo === "assente" ? (
-        <Alert color="blue" title="Prima salva il profilo">
-          L'archivio della bottega sarà disponibile dopo il primo salvataggio.
-          Completa il passo 9, poi riapri Profilo bottega e torna al passo 7 per
-          caricare le foto.
-        </Alert>
-      ) : profilo === "errore" ? (
-        <Alert color="red" title="Archivio non disponibile">
-          <Text size="sm">
-            Non riesco a verificare se il profilo è già salvato. Riprova.
-          </Text>
-          <Button
-            mt="sm"
-            variant="default"
-            onClick={() => {
-              setProfilo("caricamento");
-              setTentativo((n) => n + 1);
-            }}
-          >
-            Riprova
-          </Button>
-        </Alert>
-      ) : (
-        <Stack align="center" gap="xs">
-          <Loader size="sm" aria-label="Verifica del profilo" />
-          <Text size="sm" c="dimmed">
-            Verifico se l'archivio è disponibile.
-          </Text>
-        </Stack>
-      )}
+      <Alert color="verde" variant="light">
+        Le foto si caricano in ogni campagna, a gruppi. Se in una campagna le
+        foto non bastano per i post a settimana che hai scelto, per quelli che
+        mancano creiamo un'immagine con l'AI: ambienti, materiali, attrezzi e
+        atmosfere, mai un prodotto che non è tuo. Se hai un logo, caricalo come
+        una foto qualsiasi.
+      </Alert>
     </Stack>
   );
 }
