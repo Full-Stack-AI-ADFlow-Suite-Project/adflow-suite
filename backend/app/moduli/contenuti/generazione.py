@@ -66,7 +66,6 @@ ANALISI = "analisi"
 PIANO = "piano"
 TESTI = "testi"
 FINE = "fine"
-TAPPE = (AVVIO, ANALISI, PIANO, TESTI, FINE)
 
 _CAMPI_ANALISI = ("idonea", "simile_a", "tipo", "punteggio", "motivo", "soggetto")
 

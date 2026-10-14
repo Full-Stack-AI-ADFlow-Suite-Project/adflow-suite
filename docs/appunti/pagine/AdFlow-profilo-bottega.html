@@ -56,7 +56,7 @@
           <div class="user-role">Falegnameria Bianchi</div>
         </div>
       </div>
-      <a href="AdFlow-operatore-ingresso.html" class="role-switch-btn" title="Passa alla vista Operatore Consorzio">
+      <a href="AdFlow-operatore-da-approvare.html" class="role-switch-btn" title="Passa alla vista Operatore Consorzio">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
         <span>Vista Operatore (Laura Rossi)</span>
       </a>
@@ -67,7 +67,7 @@
     <!-- fascia-mappa: stato della pagina statica e ritorno alla mappa. Non fa parte della schermata. -->
     <header class="app-topbar">
       <div class="topbar-left">
-        <div class="stato-pagina">Pagina statica · <strong>approvata</strong> · ADR-47 · frequenza, archivio e logo: ADR-81, ADR-83, ADR-87, ADR-88 · stile: ADR-113</div>
+        <div class="stato-pagina">Pagina statica · <strong>MVP</strong> · ADR-47 · frequenza: ADR-81, ADR-87 · stile: ADR-113 · perimetro: ADR-114 (passo 7 senza archivio né logo)</div>
       </div>
 
       <div class="topbar-right">
@@ -303,7 +303,7 @@
               <h3 class="surface-card-title">07 · Foto e contenuti · Cosa possiamo fotografare</h3>
               <span class="sotto">Le foto reali alimentano ogni post: più chiarezza qui, meno rilavorazioni dopo.</span>
             </div>
-            <span class="status-pill review">Archivio e logo: sprint 2a</span>
+            <span class="status-pill neutral">Senza archivio né logo (ADR-114)</span>
           </div>
           <div class="surface-card-body">
             <div class="griglia-3">
@@ -334,20 +334,8 @@
               </div>
             </div>
 
-            <div class="form-group">
-              <label class="form-label">Archivio della bottega (facoltativo)</label>
-              <div class="form-hint" style="margin: 0 0 10px;">Foto sempre valide: il laboratorio, tu al lavoro, la vetrina, i pezzi a cui tieni. Le usiamo quando in una campagna le foto nuove non bastano a tenere il ritmo che hai scelto. Si caricano a gruppi, con una descrizione, come nella pagina Campagna. Qui finiscono da sole anche le foto buone delle tue campagne.</div>
-              <button type="button" class="btn btn-secondary btn-sm">+ Aggiungi un gruppo di foto all'archivio</button>
-            </div>
-
-            <div class="form-group">
-              <label class="form-label" for="fo_logo">Logo della bottega (facoltativo)</label>
-              <input type="file" id="fo_logo" accept="image/*" class="form-input">
-              <div class="form-hint">Serve per le cartoline: un'immagine con il logo e una frase, per un evento, gli orari o un augurio. Senza logo usiamo il nome della bottega.</div>
-            </div>
-
-            <div class="avviso-box attn" style="margin-bottom: 0;">
-              <strong>Sprint 2a (ADR-88).</strong> Archivio e logo si costruiscono insieme a questa pagina; le tabelle sono già pronte (ADR-86). Nello sprint 1 i post che le foto non coprono sono cartoline con il nome della bottega.
+            <div class="avviso-box info" style="margin-bottom: 0;">
+              Le foto si caricano in ogni campagna, a gruppi. Se in una campagna le foto non bastano per i post a settimana che hai scelto, per quelli che mancano creiamo un'immagine con l'AI: ambienti, materiali, attrezzi e atmosfere, mai un prodotto che non è tuo. Se hai un logo, caricalo come una foto qualsiasi.
             </div>
           </div>
         </div>
@@ -418,7 +406,7 @@
                   <option>5 o più a settimana</option>
                   <option>Non so, decidete voi</option>
                 </select>
-                <div class="form-hint">È il ritmo che ci impegniamo a tenere e la misura del prezzo, contata sul totale dei canali di ogni campagna: 3 a settimana su due canali sono 6 post a settimana (ADR-81).</div>
+                <div class="form-hint">È il ritmo che ci impegniamo a tenere su ogni canale della campagna: 3 a settimana su due canali sono 6 post a settimana (ADR-81). Se le foto non bastano, i post che mancano hanno un'immagine creata con l'AI.</div>
               </div>
               <div class="form-group">
                 <label class="form-label" for="lo_orari">Giorno o orario in cui i tuoi clienti sono più attivi (opzionale)</label>
@@ -450,6 +438,7 @@
       <!-- Note della pagina statica: non fanno parte della schermata -->
       <div class="note-pagina">
         <p><strong>Schema statico, non interattivo</strong> (v5.0, ADR-47): mostra in sequenza tutte le sezioni della pagina con dati di esempio. Non salva né valida nulla — è lo scheletro da cui costruire la pagina reale nel software.</p>
+        <p><strong>Cosa cambia con l'MVP (ADR-114).</strong> Il passo 7 non ha più l'archivio della bottega (A10, congelato: codice e API restano, la sezione è nascosta) né il logo (A7, tolto: è una foto come le altre). Le foto che mancano in una campagna diventano immagini AI (A4, spec R-28). Nessun prezzo nella pagina (spec R-26). Il resto è com'era.</p>
       </div>
 
     </main>
