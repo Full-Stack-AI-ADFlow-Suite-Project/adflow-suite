@@ -440,7 +440,7 @@ Dalla roadmap (`docs/ROADMAP.md`), in ordine indicativo:
 
 ### Fonti
 
-`docs/agenti/perimetro-mvp.md` (ADR-114), `spec.md` §0–§6, `plan.md` §1–§5, `constitution.md` §2, `tasks.md`, `docs/ROADMAP.md`, pagine statiche in `docs/appunti/pagine/`.
+`docs/agenti/perimetro-mvp.md` (ADR-114), `spec.md` §0–§6, `plan.md` §1–§5, `constitution.md` §2, `tasks.md`, `docs/ROADMAP.md`, pagine statiche in `docs/pagine/`.
 
 ### Cosa resta da confermare
 

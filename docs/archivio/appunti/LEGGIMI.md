@@ -1,3 +1,5 @@
+> **Archiviato il 14/10/2026 (ADR-115).** Questa cartella era `docs/appunti/`: `pagine/` oggi è `docs/pagine/` e `ADR.md` è `docs/ADR.md`; il resto è qui. Il testo sotto descrive la cartella com'era.
+
 # Appunti · archivio
 
 Dal 13/10/2026 gli appunti sono un **archivio** (ADR-114, decisione F4): non fanno più testo e non si assorbono più nel canale agenti. Fanno eccezione le pagine statiche, che T3-03 aggiorna all'MVP e che tornano il riferimento per l'interfaccia. Vale soltanto `docs/agenti/`, e lì vale prima di tutto `perimetro-mvp.md`. Ciò che non entra nell'MVP è in `docs/ROADMAP.md`.

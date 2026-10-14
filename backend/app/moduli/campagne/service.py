@@ -20,6 +20,10 @@ from app.moduli.artigiani import service as artigiani_service
 
 from .domain import (
     BOZZA,
+    ATTIVA,
+    SOSPESA,
+    CONCLUSA,
+    ANNULLATA,
     GENERAZIONE_FALLITA,
     INVIATA,
     ESITI_DECISIONE,
@@ -32,6 +36,13 @@ from .domain import (
     TRANSIZIONI,
 )
 from .immagini import MAX_FOTO_PER_GRUPPO, analizza_e_valida_immagine
+from .sistemazione_foto import sistema_foto_buffer
+from .foto_pubblica import (
+    DURATA_PREDEFINITA_SECONDI,
+    componi_firma as componi_firma_foto,
+    genera_url_pubblico as genera_url_pubblico_foto,
+    verifica_firma as verifica_firma_foto,
+)
 from .models import Campagna, DecisioneCampagna, Foto, GruppoFoto
 from .schemas import (
     CampagnaCrea,
@@ -1198,7 +1209,11 @@ def _campagna_per_invio(db: Session, campagna_id: int) -> Campagna:
 
 
 def invia_campagna(
-    db: Session, utente_id: int, campagna_id: int, ora: datetime
+    db: Session,
+    utente_id: int,
+    campagna_id: int,
+    ora: datetime,
+    dichiarazione: bool = False,
 ) -> Campagna:
     """Ricontrolla la bozza e fotografa il profilo prima di accodare la generazione."""
     rec = _campagna_per_invio(db, campagna_id)
@@ -1209,6 +1224,8 @@ def invia_campagna(
         raise NonTrovato("Campagna non trovata.")
     if rec.stato != BOZZA:
         raise StatoNonValido("Si possono inviare solo campagne in bozza.")
+    if not dichiarazione:
+        raise DatiNonValidi("Confermare la dichiarazione sulle foto prima dell'invio.")
 
     oggi = ora.astimezone(ROMA).date() if ora.tzinfo else ora.date()
     anticipo = leggi_impostazioni().anticipo_minimo_giorni
@@ -1255,14 +1272,16 @@ def invia_campagna(
                 raise DatiNonValidi("Indicare da 1 a 20 immagini da creare.")
         else:
             raise DatiNonValidi("Origine del gruppo non valida.")
-    if caricate < 4:
-        raise DatiNonValidi("Caricare almeno 4 foto prima dell'invio.")
 
     rec.profilo_snapshot = {
         colonna.name: deepcopy(getattr(profilo, colonna.name))
         for colonna in profilo.__table__.columns
         if colonna.name not in ("id", "aggiornato_il")
     }
+    rec.profilo_snapshot["dichiarazione"] = True
+    rec.profilo_snapshot["dichiarazione_data"] = (
+        ora.isoformat() if hasattr(ora, "isoformat") else str(ora)
+    )
     rec.frequenza = profilo.frequenza
     rec.obiettivo = profilo.obiettivo
     rec.inviata_il = ora
@@ -1281,3 +1300,100 @@ def riprova_campagna(db: Session, campagna_id: int, ora: datetime) -> Campagna:
     cambia_stato(db, rec, INVIATA, ora=ora)
     coda.accoda(coda.GENERA_CAMPAGNA, campagna_id=rec.id)
     return rec
+
+
+def campagna_per_calendario(
+    db: Session,
+    campagna_id: int,
+    utente_id: int,
+    ruolo: str,
+) -> Campagna:
+    """R-45: proprietà prima dello stato, senza esporre campagne altrui."""
+    if ruolo not in ("artigiano", "operatore", "admin"):
+        raise NonPermesso("Non hai i permessi per visualizzare le campagne.")
+    record = campagna(db, campagna_id)
+    if ruolo == "artigiano":
+        profilo = artigiani_service.profilo_di(db, utente_id)
+        if profilo is None or profilo.id != record.profilo_id:
+            raise NonTrovato("Campagna non trovata.")
+    if record.stato not in (ATTIVA, SOSPESA, CONCLUSA, ANNULLATA):
+        raise StatoNonValido("Il calendario è disponibile dopo l'approvazione.")
+    return record
+
+
+def decisioni_canali_tolti(db: Session, campagna_id: int) -> list[DecisioneCampagna]:
+    """Le sole note dei canali tolti, pubbliche anche per l'artigiano (R-45)."""
+    return list(
+        db.scalars(
+            select(DecisioneCampagna)
+            .where(
+                DecisioneCampagna.campagna_id == campagna_id,
+                DecisioneCampagna.esito == "canale_tolto",
+            )
+            .order_by(DecisioneCampagna.id)
+        )
+    )
+
+
+def sistema_foto(
+    dati: bytes,
+    canale: str = "instagram",
+    proporzione: str | None = None,
+) -> bytes:
+    """Sistemazione locale di una foto (Pillow) secondo spec R-42 e CA-81.
+
+    Esegue: rotazione da metadati EXIF, rimozione GPS e metadati identificativi,
+    ritaglio al centro se fuori dalle proporzioni del canale (1:1 o 4:5),
+    ridimensionamento con lato corto esattamente a 1080 px, autocontrasto leggero
+    e salvataggio in formato JPEG. Invariante §1.3: la foto originale resta intatta.
+    """
+    return sistema_foto_buffer(dati, canale=canale, proporzione=proporzione)
+
+
+def foto_sistemata(
+    db: Session,
+    foto_id: int,
+    canale: str = "instagram",
+    proporzione: str | None = None,
+) -> tuple[bytes, str]:
+    """Recupera la foto dall'archivio e restituisce i byte JPEG sistemati e il mime-type.
+
+    Il file originale archiviato non viene modificato (costituzione §1.3).
+    """
+    foto = db.get(Foto, foto_id)
+    if foto is None:
+        raise NonTrovato("Foto non trovata.")
+    archivio = ottieni_archivio()
+    try:
+        originale = archivio.leggi(foto.file)
+    except FileNotFoundError:
+        raise NonTrovato("File immagine non trovato nell'archivio.")
+
+    elaborata = sistema_foto_buffer(originale, canale=canale, proporzione=proporzione)
+    return elaborata, "image/jpeg"
+
+
+def url_foto_pubblica(
+    db: Session,
+    foto_id: int,
+    canale: str = "instagram",
+    durata_secondi: int = DURATA_PREDEFINITA_SECONDI,
+    url_base: str | None = None,
+) -> str:
+    """Restituisce l'URL pubblico firmato a tempo per il canale (spec R-42, CA-81).
+
+    Usato da ``pubblicazione`` e dall'adattatore Meta per Instagram (plan §5, brief-meta §1).
+    Verifica che la foto esista nel database prima di generare l'indirizzo.
+
+    Raises:
+        NonTrovato: se non esiste nessuna foto con quell'id.
+    """
+    foto = db.get(Foto, foto_id)
+    if foto is None:
+        raise NonTrovato("Foto non trovata.")
+    return genera_url_pubblico_foto(
+        foto_id=foto_id,
+        canale=canale,
+        durata_secondi=durata_secondi,
+        url_base=url_base,
+    )

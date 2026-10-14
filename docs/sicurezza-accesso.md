@@ -1,143 +1,66 @@
-# Follow-up #16–19 · sicurezza dell'accesso
+# Sicurezza dell'accesso · procedura operativa
 
-Implementazione richiesta da Gianluca dopo l'apertura delle issue; comprende
-la corsia 0 (configurazione, composizione, tabella e migrazione) e la corsia 1
-(accesso). T1-11, T1-12 e T1-13 sono integrati in `main` tramite le PR #28 e #30
-(la #31 era stata unita nel branch della #30). La PR #36 si appoggia a `main`
-e sostituisce la #21, chiusa senza merge dopo l'eliminazione della vecchia base.
-Le parti comuni richiedono la revisione
-di tutto il team; il merge resta all'admin. Nessun nuovo servizio.
+Cosa fa il codice per proteggere l'accesso e cosa deve fare chi installa AdFlow in un ambiente reale. Le regole di sicurezza del progetto sono in `docs/agenti/constitution.md` §3; qui c'è il dettaglio operativo (issue #16–19). La storia delle PR che l'hanno costruito è in `docs/archivio/novita/` e in git.
 
-## #16 · contatori condivisi PostgreSQL
+## In produzione, prima dell'avvio
 
-La migrazione 009 crea `limite_login`. Sono due limiti indipendenti: IP e
-identità dell'account. Cinque richieste per ciascuno in una finestra di 900 secondi
-a partire dal primo tentativo. I valori sono configurabili in `.env` mediante
-`LOGIN_LIMITE_TENTATIVI` e `LOGIN_FINESTRA_SECONDI`. Anche un accesso riuscito
-consuma un tentativo; un blocco non revoca le sessioni già valide. I payload
-malformati consumano il limite IP prima della validazione. Gli header inoltrati
-si accettano solo attraverso la configurazione fidata di Uvicorn.
+1. `uv run alembic upgrade head` (la migrazione 009 crea i contatori dei tentativi di accesso).
+2. In `backend/.env`:
+   - `AMBIENTE=produzione`;
+   - `LOGIN_LIMITE_SEGRETO` casuale, di almeno 32 caratteri, uguale su tutte le istanze (mai il valore finto di `.env.example`: in produzione l'applicazione lo rifiuta);
+   - `EMAIL_TEST_ENVIRONMENT=false`;
+   - `OROLOGIO_GIORNI_AVANTI=0` (con un altro valore l'applicazione non parte).
+3. Uvicorn dietro un proxy che termina HTTPS (vedi sotto), con gli access log spenti.
+4. Raccolta di stderr per gli eventi di sicurezza, con rotazione, conservazione e accessi decisi dal team.
 
-L'upsert PostgreSQL serializza gli incrementi concorrenti. La prenotazione usa
-una transazione distinta dalla sessione di autenticazione: un 401 o rollback
-del login non ripristina il contatore. I contatori sopravvivono ai riavvii e
-sono condivisi tra processi/istanze. Non servono Redis o SQLite.
-Login, logout e rinnovo chiudono la dipendenza database prima di inviare la risposta:
-il browser riceve il cookie soltanto dopo il commit della sessione.
-Il contatore satura a limite+1; un 429 restituisce `Retry-After` e `no-store`.
-In caso di guasto del database il login restituisce 503, senza bypass.
-La pulizia elimina al massimo 100 contatori scaduti per prenotazione; una
-scadenza esatta apre una nuova finestra. Cambiare il segreto resetta le chiavi
-logiche: farlo come operazione coordinata, senza lasciare istanze con segreti diversi.
+## Limite dei tentativi di accesso
 
-Le chiavi sono HMAC-SHA256 di IP/account con un prefisso distinto; non si
-salvano IP o email in chiaro. `LOGIN_LIMITE_SEGRETO` deve essere casuale,
-almeno 32 caratteri, custodito in `.env` e uguale su tutte le istanze.
-La modalità produzione rifiuta il valore finto. Le chiavi sono pseudonimi, non
-dati anonimi: permettono correlazione e, con il segreto, verifica degli identificatori.
+- Due limiti indipendenti, per IP e per account: **5** richieste ciascuno in una finestra di **900** secondi dal primo tentativo (`LOGIN_LIMITE_TENTATIVI`, `LOGIN_FINESTRA_SECONDI`). Anche un accesso riuscito consuma un tentativo; un blocco non revoca le sessioni già valide; i dati malformati consumano il limite per IP prima della validazione.
+- Oltre il limite: **429** con `Retry-After` e `Cache-Control: no-store`. Se il database non risponde il login dà **503**, senza scorciatoie.
+- I contatori stanno in PostgreSQL (tabella `limite_login`): sopravvivono ai riavvii e valgono per tutti i processi e le istanze, senza Redis. Il conteggio usa una transazione separata dal login: un 401 non lo azzera.
+- Le chiavi sono HMAC-SHA256 di IP e account con `LOGIN_LIMITE_SEGRETO`: né IP né email si salvano in chiaro, ma restano pseudonimi (con il segreto si possono verificare). Cambiare il segreto azzera i contatori: si fa su tutte le istanze insieme.
+- Login, logout e rinnovo salvano la sessione prima di mandare il cookie.
+- `LOGIN_LIMITE_SEGRETO` firma anche gli indirizzi pubblici delle foto (`GET /foto/{id}/pubblica`, plan §3): la chiave è derivata dal segreto con una separazione di dominio, quindi non coincide con quella dei contatori. Cambiare il segreto invalida anche gli indirizzi già dati a Instagram e le foto di una pubblicazione in corso non si scaricano più: si cambia a pubblicazioni ferme, su tutte le istanze insieme.
 
-## #17 · cookie e proxy
+## Cookie e proxy
 
-`AMBIENTE=produzione` rende i cookie Secure al login, al rinnovo e alla cancellazione anche
-se il backend riceve HTTP dal proxy. Rifiuta `COOKIE_SECURE=false`. In sviluppo
-il valore opzionale può essere impostato; altrimenti segue lo schema percepito.
-Il router non interpreta direttamente `X-Forwarded-Proto`.
+- Il cookie `adflow_sessione` è httpOnly, `SameSite=Lax`, `Path=/`. Con `AMBIENTE=produzione` è sempre Secure (login, rinnovo e cancellazione), anche se il proxy parla HTTP con il backend; `COOKIE_SECURE=false` è rifiutato. In sviluppo `COOKIE_SECURE` è facoltativo e segue lo schema della richiesta.
+- Uvicorn accetta gli header inoltrati solo dal proxy fidato. Esempio con il proxy sulla stessa macchina, da `backend/`:
 
-Esempio per un proxy già presente sulla stessa macchina (sostituire la topologia
-con quella reale prima del deploy), avvio da `backend/`:
+  ```sh
+  uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 2 --proxy-headers --forwarded-allow-ips 127.0.0.1 --no-access-log
+  ```
 
-```sh
-uvicorn app.main:app --host 127.0.0.1 --port 8000 --workers 2 --proxy-headers --forwarded-allow-ips 127.0.0.1 --no-access-log
-```
+  Mai `--forwarded-allow-ips '*'`. Con un proxy remoto si ammettono solo i suoi indirizzi e il backend non deve essere raggiungibile direttamente (rete o firewall).
+- Il proxy termina TLS con un certificato valido, forza HTTPS e sovrascrive gli header del client. Per Nginx:
 
-Non usare `--forwarded-allow-ips '*'`. Se il proxy è remoto, consentire solo
-gli indirizzi/reti effettivi e impedire l'accesso diretto al backend tramite
-rete/firewall. Il proxy termina TLS con un certificato valido, forza HTTPS
-e sovrascrive gli header ricevuti dal client. Per Nginx già disponibile:
+  ```nginx
+  location /api/ {
+      proxy_pass http://127.0.0.1:8000;
+      proxy_set_header Host $host;
+      proxy_set_header X-Forwarded-Proto $scheme;
+      proxy_set_header X-Forwarded-For $remote_addr;
+      access_log off;
+  }
+  ```
 
-```nginx
-location /api/ {
-    proxy_pass http://127.0.0.1:8000;
-    proxy_set_header Host $host;
-    proxy_set_header X-Forwarded-Proto $scheme;
-    proxy_set_header X-Forwarded-For $remote_addr;
-    access_log off;
-}
-```
+**Prova nell'ambiente reale (issue #17, ancora aperta).** I test provano in locale HTTPS con certificato verificato, un proxy TLS temporaneo e un processo Uvicorn separato. Prima del rilascio si allega alla issue #17 l'evidenza dell'ambiente reale: HTTPS attraverso il proxy; cookie Secure, HttpOnly, `SameSite=Lax`, `Path=/` al login e al logout; header contraffatti sovrascritti; backend non raggiungibile direttamente. Senza cookie, credenziali o chiavi private nell'evidenza.
 
-La suite prova realmente un client HTTPS con certificato verificato, un proxy
-TLS temporaneo e un processo Uvicorn separato. Controlla i cookie di login/logout
-e il rifiuto di uno schema contraffatto da un mittente non fidato. La configurazione
-di rete e il certificato dello staging reale non sono verificabili da questa prova.
-Prima del rilascio allegare alla issue #17 l'evidenza dell'ambiente reale:
-HTTPS attraverso il proxy; Secure/HttpOnly/SameSite=Lax/Path=/ al login/logout;
-header contraffatti sovrascritti; backend non raggiungibile direttamente.
-Non inserire cookie, credenziali o certificati privati nell'evidenza.
+## Eventi di sicurezza
 
-## #18 · eventi JSON senza dati personali
+- Il logger `adflow.sicurezza` scrive una riga JSON su stderr (livello INFO) e non propaga agli altri logger. Campi: `security_event`, `event_type`, `esito`, `timestamp` (UTC), `request_id`.
+- Eventi: `auth_failure`, `auth_invalid_input`, `invalid_session`, `role_denied`, `login_rate_limited`, `login_limiter_unavailable`. Gli accessi riusciti non producono eventi.
+- Ogni richiesta ha un `X-Request-ID` generato dal server; quelli mandati dal client si ignorano.
+- Mai nei log: messaggi delle eccezioni, corpo, URL, query, IP, email, password, token, cookie, header ricevuti. Un guasto del logger non cambia le risposte né apre l'accesso.
+- Da monitorare: aumenti di `auth_failure` e `login_rate_limited`, ogni `login_limiter_unavailable`. Questi log non certificano la conformità a ASVS o ISO: le politiche le decide il team.
 
-Il logger `adflow.sicurezza` scrive una riga JSON su stderr a livello INFO.
-Non propaga agli altri logger. I soli campi sono `security_event`, `event_type`,
-`esito`, `timestamp` UTC e `request_id`. Il server genera un UUID per ogni richiesta,
-restituito in `X-Request-ID`; gli ID inviati dal client sono ignorati.
-Eventi distinti: `auth_failure`, `auth_invalid_input`, `invalid_session`,
-`role_denied`, `login_rate_limited`, `login_limiter_unavailable`.
-Non si serializzano messaggi delle eccezioni, body, URL, query, IP, email,
-password, token, cookie o header ricevuti. Un guasto del sink non cambia la
-semantica HTTP né concede accesso. Gli eventi riguardano richieste negate;
-gli accessi riusciti non producono questo log.
+## Email degli utenti
 
-Il deploy deve raccogliere stderr, definire rotazione/retention/accesso con il
-team e monitorare aumenti di `auth_failure`/`login_rate_limited`, e ogni
-`login_limiter_unavailable`. Nessun nuovo servizio obbligatorio. Gli eventi
-sono registrati anche sotto attacco: dimensionare raccolta e rotazione senza
-aggiungere identificatori personali. Disabilitare gli access log HTTP che
-includono IP/query, come nell'esempio Uvicorn. La mappatura ai controlli ASVS/ISO
-e le politiche operative richiedono il team; questi log non certificano conformità.
+- Le email si controllano con email-validator, senza DNS (`check_deliverability=False`): sintassi e normalizzazione Unicode e maiuscole; non si verifica il possesso della casella.
+- Una creazione rifiuta domini riservati e indirizzi non validi e confronta l'identità normalizzata con quelle esistenti; il vincolo unico copre anche le creazioni concorrenti. Le identità ambigue si rifiutano, senza correggere i dati.
+- Il login trova sia la forma normalizzata sia quella storica: gli account già creati continuano a entrare.
+- `EMAIL_TEST_ENVIRONMENT=true` ammette gli indirizzi `.test` solo fuori produzione (i test lo usano).
 
-## #19 · email senza DNS
+## Come si prova
 
-Nuova dipendenza: email-validator 2.3.0, licenza Unlicense, per sintassi e
-normalizzazione Unicode. Dipendenze transitive: idna (BSD-3-Clause), dnspython
-(ISC). Nuova dipendenza per le sole prove TLS: cryptography 50.0.2
-(Apache-2.0 o BSD-3-Clause), con certificati/chiavi temporanei, senza installare
-un eseguibile OpenSSL esterno. Tutte le chiamate usano `check_deliverability=False`; non si verifica
-il possesso della casella. Non si cambiano ruoli o endpoint.
-
-Le nuove creazioni normalizzano Unicode e maiuscole/minuscole e rifiutano
-domini riservati/indirizzi non validi. `EMAIL_TEST_ENVIRONMENT=true` permette
-le fixture `.test` solo fuori produzione; i test lo impostano temporaneamente.
-Il login cerca sia la forma normalizzata sia quella storica, mantenendo gli
-account già creati. Se la nuova politica rifiuta un vecchio indirizzo, il login
-usa la precedente identità senza permettere nuove creazioni analoghe.
-La creazione confronta le identità normalizzate degli indirizzi esistenti,
-anche Unicode storici, senza modificarli; questo controllo richiede una scansione
-degli indirizzi alla creazione (non a ogni login). Il vincolo unico risolve
-anche creazioni concorrenti della stessa nuova identità normalizzata.
-Identità ambigue continuano a essere rifiutate; nessuna correzione automatica
-dei dati. Eventuali collisioni Unicode nei dati storici vanno revisionate dal
-team prima di interventi sui record.
-
-## Verifica e stato
-
-Test su PostgreSQL `adflow_test`: limite esatto, scadenza, 8/20 richieste
-concorrenti, sei processi indipendenti, rate limit su IP/account, payload
-malformati, successo e sessioni esistenti, guasti del DB/logger, contenuto JSON
-reale senza PII, proxy fidati/non fidati, TLS reale, Unicode e account storici.
-Provati upgrade/downgrade completo e 009→008→009, inclusa coerenza dei modelli.
-Nessuna migrazione eseguita sul database applicativo.
-
-Le prove HTTP/TLS e multiprocesso accettano entrambi gli host locali del database,
-`localhost` e `127.0.0.1`. Restano obbligatori `adflow_test`, la porta 5432 e il
-controllo `current_database()` nei processi che aprono connessioni: non si
-accettano host remoti né il database applicativo. Le credenziali arrivano dalla
-configurazione soltanto nell'ambiente dei processi, senza modificare `.env`.
-
-Le issue restano aperte fino alla revisione/merge. #17 richiede inoltre la prova
-dello staging reale. I responsabili del deploy/logging e le policy operative
-devono essere confermati dal team; non sono stati inventati assegnatari GitHub.
-
-
-## Riallineamento al modello corrente
-
-La revisione dei contatori è 009, dopo 008_riallineamento. La PR #36 si appoggia a `main`, dove T1-12 e T1-13 sono entrati con il merge della #30 e T1-14 con la #33, conservando sessioni per ruolo, rinnovo sliding e cambio password con revoca. La stessa politica Secure protegge login, logout e rinnovo. I nuovi test dell'accesso verificano anche GET /canali e le API di revisione T1-42 con login reale, admin/operatore/artigiano, logout e scadenza. Il riesame comprende anche il codice di pubblicazione T1-43 integrato con la #35. Lo staging non è ancora predisposto: la prova locale non chiude #17; il team deploy deve predisporlo e allegare l'evidenza reale.
+I test girano su `adflow_test`, con host `localhost` o `127.0.0.1` e porta 5432, e controllano `current_database()` nei processi che aprono connessioni: mai sul database dell'applicazione. Coprono il limite esatto e la scadenza, richieste concorrenti e processi indipendenti, i guasti del database e del logger, il contenuto JSON senza dati personali, proxy fidati e non fidati, TLS reale, email Unicode e account storici. `cryptography` serve solo a queste prove, per generare certificati temporanei.

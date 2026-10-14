@@ -1,4 +1,4 @@
-"""T1-09: contratti condivisi e criteri di accettazione su PostgreSQL."""
+"""Stati, valori ammessi e contratti condivisi tra i moduli, su PostgreSQL (plan §2, §6)."""
 
 from contextlib import contextmanager
 from datetime import date, datetime, timedelta, timezone

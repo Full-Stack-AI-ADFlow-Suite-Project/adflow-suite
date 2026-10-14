@@ -1,6 +1,6 @@
 /**
  * Cornice delle pagine interne: barra laterale con marca, voci, utente
- * collegato ed Esci (docs/appunti/pagine, ADR-113).
+ * collegato ed Esci (docs/pagine, ADR-113).
  */
 import { Avatar, Title, Tooltip } from "@mantine/core";
 import { Link, useLocation, useNavigate } from "react-router-dom";

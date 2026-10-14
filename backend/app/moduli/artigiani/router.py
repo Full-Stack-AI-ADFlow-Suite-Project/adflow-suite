@@ -15,7 +15,7 @@ from app.core.orologio import adesso
 from app.moduli.accesso.service import richiede_ruolo
 
 from . import service
-from .schemas import CanaleCollegato
+from .schemas import CanaleCollegato, NuovoArtigiano, ArtigianoCreato
 from .profilo_schemas import ProfiloScrittura, ProfiloPubblico
 
 router = APIRouter(tags=["artigiani"])
@@ -81,3 +81,14 @@ def salva_profilo(
 
 
 router.include_router(profili)
+
+
+@router.post("/artigiani", status_code=201, response_model=ArtigianoCreato)
+def nuovo_artigiano(
+    dati: NuovoArtigiano,
+    db: Annotated[Session, Depends(get_db, scope="function")],
+    operatore: Annotated[Any, Depends(richiede_ruolo("operatore"))],
+    response: Response,
+) -> ArtigianoCreato:
+    response.headers["Cache-Control"] = "no-store"
+    return service.crea_artigiano(db, dati)

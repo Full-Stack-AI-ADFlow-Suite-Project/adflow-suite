@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 
 from app.adapters.archivio import DIMENSIONE_MAX_BYTE
 from app.core.db import get_db
-from app.core.errori import DatiNonValidi
+from app.core.errori import DatiNonValidi, NonTrovato
 from app.core.orologio import adesso
 from app.moduli.accesso.service import richiede_ruolo, utente_corrente
 
@@ -17,6 +17,7 @@ from .schemas import (
     CampagnaCrea,
     CampagnaDettaglio,
     CampagnaElencoItem,
+    CampagnaInvia,
     CampagnaModifica,
     FotoDettaglio,
     GruppoAggiorna,
@@ -209,14 +210,66 @@ def scarica_file_foto(
     )
 
 
+@router.get("/foto/{id}/pubblica")
+def scarica_foto_pubblica(
+    id: int,
+    db: Annotated[Session, Depends(get_db)],
+    ora: Annotated[datetime, Depends(adesso)],
+    canale: Annotated[str | None, Query()] = None,
+    firma: Annotated[str | None, Query()] = None,
+    scadenza: Annotated[str | None, Query()] = None,
+) -> Response:
+    """Restituisce la foto sistemata per il canale con firma a tempo (spec R-42, CA-81).
+
+    Accessibile senza autenticazione o sessione (utilizzato da Meta/Instagram per scaricare la foto).
+    Se la firma è alterata, scaduta, mancante o la foto non esiste, risponde con 404
+    senza esporre alcun dato interno (constitution §3).
+    """
+    if id <= 0 or not canale or not firma:
+        raise NonTrovato("Foto non trovata.")
+
+    scadenza_ts: int | None = None
+    if scadenza is not None:
+        try:
+            scadenza_ts = int(scadenza.strip())
+        except (ValueError, TypeError):
+            raise NonTrovato("Foto non trovata.")
+
+    if not service.verifica_firma_foto(
+        foto_id=id,
+        canale=canale,
+        firma=firma,
+        scadenza_ts=scadenza_ts,
+        ora=ora,
+    ):
+        raise NonTrovato("Foto non trovata.")
+
+    try:
+        dati_jpeg, mime = service.foto_sistemata(db, foto_id=id, canale=canale)
+    except (DatiNonValidi, NonTrovato, ValueError):
+        raise NonTrovato("Foto non trovata.")
+
+    return Response(
+        content=dati_jpeg,
+        media_type=mime,
+        headers={
+            "X-Content-Type-Options": "nosniff",
+            "Cache-Control": "public, max-age=3600",
+        },
+    )
+
+
 @router.post("/campagne/{id}/invia", response_model=CampagnaDettaglio)
 def invia_campagna(
     id: int,
     db: Annotated[Session, Depends(get_db, scope="function")],
     utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
     ora: Annotated[datetime, Depends(adesso)],
+    dati: CampagnaInvia | None = None,
 ) -> CampagnaDettaglio:
-    service.invia_campagna(db, utente.id, id, ora)
+    service.invia_campagna(
+        db, utente.id, id, ora, dichiarazione=dati.dichiarazione if dati else False
+    )
     return service.dettaglio_campagna(db, utente.id, utente.ruolo, id)
 
 

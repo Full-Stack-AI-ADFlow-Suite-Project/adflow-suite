@@ -1,7 +1,7 @@
 /**
  * Dati di esempio del modulo revisione (plan §3): Vedi campagna dell'operatore
- * con piano, uscite, post dei canali, foto non usate e ultimo errore, più le
- * due azioni dello sprint 1 (approva, riprova). Le mutazioni tengono
+ * con piano, uscite, post dei canali, foto non usate e ultimo errore, più
+ * Approva e Riprova (le altre decisioni sono in decisioni.ts). Le mutazioni tengono
  * il passo con il magazzino campagne (stessa fonte di verità locale).
  */
 import { ApiErrore } from "../http";

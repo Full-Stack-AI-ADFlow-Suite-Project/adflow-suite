@@ -264,9 +264,9 @@ def test_percorso_completo_sprint2a(
     assert r_ok.status_code == 200
     assert r_ok.json()["nome"] == "Bottega del Legno"
 
-    # L'artigiano nuovo non ha canali collegati (sprint 3)
+    # R-37: al primo salvataggio gli account sono preparati come nel seed.
     canali_nuovo = api("GET", "/canali").json()
-    assert all(c["collegato"] is False for c in canali_nuovo)
+    assert all(c["collegato"] is True for c in canali_nuovo)
 
     # =========================================================================
     # 2. Artigiano del seed -> Bentornato / Modifica (CA-06)
@@ -407,7 +407,14 @@ def test_percorso_completo_sprint2a(
     assert len(r_patch_ok.json()["gruppi"]) == 2
 
     # Invio campagna A -> in_revisione
-    assert api("POST", f"/campagne/{a_id}/invia").json()["stato"] == "inviata"
+    assert (
+        api(
+            "POST",
+            f"/campagne/{a_id}/invia",
+            json={"dichiarazione": True},
+        ).json()["stato"]
+        == "inviata"
+    )
     assert lavora() == [1]
     assert _stato(api, a_id) == "in_revisione"
 
@@ -474,7 +481,14 @@ def test_percorso_completo_sprint2a(
 
     # Inviata con errore configurazione AI -> generazione fallita
     finti.ai.comanda_errore("analizza_gruppo", "configurazione", volte=None)
-    assert api("POST", f"/campagne/{b_id}/invia").status_code == 200
+    assert (
+        api(
+            "POST",
+            f"/campagne/{b_id}/invia",
+            json={"dichiarazione": True},
+        ).status_code
+        == 200
+    )
     assert lavora() == [1]
     assert _stato(api, b_id) == "generazione_fallita"
 
@@ -563,7 +577,14 @@ def test_percorso_completo_sprint2a(
     for i in range(4):
         _carica_foto_campagna(api, c_id, gc, _foto_jpeg(150 + 10 * i))
 
-    assert api("POST", f"/campagne/{c_id}/invia").status_code == 200
+    assert (
+        api(
+            "POST",
+            f"/campagne/{c_id}/invia",
+            json={"dichiarazione": True},
+        ).status_code
+        == 200
+    )
     assert lavora() == [1]
 
     # Con poche foto la generazione non si ferma più (ADR-114, A3)
@@ -711,13 +732,23 @@ def test_prove_negative_del_percorso_sprint2a(api, entra, lavora, db, finti):
     )
     _account(db, "instagram").stato = "scollegato"
     db.commit()
-    rifiutata(api("POST", f"/campagne/{campagna_id}/invia"), 409)  # scollegato dopo
+    rifiutata(
+        api("POST", f"/campagne/{campagna_id}/invia", json={"dichiarazione": True}),
+        409,
+    )  # scollegato dopo
     _account(db, "instagram").stato = "collegato"
     db.commit()
 
     # Errore di configurazione dell'AI: fallita subito, senza altre esecuzioni
     finti.ai.comanda_errore("analizza_gruppo", "configurazione", volte=None)
-    assert api("POST", f"/campagne/{campagna_id}/invia").status_code == 200
+    assert (
+        api(
+            "POST",
+            f"/campagne/{campagna_id}/invia",
+            json={"dichiarazione": True},
+        ).status_code
+        == 200
+    )
     assert lavora() == [1]
     assert entra(OPERATORE)["ruolo"] == "operatore"
     vista = _vedi(api, campagna_id)
