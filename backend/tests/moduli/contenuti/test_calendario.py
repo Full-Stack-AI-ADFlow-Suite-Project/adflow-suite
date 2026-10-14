@@ -1,4 +1,4 @@
-"""T3-12 MVP: CA-56, permessi, stati, versioni, foto e giorni Europe/Rome."""
+"""Calendario della campagna: permessi, stati, versioni, foto e giorni Europe/Rome (spec R-45, CA-56)."""
 from datetime import date, datetime, timezone
 
 import pytest

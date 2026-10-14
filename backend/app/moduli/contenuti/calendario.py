@@ -1,4 +1,4 @@
-"""T3-12 MVP: calendario approvato, con elenco dei post per giorno."""
+"""Calendario della campagna approvata, con i post per giorno (spec R-45, CA-56)."""
 from datetime import date
 
 from sqlalchemy.orm import Session

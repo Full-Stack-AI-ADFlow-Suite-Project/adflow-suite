@@ -102,7 +102,7 @@ La versione corrente di un post è l'ultima; il piano corrente è l'ultimo. Vers
 | MVP | campagne | POST /campagne/{id}/invia `{dichiarazione}` | artigiano | → inviata + job `genera_campagna`; 409 senza profilo o con un canale non collegato (R-22); 422 R-08, R-13, senza dichiarazione (R-41) |
 | MVP | campagne | POST /campagne/{id}/riprova | operatore | generazione_fallita → inviata + job |
 | MVP | campagne | GET /foto/{id}/pubblica?canale=&firma= | senza sessione, con firma a tempo generata dal server | la foto sistemata per il canale (spec R-42), JPEG: è l'indirizzo pubblico che Instagram scarica. La firma è un HMAC-SHA256 di (id, canale, scadenza), con una chiave derivata da `LOGIN_LIMITE_SEGRETO` (con una separazione di dominio): cambiare quel segreto invalida anche gli indirizzi già dati a Instagram (`docs/sicurezza-accesso.md`). La base dell'indirizzo è `FOTO_URL_PUBBLICO` · 404 firma non valida o scaduta |
-| MVP | contenuti | GET /campagne/{id}/calendario | proprietario, operatore | strategia del piano e soli post approvati, pubblicati, falliti o annullati (data, canale, stato, testo e foto della versione corrente); canali tolti con la nota; numero dei post scaduti · 409 prima dell'approvazione |
+| MVP | contenuti | GET /campagne/{id}/calendario | proprietario, operatore | strategia del piano e soli post approvati, pubblicati, falliti o annullati (data, canale, stato, testo e foto della versione corrente); canali tolti con la nota; numero dei post scaduti. Risposta `{campagna_id, strategia, giorni, canali_tolti, n_post_scaduti}` con `Cache-Control: no-store`: ogni giorno è `{data, post}`, con data e `ora` in Europe/Rome e `data_ora` con fuso; i post sono in ordine di istante e id e le foto hanno `{id, url, mime, larghezza, altezza, origine}` (`url` = `/api/foto/{id}/file`); solo testo e foto della versione corrente · 409 prima dell'approvazione · 404 per la campagna di un altro artigiano |
 | MVP | revisione | GET /da-approvare | operatore | le campagne di tutti gli artigiani negli stati "da approvare" (spec §4), con bottega e città, conteggi dei post (totale, da approvare, da rivedere, riempitivi per canale), `entro_quando` e ultima nota interna, ordinate per `entro_quando` (R-38) |
 | MVP | revisione | GET /campagne/{id}/post?stato= | operatore | in ogni stato dopo l'invio: piano corrente (strategia, esito del controllo, debole) o niente se non c'è ancora, uscite (tema, gruppo e data del gruppo) con i post dei canali (tipo di riempitivo, versione corrente con foto, autore, blocchi e avvisi, storico, spunta e intervento in corso), foto non usate per gruppo con il motivo, `ultimo_errore` della generazione (R-35), `costo_ai`, il totale della campagna in dollari (R-44) |
 | MVP | revisione | POST /campagne/{id}/approva | operatore | → attiva, post `da_approvare` approvati (quelli con la data passata scaduti), righe approvazione + decisione · 409 R-14 |
@@ -174,7 +174,7 @@ Le sole funzioni di `moduli/<modulo>/service.py` che un altro modulo può chiama
 | campagne | `aggiorna_foto(foto_id, analisi_ai, n_utilizzi)` | contenuti | T1-04 |
 | campagne | `aggiungi_foto(campagna_id, origine, file, mime, larghezza, altezza)` → foto senza gruppo, per le cartoline | contenuti | T1-09 |
 | campagne | `post_chiesti(post_a_settimana, inizio, fine)` → post chiesti su un canale (spec R-05); funzione pura, senza `db`: la formula sta solo qui | campagne (dettaglio), contenuti | issue #44 |
-| campagne | `campagna_per_calendario(db, campagna_id, utente_id, ruolo)` → campagna autorizzata e già approvata; `decisioni_canali_tolti(db, campagna_id)` → sole decisioni pubbliche di rimozione canale | contenuti | T3-12 MVP |
+| campagne | `campagna_per_calendario(db, campagna_id, utente_id, ruolo)` → campagna autorizzata e già approvata; `decisioni_canali_tolti(db, campagna_id)` → sole decisioni pubbliche di rimozione canale | contenuti | T3-12 |
 | contenuti | `post_della_campagna(campagna_id)` (post con `versione_corrente`, `versioni` e le foto di ogni versione) · `ha_blocchi(campagna_id, adesso)` · `approva_post(campagna_id, adesso)` → versioni approvate | revisione | T1-04; foto delle versioni, scartati, `adesso` in T1-09 |
 | contenuti | `piano_corrente(campagna_id)` → piano o `None` · `uscite_della_campagna(campagna_id)` · `ultimo_errore(campagna_id)` → errore di generazione o `None` | revisione | T1-09 |
 | contenuti | `post_dovuti(adesso)` (approvati, data raggiunta, campagna attiva) · `segna_esito(post, esito)` · `tutti_chiusi(campagna_id, adesso)` | pubblicazione | T1-04; scartati, scaduti, annullati e `adesso` in T1-09 |
@@ -226,18 +226,3 @@ Ciò che ogni modulo trova già pronto: si usa; se va cambiato, la PR la rivede 
 | `tests/conftest.py` | fixture `db` · `client` · `coda` · `utente_di_prova` | `db`: sessione su `adflow_test`, annullata a fine test anche dopo un commit; `client`: `TestClient` che usa la stessa sessione; `coda`: coda in memoria attiva in ogni test, i job accodati si leggono in `coda.jobs.values()`, ognuno con `task_name` e `args`; `utente_di_prova("operatore", nome=…)`: crea l'utente con la fabbrica e lo rende l'utente autenticato di `client`, anche per `richiede_ruolo()` (ruolo sbagliato → 403); richiamata, lo cambia |
 
 A ogni esecuzione di `pytest` il database `adflow_test` viene svuotato e portato all'ultima migrazione con Alembic: le migrazioni sono provate da ogni test.
-
-
-### Risposta del calendario MVP (T3-12)
-
-`GET /campagne/{id}/calendario` restituisce `{campagna_id, strategia, giorni,
-canali_tolti, n_post_scaduti}`, con `Cache-Control: no-store`. Ogni giorno
-contiene `{data, post}`; la data e il campo `ora` dei post sono Europe/Rome,
-mentre `data_ora` conserva l'istante completo con fuso. I post sono ordinati
-per istante e id e hanno `{id, data_ora, ora, canale, stato, testo, hashtag,
-foto}`. Le foto hanno `{id, url, mime, larghezza, altezza, origine}`: `url`
-punta al percorso autenticato `/api/foto/{id}/file`, anche per l'archivio.
-Si espongono soltanto testo e foto della versione corrente; niente storico,
-note interne, snapshot, credenziali o identificativi di account social.
-I canali tolti hanno `{canale, nota}`; i post scaduti si contano ma non si
-mostrano. Prima dell'approvazione: 409; campagna di un altro artigiano: 404.
