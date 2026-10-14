@@ -17,12 +17,12 @@ Aggiorna `main`, le dipendenze e il database senza toccare il lavoro in corso, p
 ## Cosa leggere
 
 1. `docs/agenti/constitution.md` e `docs/agenti/perimetro-mvp.md`: sempre, prima di tutto.
-2. La riga del tuo task in `docs/agenti/tasks.md` e il brief che cita, se c'è (`brief-T3-01.md`, `brief-ai.md`, `brief-meta.md`).
+2. La riga del tuo task in `docs/agenti/tasks.md` e il brief che cita, se c'è (`brief-ai.md`, `brief-meta.md`, `brief-sistemazione.md`).
 3. **Solo** le sezioni di `docs/agenti/spec.md` e `docs/agenti/plan.md` citate dal task.
 4. Se scrivi codice del backend: `docs/agenti/plan.md` §7 (cosa offre già `core/` e come si usano le fixture dei test).
 5. Prima della PR: `docs/agenti/converge.md`.
 
-`docs/appunti/` è un archivio (ADR-114): non fa testo e non si legge, se il prompt non lo chiede con un percorso preciso. Fanno eccezione le pagine statiche di `docs/appunti/pagine/`, aggiornate all'MVP da T3-03: un task del frontend le usa come riferimento per l'interfaccia. `docs/novita/` raccoglie note datate di alcune PR: non fanno testo. Dove qualcosa non torna, vale `docs/agenti/`, e dentro `docs/agenti/` vale `perimetro-mvp.md`.
+Le pagine statiche di `docs/pagine/` sono il riferimento per l'interfaccia dell'MVP (mappa in `index.html`): un task del frontend le usa. `docs/ADR.md` è il registro delle decisioni. `docs/archivio/` è un archivio (ADR-115): non fa testo e non si legge, se il prompt non lo chiede con un percorso preciso. Dove qualcosa non torna, vale `docs/agenti/`, e dentro `docs/agenti/` vale `perimetro-mvp.md`.
 
 ## Comandi
 
@@ -42,4 +42,4 @@ Da `backend/`: `uv run uvicorn app.main:app --reload` avvia l'API; `uv run alemb
 - Nei test nessuna chiamata reale ad AI, Meta o email.
 - Se manca un'informazione o due documenti non tornano, fermati e chiedi. Non inventare requisiti.
 - Commit in italiano all'imperativo: `feat:`, `fix:`, `test:`, `docs:`, `refactor:`, `chore:`.
-- Non modificare `docs/appunti/` (le pagine statiche solo in T3-03). Puoi modificare `docs/agenti/` solo se il task o il prompt lo chiede; la casella del tuo task in `tasks.md` la spunti nella tua PR.
+- Non modificare `docs/archivio/`. `docs/pagine/`, `docs/ADR.md` e `docs/agenti/` si modificano solo se il task o il prompt lo chiede (una riga nuova in `ADR.md` solo se cambia il perimetro); la casella del tuo task in `tasks.md` la spunti nella tua PR.

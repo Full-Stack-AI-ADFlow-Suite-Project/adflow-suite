@@ -449,7 +449,7 @@ def test_percorso_completo_sprint2a(
 
     # =========================================================================
     # 5. Campagna B (4 settimane con 4 foto nuove, AI fallita, modifica profilo,
-    #                riprova con AI finta, verifica snapshot immutato CA-16, CA-77)
+    #                riprova con AI finta, verifica snapshot immutato CA-16)
     # =========================================================================
     assert entra(ARTIGIANO)["ruolo"] == "artigiano"
     inizio_b = orologio.ora.date() + timedelta(days=4)

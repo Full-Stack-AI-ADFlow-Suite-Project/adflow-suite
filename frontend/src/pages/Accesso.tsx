@@ -1,6 +1,6 @@
 /**
  * Accesso: una sola pagina per artigiano, operatore e admin
- * (docs/appunti/pagine/AdFlow-login.html). Un solo messaggio di errore
+ * (docs/pagine/AdFlow-login.html). Un solo messaggio di errore
  * per ogni credenziale sbagliata (CA-02); nessuna registrazione né
  * recupero password: sotto il modulo il contatto del consorzio.
  */

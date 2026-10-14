@@ -34,13 +34,13 @@
     {
       "id": "corsia",
       "type": "pickString",
-      "description": "La tua corsia",
+      "description": "La tua area (sprint 3 · MVP)",
       "options": [
-        { "label": "0 · Comune (tutto il team)", "value": "0" },
-        { "label": "1 · Accesso e artigiani (Gianluca)", "value": "1" },
-        { "label": "2 · Campagne (Silvia)", "value": "2" },
-        { "label": "3 · Contenuti (Giovanni)", "value": "3" },
-        { "label": "4 · Revisione e pubblicazione (Nilton)", "value": "4" },
+        { "label": "0 · Comune e deliverable (tutto il team)", "value": "0" },
+        { "label": "1 · Nuovo artigiano e calendario (Gianluca)", "value": "1" },
+        { "label": "2 · Foto e invio (Silvia)", "value": "2" },
+        { "label": "3 · AI vera (Giovanni)", "value": "3" },
+        { "label": "4 · Meta (Nilton)", "value": "4" },
         { "label": "5 · Frontend (Angelo)", "value": "5" }
       ]
     }

@@ -1,4 +1,4 @@
-/** Dati di esempio del modulo artigiani: canali e profilo (2a). */
+/** Dati di esempio del modulo artigiani: canali e profilo. */
 import {
   datiScrittura,
   erroriProfilo,

@@ -8,19 +8,6 @@ import { esempiArchivio, USA_ESEMPI } from "./esempi/archivio";
 
 export type { FotoSintetica, GruppoSintetico };
 
-export interface FotoDettaglio {
-  id: number;
-  profilo_id: number;
-  campagna_id: number | null;
-  gruppo_id: number | null;
-  origine: string;
-  file: string;
-  mime: string;
-  larghezza: number;
-  altezza: number;
-  n_utilizzi: number;
-}
-
 export interface GruppoArchivioCrea {
   descrizione: string;
 }

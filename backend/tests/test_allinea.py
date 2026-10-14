@@ -154,7 +154,8 @@ def test_la_pagina_vera_si_legge_per_intero():
     corsie, _ = allinea.leggi_tasks(testo)
 
     sprint = list(dict.fromkeys(c.sprint for c in corsie))
-    assert sprint == ["1", "2a", "2b", "3"]
+    # gli sprint 1, 2a e 2b sono in docs/archivio/tasks-sprint-1-2.md
+    assert sprint == ["3"]
     for uno in sprint:
         assert [c.numero for c in corsie if c.sprint == uno] == [0, 1, 2, 3, 4, 5]
     letti = [t.id for c in corsie for t in c.task]
@@ -166,17 +167,17 @@ def test_la_pagina_vera_si_legge_per_intero():
             assert task.id.startswith(f"T{corsia.sprint}-{corsia.numero}")
             assert task.titolo and task.leggi and task.fatto_quando
             assert task.tutti or set(task.dipende_da) <= set(letti)
-            # negli sprint 2a e 2b ogni task dice quali file tocca; lo sprint 3 · MVP ha aree, non file
-            assert task.tocca or corsia.sprint in ("1", "3")
+            # lo sprint 3 · MVP ha aree, non file: nessuna colonna "Tocca"
+            assert not task.tocca
     assert set(allinea.stato_dei_task(corsie)) <= set(letti)
 
 
-def test_ogni_sprint_si_apre_e_si_chiude_con_la_corsia_0():
-    """Dallo sprint 2a: `-01` apre e dipende dalla chiusura precedente, `-07` chiude."""
+def test_lo_sprint_si_apre_e_si_chiude_con_la_corsia_0():
+    """`T3-01` apre lo sprint senza dipendenze, `T3-07` lo chiude e aspetta tutti."""
     testo = (RADICE / "docs" / "agenti" / "tasks.md").read_text("utf-8")
-    corsie, _ = allinea.leggi_tasks(testo)
+    corsie, aperti = allinea.leggi_tasks(testo)
     task = _per_id(corsie)
 
-    for sprint, precedente in [("2a", "1"), ("2b", "2a"), ("3", "2b")]:
-        assert task[f"T{sprint}-01"].dipende_da == [f"T{precedente}-07"]
-        assert task[f"T{sprint}-07"].tutti
+    assert task["T3-01"].dipende_da == []
+    assert task["T3-07"].tutti
+    assert all(voce.startswith("#") for voce in aperti)

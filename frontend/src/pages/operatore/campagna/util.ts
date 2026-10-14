@@ -1,21 +1,6 @@
 /** Formattazione date e etichette dei mockup operatore. */
 
 const GG = ["dom", "lun", "mar", "mer", "gio", "ven", "sab"];
-const MESI = [
-  "gennaio",
-  "febbraio",
-  "marzo",
-  "aprile",
-  "maggio",
-  "giugno",
-  "luglio",
-  "agosto",
-  "settembre",
-  "ottobre",
-  "novembre",
-  "dicembre",
-];
-
 const p2 = (n: number) => String(n).padStart(2, "0");
 const D = (s: string) => new Date(s.length === 10 ? s + "T00:00" : s);
 
@@ -32,13 +17,6 @@ export function data(s: string): string {
 export function dataOra(s: string): string {
   const x = D(s);
   return `${GG[x.getDay()]} ${p2(x.getDate())}/${p2(x.getMonth() + 1)} · ${p2(
-    x.getHours(),
-  )}:${p2(x.getMinutes())}`;
-}
-
-export function dataLunga(s: string): string {
-  const x = D(s);
-  return `${x.getDate()} ${MESI[x.getMonth()]} alle ore ${p2(
     x.getHours(),
   )}:${p2(x.getMinutes())}`;
 }
