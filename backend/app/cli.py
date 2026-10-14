@@ -6,12 +6,17 @@ Da ``backend/``::
     python -m app.cli crea-utente --email E --nome N --ruolo artigiano|operatore|admin
     python -m app.cli cambia-password --email E
     python -m app.cli prova-ai --campagna ID
+    python -m app.cli demo --foto CARTELLA [--quante N]
 
 La password si chiede a terminale: non passa dagli argomenti né finisce in git.
 
 ``prova-ai`` genera una campagna `inviata` con il provider scelto in
 ``backend/.env`` (``AI_PROVIDER=litellm`` per quello vero) e stampa cosa ha
 fatto e speso l'AI: è la prova su 10 post di T3-32, da ripetere per ogni modello.
+
+``demo`` prepara da database vuoto i dati della demo (T3-06, converge §4): il
+seed, la bottega della demo con il profilo e una campagna in bozza pronta da
+inviare, con le foto vere prese dalla cartella. Le foto non entrano in git.
 """
 
 import argparse
@@ -19,24 +24,28 @@ import sys
 import time
 import traceback
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass
-from datetime import datetime
+from dataclasses import dataclass, field
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 from getpass import getpass
+from pathlib import Path
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import leggi_impostazioni
 from app.core.db import transazione
-from app.core.errori import ErroreDominio
-from app.core.orologio import adesso
+from app.core.errori import DatiNonValidi, ErroreDominio, StatoNonValido
+from app.core.orologio import ROMA, adesso
 from app.core.security import hash_password
 from app.moduli.accesso.models import Utente
 from app.moduli.accesso.service import crea_utente, cambia_password
 from app.moduli.artigiani.models import ProfiloBottega, AccountSocial
+from app.moduli.artigiani.profilo_schemas import ProfiloScrittura
+from app.moduli.artigiani.service import salva_profilo_personale
 from app.moduli.campagne import service as campagne
 from app.moduli.campagne.domain import INVIATA, IN_GENERAZIONE
+from app.moduli.campagne.schemas import CampagnaCrea, GruppoCrea
 from app.moduli.contenuti import generazione
 from app.moduli.contenuti.schemas import RiepilogoAI
 from app.moduli.contenuti.service import riepilogo_ai_della_campagna
@@ -132,6 +141,132 @@ def esegui_seed(db: Session, password: str) -> list[str]:
                     )
             db.flush()
     return creati
+
+
+# La bottega della demo (T3-06): un mosaicista con le foto vere della cartella.
+DEMO_EMAIL = "mosaici@example.com"
+DEMO_NOME = "Giovanni"
+PROFILO_DEMO = dict(
+    nome="Mosaici d'Arte",
+    referente="Giovanni",
+    citta="Ravenna",
+    anni_attivita=15,
+    sito="https://mosaicidarte.example.com",
+    storia=(
+        "Bottega artistica specializzata in mosaici tradizionali e contemporanei "
+        "in tessere di marmo e pasta vitrea."
+    ),
+    origine="Nata dalla passione per l'arte musiva ravennate.",
+    valori=["artigianalita", "tradizione", "su_misura"],
+    tipo_prodotto="ceramica_vetro",
+    gamma="Quadri musivi, ritratti, elementi d'arredo e decori artistici su misura.",
+    fascia_prezzo="alta",
+    stagionalita="Tutto l'anno; più richieste per i regali di Natale.",
+    clienti_ideali="Appassionati d'arte, collezionisti e amanti del fatto a mano.",
+    obiettivo="notorieta",
+    zona="Italia e internazionale",
+    tono=["caldo", "professionale"],
+    cortesia="tu",
+    vincoli="Non citare altri marchi; non parlare di sconti promozionali.",
+    canali=["facebook", "instagram"],
+    frequenza="f5_piu",
+    social_esistenti={"canali": ["facebook", "instagram"]},
+    foto_policy={
+        "quantita_mese": "da5_a12",
+        "chi_scatta": "artigiano",
+        "persone": "con_consenso",
+    },
+)
+CAMPAGNA_DEMO = dict(
+    titolo="Mosaici d'Autore · Collezione d'autunno",
+    descrizione=(
+        "Ritratti e quadri in mosaico della collezione d'autunno: tessere tagliate "
+        "e posate a mano, dal disegno al pezzo finito."
+    ),
+    canali=["facebook", "instagram"],
+)
+GRUPPO_DEMO = (
+    "Creazioni artigianali in tessere di mosaico tagliate e posate a mano "
+    "sul banco di lavoro"
+)
+# Meno foto dei post chiesti, come nel percorso della demo (converge §4):
+# 7 giorni a 5 post per settimana sono 5 post per canale, 3 foto e 2 immagini AI.
+FOTO_DEMO = 3
+
+
+@dataclass
+class EsitoDemo:
+    """Cosa ha preparato ``demo``: utenti nuovi, campagna, foto caricate e scartate."""
+
+    creati: list[str]
+    campagna_id: int
+    inizio: date
+    caricate: list[str] = field(default_factory=list)
+    scartate: list[tuple[str, str]] = field(default_factory=list)
+
+
+def esegui_demo(
+    db: Session, password: str, cartella: Path, quante: int, ora: datetime
+) -> EsitoDemo:
+    """Seed, bottega della demo e campagna in bozza con le foto della cartella.
+
+    Le foto passano per ``campagne.carica_foto()``, con i suoi controlli: quelle
+    che non li superano (formato, lato corto sotto i 1080 px, troppi pixel) si
+    scartano con il motivo. ``quante`` = 0 carica tutte quelle valide.
+    La demo si prepara una volta sola, da database vuoto.
+    """
+    if not cartella.is_dir():
+        raise DatiNonValidi(f"La cartella delle foto non esiste: {cartella}")
+    if db.scalar(select(Utente.id).where(Utente.email == DEMO_EMAIL)) is not None:
+        raise StatoNonValido(
+            "La demo è già preparata: per rifarla si parte da un database vuoto."
+        )
+    creati = esegui_seed(db, password)
+    artigiano = crea_utente(db, DEMO_EMAIL, password, DEMO_NOME, "artigiano")
+    creati.append(DEMO_EMAIL)
+    salva_profilo_personale(db, artigiano.id, ProfiloScrittura(**PROFILO_DEMO), ora)
+
+    # Inizio tra 4 giorni (uno più dell'anticipo minimo), durata 7 giorni.
+    anticipo = leggi_impostazioni().anticipo_minimo_giorni
+    inizio = ora.astimezone(ROMA).date() + timedelta(days=anticipo + 1)
+    dati = CampagnaCrea(**CAMPAGNA_DEMO, inizio=inizio, fine=inizio + timedelta(6))
+    campagna = campagne.crea_bozza(db, artigiano.id, dati, ora)
+    gruppo = campagne.crea_gruppo(
+        db, artigiano.id, "artigiano", campagna.id, GruppoCrea(descrizione=GRUPPO_DEMO)
+    )
+    esito = EsitoDemo(creati=creati, campagna_id=campagna.id, inizio=inizio)
+    for percorso in sorted(p for p in cartella.iterdir() if p.is_file()):
+        if quante and len(esito.caricate) >= quante:
+            break
+        try:
+            campagne.carica_foto(
+                db,
+                artigiano.id,
+                "artigiano",
+                campagna.id,
+                percorso.read_bytes(),
+                gruppo.id,
+            )
+        except DatiNonValidi as errore:
+            esito.scartate.append((percorso.name, errore.messaggio))
+        else:
+            esito.caricate.append(percorso.name)
+    return esito
+
+
+def rapporto_demo(esito: EsitoDemo) -> str:
+    """Il riepilogo di ``demo`` da stampare, senza password."""
+    righe = [f"utente creato: {email}" for email in esito.creati]
+    righe.append(
+        f"campagna {esito.campagna_id} in bozza, dal {esito.inizio:%d/%m/%Y}: "
+        f"{len(esito.caricate)} foto caricate"
+    )
+    righe.extend(f"  caricata  {nome}" for nome in esito.caricate)
+    righe.extend(f"  scartata  {nome}: {motivo}" for nome, motivo in esito.scartate)
+    righe.append(
+        f"Entra come {DEMO_EMAIL} e invia la campagna con la dichiarazione (passo 12)."
+    )
+    return "\n".join(righe)
 
 
 @dataclass
@@ -289,6 +424,18 @@ def _parser() -> argparse.ArgumentParser:
         "prova-ai", help="genera una campagna inviata e stampa cosa ha speso l'AI"
     )
     prova.add_argument("--campagna", required=True, type=int, help="id della campagna")
+    demo = comandi.add_parser(
+        "demo", help="seed, bottega della demo e campagna in bozza con le foto vere"
+    )
+    demo.add_argument(
+        "--foto", required=True, type=Path, help="cartella con le foto della demo"
+    )
+    demo.add_argument(
+        "--quante",
+        type=int,
+        default=FOTO_DEMO,
+        help=f"foto da caricare (default {FOTO_DEMO}, meno dei post; 0 = tutte)",
+    )
     return parser
 
 
@@ -302,6 +449,13 @@ def main(argv: Sequence[str] | None = None) -> int:
             for email, _, ruolo in UTENTI_SEED:
                 esito = "creato" if email in creati else "già presente"
                 print(f"{ruolo}: {email} ({esito})")
+        elif argomenti.comando == "demo":
+            password = _chiedi_password("Password per gli utenti della demo")
+            with transazione() as db:
+                esito = esegui_demo(
+                    db, password, argomenti.foto, max(0, argomenti.quante), adesso()
+                )
+            print(rapporto_demo(esito))
         elif argomenti.comando == "prova-ai":
             esito = esegui_prova_ai(argomenti.campagna)
             print(rapporto_prova_ai(esito))

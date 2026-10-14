@@ -31,6 +31,17 @@ uv run black --check .                                                    # form
 
 Il tick di pubblicazione è registrato nel worker: non serve nessun cron esterno. I test svuotano `adflow_test` a ogni esecuzione e lo portano all'ultima migrazione.
 
+## Dati della demo
+
+Da database vuoto (dopo `alembic upgrade head`) un solo comando prepara la demo di `docs/agenti/converge.md` §4: gli utenti del seed, la bottega della demo (`mosaici@example.com`, profilo completo) e una campagna in bozza su Facebook e Instagram che inizia tra 4 giorni e dura 7, con le foto vere prese da una cartella. La password, la stessa per tutti gli utenti, si chiede a terminale; le foto restano fuori da git.
+
+```bash
+uv run python -m app.cli demo --foto "G:\Il mio Drive\adflowfoto"             # 3 foto: meno dei 5 post per canale, 2 avranno un'immagine AI
+uv run python -m app.cli demo --foto "G:\Il mio Drive\adflowfoto" --quante 0  # tutte le foto valide
+```
+
+Le foto passano per gli stessi controlli del caricamento (JPEG, PNG o WebP; lato corto da 1080 px; al massimo 36 megapixel): quelle scartate si stampano con il motivo. I file si prendono in ordine alfabetico. Per la demo vera servono anche `AI_PROVIDER=litellm` in `backend/.env`, Mailpit acceso (`mailpit`, email su http://localhost:8025) e, per la pubblicazione, la configurazione Meta qui sotto. Per rifare la demo si riparte da un database vuoto.
+
 ## Pubblicazione reale su Meta (pagina di prova)
 
 Di default l'adattatore social è finto (`SOCIAL_PROVIDER=finto`): nessuna chiamata di rete e nessun post pubblicato davvero. Per la pubblicazione reale tutti gli artigiani dell'MVP usano **una sola Pagina Facebook di prova del team** con il suo account Instagram professionale (perimetro-mvp.md, D1). Configurazione da fare una volta sola; i dettagli sono in `docs/agenti/brief-meta.md`:

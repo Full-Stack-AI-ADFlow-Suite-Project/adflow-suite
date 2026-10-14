@@ -1,18 +1,25 @@
-"""cli.py: seed e comando crea-utente."""
+"""cli.py: seed, demo e comando crea-utente."""
 from collections.abc import Iterator
 from contextlib import contextmanager
+from datetime import date, datetime, timezone
+from pathlib import Path
 
 import pytest
+from PIL import Image
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app import cli
-from app.core.errori import DatiNonValidi
+from app.adapters.archivio import ArchivioFinto, usa_archivio
+from app.core.errori import DatiNonValidi, StatoNonValido
 from app.core.security import verifica_password
 from app.moduli.accesso.models import Utente
 from app.moduli.artigiani import domain
 from app.moduli.artigiani.models import ProfiloBottega
-from app.moduli.artigiani.service import profilo_di
+from app.moduli.artigiani.service import canali_collegati, profilo_di
+from app.moduli.campagne.domain import BOZZA
+from app.moduli.campagne.models import Campagna
+from app.moduli.campagne.service import foto_della_campagna
 from tests.moduli.accesso.fabbrica import utente
 
 PASSWORD = "PasswordDelSeed!2026"
@@ -159,3 +166,82 @@ def test_password_non_confermata(monkeypatch: pytest.MonkeyPatch) -> None:
     monkeypatch.setattr(cli, "getpass", lambda _: next(risposte))
     with pytest.raises(SystemExit):
         cli.main(["seed"])
+
+
+# --- demo (T3-06) -----------------------------------------------------------
+
+ORA_DEMO = datetime(2030, 1, 10, 9, 0, tzinfo=timezone.utc)
+
+
+def _jpeg(percorso: Path, lato: int) -> None:
+    Image.new("RGB", (lato, lato), (150, 90, 40)).save(percorso, "JPEG")
+
+
+@pytest.fixture
+def cartella_demo(tmp_path: Path) -> Iterator[Path]:
+    """Tre foto valide, una troppo piccola e un file che non è un'immagine."""
+    for nome in ("a.jpg", "c.jpg", "e.jpg"):
+        _jpeg(tmp_path / nome, 1200)
+    _jpeg(tmp_path / "b-piccola.jpg", 800)
+    (tmp_path / "d-nota.txt").write_text("non è una foto")
+    with usa_archivio(ArchivioFinto()):
+        yield tmp_path
+
+
+def test_demo_prepara_bottega_e_campagna_in_bozza(
+    db: Session, cartella_demo: Path
+) -> None:
+    esito = cli.esegui_demo(db, PASSWORD, cartella_demo, 2, ORA_DEMO)
+
+    assert esito.creati == [*(e for e, _, _ in cli.UTENTI_SEED), cli.DEMO_EMAIL]
+    artigiano = db.scalar(select(Utente).where(Utente.email == cli.DEMO_EMAIL))
+    assert artigiano.ruolo == "artigiano"
+    assert verifica_password(PASSWORD, artigiano.password_hash)
+    profilo = profilo_di(db, artigiano.id)
+    assert profilo.nome == cli.PROFILO_DEMO["nome"]
+    assert set(canali_collegati(db, profilo.id)) == {"facebook", "instagram"}
+
+    campagna = db.get(Campagna, esito.campagna_id)
+    assert campagna.stato == BOZZA
+    assert campagna.profilo_id == profilo.id
+    assert campagna.inizio == date(2030, 1, 14)
+    assert (campagna.fine - campagna.inizio).days + 1 == 7
+    assert esito.caricate == ["a.jpg", "c.jpg"]
+    assert [nome for nome, _ in esito.scartate] == ["b-piccola.jpg"]
+    assert len(foto_della_campagna(db, campagna.id)) == 2
+
+
+def test_demo_con_zero_carica_tutte_le_foto_valide(
+    db: Session, cartella_demo: Path
+) -> None:
+    esito = cli.esegui_demo(db, PASSWORD, cartella_demo, 0, ORA_DEMO)
+
+    assert esito.caricate == ["a.jpg", "c.jpg", "e.jpg"]
+    assert [nome for nome, _ in esito.scartate] == ["b-piccola.jpg", "d-nota.txt"]
+    assert all(motivo for _, motivo in esito.scartate)
+
+
+def test_demo_si_prepara_una_volta_sola(db: Session, cartella_demo: Path) -> None:
+    cli.esegui_demo(db, PASSWORD, cartella_demo, 1, ORA_DEMO)
+
+    with pytest.raises(StatoNonValido):
+        cli.esegui_demo(db, PASSWORD, cartella_demo, 1, ORA_DEMO)
+
+
+def test_demo_vuole_una_cartella_che_esiste(db: Session, tmp_path: Path) -> None:
+    with pytest.raises(DatiNonValidi):
+        cli.esegui_demo(db, PASSWORD, tmp_path / "manca", 1, ORA_DEMO)
+
+
+def test_comando_demo(
+    db: Session,
+    cli_sul_db_di_test: None,
+    cartella_demo: Path,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    assert cli.main(["demo", "--foto", str(cartella_demo), "--quante", "1"]) == 0
+
+    uscita = capsys.readouterr().out
+    assert f"utente creato: {cli.DEMO_EMAIL}" in uscita
+    assert "caricata  a.jpg" in uscita
+    assert PASSWORD not in uscita
