@@ -202,7 +202,7 @@ def rigenera(
         for una in campagne.foto_per_id(db, [l.foto_id for l in corrente.legami_foto])
     }
     foto = [per_id[l.foto_id] for l in corrente.legami_foto if l.foto_id in per_id]
-    gruppo = _gruppo_dell_uscita(db, campagna, uscita, record.canale, adesso)
+    gruppo = _gruppo_dell_uscita(db, campagna, uscita)
     da_scrivere = PostAI(
         canale=record.canale,
         tema=uscita.tema,

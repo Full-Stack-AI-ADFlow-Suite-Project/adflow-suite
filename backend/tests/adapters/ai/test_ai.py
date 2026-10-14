@@ -41,8 +41,11 @@ CAMPAGNA = CampagnaAI(titolo="Campagna di prova", inizio=INIZIO, fine=FINE)
 DUE_CANALI = ("facebook", "instagram")
 
 
-def _gruppo(n_foto: int, *, id: int = 1, da: int = 1) -> GruppoAI:
-    """Un gruppo con ``n_foto`` foto idonee e diverse, già analizzate."""
+def _gruppo(n_foto: int, *, id: int = 1, da: int = 1, punteggi=None) -> GruppoAI:
+    """Un gruppo con ``n_foto`` foto idonee e diverse, già analizzate.
+
+    ``punteggi`` dà il punteggio di ogni foto, nell'ordine; senza, nessuna ne ha.
+    """
     return GruppoAI(
         id=id,
         descrizione=f"Vasi del gruppo {id}",
@@ -51,7 +54,8 @@ def _gruppo(n_foto: int, *, id: int = 1, da: int = 1) -> GruppoAI:
                 id=numero,
                 file=f"{numero}.jpg",
                 mime="image/jpeg",
-                analisi={"idonea": True, "simile_a": None},
+                analisi={"idonea": True, "simile_a": None}
+                | ({"punteggio": punteggi[numero - da]} if punteggi else {}),
             )
             for numero in range(da, da + n_foto)
         ],
@@ -70,31 +74,17 @@ def _come_li_vede_il_controllo(gruppi: list[GruppoAI]) -> list:
     ]
 
 
-def _voce(foto_id: int, *, mai_uscita: bool = True, gruppo_id: int = 9):
-    """Una foto d'archivio, come la dà ``campagne.service.foto_di_archivio()``."""
-    return SimpleNamespace(
-        foto=SimpleNamespace(id=foto_id, analisi_ai={"idonea": True, "simile_a": None}),
-        gruppo=SimpleNamespace(id=gruppo_id),
-        mai_uscita=mai_uscita,
-    )
-
-
 def _pianifica(
     finto: AIFinto,
     gruppi,
     *,
     canali=DUE_CANALI,
     adesso=ADESSO,
-    archivio=None,
     **altro,
 ):
-    """Piano del provider finto e violazioni trovate dal controllo di T1-32.
-
-    ``archivio`` ha le foto d'archivio di ogni canale; i loro gruppi stanno in
-    ``gruppi``, segnati con ``archivio=True``.
-    """
-    visti = _come_li_vede_il_controllo([g for g in gruppi if not g.archivio])
-    limiti = limiti_per_canale(canali, 3, INIZIO, FINE, visti, archivio)
+    """Piano del provider finto e violazioni trovate dal controllo di T1-32."""
+    visti = _come_li_vede_il_controllo(gruppi)
+    limiti = limiti_per_canale(canali, 3, INIZIO, FINE, visti)
     piano = finto.pianifica_campagna(
         SNAPSHOT,
         CAMPAGNA,
@@ -112,7 +102,6 @@ def _pianifica(
         fine=FINE,
         adesso=adesso,
         margine_minuti=MARGINE,
-        archivio=archivio,
     )
     return piano, violazioni
 
@@ -369,7 +358,7 @@ def test_il_piano_passa_il_controllo_con_piu_gruppi():
     assert piano.contenuto["uscite"][2]["tema"] == "Vasi del gruppo 2"
 
 
-def test_ca17_piano_sei_uscite_cinque_foto_e_una_cartolina():
+def test_ca17_piano_sei_uscite_cinque_foto_e_un_immagine_ai():
     """CA-17, parte del piano: 5 foto, 6 post chiesti su 2 canali."""
     piano, violazioni = _pianifica(AIFinto(), [_gruppo(5)])
     uscite = piano.contenuto["uscite"]
@@ -379,57 +368,49 @@ def test_ca17_piano_sei_uscite_cinque_foto_e_una_cartolina():
     for canale in DUE_CANALI:
         post = _post_del_canale(piano.contenuto, canale)
         assert [p["foto"] for p in post] == [[1], [2], [3], [4], [5], []]
-        assert [p["riempitivo"] for p in post] == [None] * 5 + ["cartolina"]
+        assert [p["riempitivo"] for p in post] == [None] * 5 + ["immagine_ai"]
         assert {p["formato"] for p in post} == {"singola"}
     assert uscite[5]["gruppo_id"] is None
     assert uscite[0]["gruppo_id"] == 1
 
 
-def test_ca76_piano_prima_le_foto_poi_l_archivio_gia_uscito_poi_le_cartoline():
-    """CA-76, parte del piano: 3 foto, 2 d'archivio; la 11 su Facebook è già uscita."""
-    d_archivio = _gruppo(2, id=9, da=10)
-    d_archivio.archivio = True
-    archivio = {
-        "facebook": [_voce(10), _voce(11, mai_uscita=False)],
-        "instagram": [_voce(10), _voce(11)],
-    }
-
-    piano, violazioni = _pianifica(
-        AIFinto(), [_gruppo(3), d_archivio], archivio=archivio
-    )
+def test_ca57_piano_con_poche_foto_i_post_che_mancano_sono_immagini_ai():
+    """4 foto, 6 post chiesti: 2 immagini AI per canale, la stessa uscita su entrambi."""
+    piano, violazioni = _pianifica(AIFinto(), [_gruppo(4)])
     uscite = piano.contenuto["uscite"]
 
     assert violazioni == []
-    facebook = _post_del_canale(piano.contenuto, "facebook")
-    assert [p["foto"] for p in facebook] == [[1], [2], [3], [10], [11], []]
-    assert [p["riempitivo"] for p in facebook] == [None] * 4 + ["archivio", "cartolina"]
-    instagram = _post_del_canale(piano.contenuto, "instagram")
-    assert [p["foto"] for p in instagram] == [[1], [2], [3], [10], [11], []]
-    assert [p["riempitivo"] for p in instagram] == [None] * 5 + ["cartolina"]
-    assert {p["formato"] for p in facebook + instagram} == {"singola"}
-    # l'uscita con una foto d'archivio prende gruppo e tema dall'archivio
-    assert [u["gruppo_id"] for u in uscite] == [1, 1, 1, 9, 9, None]
-    assert uscite[3]["tema"] == "Vasi del gruppo 9"
+    for canale in DUE_CANALI:
+        post = _post_del_canale(piano.contenuto, canale)
+        assert [p["foto"] for p in post] == [[1], [2], [3], [4], [], []]
+        assert [p["riempitivo"] for p in post] == [None] * 4 + ["immagine_ai"] * 2
+    # i temi dei riempitivi sono quelli del finto, senza gruppo
+    assert [u["gruppo_id"] for u in uscite] == [1, 1, 1, 1, None, None]
+    assert uscite[4]["tema"] != uscite[5]["tema"]
 
 
-def test_piano_con_piu_foto_d_archivio_gia_uscite_dei_riempitivi_che_servono():
-    """Le foto d'archivio che avanzano restano fuori: nessuna cartolina."""
-    d_archivio = _gruppo(3, id=9, da=20)
-    d_archivio.archivio = True
-    archivio = {"instagram": [_voce(n, mai_uscita=False) for n in (20, 21, 22)]}
-
-    piano, violazioni = _pianifica(
-        AIFinto(carosello=True),
-        [_gruppo(4), d_archivio],
-        canali=("instagram",),
-        archivio=archivio,
-    )
+def test_ca57_piano_senza_foto_e_tutto_di_immagini_ai():
+    piano, violazioni = _pianifica(AIFinto(), [_gruppo(0)])
 
     assert violazioni == []
-    post = _post_del_canale(piano.contenuto, "instagram")
-    assert [p["foto"] for p in post] == [[1], [2], [3], [4], [20], [21]]
-    assert [p["riempitivo"] for p in post] == [None] * 4 + ["archivio"] * 2
-    assert {p["formato"] for p in post} == {"singola"}
+    post = [p for u in piano.contenuto["uscite"] for p in u["post"]]
+    assert len(post) == 12
+    assert {p["riempitivo"] for p in post} == {"immagine_ai"}
+    assert all(p["foto"] == [] and p["formato"] == "singola" for p in post)
+
+
+def test_ca80_piano_con_le_sole_foto_preselezionate():
+    """10 foto idonee, 6 post chiesti: le 6 di punteggio più alto, una per post."""
+    punteggi = [3, 5, 1, 4, 2, 5, 4, 1, 3, 2]
+    piano, violazioni = _pianifica(AIFinto(), [_gruppo(10, punteggi=punteggi)])
+
+    assert violazioni == []
+    for canale in DUE_CANALI:
+        post = _post_del_canale(piano.contenuto, canale)
+        assert [p["foto"] for p in post] == [[2], [6], [4], [7], [1], [9]]
+        assert {p["riempitivo"] for p in post} == {None}
+    usate = {f for u in piano.contenuto["uscite"] for p in u["post"] for f in p["foto"]}
+    assert usate == {1, 2, 4, 6, 7, 9}
 
 
 def test_piano_uguale_a_parita_di_dati():
@@ -489,20 +470,35 @@ def test_piano_a_periodo_finito_non_passa_il_controllo_delle_date():
     assert {v["regola"] for v in violazioni} == {"data_nel_passato"}
 
 
-def test_piano_con_un_carosello_a_comando():
-    """CA-52, parte del piano: più foto in un post, dove non ci sono riempitivi."""
-    piano, violazioni = _pianifica(AIFinto(carosello=True), [_gruppo(8)])
+def test_piano_con_un_carosello_a_comando_solo_se_avanzano_foto():
+    """CA-52, parte del piano (carosello congelato): servono foto oltre i post chiesti."""
+    limiti = {
+        canale: {
+            "post_chiesti": 6,
+            "foto_disponibili": list(range(1, 9)),
+            "foto_riempitivo": [],
+            "riempitivi": 0,
+        }
+        for canale in DUE_CANALI
+    }
+    piano = AIFinto(carosello=True).pianifica_campagna(
+        SNAPSHOT,
+        CAMPAGNA,
+        [_gruppo(8)],
+        limiti,
+        domain.SCHEDE_CANALE,
+        non_prima_di=ADESSO + timedelta(minutes=MARGINE),
+    )
 
-    assert violazioni == []
     for canale in DUE_CANALI:
         primo = _post_del_canale(piano.contenuto, canale)[0]
         assert primo["formato"] == "carosello"
         assert primo["foto"] == [1, 7]
 
 
-@pytest.mark.parametrize("n_foto", [4, 6])
-def test_piano_senza_carosello_se_servono_riempitivi_o_non_avanzano_foto(n_foto):
-    """CA-57, parte del piano: su un canale con riempitivi nessun carosello."""
+@pytest.mark.parametrize("n_foto", [0, 4, 6, 8, 20])
+def test_piano_senza_carosello_con_le_foto_preselezionate(n_foto):
+    """Un post = una foto (A8): le foto preselezionate non superano i post chiesti."""
     piano, violazioni = _pianifica(AIFinto(carosello=True), [_gruppo(n_foto)])
 
     assert violazioni == []

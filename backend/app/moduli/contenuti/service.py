@@ -522,7 +522,7 @@ def ferma_generazione(db: Session, campagna_id: int, adesso: datetime) -> None:
             campagna_id=record.id,
             tipo="temporaneo",
             messaggio="La generazione non ha fatto progressi per 30 minuti.",
-            tappa=prossima_tappa(db, record, adesso) or "avvio",
+            tappa=prossima_tappa(db, record) or "avvio",
             creata_il=adesso,
         )
     )
