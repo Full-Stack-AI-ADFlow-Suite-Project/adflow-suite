@@ -1,10 +1,28 @@
 import { ApiErrore, richiesta } from "./http";
+import { creaArtigianoEsempio } from "./esempi/nuovi-artigiani";
 import {
   canaliEsempio,
   leggiProfiloEsempio,
   salvaProfiloEsempio,
   USA_ESEMPI,
 } from "./esempi/artigiani";
+
+/** POST /artigiani: crea l'artigiano e restituisce la password provvisoria (spec R-37). */
+export interface NuovoArtigiano {
+  email: string;
+  nome: string;
+}
+export interface ArtigianoCreato extends NuovoArtigiano {
+  id: number;
+  password_provvisoria: string;
+}
+
+export function creaArtigiano(dati: NuovoArtigiano): Promise<ArtigianoCreato> {
+  const corpo = { email: dati.email.trim(), nome: dati.nome.trim() };
+  return USA_ESEMPI
+    ? creaArtigianoEsempio(corpo)
+    : richiesta<ArtigianoCreato>("POST", "/artigiani", corpo);
+}
 
 export interface CanaleCollegato {
   canale: string;

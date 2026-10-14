@@ -63,3 +63,15 @@ src/
   tema.ts            palette e caratteri delle pagine statiche (assets/adflow.css)
   index.css          token con i nomi di adflow.css; i valori stanno in tema.ts
 ```
+
+## Nuovo artigiano
+
+Operatore e admin aprono `/nuovo-artigiano` dalla barra laterale: solo email e
+nome del referente, poi la password provvisoria da annotare una volta. Confermare
+«Ho annotato la password», cambiare pagina o ricaricare la elimina dalla vista.
+La password non viene salvata nel browser né nei dati di esempio.
+
+La pagina chiama `POST /api/artigiani` con `{email, nome}`. Con
+`VITE_USA_ESEMPI=1` la creazione è simulata, con un avviso di anteprima: gli
+account non sono reali e le email duplicate si ricordano in memoria, senza
+password, fino al ricaricamento.

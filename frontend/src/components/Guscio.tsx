@@ -2,7 +2,7 @@
  * Cornice delle pagine interne: barra laterale con marca, voci, utente
  * collegato ed Esci (docs/pagine, ADR-113).
  */
-import { Avatar, Title, Tooltip } from "@mantine/core";
+import { Avatar, Title } from "@mantine/core";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import type { ReactNode } from "react";
 
@@ -13,16 +13,13 @@ import stile from "./Guscio.module.css";
 export interface VoceNav {
   label: string;
   attivo?: boolean;
-  disabilitato?: boolean;
   /** Rotta della voce: senza, la voce è solo un'etichetta. */
   to?: string;
-  /** Per una voce disabilitata: con che cosa arriva. */
-  quando?: string;
 }
 
 /**
  * Le voci del ruolo, come nelle pagine statiche. Valgono quando la pagina
- * non passa le sue; le pagine che ancora non ci sono restano disabilitate.
+ * non passa le sue.
  */
 function vociDelRuolo(ruolo: Ruolo, percorso: string): VoceNav[] {
   if (ruolo === "artigiano")
@@ -41,8 +38,11 @@ function vociDelRuolo(ruolo: Ruolo, percorso: string): VoceNav[] {
       // Vedi campagna si apre da qui: la voce resta accesa.
       attivo: percorso === "/da-approvare" || percorso.startsWith("/campagne/"),
     },
-    { label: "Artigiani", disabilitato: true, quando: "lo sprint 3" },
-    { label: "Metriche", disabilitato: true, quando: "lo sprint 4" },
+    {
+      label: "Nuovo artigiano",
+      to: "/nuovo-artigiano",
+      attivo: percorso === "/nuovo-artigiano",
+    },
   ];
 }
 
@@ -54,19 +54,10 @@ const ICONE: Record<string, ReactNode> = {
       <path d="m9 14 2 2 4-4" />
     </>
   ),
-  Artigiani: (
+  "Nuovo artigiano": (
     <>
-      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
       <circle cx="9" cy="7" r="4" />
-      <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </>
-  ),
-  Metriche: (
-    <>
-      <line x1="18" y1="20" x2="18" y2="10" />
-      <line x1="12" y1="20" x2="12" y2="4" />
-      <line x1="6" y1="20" x2="6" y2="14" />
+      <path d="M3 21v-2a6 6 0 0 1 12 0v2M19 8v6M16 11h6" />
     </>
   ),
   Campagna: (
@@ -97,18 +88,6 @@ function Voce({ voce }: { voce: VoceNav }) {
       <span>{voce.label}</span>
     </>
   );
-
-  if (voce.disabilitato)
-    return (
-      <Tooltip label={`Arriva con ${voce.quando ?? "lo sprint 2a"}`}>
-        <span
-          className={`${stile.voce} ${stile.inArrivo}`}
-          aria-disabled="true"
-        >
-          {contenuto}
-        </span>
-      </Tooltip>
-    );
 
   const classe = voce.attivo ? `${stile.voce} ${stile.attiva}` : stile.voce;
   const corrente = voce.attivo ? "page" : undefined;
