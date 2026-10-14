@@ -26,34 +26,15 @@
     </div>
 
     <nav class="sidebar-nav">
-      <div class="nav-section-label">Piattaforma</div>
-      <a href="AdFlow-operatore-ingresso.html" class="nav-link">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-        <span>Dashboard</span>
-      </a>
-      <a href="AdFlow-operatore-campagna.html" class="nav-link active">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z"></path></svg>
-        <span>Campagne</span>
+      <div class="nav-section-label">Operatore</div>
+      <a href="AdFlow-operatore-da-approvare.html" class="nav-link active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2"></path><rect x="9" y="3" width="6" height="4" rx="1"></rect><path d="m9 14 2 2 4-4"></path></svg>
+        <span>Da approvare</span>
         <span class="nav-badge">4</span>
       </a>
-      <a href="AdFlow-operatore-da-approvare.html" class="nav-link active" style="padding-left: 36px; font-size: 12.5px;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width: 15px; height: 15px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 14 14"></polyline></svg>
-        <span>Da approvare</span>
-      </a>
-      <a href="AdFlow-operatore-artigiano-campagne.html" class="nav-link" style="padding-left: 36px; font-size: 12.5px;">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" style="width: 15px; height: 15px;"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
-        <span>Storico chiuse</span>
-      </a>
-
-      <div class="nav-section-label">Gestione</div>
-      <a href="AdFlow-operatore-elenco.html" class="nav-link">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
-        <span>Artigiani</span>
-        <span class="nav-badge">6</span>
-      </a>
-      <a href="AdFlow-operatore-metriche.html" class="nav-link">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><line x1="18" y1="20" x2="18" y2="10"></line><line x1="12" y1="20" x2="12" y2="4"></line><line x1="6" y1="20" x2="6" y2="14"></line></svg>
-        <span>Metriche</span>
+      <a href="AdFlow-operatore-nuovo-artigiano.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line></svg>
+        <span>Nuovo artigiano</span>
       </a>
 
       <div class="nav-section-label">Sistema</div>
@@ -82,7 +63,7 @@
     <!-- fascia-mappa: stato della pagina statica e ritorno alla mappa. Non fa parte della schermata. -->
     <header class="app-topbar">
       <div class="topbar-left">
-        <div class="stato-pagina">Pagina statica · <strong>approvata</strong> · ADR-54 · domande chiuse: ADR-106 · stile: ADR-113</div>
+        <div class="stato-pagina">Pagina statica · <strong>MVP</strong> · ADR-54 · domande chiuse: ADR-106 · stile: ADR-113 · perimetro: ADR-114</div>
       </div>
 
       <div class="topbar-right">
@@ -98,8 +79,6 @@
 
     <main class="content-wrapper">
       <nav class="breadcrumb-trail">
-        <a href="AdFlow-operatore-ingresso.html">Dashboard</a>
-        <span class="breadcrumb-sep">/</span>
         <span class="breadcrumb-current">Campagne da approvare</span>
       </nav>
 
@@ -114,7 +93,6 @@
             <option>in_revisione (2)</option>
             <option>in_generazione (1)</option>
             <option>generazione_fallita (1)</option>
-            <option>piano_da_rivedere (0)</option>
             <option>inviata (0)</option>
           </select>
         </div>
@@ -129,9 +107,8 @@
         <div class="surface-card riga-campagna bordo-attn">
           <div>
             <div class="chi">
-              <a href="AdFlow-operatore-artigiano.html">Falegnameria Bianchi</a>
-              <span>· Bra (CN) ·</span>
-              <code>ART-0042</code>
+              <b>Falegnameria Bianchi</b>
+              <span>· Bra (CN)</span>
             </div>
             <div class="titolo">
               <h2>Campagna Ottobre 2026</h2>
@@ -142,28 +119,22 @@
             <div class="dati">
               <span><strong>Periodo:</strong> 01/10/2026 → 31/10/2026</span>
               <span><strong>Inviata il</strong> 25/09/2026</span>
-              <span><strong>Post:</strong> 26 · 5 riempitivi su Facebook · 1 da rivedere</span>
-              <span><strong>Storico:</strong> 6 campagne inviate · l'ultima chiusa: scaduta ad agosto · una respinta per le foto a luglio</span>
+              <span><strong>Post:</strong> 26 · 6 con immagine AI · 1 da rivedere</span>
             </div>
             <div class="riquadro-nota">
-              <strong>Entro quando:</strong> primo post da approvare giovedì 01/10 alle 18:30 · promemoria il 29/09
-            </div>
-            <div class="riquadro-nota">
-              <strong>Nota interna</strong> (27/09, L. Rossi): aspetto conferma delle date del mercatino.
+              <strong>Entro quando:</strong> primo post da approvare giovedì 01/10 alle 18:30
             </div>
           </div>
           <div class="azioni">
             <a href="AdFlow-operatore-campagna.html" class="btn btn-primary">Vedi campagna →</a>
-            <a href="AdFlow-operatore-artigiano.html" class="btn btn-secondary btn-sm">Pagina artigiano</a>
           </div>
         </div>
 
         <div class="surface-card riga-campagna bordo-errore">
           <div>
             <div class="chi">
-              <a href="#">Ceramiche Olivero</a>
-              <span>· Mondovì (CN) ·</span>
-              <code>ART-0017</code>
+              <b>Ceramiche Olivero</b>
+              <span>· Mondovì (CN)</span>
             </div>
             <div class="titolo">
               <h2>Autunno in tavola</h2>
@@ -173,24 +144,21 @@
             <div class="dati">
               <span><strong>Periodo:</strong> 05/10/2026 → 01/11/2026</span>
               <span><strong>Inviata il</strong> 27/09/2026</span>
-              <span><strong>Storico:</strong> 3 campagne inviate · tutte concluse</span>
             </div>
             <div class="riquadro-nota errore">
               Errore temporaneo dell'AI dopo 3 esecuzioni · Riprova in Vedi campagna · entro il 05/10 alle 00:00: senza piano la campagna scade all'inizio
             </div>
           </div>
           <div class="azioni">
-            <a href="#" class="btn btn-primary">Vedi campagna →</a>
-            <a href="#" class="btn btn-secondary btn-sm">Pagina artigiano</a>
+            <a href="AdFlow-operatore-campagna.html" class="btn btn-primary">Vedi campagna →</a>
           </div>
         </div>
 
         <div class="surface-card riga-campagna bordo-primario">
           <div>
             <div class="chi">
-              <a href="#">Pelletteria Ferrero</a>
-              <span>· Alba (CN) ·</span>
-              <code>ART-0031</code>
+              <b>Pelletteria Ferrero</b>
+              <span>· Alba (CN)</span>
             </div>
             <div class="titolo">
               <h2>Borse d'inverno</h2>
@@ -201,24 +169,21 @@
             <div class="dati">
               <span><strong>Periodo:</strong> 12/10/2026 → 08/11/2026</span>
               <span><strong>Inviata il</strong> 28/09/2026</span>
-              <span><strong>Storico:</strong> prima campagna di questa bottega</span>
             </div>
             <div class="riquadro-nota">
               Generazione dei post in corso · entro il 12/10 alle 00:00
             </div>
           </div>
           <div class="azioni">
-            <a href="#" class="btn btn-primary">Vedi campagna →</a>
-            <a href="#" class="btn btn-secondary btn-sm">Pagina artigiano</a>
+            <a href="AdFlow-operatore-campagna.html" class="btn btn-primary">Vedi campagna →</a>
           </div>
         </div>
 
         <div class="surface-card riga-campagna bordo-attn">
           <div>
             <div class="chi">
-              <a href="#">Tessitura Gallo</a>
-              <span>· Saluzzo (CN) ·</span>
-              <code>ART-0008</code>
+              <b>Tessitura Gallo</b>
+              <span>· Saluzzo (CN)</span>
             </div>
             <div class="titolo">
               <h2>Sciarpe e plaid</h2>
@@ -228,16 +193,14 @@
             <div class="dati">
               <span><strong>Periodo:</strong> 15/10/2026 → 15/11/2026</span>
               <span><strong>Inviata il</strong> 26/09/2026</span>
-              <span><strong>Post:</strong> 9 · 9 da approvare</span>
-              <span><strong>Storico:</strong> 4 campagne inviate · 1 in corso</span>
+              <span><strong>Post:</strong> 9 · 9 da approvare · nessuna immagine AI</span>
             </div>
             <div class="riquadro-nota">
               <strong>Entro quando:</strong> primo post da approvare il 15/10 alle 18:30
             </div>
           </div>
           <div class="azioni">
-            <a href="#" class="btn btn-primary">Vedi campagna →</a>
-            <a href="#" class="btn btn-secondary btn-sm">Pagina artigiano</a>
+            <a href="AdFlow-operatore-campagna.html" class="btn btn-primary">Vedi campagna →</a>
           </div>
         </div>
 
@@ -245,8 +208,9 @@
 
       <!-- Note della pagina statica: non fanno parte della schermata -->
       <div class="note-pagina">
-        <p><strong>Pagina statica, non interattiva.</strong> Le campagne da approvare di tutti gli artigiani. È la pagina dello sprint 1 (T1-53, con <code>GET /campagne?stato=</code>, con lo stato ripetuto). Oggi è il 28/09/2026.</p>
-        <p>Stati mostrati: <code>inviata</code>, <code>in_generazione</code>, <code>piano_da_rivedere</code>, <code>generazione_fallita</code>, <code>in_revisione</code>. Sono gli stessi della sezione "Da approvare" della pagina artigiano (spec §4). Da ogni riga due strade: <strong>Vedi campagna</strong> per decidere, <strong>Pagina artigiano</strong> per lo storico della bottega. Riprova sta solo in Vedi campagna. Il codice ART e la traccia dello storico arrivano dallo sprint 3, con l'anagrafica: nello sprint 1 la riga porta bottega e città (ADR-106).</p>
+        <p><strong>Pagina statica, non interattiva.</strong> Le campagne da approvare di tutti gli artigiani, con <code>GET /da-approvare</code> (T2b-45). È la pagina di partenza dell'operatore nell'MVP. Oggi è il 28/09/2026.</p>
+        <p>Stati mostrati: <code>inviata</code>, <code>in_generazione</code>, <code>generazione_fallita</code>, <code>in_revisione</code>. Da ogni riga una sola strada: <strong>Vedi campagna</strong>, dove si decide; anche Riprova sta lì. La riga porta bottega e città dal profilo (ADR-106) e, per i post, quanti hanno un'immagine AI.</p>
+        <p><strong>Cosa cambia con l'MVP (ADR-114).</strong> Tolti: lo stato <code>piano_da_rivedere</code> (A3: il piano è sempre completo; una campagna vecchia ferma lì si legge ancora e si respinge), la nota interna (B4, congelata), il promemoria delle 48 ore (B7), il codice ART e lo storico della bottega (anagrafica, in roadmap), il pulsante Pagina artigiano (pagina in roadmap).</p>
         <p>"Entro quando" segue la scadenza morbida (ADR-95): con un piano, ogni post da approvare scade quando passa la sua data, e la campagna scade quando ne restano meno della metà; senza piano scade alle 00:00 del giorno di inizio.</p>
         <p>Esempio · pagina vuota: "Nessuna campagna da approvare. Le campagne arrivano qui appena un artigiano le invia."</p>
       </div>

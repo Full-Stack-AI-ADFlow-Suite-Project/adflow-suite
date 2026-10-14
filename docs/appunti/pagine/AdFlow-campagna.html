@@ -54,7 +54,7 @@
           <div class="user-role">Falegnameria Bianchi</div>
         </div>
       </div>
-      <a href="AdFlow-operatore-ingresso.html" class="role-switch-btn" title="Passa alla vista Operatore Consorzio">
+      <a href="AdFlow-operatore-da-approvare.html" class="role-switch-btn" title="Passa alla vista Operatore Consorzio">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 3 21 3 21 9"></polyline><polyline points="9 21 3 21 3 15"></polyline><line x1="21" y1="3" x2="14" y2="10"></line><line x1="3" y1="21" x2="10" y2="14"></line></svg>
         <span>Vista Operatore (Laura Rossi)</span>
       </a>
@@ -65,7 +65,7 @@
     <!-- fascia-mappa: stato della pagina statica e ritorno alla mappa. Non fa parte della schermata. -->
     <header class="app-topbar">
       <div class="topbar-left">
-        <div class="stato-pagina">Pagina statica · <strong>approvata</strong> · ADR-47 · canali, gruppi e immagini AI: ADR-57, 59, 60, 61, 70 · presenza costante: ADR-81…88 · stile: ADR-113</div>
+        <div class="stato-pagina">Pagina statica · <strong>MVP</strong> · ADR-47 · canali e gruppi: ADR-57, 59, 60, 70 · presenza costante: ADR-81, 82 · stile: ADR-113 · perimetro: ADR-114</div>
       </div>
 
       <div class="topbar-right">
@@ -184,13 +184,13 @@
         <div class="surface-card-header">
           <div>
             <h3 class="surface-card-title">11 · Foto della campagna · Le foto di questo periodo</h3>
-            <span class="sotto">Le foto si caricano a gruppi: da 1 a 20 foto per gruppo, con una descrizione. I post nascono dai gruppi. Per inviare servono almeno 4 foto caricate in tutto (ADR-59, ADR-60).</span>
+            <span class="sotto">Le foto si caricano a gruppi: da 1 a 20 foto per gruppo, con una descrizione. Sono facoltative: senza foto la campagna esce tutta con immagini create dall'AI (ADR-114).</span>
           </div>
-          <span class="status-pill success">3 gruppi · 6 foto in totale · 1 con la stella</span>
+          <span class="status-pill success">3 gruppi · 6 foto in totale</span>
         </div>
         <div class="surface-card-body">
           <div class="avviso-box info">
-            Per 31 giorni a 3 post a settimana servono circa <strong>13 foto buone</strong> e diverse tra loro: le stesse escono su tutti i canali. Se sono meno, completiamo con le foto del tuo archivio che su quel canale non sono mai uscite, poi con i riempitivi: i post che hai scelto escono sempre tutti (ADR-81…83). Meglio se di almeno due tipi: pezzo finito, dettaglio, lavorazione, tu al lavoro, il pezzo in uso, un evento. Esempio: 6 caricate in 3 gruppi.
+            Per 31 giorni a 3 post a settimana servono circa <strong>13 foto buone</strong> e diverse tra loro: le stesse escono su tutti i canali. Se sono meno, per i post che mancano creiamo un'immagine con l'AI: i post che hai scelto escono sempre tutti (ADR-81). Se sono di più, usiamo le migliori. Meglio se di almeno due tipi: pezzo finito, dettaglio, lavorazione, tu al lavoro, il pezzo in uso, un evento. Esempio: 6 caricate in 3 gruppi.
           </div>
 
           <!-- Gruppo 1 -->
@@ -200,8 +200,8 @@
               <button type="button" class="btn btn-secondary btn-sm">Rimuovi gruppo</button>
             </div>
             <div class="foto-griglia">
-              <div class="foto"><img src="assets/img/fb-tavolo.jpg" alt=""><span class="stella">★</span><span class="nome">tavolo-rovere-01.jpg</span></div>
-              <div class="foto"><img src="assets/img/ig-dettaglio.jpg" alt=""><span class="stella spenta">☆</span><span class="nome">tavolo-rovere-02.jpg</span></div>
+              <div class="foto"><img src="assets/img/fb-tavolo.jpg" alt=""><span class="nome">tavolo-rovere-01.jpg</span></div>
+              <div class="foto"><img src="assets/img/ig-dettaglio.jpg" alt=""><span class="nome">tavolo-rovere-02.jpg</span></div>
               <button type="button" class="foto aggiungi" aria-label="Aggiungi foto">+</button>
             </div>
             <div class="griglia-2">
@@ -224,9 +224,9 @@
               <button type="button" class="btn btn-secondary btn-sm">Rimuovi gruppo</button>
             </div>
             <div class="foto-griglia">
-              <div class="foto"><img src="assets/img/fb-falegname.jpg" alt=""><span class="stella spenta">☆</span><span class="nome">laboratorio-1.jpg</span></div>
-              <div class="foto">laboratorio-2.jpg<span class="stella spenta">☆</span></div>
-              <div class="foto">mani-sgorbia.jpg<span class="stella spenta">☆</span></div>
+              <div class="foto"><img src="assets/img/fb-falegname.jpg" alt=""><span class="nome">laboratorio-1.jpg</span></div>
+              <div class="foto">laboratorio-2.jpg</div>
+              <div class="foto">mani-sgorbia.jpg</div>
               <button type="button" class="foto aggiungi" aria-label="Aggiungi foto">+</button>
             </div>
             <div class="griglia-2">
@@ -248,7 +248,7 @@
               <button type="button" class="btn btn-secondary btn-sm">Rimuovi gruppo</button>
             </div>
             <div class="foto-griglia">
-              <div class="foto">sedie-01.jpg<span class="stella spenta">☆</span></div>
+              <div class="foto">sedie-01.jpg</div>
               <button type="button" class="foto aggiungi" aria-label="Aggiungi foto">+</button>
             </div>
             <div class="griglia-2">
@@ -264,32 +264,7 @@
           </div>
 
           <button type="button" class="btn btn-secondary btn-sm">+ Aggiungi un gruppo di foto</button>
-          <p class="nota-card" style="margin-bottom: 18px;">★ = "da usare per forza": se la foto è buona esce di sicuro in un post. Le altre le sceglie il sistema tra le migliori del gruppo (ADR-64).</p>
-
-          <!-- Gruppo 4 · immagini da creare -->
-          <div class="gruppo-foto" style="border-style: dashed;">
-            <div class="testa">
-              <strong>Gruppo 4 · immagini da creare con l'AI</strong>
-              <button type="button" class="btn btn-secondary btn-sm">Rimuovi gruppo</button>
-            </div>
-            <div class="griglia-2">
-              <div class="form-group">
-                <label class="form-label">Che cosa si deve vedere *</label>
-                <textarea class="form-input">Un tagliere in rovere su una tavola apparecchiata per Natale, luce calda, qualche rametto di abete.</textarea>
-                <div class="form-hint">L'AI parte da queste parole, dal profilo della bottega e dalla campagna, prepara le istruzioni e poi crea le immagini. Il consorzio le controlla prima che escano, e può farle ritoccare o rifare (ADR-61). Sono le prime che usiamo quando le foto non bastano a tenere il ritmo che hai scelto (ADR-84).</div>
-              </div>
-              <div class="form-group">
-                <label class="form-label">Quante immagini *</label>
-                <select class="form-select"><option>1</option><option selected>2</option><option>3</option><option>…</option><option>20</option></select>
-                <div class="form-hint">Da 1 a 20. Il sistema crea solo quelle che servono ai post.</div>
-              </div>
-            </div>
-          </div>
-          <button type="button" class="btn btn-secondary btn-sm">+ Aggiungi un gruppo di immagini da creare con l'AI</button>
-          <p class="nota-card">Un gruppo è di foto caricate oppure di immagini da creare, mai misto. Le immagini create si aggiungono alle foto, non le sostituiscono: le 4 foto caricate servono comunque. Senza questo gruppo, se serve un'immagine creata è una frase o una riflessione sul tuo mestiere, mai un prodotto.</p>
-          <div class="avviso-box attn" style="margin: 14px 0 0;">
-            <strong>Ancora da costruire (lavori-aperti.md A-05).</strong> Finché la creazione non è costruita, nel programma questo riquadro e il suo pulsante restano nascosti (ADR-80, R-19). Restano da decidere: i cicli di ritocco, se il post deve dire che l'immagine è creata dall'AI, modello e costi.
-          </div>
+          <p class="nota-card">Le foto le sceglie l'analisi dell'AI: scarta quelle sfocate, scure o quasi uguali a un'altra, con il motivo, e tra le buone usa quelle con il punteggio più alto. Un post ha una foto sola.</p>
         </div>
       </div>
 
@@ -300,7 +275,7 @@
             <h3 class="surface-card-title">12 · Riepilogo · Rivedi prima di inviare</h3>
             <span class="sotto">Ultimo controllo prima dell'invio. Da qui si torna alle sezioni 10 e 11; i dati del profilo sono in sola lettura e si cambiano nella pagina <a href="AdFlow-profilo-bottega.html">Profilo bottega</a>.</span>
           </div>
-          <span class="status-pill review">1 avviso · puoi inviare</span>
+          <span class="status-pill review">2 avvisi · puoi inviare</span>
         </div>
         <div class="surface-card-body">
           <div class="kpi-griglia">
@@ -316,7 +291,7 @@
             <div class="kpi">
               <div class="title">Foto caricate</div>
               <div class="value">6 foto in 3 gruppi</div>
-              <span class="sotto">1 con la stella · immagini da creare: 2, in 1 gruppo</span>
+              <span class="sotto">7 post per canale avranno un'immagine AI</span>
             </div>
           </div>
 
@@ -348,37 +323,50 @@
               </dl>
               <h4 class="titolo-sezione" style="font-size: 14px; margin-bottom: 8px;">Foto della campagna</h4>
               <dl class="dati-lista sinistra">
-                <div><dt>Foto caricate</dt><dd>6 foto in 3 gruppi · 1 con la stella</dd></div>
-                <div><dt>Immagini da creare</dt><dd>2, in 1 gruppo</dd></div>
+                <div><dt>Foto caricate</dt><dd>6 foto in 3 gruppi</dd></div>
               </dl>
             </div>
           </div>
 
           <h4 class="titolo-sezione" style="font-size: 14px; margin-bottom: 8px;">Che cosa uscirà · stima</h4>
           <dl class="dati-lista sinistra" style="margin-bottom: 16px;">
-            <div><dt><span class="status-pill fb">Facebook</span></dt><dd>13 post · 6 con le foto di questa campagna · 2 con foto d'archivio mai uscite · 5 riempitivi: le tue 2 immagini da creare, 2 foto già uscite, 1 cartolina</dd></div>
-            <div><dt><span class="status-pill ig">Instagram</span></dt><dd>13 post · 6 con le foto di questa campagna · 7 con foto d'archivio, su Instagram mai uscite</dd></div>
+            <div><dt><span class="status-pill fb">Facebook</span></dt><dd>13 post · 6 con le tue foto · 7 con un'immagine creata dall'AI</dd></div>
+            <div><dt><span class="status-pill ig">Instagram</span></dt><dd>13 post · 6 con le tue foto · 7 con un'immagine creata dall'AI, le stesse di Facebook</dd></div>
           </dl>
 
           <div class="avviso-box attn">
-            <strong>Avviso, puoi inviare lo stesso.</strong> I 13 post che hai scelto escono tutti, ma su Facebook 5 non hanno una foto nuova: più di uno ogni due. Con una foto in più scendono a 4 (ADR-70, ADR-82).
+            <strong>Avvisi, puoi inviare lo stesso.</strong>
+            <ul style="margin: 6px 0 0; padding-left: 20px;">
+              <li>Le foto caricate sono meno dei post chiesti: <strong>7 post per canale avranno un'immagine creata con l'AI</strong> (<code>foto_poche</code>).</li>
+              <li>I post senza una tua foto sono più di uno ogni due foto caricate: aggiungine qualcuna, se puoi (<code>riempitivi_molti</code>).</li>
+            </ul>
+          </div>
+
+          <div class="avviso-box info">
+            Le immagini create dall'AI mostrano ambienti, materiali, attrezzi, lavorazioni, atmosfere e stagioni: mai un prodotto finito come se fosse tuo, mai persone riconoscibili, testi o marchi. Sono quadrate e il post dice "Immagine creata con AI". Le controlla il consorzio prima che escano.
+          </div>
+
+          <div class="form-group" style="margin-top: 16px;">
+            <label class="scelta" style="display: flex; gap: 10px; align-items: flex-start; font-weight: 500;">
+              <input type="checkbox" style="margin-top: 3px;">
+              <span>Le foto mostrano prodotti della mia bottega; le persone riconoscibili hanno dato il consenso. *</span>
+            </label>
+            <div class="form-hint" style="color: var(--danger-text);">Esempio di invio senza la spunta: "Per inviare conferma la dichiarazione sulle foto."</div>
           </div>
 
           <div class="azioni-riga fine">
             <button type="button" class="btn btn-primary" style="padding: 10px 24px;">Invia all'operatore</button>
           </div>
 
-          <p class="nota-card">È una stima: quali foto sono buone lo dice l'analisi, dopo l'invio. Lo stesso riquadro in altri due casi. Archivio vuoto, prima campagna con 6 foto e senza immagini da creare: "13 post per canale: 6 con le tue foto, 7 tra cartoline e immagini con una frase sul tuo mestiere. Sono più della metà: con 9 foto scendono a 4." Foto in più dei post scelti: "Le foto che non escono restano nel tuo archivio per le prossime campagne. Vuoi pubblicare di più? Passa a 5 a settimana."</p>
-          <p class="nota-card">Altro avviso che non blocca: frequenza alta rispetto alle foto che dichiari nel profilo. Gli avvisi arrivano dal server (ADR-73). Blocchi, con il campo evidenziato: meno di 4 foto caricate; un gruppo senza descrizione; un canale non più collegato ("Instagram non è collegato: contatta il consorzio").</p>
-          <div class="avviso-box attn" style="margin: 14px 0 0;">
-            <strong>Si costruisce a tappe (ADR-88).</strong> Sprint 1: i post che le foto non coprono sono cartoline, con il nome della bottega e il tema del post, e il riquadro dice solo quante: "Con 6 foto, 7 dei 13 post per canale saranno cartoline. Aggiungine 7 per avere solo foto." Sprint 2a: archivio e logo. Le immagini create arrivano quando la loro creazione sarà costruita (lavori-aperti.md A-05).
-          </div>
+          <p class="nota-card">È una stima: quali foto sono buone lo dice l'analisi, dopo l'invio. Lo stesso riquadro in altri due casi. Nessuna foto: "13 post per canale, tutti con un'immagine creata dall'AI." Foto in più dei post scelti: "Usiamo le 13 migliori secondo l'analisi; le altre restano tra le foto della campagna."</p>
+          <p class="nota-card">Altro avviso che non blocca: frequenza alta rispetto alle foto che dichiari nel profilo (<code>frequenza_alta</code>). Gli avvisi arrivano dal server (ADR-73, spec R-25). Blocchi, con il campo evidenziato: la dichiarazione non spuntata (spec R-41); un gruppo senza descrizione; un canale non più collegato ("Instagram non è collegato: contatta il consorzio"). Nessun minimo di foto.</p>
         </div>
       </div>
 
       <!-- Note della pagina statica: non fanno parte della schermata -->
       <div class="note-pagina">
-        <p><strong>Schema statico, non interattivo</strong> (v5.5, ADR-47, ADR-57…70 e ADR-81…88): mostra in sequenza tutte le schermate della pagina con dati di esempio. Non salva né valida nulla — è lo scheletro da cui costruire la pagina reale nel software.</p>
+        <p><strong>Schema statico, non interattivo</strong> (v6, ADR-47, ADR-57…70, ADR-81, ADR-82, ADR-114): mostra in sequenza tutte le schermate della pagina con dati di esempio. Non salva né valida nulla — è lo scheletro da cui costruire la pagina reale nel software.</p>
+        <p><strong>Cosa cambia con l'MVP (ADR-114).</strong> Tolti: la stella sulle foto (A11), il minimo di 4 foto all'invio (A5), i gruppi di immagini da creare con l'AI (A4, in roadmap), le foto d'archivio e le cartoline nella stima (A10 congelato, A6 tolto). Nuovi: le foto sono facoltative e i post che mancano hanno un'immagine creata dall'AI (spec R-28, R-43), l'avviso <code>foto_poche</code> dice quanti (R-25), la dichiarazione obbligatoria al passo 12 (R-41, salvata nella fotografia del profilo). Task: T3-22 (invio) e T3-52 (pagina); CA-14, CA-54.</p>
       </div>
 
     </main>
