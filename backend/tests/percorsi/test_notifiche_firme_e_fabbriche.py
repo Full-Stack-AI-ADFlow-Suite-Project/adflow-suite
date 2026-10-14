@@ -1,4 +1,4 @@
-"""T2b-01: apertura dello sprint 2b (tabella, firme e fabbriche)."""
+"""Revisione: tabella delle notifiche, firme di plan §6 e fabbriche."""
 import inspect
 from datetime import datetime, timezone
 
@@ -49,7 +49,7 @@ def test_la_notifica_di_un_post_ricorda_il_post(db):
 def test_i_tipi_di_notifica_hanno_un_destinatario():
     assert set(domain.TIPI) == set(domain.DESTINATARI)
     assert set(domain.DESTINATARI.values()) == {domain.ARTIGIANO, domain.OPERATORI}
-    # CA-55: i quattro eventi che avvisano gli operatori nello sprint 2b.
+    # CA-55: gli eventi che avvisano gli operatori (piano_da_rivedere resta per le righe vecchie).
     for tipo in (
         "campagna_pronta",
         "piano_da_rivedere",
@@ -105,7 +105,7 @@ def test_i_tipi_di_notifica_hanno_un_destinatario():
         (revisione, "scadenze", ["db", "adesso"]),
     ],
 )
-def test_firme_dello_sprint_2b(modulo, funzione, parametri):
+def test_firme_della_revisione(modulo, funzione, parametri):
     """Le firme di plan §6: chi le scrive e chi le usa parte da queste."""
     firma = inspect.signature(getattr(modulo, funzione))
     assert list(firma.parameters) == parametri
@@ -113,7 +113,7 @@ def test_firme_dello_sprint_2b(modulo, funzione, parametri):
 
 def test_scadenze_lascia_stare_una_campagna_sana(db):
     """Il tick la chiama a ogni minuto: una campagna in revisione con il piano
-    e i suoi post ancora nel futuro non subisce niente (T2b-44)."""
+    e i suoi post ancora nel futuro non subisce niente (R-06)."""
     record = campagna_in_revisione(db)
     piano(db, record)
     for _ in range(5):
@@ -123,7 +123,7 @@ def test_scadenze_lascia_stare_una_campagna_sana(db):
     assert record.stato == "in_revisione"
 
 
-def test_le_fabbriche_dello_sprint_2b(db):
+def test_le_fabbriche_della_revisione(db):
     sospesa = campagna_sospesa(db)
     assert sospesa.stato == "sospesa"
     nota = nota_interna(db, sospesa, nota="Da ricontrollare")

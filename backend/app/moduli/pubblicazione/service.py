@@ -198,8 +198,8 @@ def _verifica_pubblicabile(db: Session, post, versione) -> str | None:
 
     Controlli prima della chiamata al social: il post deve avere almeno una
     foto nella versione corrente e il suo canale deve avere l'account
-    collegato (la sospensione della campagna per permesso scaduto, R-07,
-    arriva nello sprint 3).
+    collegato. La sospensione della campagna per permesso scaduto (R-07) è
+    fuori MVP: il post diventa ``fallito``.
     """
     if not versione.legami_foto:
         return "Il post non ha foto da pubblicare."

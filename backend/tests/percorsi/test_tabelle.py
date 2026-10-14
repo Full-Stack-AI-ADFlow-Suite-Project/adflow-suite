@@ -1,4 +1,4 @@
-"""T1-03: migrazioni e vincoli verificati su PostgreSQL reale."""
+"""Migrazioni e vincoli delle tabelle, verificati su PostgreSQL reale (plan §2)."""
 from datetime import datetime, timezone
 from hashlib import sha256
 
