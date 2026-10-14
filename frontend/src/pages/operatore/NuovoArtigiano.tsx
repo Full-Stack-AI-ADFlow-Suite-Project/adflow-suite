@@ -11,11 +11,8 @@ import {
   Title,
 } from "@mantine/core";
 
-import {
-  creaArtigiano,
-  CREAZIONE_USA_ESEMPI,
-  type ArtigianoCreato,
-} from "../../api/artigiani";
+import { creaArtigiano, type ArtigianoCreato } from "../../api/artigiani";
+import { USA_ESEMPI } from "../../api/esempi/artigiani";
 import { ApiErrore } from "../../api/http";
 import { Guscio } from "../../components/Guscio";
 
@@ -87,7 +84,7 @@ export function NuovoArtigiano() {
           Crea l'accesso dell'artigiano. Il profilo della bottega lo compilerà
           al primo accesso.
         </Text>
-        {CREAZIONE_USA_ESEMPI && (
+        {USA_ESEMPI && (
           <Alert color="yellow" title="Anteprima">
             Gli account creati qui sono di prova e non permettono l'accesso alla
             piattaforma.

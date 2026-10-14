@@ -90,11 +90,6 @@ a.voce.attiva:hover {
   font-weight: 600;
 }
 
-.voce.inArrivo {
-  color: var(--text-faint);
-  cursor: default;
-}
-
 .voce svg {
   width: 19px;
   height: 19px;

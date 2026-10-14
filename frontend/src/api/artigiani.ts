@@ -7,7 +7,7 @@ import {
   USA_ESEMPI,
 } from "./esempi/artigiani";
 
-/** T3-54: POST /artigiani, contratto della PR #109 (T3-11). */
+/** POST /artigiani: crea l'artigiano e restituisce la password provvisoria (spec R-37). */
 export interface NuovoArtigiano {
   email: string;
   nome: string;
@@ -17,14 +17,9 @@ export interface ArtigianoCreato extends NuovoArtigiano {
   password_provvisoria: string;
 }
 
-// Finché T3-11 non è su main, la pagina usa gli esempi (AGENTS.md).
-// L'opzione permette la verifica su una copia che include già quell'endpoint.
-export const CREAZIONE_USA_ESEMPI =
-  USA_ESEMPI || import.meta.env.VITE_CREAZIONE_ARTIGIANI_API !== "1";
-
 export function creaArtigiano(dati: NuovoArtigiano): Promise<ArtigianoCreato> {
   const corpo = { email: dati.email.trim(), nome: dati.nome.trim() };
-  return CREAZIONE_USA_ESEMPI
+  return USA_ESEMPI
     ? creaArtigianoEsempio(corpo)
     : richiesta<ArtigianoCreato>("POST", "/artigiani", corpo);
 }
