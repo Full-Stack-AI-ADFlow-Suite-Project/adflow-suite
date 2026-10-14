@@ -1,4 +1,4 @@
-"""Test per la sistemazione delle foto e criterio di accettazione CA-81 (Corsia 2 · Task T3-21).
+"""Test per la sistemazione delle foto e criterio di accettazione CA-81.
 
 Verifiche previste:
 - CA-81: foto ruotata nei metadati, con GPS, PNG 3000 × 2000 -> sistemazione per Instagram ->

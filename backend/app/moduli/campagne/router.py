@@ -17,6 +17,7 @@ from .schemas import (
     CampagnaCrea,
     CampagnaDettaglio,
     CampagnaElencoItem,
+    CampagnaInvia,
     CampagnaModifica,
     FotoDettaglio,
     GruppoAggiorna,
@@ -218,11 +219,11 @@ def scarica_foto_pubblica(
     firma: Annotated[str | None, Query()] = None,
     scadenza: Annotated[str | None, Query()] = None,
 ) -> Response:
-    """Restituisce la foto sistemata per il canale con firma a tempo (spec R-42, CA-81, T3-23).
+    """Restituisce la foto sistemata per il canale con firma a tempo (spec R-42, CA-81).
 
     Accessibile senza autenticazione o sessione (utilizzato da Meta/Instagram per scaricare la foto).
     Se la firma è alterata, scaduta, mancante o la foto non esiste, risponde con 404
-    senza esporre alcun dato interno (constitution §3, tasks T3-23).
+    senza esporre alcun dato interno (constitution §3).
     """
     if id <= 0 or not canale or not firma:
         raise NonTrovato("Foto non trovata.")
@@ -264,8 +265,11 @@ def invia_campagna(
     db: Annotated[Session, Depends(get_db, scope="function")],
     utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
     ora: Annotated[datetime, Depends(adesso)],
+    dati: CampagnaInvia | None = None,
 ) -> CampagnaDettaglio:
-    service.invia_campagna(db, utente.id, id, ora)
+    service.invia_campagna(
+        db, utente.id, id, ora, dichiarazione=dati.dichiarazione if dati else False
+    )
     return service.dettaglio_campagna(db, utente.id, utente.ruolo, id)
 
 
