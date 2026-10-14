@@ -4,8 +4,11 @@
 - Un test per tipo di errore di R-35, su ogni operazione.
 """
 
+import os
+import subprocess
 import sys
 from datetime import date, datetime, timedelta, timezone
+from pathlib import Path
 from types import SimpleNamespace
 
 import pytest
@@ -24,6 +27,7 @@ from app.adapters.ai import (
     usa_ai,
 )
 from app.adapters.ai.finto import OPERAZIONI
+from app.core.config import leggi_impostazioni
 from app.core.orologio import ROMA
 from app.moduli.contenuti import domain
 from app.moduli.contenuti.piano import controlla_piano, limiti_per_canale
@@ -155,17 +159,25 @@ def test_ottieni_ai_restituisce_il_finto_e_sempre_la_stessa_istanza():
     assert ottieni_ai() is ottieni_ai()
 
 
-def test_ottieni_ai_con_un_provider_non_disponibile_e_un_errore_di_configurazione(
+def test_ottieni_ai_con_litellm_senza_modelli_e_un_errore_di_configurazione(
     monkeypatch,
 ):
-    """CA-58, parte dell'adattatore: `AI_PROVIDER=litellm` non c'è ancora."""
-    monkeypatch.setattr(
-        modulo_ai, "leggi_impostazioni", lambda: SimpleNamespace(ai_provider="litellm")
+    """CA-58, parte dell'adattatore: `AI_PROVIDER=litellm` senza i modelli in `.env`."""
+    import app.adapters.ai.litellm as modulo_litellm
+
+    senza_modelli = leggi_impostazioni().model_copy(
+        update={
+            "ai_provider": "litellm",
+            "ai_modello_visione": "",
+            "ai_modello_testo": "",
+        }
     )
+    monkeypatch.setattr(modulo_ai, "leggi_impostazioni", lambda: senza_modelli)
+    monkeypatch.setattr(modulo_litellm, "leggi_impostazioni", lambda: senza_modelli)
     with pytest.raises(ErroreAI) as sollevato:
         ottieni_ai()
     assert sollevato.value.tipo == "configurazione"
-    assert "litellm" in sollevato.value.messaggio
+    assert "AI_MODELLO_VISIONE" in sollevato.value.messaggio
 
 
 def test_usa_ai_ripristina_il_provider_precedente():
@@ -177,10 +189,24 @@ def test_usa_ai_ripristina_il_provider_precedente():
 
 
 def test_nessuna_libreria_di_rete_caricata_dall_adattatore():
-    """LiteLLM non si usa nei test: il provider finto non lo importa."""
-    assert isinstance(ottieni_ai(), AIFinto)
-    assert "litellm" not in sys.modules
-    assert "openai" not in sys.modules
+    """Con il provider finto LiteLLM non si importa neppure (in un processo pulito)."""
+    codice = chr(10).join(
+        [
+            "import sys",
+            "from app.adapters.ai import ottieni_ai",
+            "ottieni_ai()",
+            "assert 'litellm' not in sys.modules and 'openai' not in sys.modules",
+        ]
+    )
+    ambiente = {**os.environ, "AI_PROVIDER": "finto"}
+    risultato = subprocess.run(
+        [sys.executable, "-c", codice],
+        cwd=Path(__file__).resolve().parents[3],
+        env=ambiente,
+        capture_output=True,
+        text=True,
+    )
+    assert risultato.returncode == 0, risultato.stderr
 
 
 # --- Errori (R-35) ------------------------------------------------------------

@@ -16,6 +16,8 @@ from .base import (
     PianoAI,
     PostAI,
     PostScritto,
+    TIPI_USO,
+    UsoAI,
 )
 from .finto import AIFinto
 
@@ -25,20 +27,19 @@ _istanza_ai: Optional[AIAdapter] = None
 def ottieni_ai() -> AIAdapter:
     """Restituisce il provider AI scelto con ``AI_PROVIDER``.
 
-    Per ora esiste solo ``AIFinto``: con un altro provider solleva un
-    ``ErroreAI`` di tipo ``configurazione``, come farà una chiave sbagliata.
+    ``finto`` per sviluppo e test, ``litellm`` per il provider vero: senza i
+    modelli in ``.env`` solleva un ``ErroreAI`` di tipo ``configurazione``.
     Nei test si sostituisce con ``usa_ai()`` o ``imposta_ai()``.
     """
     global _istanza_ai
     if _istanza_ai is None:
-        provider = leggi_impostazioni().ai_provider
-        if provider != "finto":
-            raise ErroreAI(
-                "configurazione",
-                f"Il provider AI «{provider}» non è ancora disponibile: "
-                f"imposta AI_PROVIDER=finto.",
-            )
-        _istanza_ai = AIFinto()
+        if leggi_impostazioni().ai_provider == "litellm":
+            # LiteLLM è pesante da importare: solo se serve davvero.
+            from .litellm import AILiteLLM
+
+            _istanza_ai = AILiteLLM()
+        else:
+            _istanza_ai = AIFinto()
     return _istanza_ai
 
 
@@ -62,6 +63,7 @@ def usa_ai(adattatore: AIAdapter) -> Iterator[AIAdapter]:
 
 __all__ = [
     "TIPI_ERRORE",
+    "TIPI_USO",
     "AIAdapter",
     "AIFinto",
     "CampagnaAI",
@@ -71,6 +73,7 @@ __all__ = [
     "PianoAI",
     "PostAI",
     "PostScritto",
+    "UsoAI",
     "ottieni_ai",
     "imposta_ai",
     "usa_ai",

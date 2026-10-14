@@ -136,6 +136,7 @@ def vedi_campagna(
         ultimo_errore=(
             ErroreSchema.model_validate(errore) if errore is not None else None
         ),
+        costo_ai=contenuti.costo_ai_della_campagna(db, campagna_id),
     )
 
 

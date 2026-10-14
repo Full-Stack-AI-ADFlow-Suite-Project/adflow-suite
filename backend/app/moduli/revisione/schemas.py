@@ -2,6 +2,7 @@
 e dei corpi delle richieste degli interventi sul post (T2b-42)."""
 
 from datetime import date, datetime
+from decimal import Decimal
 from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field
@@ -173,6 +174,8 @@ class VediCampagnaSchema(BaseModel):
     uscite: list[UscitaSchema]
     foto_non_usate: list[GruppoFotoNonUsateSchema]
     ultimo_errore: ErroreSchema | None
+    # Totale in dollari delle chiamate all'AI della campagna (R-44)
+    costo_ai: Decimal
 
 
 class ConteggiPost(BaseModel):

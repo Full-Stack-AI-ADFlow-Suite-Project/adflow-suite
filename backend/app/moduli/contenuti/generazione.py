@@ -67,7 +67,16 @@ PIANO = "piano"
 TESTI = "testi"
 FINE = "fine"
 
-_CAMPI_ANALISI = ("idonea", "simile_a", "tipo", "punteggio", "motivo", "soggetto")
+_CAMPI_ANALISI = (
+    "idonea",
+    "simile_a",
+    "tipo",
+    "punteggio",
+    "motivo",
+    "soggetto",
+    "persone_riconoscibili",
+    "marchi_visibili",
+)
 
 
 class GenerazioneInterrotta(Exception):
@@ -185,7 +194,13 @@ def passo(db: Session, campagna_id: int, adesso: datetime) -> bool:
         return True
     if tappa == ANALISI:
         gruppo, da_fare = _da_analizzare(db, campagna, adesso)
-        _analizza(db, gruppo, da_fare, d_archivio=gruppo.campagna_id != campagna.id)
+        _analizza(
+            db,
+            campagna.id,
+            gruppo,
+            da_fare,
+            d_archivio=gruppo.campagna_id != campagna.id,
+        )
         return True
     if tappa == PIANO:
         _pianifica(db, campagna, adesso)
@@ -227,7 +242,12 @@ def _non_idonea(motivo: str) -> dict[str, Any]:
 
 
 def _analizza(
-    db: Session, gruppo: Any, senza_analisi: list[Any], *, d_archivio: bool
+    db: Session,
+    campagna_id: int,
+    gruppo: Any,
+    senza_analisi: list[Any],
+    *,
+    d_archivio: bool,
 ) -> None:
     """Analizza le foto del gruppo che non hanno ancora un'analisi (R-24).
 
@@ -250,6 +270,7 @@ def _analizza(
                     da_fare = [f for f in da_fare if f.id != errore.foto_id]
                     continue
                 raise
+            service.registra_chiamata_ai(db, campagna_id, ai.ultimo_uso)
             for foto in da_fare:
                 analisi = risposta.get(foto.id)
                 if not isinstance(analisi, dict) or not isinstance(
@@ -345,6 +366,7 @@ def _pianifica(db: Session, campagna: Any, adesso: datetime) -> None:
                 piano_precedente=precedente,
                 violazioni=violazioni,
             )
+            service.registra_chiamata_ai(db, campagna.id, ai.ultimo_uso)
             violazioni = controlla_piano(
                 scritto.contenuto,
                 limiti=limiti,
@@ -470,7 +492,9 @@ def _scrivi(db: Session, campagna: Any, post: Post, adesso: datetime) -> None:
     with _nella_tappa(TESTI, post.canale):
         ai = ottieni_ai()
         try:
-            scritto, errori = _testo_validato(ai, campagna, da_scrivere, snapshot)
+            scritto, errori = _testo_validato(
+                db, ai, campagna, da_scrivere, snapshot, post.id
+            )
             testo, hashtag = scritto.testo, list(scritto.hashtag)
             firma = (scritto.provider, scritto.modello, scritto.versione_prompt)
         except ErroreAI as errore:
@@ -511,7 +535,12 @@ def _scrivi(db: Session, campagna: Any, post: Post, adesso: datetime) -> None:
 
 
 def _testo_validato(
-    ai: AIAdapter, campagna: Any, post: PostAI, snapshot: dict[str, Any]
+    db: Session,
+    ai: AIAdapter,
+    campagna: Any,
+    post: PostAI,
+    snapshot: dict[str, Any],
+    post_id: int,
 ) -> tuple[Any, list[dict[str, Any]]]:
     """Il testo dell'AI e ciò che il validatore ci trova, dopo le riscritture."""
     precedente, errori = None, None
@@ -524,6 +553,7 @@ def _testo_validato(
             testo_precedente=precedente,
             violazioni=errori,
         )
+        service.registra_chiamata_ai(db, campagna.id, ai.ultimo_uso, post_id=post_id)
         errori = valida_testo(scritto.testo, scritto.hashtag, post.canale, snapshot)
         if not errori:
             break

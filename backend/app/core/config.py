@@ -1,5 +1,6 @@
 """Configurazione letta da backend/.env (variabili di plan §1)."""
 
+from decimal import Decimal
 from functools import lru_cache
 from typing import Literal
 
@@ -46,7 +47,12 @@ class Impostazioni(BaseSettings):
     ai_provider: Literal["finto", "litellm"] = "finto"
     ai_modello_visione: str = ""
     ai_modello_testo: str = ""
+    ai_modello_immagini: str = ""
     openai_api_key: str = ""
+    # Dollari per milione di token: servono solo se LiteLLM non conosce il
+    # prezzo del modello (spec R-44).
+    ai_prezzo_ingresso_milione: Decimal = Decimal(0)
+    ai_prezzo_uscita_milione: Decimal = Decimal(0)
 
     anticipo_minimo_giorni: int = 3
     margine_slot_minuti: int = 15
