@@ -22,6 +22,7 @@ import type { CampagnaDettaglio } from "../../../../api/campagne";
 import { Riga } from "../Riga";
 import { CanaliTolti } from "./CanaliTolti";
 import { ContattoConsorzio } from "./ContattoConsorzio";
+import { CalendarioCampagnaView } from "../../../../components/CalendarioCampagnaView";
 
 /** I motivi di una respinta come li legge l'artigiano (spec R-18). */
 const MOTIVO: Record<string, string> = {
@@ -295,35 +296,47 @@ export function VistaStato({
       case "attiva":
         return (
           <>
-            <Alert color="verde" variant="light" mb="md">
-              <b>Il piano di questa campagna.</b> I post escono da soli alle
-              date approvate dal consorzio.
-            </Alert>
-            <RiepilogoLettura campagna={campagna} />
+            <CalendarioCampagnaView
+              campagnaId={campagna.id}
+              stato={campagna.stato}
+              ruolo="artigiano"
+            />
             <ContattoConsorzio />
           </>
         );
       case "sospesa":
         return (
           <>
-            <Alert color="orange" variant="light">
+            <Alert color="orange" variant="light" mb="md">
               <b>Pubblicazioni ferme.</b> Il consorzio ha sospeso la campagna:
               contatta il consorzio per ripartire. I post in programma ripartono
               dopo.
             </Alert>
+            <CalendarioCampagnaView
+              campagnaId={campagna.id}
+              stato={campagna.stato}
+              ruolo="artigiano"
+            />
             <ContattoConsorzio />
           </>
         );
       case "annullata":
         return (
-          <Alert color="orange" variant="light">
-            <b>
-              Campagna chiusa dal consorzio il{" "}
-              {dataOraIT(campagna.chiusa_il).split(" alle")[0]}.
-            </b>{" "}
-            I post in programma non usciranno. Quelli già pubblicati restano nel
-            calendario.
-          </Alert>
+          <>
+            <Alert color="orange" variant="light" mb="md">
+              <b>
+                Campagna chiusa dal consorzio il{" "}
+                {dataOraIT(campagna.chiusa_il).split(" alle")[0]}.
+              </b>{" "}
+              I post in programma non usciranno. Quelli già pubblicati restano
+              nel calendario.
+            </Alert>
+            <CalendarioCampagnaView
+              campagnaId={campagna.id}
+              stato={campagna.stato}
+              ruolo="artigiano"
+            />
+          </>
         );
       case "conclusa":
         return (
@@ -331,9 +344,16 @@ export function VistaStato({
             <Alert color="verde" variant="light" mb="md">
               La campagna è conclusa. Da qui si riparte.
             </Alert>
-            <Button color="verde" onClick={onNuovaCampagna}>
-              Crea una nuova campagna →
-            </Button>
+            <CalendarioCampagnaView
+              campagnaId={campagna.id}
+              stato={campagna.stato}
+              ruolo="artigiano"
+            />
+            <Group mt="lg">
+              <Button color="verde" onClick={onNuovaCampagna}>
+                Crea una nuova campagna →
+              </Button>
+            </Group>
           </>
         );
       default:

@@ -28,6 +28,7 @@ import { Decidi } from "./campagna/Decidi";
 import { Materiali } from "./campagna/Materiali";
 import { PianoCard } from "./campagna/PianoCard";
 import { UscitaCard } from "./campagna/UscitaCard";
+import { CalendarioCampagnaView } from "../../components/CalendarioCampagnaView";
 import { coloreCampagna, data, giorni, NOME_CANALE } from "./campagna/util";
 
 const BOTTEGA_SCONOSCIUTA = "Bottega";
@@ -144,6 +145,7 @@ export function VediCampagna() {
           <Tabs defaultValue="uscite">
             <Tabs.List>
               <Tabs.Tab value="uscite">Uscite ({vista.uscite.length})</Tabs.Tab>
+              <Tabs.Tab value="calendario">Calendario</Tabs.Tab>
               <Tabs.Tab value="materiali">Foto e profilo</Tabs.Tab>
             </Tabs.List>
             <Tabs.Panel value="uscite" pt="lg">
@@ -175,6 +177,13 @@ export function VediCampagna() {
                   </Text>
                 </Card>
               )}
+            </Tabs.Panel>
+            <Tabs.Panel value="calendario" pt="lg">
+              <CalendarioCampagnaView
+                campagnaId={vista.campagna.id}
+                stato={vista.campagna.stato}
+                ruolo="operatore"
+              />
             </Tabs.Panel>
             <Tabs.Panel value="materiali" pt="lg">
               {campagna ? (

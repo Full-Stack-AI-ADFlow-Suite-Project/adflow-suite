@@ -19,7 +19,7 @@ import type {
 import { leggiCampagna, salvaCampagna } from "./campagne";
 import { sessioneEsempio } from "./accesso";
 
-interface RevisioneRecord {
+export interface RevisioneRecord {
   piano: Piano | null;
   uscite: Uscita[];
   foto_non_usate: GruppoFotoNonUsate[];
@@ -158,6 +158,12 @@ function seed(): Record<number, RevisioneRecord> {
     id: 161,
     origine: "caricate",
     descrizione: "Svuotatasche e copertine.",
+    da_usare_il: null,
+  };
+  const g181 = {
+    id: 191,
+    origine: "caricate",
+    descrizione: "Tavoli e mensole in lavorazione.",
     da_usare_il: null,
   };
 
@@ -631,6 +637,89 @@ function seed(): Record<number, RevisioneRecord> {
       foto_non_usate: [],
       ultimo_errore: null,
     },
+
+    // Falegnameria Bianchi · attiva (calendario per giorno con post pubblicati, falliti e approvati)
+    18: {
+      piano: {
+        id: 8,
+        numero: 1,
+        strategia:
+          "Tredici temi in autunno: il tavolo in rovere, le sedie su misura, il laboratorio, le porte aperte del 17 e, dove le foto non bastavano, immagini create dall'AI con il legno, gli attrezzi e la bottega in autunno. Ogni tema esce prima su Facebook, con un testo che racconta, e il giorno dopo su Instagram, con la foto in primo piano e poche righe.",
+        esito_controllo: [
+          "Post per canale uguali a quelli chiesti",
+          "Nessuna foto due volte sullo stesso canale",
+        ],
+        debole: false,
+        creata_il: "2026-09-29T14:00:00",
+      },
+      uscite: [
+        usc(1, "Ogni nodo del legno racconta una stagione", g181, [
+          pst(
+            1801,
+            "instagram",
+            "2026-10-09T12:30",
+            ver(
+              "Ogni nodo del legno racconta una stagione: qui si lavora a mano.",
+              ["#falegnameria", "#artigianato"],
+              { foto: [{ foto_id: 1911, posizione: 0 }] },
+            ),
+            { stato: "fallito" },
+          ),
+        ]),
+        usc(2, "Il tavolo in rovere e la pazienza", g181, [
+          pst(
+            1802,
+            "facebook",
+            "2026-10-13T18:30",
+            ver(
+              "Chi entra in laboratorio chiede sempre la stessa cosa: quanto ci vuole per un tavolo? Dipende dal legno, e dalla pazienza…",
+              ["#falegnameria", "#bra"],
+              { foto: [{ foto_id: 1912, posizione: 0 }] },
+            ),
+            { stato: "pubblicato" },
+          ),
+        ]),
+        usc(3, "Il banco da lavoro e la luce del mattino", g181, [
+          pst(
+            1803,
+            "instagram",
+            "2026-10-14T12:30",
+            ver(
+              "Il banco, la luce del mattino, i trucioli: qui prende forma ogni pezzo…",
+              ["#laboratorio", "#fattoamano"],
+              { foto: [{ foto_id: 1913, posizione: 0 }] },
+            ),
+            { stato: "approvato" },
+          ),
+        ]),
+        usc(4, "Porte aperte in bottega", g181, [
+          pst(
+            1804,
+            "facebook",
+            "2026-10-15T18:30",
+            ver(
+              "Sabato 17 ottobre la bottega è aperta a tutti: vieni a vedere come nasce un tavolo, dalle 10 alle 18…",
+              ["#porteaperte", "#bra"],
+              { foto: [{ foto_id: 9914, posizione: 0 }] },
+            ),
+            { stato: "approvato", riempitivo: "immagine_ai" },
+          ),
+          pst(
+            1805,
+            "instagram",
+            "2026-10-16T12:30",
+            ver(
+              "Porte aperte sabato: trucioli, profumo di rovere e un caffè.",
+              ["#porteaperte", "#fattoamano"],
+              { foto: [{ foto_id: 9914, posizione: 0 }] },
+            ),
+            { stato: "approvato", riempitivo: "immagine_ai" },
+          ),
+        ]),
+      ],
+      foto_non_usate: [],
+      ultimo_errore: null,
+    },
   };
 }
 
@@ -764,3 +853,10 @@ export const esempiRevisione = {
     return c;
   },
 };
+
+export function leggiRevisioneRecord(
+  campagnaId: number,
+): RevisioneRecord | undefined {
+  const tutti = carica();
+  return tutti[campagnaId];
+}

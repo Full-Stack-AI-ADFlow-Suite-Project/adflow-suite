@@ -228,3 +228,54 @@ export function invia(
     dichiarazione,
   });
 }
+
+/** Dati di una foto nel calendario approvato (contenuti/schemas.py). */
+export interface FotoCalendario {
+  id: number;
+  url: string;
+  mime: string;
+  larghezza: number;
+  altezza: number;
+  origine: string;
+}
+
+/** PostCalendario di contenuti/schemas.py: post approvato o successivo. */
+export interface PostCalendario {
+  id: number;
+  data_ora: string;
+  ora: string;
+  canale: string;
+  stato: string;
+  testo: string;
+  hashtag: string[];
+  foto: FotoCalendario[];
+}
+
+/** GiornoCalendario: elenco dei post in una data. */
+export interface GiornoCalendario {
+  data: string;
+  post: PostCalendario[];
+}
+
+/** CanaleToltoCalendario: note dei canali tolti, visibili all'artigiano. */
+export interface CanaleToltoCalendario {
+  canale: string;
+  nota: string | null;
+}
+
+/** CalendarioCampagna: GET /campagne/{id}/calendario (R-45, CA-56). */
+export interface CalendarioCampagna {
+  campagna_id: number;
+  strategia: string | null;
+  giorni: GiornoCalendario[];
+  canali_tolti: CanaleToltoCalendario[];
+  n_post_scaduti: number;
+}
+
+export function calendario(campagnaId: number): Promise<CalendarioCampagna> {
+  if (USA_ESEMPI) return esempiCampagne.calendario(campagnaId);
+  return richiesta<CalendarioCampagna>(
+    "GET",
+    `/campagne/${campagnaId}/calendario`,
+  );
+}
