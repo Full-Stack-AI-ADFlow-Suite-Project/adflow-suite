@@ -13,7 +13,7 @@
   <!-- fascia-mappa: stato della pagina statica e ritorno alla mappa. Non fa parte della schermata. -->
   <div style="margin-bottom: 20px; font-size: 13px; text-align: center; color: var(--text-muted);">
     <a href="index.html" style="color: var(--text-muted); font-weight: 500;">← Mappa delle pagine</a>
-    <div style="font-size: 12px; margin-top: 4px;">Pagina statica · <strong style="color: var(--text-main);">approvata</strong> · ADR-55 · domande chiuse: ADR-102 · stile: ADR-113</div>
+    <div style="font-size: 12px; margin-top: 4px;">Pagina statica · <strong style="color: var(--text-main);">MVP</strong> · com'è · ADR-55 · domande chiuse: ADR-102 · stile: ADR-113 · perimetro: ADR-114</div>
   </div>
   <!-- /fascia-mappa -->
 
@@ -74,10 +74,10 @@
     <strong>Dove si arriva dopo l'accesso · rotte per ruolo</strong>
     <p style="margin-top: 4px;">Il ruolo arriva da <code>GET /auth/me</code>. Chi apre una pagina di un altro ruolo torna alla propria pagina di partenza.</p>
     <ul>
-      <li><strong>Artigiano senza profilo</strong> → <a href="AdFlow-profilo-bottega.html">Profilo bottega</a>, passo 1 (CA-05), dalla 2a. Nello sprint 1 il profilo arriva dal seed: l'artigiano entra sempre nella pagina Campagna.</li>
+      <li><strong>Artigiano senza profilo</strong> → <a href="AdFlow-profilo-bottega.html">Profilo bottega</a>, passo 1 (CA-05). Vale anche per l'artigiano appena creato dall'operatore con la password provvisoria (CA-79).</li>
       <li><strong>Artigiano con profilo</strong> → <a href="AdFlow-campagna.html">Campagna</a>: Bentornato, bozza aperta (CA-06, CA-08) oppure la <a href="AdFlow-campagna-stati.html">vista di stato</a> della campagna inviata.</li>
-      <li><strong>Operatore</strong> → <a href="AdFlow-operatore-ingresso.html">Ingresso</a>, dallo sprint 3; fino ad allora <a href="AdFlow-operatore-da-approvare.html">Campagne da approvare</a>.</li>
-      <li><strong>Admin</strong> → Nessuna pagina propria: vale come un operatore in ogni controllo di ruolo. Gli utenti si creano da riga di comando; fino allo sprint 3 anche la password si cambia da lì, poi con la password provvisoria della pagina artigiano (ADR-103).</li>
+      <li><strong>Operatore</strong> → <a href="AdFlow-operatore-da-approvare.html">Campagne da approvare</a>. L'<a href="AdFlow-operatore-ingresso.html">Ingresso</a> è in roadmap (ADR-114).</li>
+      <li><strong>Admin</strong> → Nessuna pagina propria: vale come un operatore in ogni controllo di ruolo. Gli operatori si creano da riga di comando, gli artigiani dalla pagina <a href="AdFlow-operatore-nuovo-artigiano.html">Nuovo artigiano</a>; una password dimenticata si cambia da riga di comando (<code>cambia-password</code>). La "Nuova password provvisoria" della pagina artigiano è in roadmap.</li>
     </ul>
   </div>
 
