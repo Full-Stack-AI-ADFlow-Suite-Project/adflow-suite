@@ -1,4 +1,4 @@
-"""Sistemazione delle foto per anteprima e pubblicazione (Corsia 2 · Task T3-21).
+"""Sistemazione delle foto per anteprima e pubblicazione.
 
 Implementa la logica locale con Pillow secondo spec R-21, R-42 e CA-81:
 1. Rotazione dell'immagine secondo i metadati di orientamento EXIF;
