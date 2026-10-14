@@ -8,7 +8,8 @@ from sqlalchemy.orm import Session
 
 from .models import AccountSocial, ProfiloBottega
 from .domain import CANALI, POST_A_SETTIMANA
-from .schemas import CanaleCollegato
+from .schemas import CanaleCollegato, NuovoArtigiano, ArtigianoCreato
+from app.moduli.accesso import service as accesso
 from .profilo_schemas import ProfiloScrittura
 
 
@@ -95,10 +96,37 @@ def salva_profilo_personale(
     L'upsert PostgreSQL evita due profili anche con prime scritture concorrenti.
     Il commit resta alla sessione del router.
     """
+    primo_profilo = profilo_di(db, utente_id) is None
     valori = dati.model_dump()
     valori["aggiornato_il"] = ora
     inserimento = insert(ProfiloBottega).values(utente_id=utente_id, **valori)
     comando = inserimento.on_conflict_do_update(
         index_elements=[ProfiloBottega.utente_id], set_=valori
     ).returning(ProfiloBottega)
-    return db.scalars(comando, execution_options={"populate_existing": True}).one()
+    record = db.scalars(comando, execution_options={"populate_existing": True}).one()
+    if primo_profilo:
+        # Gli account hanno una FK al profilo: si preparano atomicamente al
+        # primo salvataggio, senza inventare prima un profilo di comunicazione.
+        for piattaforma in CANALI:
+            db.execute(
+                insert(AccountSocial)
+                .values(
+                    profilo_id=record.id,
+                    piattaforma=piattaforma,
+                    id_pagina=f"{piattaforma}-pagina-seed-finta",
+                    stato="collegato",
+                )
+                .on_conflict_do_nothing(constraint="uq_account_social_piattaforma")
+            )
+    return record
+
+
+def crea_artigiano(db: Session, dati: NuovoArtigiano) -> ArtigianoCreato:
+    """Creazione da parte del consorzio: non salva né ripropone la password in chiaro."""
+    record, password = accesso.crea_artigiano(db, dati.email, dati.nome)
+    return ArtigianoCreato(
+        id=record.id,
+        email=record.email,
+        nome=record.nome,
+        password_provvisoria=password,
+    )

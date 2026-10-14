@@ -43,6 +43,8 @@ class Impostazioni(BaseSettings):
     archivio_foto_dir: str = "./archivio_foto"
     # 10 MB di una foto (R-13) più il margine del multipart
     richiesta_max_byte: int = Field(default=12 * 1024 * 1024, ge=1)
+    # Indirizzo pubblico da cui Instagram scarica le foto (tunnel o host pubblico)
+    foto_url_pubblico: str = ""
 
     ai_provider: Literal["finto", "litellm"] = "finto"
     ai_modello_visione: str = ""

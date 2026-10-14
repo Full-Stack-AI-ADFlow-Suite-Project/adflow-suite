@@ -115,6 +115,12 @@ class CampagnaModifica(BaseModel):
         return visti
 
 
+class CampagnaInvia(BaseModel):
+    """Payload per l'invio della campagna (POST /campagne/{id}/invia)."""
+
+    dichiarazione: bool = False
+
+
 class FotoSintetica(BaseModel):
     """Rappresentazione essenziale di una foto nel dettaglio della campagna."""
 
