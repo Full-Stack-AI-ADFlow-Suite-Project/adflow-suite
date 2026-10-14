@@ -1,6 +1,6 @@
 /**
- * Modulo revisione (plan §3): Vedi campagna dell'operatore e le tre azioni
- * dello sprint 1 (Approva, Prosegui, Riprova). I tipi rispecchiano
+ * Modulo revisione (plan §3): Vedi campagna dell'operatore, Approva e Riprova
+ * (le altre decisioni sono in decisioni.ts). I tipi rispecchiano
  * backend/app/moduli/revisione/schemas.py.
  */
 import type { CampagnaDettaglio } from "./campagne";
@@ -146,14 +146,6 @@ export function approva(campagnaId: number): Promise<{ stato: string }> {
   return richiesta<{ stato: string }>(
     "POST",
     `/campagne/${campagnaId}/approva`,
-  );
-}
-
-export function prosegui(campagnaId: number): Promise<{ stato: string }> {
-  if (USA_ESEMPI) return esempiRevisione.prosegui(campagnaId);
-  return richiesta<{ stato: string }>(
-    "POST",
-    `/campagne/${campagnaId}/prosegui`,
   );
 }
 

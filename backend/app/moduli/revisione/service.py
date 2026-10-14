@@ -4,7 +4,6 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from app.core.coda import GENERA_CAMPAGNA, accoda
 from app.core.errori import StatoNonValido
 from app.moduli.accesso import service as accesso
 from app.moduli.campagne import service as campagne
@@ -170,40 +169,6 @@ def approva(
         db, record, utente.id, "approvata", motivo=None, nota=None, foto_segnate=[]
     )
     campagne.cambia_stato(db, record, "attiva", ora=adesso)
-
-
-def prosegui(db: Session, campagna_id: int, utente: accesso.Utente) -> None:
-    """Fa ripartire la generazione da un piano debole (spec §2.3, R-20).
-
-    ``piano_da_rivedere`` torna ``in_generazione``, la decisione
-    ``proseguita`` si registra e il job ``genera_campagna`` riprende
-    dai testi. Senza post nel piano o senza nessuna foto disponibile
-    la campagna resta ferma (409).
-    """
-    record = campagne.campagna(db, campagna_id)
-    if record.stato != "piano_da_rivedere":
-        raise StatoNonValido("La campagna non è ferma su un piano da rivedere.")
-    if not contenuti.post_della_campagna(db, campagna_id):
-        raise StatoNonValido("Il piano non contiene post: impossibile proseguire.")
-    disponibili = [
-        foto
-        for foto in campagne.foto_della_campagna(db, campagna_id)
-        if (foto.analisi_ai or {}).get("idonea")
-        and not (foto.analisi_ai or {}).get("simile_a")
-    ]
-    if not disponibili:
-        raise StatoNonValido("Nessuna foto disponibile: la campagna resta ferma.")
-    campagne.registra_decisione(
-        db,
-        record,
-        utente.id,
-        "proseguita",
-        motivo=None,
-        nota=None,
-        foto_segnate=[],
-    )
-    campagne.cambia_stato(db, record, "in_generazione")
-    accoda(GENERA_CAMPAGNA, campagna_id=record.id)
 
 
 def scadenze(db: Session, adesso: datetime) -> None:

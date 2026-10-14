@@ -26,7 +26,6 @@ export interface FotoSintetica {
   mime: string;
   larghezza: number;
   altezza: number;
-  da_usare: boolean;
   origine: string;
 }
 
@@ -59,7 +58,7 @@ export interface CampagnaDettaglio {
   /** Visibili solo a operatore e admin (CampagnaDettaglio di schemas.py). */
   profilo_snapshot?: ProfiloSnapshot | null;
   decisioni?: DecisioneSintetica[];
-  /** Esito della respinta visibile all’artigiano, come nelle API dello sprint 2b. */
+  /** Esito della respinta visibile all’artigiano, (R-18). */
   esito_respinta?: {
     motivo: string;
     nota: string | null;
@@ -214,17 +213,6 @@ export async function caricaFoto(
 export function eliminaFoto(fotoId: number): Promise<void> {
   if (USA_ESEMPI) return esempiCampagne.eliminaFoto(fotoId);
   return richiesta<void>("DELETE", `/foto/${fotoId}`);
-}
-
-/** La stella: la foto "da usare per forza" del gruppo (PUT /foto/{id}). */
-export function stellaFoto(
-  fotoId: number,
-  daUsare: boolean,
-): Promise<FotoSintetica> {
-  if (USA_ESEMPI) return esempiCampagne.stellaFoto(fotoId, daUsare);
-  return richiesta<FotoSintetica>("PUT", `/foto/${fotoId}`, {
-    da_usare: daUsare,
-  });
 }
 
 export function invia(campagnaId: number): Promise<CampagnaDettaglio> {

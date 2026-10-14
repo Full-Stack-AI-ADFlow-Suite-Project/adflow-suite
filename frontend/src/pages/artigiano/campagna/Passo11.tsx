@@ -1,6 +1,6 @@
 /**
- * Passo 11 · Foto della campagna: gruppi `caricate` con descrizione,
- * data facoltativa e stella (R-13). I gruppi `create_ai` restano nascosti
+ * Passo 11 · Foto della campagna: gruppi `caricate` con descrizione e
+ * data facoltativa (R-13). I gruppi `create_ai` restano nascosti
  * (R-19). Servono almeno 4 foto per l'invio.
  */
 import { useRef, useState } from "react";
@@ -23,7 +23,6 @@ import {
   creaGruppo,
   eliminaFoto,
   eliminaGruppo,
-  stellaFoto,
   type CampagnaDettaglio,
   type FotoSintetica,
   type GruppoSintetico,
@@ -60,10 +59,6 @@ export function Passo11({
 }) {
   const [errore, setErrore] = useState("");
   const nFoto = campagna.gruppi.reduce((n, g) => n + g.foto.length, 0);
-  const nStelle = campagna.gruppi.reduce(
-    (n, g) => n + g.foto.filter((f) => f.da_usare).length,
-    0,
-  );
 
   const aggiungiGruppo = async () => {
     setErrore("");
@@ -130,19 +125,12 @@ export function Passo11({
         <Button variant="outline" color="verde" onClick={aggiungiGruppo}>
           + Aggiungi un gruppo di foto
         </Button>
-        <Text size="xs" c="dimmed">
-          ★ = "da usare per forza": se la foto è buona esce di sicuro in un
-          post. Le altre le sceglie il sistema tra le migliori del gruppo.
-        </Text>
         <Group gap="lg">
           <Text size="sm" c="dimmed">
             <b>{campagna.gruppi.length}</b> gruppi
           </Text>
           <Text size="sm" c="dimmed">
             <b>{nFoto}</b> foto in totale
-          </Text>
-          <Text size="sm" c="dimmed">
-            <b>{nStelle}</b> con la stella
           </Text>
         </Group>
         <Divider />
@@ -240,7 +228,6 @@ function GruppoEditor({
           <Thumb
             key={f.id}
             foto={f}
-            onStella={() => gira(() => stellaFoto(f.id, !f.da_usare))}
             onRimuovi={() => gira(() => eliminaFoto(f.id))}
           />
         ))}
@@ -296,11 +283,9 @@ function GruppoEditor({
 
 function Thumb({
   foto,
-  onStella,
   onRimuovi,
 }: {
   foto: FotoSintetica;
-  onStella: () => void;
   onRimuovi: () => void;
 }) {
   return (
@@ -319,30 +304,6 @@ function Thumb({
         style={{ wordBreak: "break-all", lineHeight: 1.3 }}
       >
         {foto.file}
-      </Text>
-      <Text
-        component="button"
-        aria-label="Da usare per forza"
-        onClick={onStella}
-        style={{
-          position: "absolute",
-          top: 2,
-          left: 2,
-          width: 20,
-          height: 20,
-          borderRadius: "50%",
-          border: "none",
-          background: foto.da_usare
-            ? "var(--mantine-color-yellow-6)"
-            : "rgba(0,0,0,.4)",
-          color: "#fff",
-          fontSize: 12,
-          lineHeight: 1,
-          cursor: "pointer",
-          padding: 0,
-        }}
-      >
-        {foto.da_usare ? "★" : "☆"}
       </Text>
       <Text
         component="button"

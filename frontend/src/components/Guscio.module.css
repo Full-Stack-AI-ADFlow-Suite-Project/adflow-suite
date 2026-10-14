@@ -1,5 +1,5 @@
 /* Cornice con la barra laterale: misure e regole di
-   docs/appunti/pagine/assets/adflow.css (ADR-113). I token sono in index.css. */
+   docs/pagine/assets/adflow.css (ADR-113). I token sono in index.css. */
 .guscio {
   display: flex;
   min-height: 100vh;

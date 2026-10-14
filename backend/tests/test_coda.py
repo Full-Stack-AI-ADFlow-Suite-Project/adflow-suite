@@ -118,39 +118,14 @@ def test_indirizzo_psycopg_toglie_il_driver():
     )
 
 
-def test_nomi_job_costanti_definite():
-    """Test che tutte le costanti JOB_* siano definite."""
-    nomi_attesi = {
+def test_ogni_nome_accodabile_ha_il_suo_job():
+    """I nomi di plan §4 dell'MVP, e per ognuno un job registrato nel worker."""
+    from app import worker  # noqa: F401  registra i job dei moduli
+
+    assert modulo_coda._NOMI_JOB == {
         "genera_campagna",
         "tick_pubblicazione",
         "rigenera_post",
         "invia_notifica",
-        "ritocca_foto",
-        "promemoria",
-        "raccogli_metriche",
-        "report_settimanale",
     }
-
-    from app.core.coda import (
-        JOB_GENERA_CAMPAGNA,
-        JOB_TICK_PUBBLICAZIONE,
-        JOB_RIGENERA_POST,
-        JOB_INVIA_NOTIFICA,
-        JOB_RITOCCA_FOTO,
-        JOB_PROMEMORIA,
-        JOB_RACCOGLI_METRICHE,
-        JOB_REPORT_SETTIMANALE,
-    )
-
-    costanti = {
-        JOB_GENERA_CAMPAGNA,
-        JOB_TICK_PUBBLICAZIONE,
-        JOB_RIGENERA_POST,
-        JOB_INVIA_NOTIFICA,
-        JOB_RITOCCA_FOTO,
-        JOB_PROMEMORIA,
-        JOB_RACCOGLI_METRICHE,
-        JOB_REPORT_SETTIMANALE,
-    }
-
-    assert costanti == nomi_attesi
+    assert modulo_coda._NOMI_JOB <= set(app.tasks)
