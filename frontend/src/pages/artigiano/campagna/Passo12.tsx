@@ -1,6 +1,6 @@
 /**
  * Passo 12 · Riepilogo e invio: riepilogo in sola lettura, la stima di ciò
- * che uscirà (sprint 1: le cartoline), gli avvisi R-25 dal dettaglio e i
+ * che uscirà, gli avvisi R-25 dal dettaglio e i
  * blocchi ricontrollati prima di "Invia all'operatore".
  */
 import { useEffect, useState } from "react";

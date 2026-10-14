@@ -1,7 +1,7 @@
 /**
  * La barra della decisione in cima a Vedi campagna: cosa chiede lo stato
- * corrente e le due azioni dello sprint 1 (Approva, Riprova),
- * con l'ultimo errore della generazione accanto a Riprova (R-35).
+ * corrente, Approva e Riprova (le altre decisioni sono in
+ * vedi-campagna/decisioni/), con l'ultimo errore della generazione accanto a Riprova (R-35).
  */
 import {
   Alert,

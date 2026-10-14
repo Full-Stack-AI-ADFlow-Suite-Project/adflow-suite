@@ -101,7 +101,7 @@ In ogni caso il piano esce completo e l'operatore approva o respinge.
 
 Pagina Facebook di prova e account Instagram professionale collegato, amministrati da una persona del team; app Business su developers.facebook.com; strada "Instagram API with Facebook Login": un token della Pagina per entrambi i canali. Permessi: `pages_show_list`, `pages_manage_posts`, `pages_read_engagement`, `instagram_basic`, `instagram_content_publish`. Facebook: `POST /{page-id}/photos`. Instagram: `POST /{ig-id}/media` con `image_url`, poi `POST /{ig-id}/media_publish`. Instagram accetta solo JPEG, da un indirizzo pubblico (tunnel in demo). Completare subito la Page Publishing Authorization, se la Pagina la chiede. Fonti: [Content Publishing](https://developers.facebook.com/documentation/instagram-platform/content-publishing), [Pages API](https://developers.facebook.com/documentation/pages-api).
 
-## Pagine statiche (`docs/appunti/pagine`)
+## Pagine statiche (`docs/pagine`)
 
 Si aggiornano all'MVP (T3-03) e tornano il riferimento per l'interfaccia.
 
@@ -124,5 +124,5 @@ Si aggiornano all'MVP (T3-03) e tornano il riferimento per l'interfaccia.
 | F1 | Corsie e proprietà dei file | Togli | Aree di lavoro leggere: un task tocca i file che gli servono |
 | F2 | Approvazione di tutto il team | Togli | Una revisione di un collega e controlli verdi; per `core/`, migrazioni e `requirements.txt` la rivede il referente dei file comuni (Giovanni) |
 | F3 | Apertura e chiusura, firme prima del codice, colonna Tocca, prestito | Togli | Ogni task ha cosa fare e "fatto quando"; la chiusura è la prova del percorso della demo |
-| F4 | Due canali di documenti e assorbimento | Togli | Vale `docs/agenti/`; `docs/appunti/` è un archivio; ADR nuova solo se cambia il perimetro |
+| F4 | Due canali di documenti e assorbimento | Togli | Vale `docs/agenti/`; `docs/archivio/` è un archivio, le pagine statiche sono in `docs/pagine/` (ADR-115); ADR nuova solo se cambia il perimetro |
 | F5 | `allinea.py`, controlli delle PR, `test_confini.py`, branch per task | Mantieni | — |

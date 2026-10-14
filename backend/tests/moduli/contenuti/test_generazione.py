@@ -811,7 +811,7 @@ def test_ca58_errore_di_configurazione_fallita_subito_senza_altre_esecuzioni(db,
 
 
 def test_ca58_provider_non_disponibile_fallita_subito_con_il_motivo(db, monkeypatch):
-    """`AI_PROVIDER=litellm`: il provider vero non c'è ancora (converge §3, passo 6)."""
+    """`AI_PROVIDER=litellm`: errore di configurazione del provider (converge §3)."""
     campagna = _campagna(db)
     imposta_ai(None)
     monkeypatch.setattr(

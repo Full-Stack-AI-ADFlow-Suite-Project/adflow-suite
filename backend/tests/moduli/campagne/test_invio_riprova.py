@@ -31,8 +31,13 @@ def bozza(db, client, utente_di_prova):
     return u, p, c, g
 
 
-def invia(client, c):
-    return client.post(f"/api/campagne/{c.id}/invia")
+def invia(client, c, dichiarazione: bool | None = True):
+    if dichiarazione is None:
+        return client.post(f"/api/campagne/{c.id}/invia")
+    return client.post(
+        f"/api/campagne/{c.id}/invia",
+        json={"dichiarazione": dichiarazione},
+    )
 
 
 def test_ca15_invio_salva_snapshot_e_accoda(db, client, bozza, coda):
@@ -46,6 +51,8 @@ def test_ca15_invio_salva_snapshot_e_accoda(db, client, bozza, coda):
     assert c.profilo_snapshot["nome"] == p.nome
     assert c.profilo_snapshot["orari"] == p.orari
     assert "aggiornato_il" not in c.profilo_snapshot
+    assert c.profilo_snapshot["dichiarazione"] is True
+    assert c.profilo_snapshot["dichiarazione_data"] == ORA.isoformat()
     job = next(iter(coda.jobs.values()))
     assert job["task_name"] == modulo_coda.GENERA_CAMPAGNA
     assert job["args"] == {"campagna_id": c.id}
@@ -101,7 +108,7 @@ def test_ca14_descrizione_obbligatoria(db, client, bozza, coda, descrizione):
     assert not coda.jobs
 
 
-@pytest.mark.parametrize("numero", [0, 3, 21])
+@pytest.mark.parametrize("numero", [0, 21])
 def test_ca14_minimi_e_limite_per_gruppo(db, client, bozza, coda, numero):
     _, _, c, g = bozza
     for f in list(g.foto):
@@ -115,7 +122,31 @@ def test_ca14_minimi_e_limite_per_gruppo(db, client, bozza, coda, numero):
     assert not coda.jobs
 
 
+def test_ca14_tre_foto_invio_ammesso(db, client, bozza, coda):
+    """A5, R-13, CA-14: nessun minimo di 4 foto, 3 foto ammesse all'invio."""
+    _, _, c, g = bozza
+    db.delete(g.foto[0])
+    db.flush()
+    db.expire(g, ["foto"])
+    assert len(g.foto) == 3
+    assert invia(client, c).status_code == 200
+    assert len(coda.jobs) == 1
+
+
+def test_ca14_una_foto_invio_ammesso(db, client, bozza, coda):
+    """A5, R-13, CA-14: anche una sola foto è ammessa all'invio."""
+    _, _, c, g = bozza
+    for f in list(g.foto)[1:]:
+        db.delete(f)
+    db.flush()
+    db.expire(g, ["foto"])
+    assert len(g.foto) == 1
+    assert invia(client, c).status_code == 200
+    assert len(coda.jobs) == 1
+
+
 def test_ca14_quattro_foto_in_due_gruppi(db, client, bozza):
+    """Foto distribuite su più gruppi caricate correttamente all'invio."""
     _, _, c, primo = bozza
     for f in list(primo.foto)[2:]:
         db.delete(f)
@@ -127,6 +158,50 @@ def test_ca14_quattro_foto_in_due_gruppi(db, client, bozza):
     assert invia(client, c).status_code == 200
 
 
+def test_ca14_due_gruppi_con_una_foto_ciascuno(db, client, bozza):
+    """Due gruppi con 1 foto ciascuno (totale 2 foto < 4): ammessi all'invio (A5)."""
+    _, _, c, primo = bozza
+    for f in list(primo.foto)[1:]:
+        db.delete(f)
+    db.flush()
+    db.expire(primo, ["foto"])
+    secondo = gruppo(db, c)
+    foto(db, gruppo=secondo)
+    assert invia(client, c).status_code == 200
+
+
+def test_ca14_senza_foto_invio_ammesso(db, client, bozza, coda):
+    """A5, R-13, CA-14: senza foto -> invio ammesso."""
+    _, _, c, g = bozza
+    for f in list(g.foto):
+        db.delete(f)
+    db.delete(g)
+    db.flush()
+    risposta = invia(client, c)
+    assert risposta.status_code == 200
+    assert risposta.json()["stato"] == "inviata"
+    assert len(coda.jobs) == 1
+
+
+def test_ca14_dichiarazione_obbligatoria(db, client, bozza, coda):
+    """R-41, CA-14: senza la dichiarazione (R-41) -> invio -> 422."""
+    _, _, c, _ = bozza
+    # Senza payload / None -> 422
+    assert invia(client, c, dichiarazione=None).status_code == 422
+    # Payload con dichiarazione=False -> 422
+    assert invia(client, c, dichiarazione=False).status_code == 422
+    # Payload vuoto json={} -> 422
+    assert client.post(f"/api/campagne/{c.id}/invia", json={}).status_code == 422
+    # Valore non booleano -> 422
+    assert (
+        client.post(
+            f"/api/campagne/{c.id}/invia", json={"dichiarazione": "non_valido"}
+        ).status_code
+        == 422
+    )
+    assert not coda.jobs
+
+
 @pytest.mark.parametrize(
     "numero,esito", [(None, 422), (0, 422), (1, 200), (20, 200), (21, 422)]
 )
@@ -134,16 +209,6 @@ def test_gruppo_create_ai_controllato(db, client, bozza, numero, esito):
     _, _, c, _ = bozza
     gruppo(db, c, origine="create_ai", n_immagini=numero)
     assert invia(client, c).status_code == esito
-
-
-def test_ca14_create_ai_non_conta_come_foto(db, client, bozza, coda):
-    _, _, c, g = bozza
-    db.delete(g.foto[0])
-    db.flush()
-    db.expire(g, ["foto"])
-    gruppo(db, c, origine="create_ai", n_immagini=20)
-    assert invia(client, c).status_code == 422
-    assert not coda.jobs
 
 
 @pytest.mark.parametrize(
@@ -280,7 +345,7 @@ def test_errore_coda_annulla_transazione(db, bozza, monkeypatch, azione):
     monkeypatch.setattr(modulo_coda, "accoda", fallisce)
     with pytest.raises(RuntimeError), db.begin_nested():
         if azione == "invia":
-            service.invia_campagna(db, u.id, c.id, ORA)
+            service.invia_campagna(db, u.id, c.id, ORA, dichiarazione=True)
         else:
             service.riprova_campagna(db, c.id, ORA)
     db.refresh(c)

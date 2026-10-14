@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Accesso</title>
+  <link rel="stylesheet" href="assets/adflow.css">
+</head>
+<body>
+
+<div class="auth-page-container">
+
+  <!-- fascia-mappa: stato della pagina statica e ritorno alla mappa. Non fa parte della schermata. -->
+  <div style="margin-bottom: 20px; font-size: 13px; text-align: center; color: var(--text-muted);">
+    <a href="index.html" style="color: var(--text-muted); font-weight: 500;">← Mappa delle pagine</a>
+    <div style="font-size: 12px; margin-top: 4px;">Pagina statica · <strong style="color: var(--text-main);">MVP</strong> · com'è · ADR-55 · domande chiuse: ADR-102 · stile: ADR-113 · perimetro: ADR-114</div>
+  </div>
+  <!-- /fascia-mappa -->
+
+  <div class="auth-card" id="vuota">
+    <div class="auth-brand">
+      <div class="brand-icon-wrapper" style="width: 48px; height: 48px; border-radius: 12px; margin-bottom: 12px;">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polygon points="12 2 2 7 12 12 22 7 12 2"></polygon>
+          <polyline points="2 17 12 22 22 17"></polyline>
+          <polyline points="2 12 12 17 22 12"></polyline>
+        </svg>
+      </div>
+      <h1 style="font-size: 24px; font-weight: 800; color: var(--text-main);">AdFlow</h1>
+      <p style="font-size: 13.5px; color: var(--text-muted); margin-top: 4px;">Consorzio artigiani</p>
+    </div>
+
+    <!-- Scelta della schermata: non fa parte della pagina di accesso -->
+    <div class="auth-modi" role="group" aria-label="Schermata mostrata">
+      <button type="button" class="btn btn-sm attivo" data-modo="vuota">Modulo vuoto</button>
+      <button type="button" class="btn btn-sm" data-modo="errore">Errore</button>
+      <button type="button" class="btn btn-sm" data-modo="scaduta">Scaduta</button>
+    </div>
+
+    <div id="avviso-scaduta" class="avviso-box info" style="font-size: 13px; padding: 12px;" hidden>
+      La sessione è scaduta. Entra di nuovo per continuare.
+    </div>
+
+    <form onsubmit="event.preventDefault();">
+      <div class="form-group">
+        <label class="form-label" for="login-email">Email</label>
+        <input type="email" id="login-email" class="form-input" placeholder="nome@bottega.it">
+      </div>
+
+      <div class="form-group">
+        <label class="form-label" for="login-password">Password</label>
+        <input type="password" id="login-password" class="form-input">
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width: 100%; padding: 11px; margin-top: 6px;">Entra</button>
+    </form>
+
+    <div id="avviso-errore" class="avviso-box errore" style="font-size: 13px; padding: 12px; margin: 16px 0 0;" hidden>
+      Email o password non corretti.
+    </div>
+
+    <p style="margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--border-hairline); text-align: center; font-size: 12.5px; color: var(--text-muted); line-height: 1.5;">
+      Hai dimenticato la password? Contatta il consorzio: ti ridà l'accesso un operatore. Tel. 0172 000 000 · info@consorzio.example
+    </p>
+  </div>
+
+  <!-- Note della pagina statica: non fanno parte della schermata -->
+  <div class="auth-nota">
+    <strong id="nota-titolo">Modulo vuoto · Entra in AdFlow</strong>
+    <p id="nota-testo" style="margin-top: 4px;">La pagina è solo questo riquadro, al centro. Nessuna registrazione: gli account li crea il consorzio. Il contatto del consorzio (telefono, email) si legge dalla configurazione del server, senza accesso (ADR-102).</p>
+  </div>
+
+  <div class="auth-nota" id="dopo">
+    <strong>Dove si arriva dopo l'accesso · rotte per ruolo</strong>
+    <p style="margin-top: 4px;">Il ruolo arriva da <code>GET /auth/me</code>. Chi apre una pagina di un altro ruolo torna alla propria pagina di partenza.</p>
+    <ul>
+      <li><strong>Artigiano senza profilo</strong> → <a href="AdFlow-profilo-bottega.html">Profilo bottega</a>, passo 1 (CA-05). Vale anche per l'artigiano appena creato dall'operatore con la password provvisoria (CA-79).</li>
+      <li><strong>Artigiano con profilo</strong> → <a href="AdFlow-campagna.html">Campagna</a>: Bentornato, bozza aperta (CA-06, CA-08) oppure la <a href="AdFlow-campagna-stati.html">vista di stato</a> della campagna inviata.</li>
+      <li><strong>Operatore</strong> → <a href="AdFlow-operatore-da-approvare.html">Campagne da approvare</a>. L'<a href="AdFlow-operatore-ingresso.html">Ingresso</a> è in roadmap (ADR-114).</li>
+      <li><strong>Admin</strong> → Nessuna pagina propria: vale come un operatore in ogni controllo di ruolo. Gli operatori si creano da riga di comando, gli artigiani dalla pagina <a href="AdFlow-operatore-nuovo-artigiano.html">Nuovo artigiano</a>; una password dimenticata si cambia da riga di comando (<code>cambia-password</code>). La "Nuova password provvisoria" della pagina artigiano è in roadmap.</li>
+    </ul>
+  </div>
+
+  <div class="auth-nota">
+    <strong>Pagina statica.</strong> Una sola pagina per artigiano, operatore e admin: email e password. Dopo l'accesso ognuno arriva alla propria pagina di partenza. I tre pulsanti in alto mostrano le schermate della pagina di accesso (T1-51; API di T1-11: <code>POST /auth/login</code>, <code>POST /auth/logout</code>, <code>GET /auth/me</code>); il pulsante Entra non fa nulla.
+  </div>
+
+</div>
+
+<script>
+  // Le tre schermate della pagina di accesso, una alla volta
+  const SCHERMATE = {
+    vuota: {
+      titolo: 'Modulo vuoto · Entra in AdFlow',
+      testo: 'La pagina è solo questo riquadro, al centro. Nessuna registrazione: gli account li crea il consorzio. Il contatto del consorzio (telefono, email) si legge dalla configurazione del server, senza accesso (ADR-102).',
+      email: ''
+    },
+    errore: {
+      titolo: 'Credenziali sbagliate · Accesso rifiutato',
+      testo: 'Un solo messaggio, uguale per email inesistente, password errata e utente non attivo: non si dice quale dato è sbagliato (CA-02). L\'email resta compilata, la password si svuota.',
+      email: 'mario@falegnameriabianchi.it'
+    },
+    scaduta: {
+      titolo: 'Sessione scaduta · Di nuovo qui dopo la scadenza',
+      testo: 'Quando una chiamata risponde 401 su una pagina interna, si torna all\'accesso con questo avviso. Dopo l\'accesso si riapre la pagina da cui si era partiti. La sessione scade dopo un periodo senza uso: 7 giorni per l\'artigiano, 12 ore per operatore e admin; chi sta compilando non viene buttato fuori (ADR-102).',
+      email: ''
+    }
+  };
+
+  function mostra(modo) {
+    const s = SCHERMATE[modo] || SCHERMATE.vuota;
+    document.querySelectorAll('.auth-modi .btn').forEach(b => b.classList.toggle('attivo', b.dataset.modo === modo));
+    document.getElementById('avviso-errore').hidden = modo !== 'errore';
+    document.getElementById('avviso-scaduta').hidden = modo !== 'scaduta';
+    document.getElementById('login-email').value = s.email;
+    document.getElementById('login-password').value = '';
+    document.getElementById('nota-titolo').textContent = s.titolo;
+    document.getElementById('nota-testo').textContent = s.testo;
+  }
+
+  document.querySelectorAll('.auth-modi .btn').forEach(b => b.addEventListener('click', () => mostra(b.dataset.modo)));
+  const iniziale = location.hash.replace('#', '');
+  if (SCHERMATE[iniziale]) mostra(iniziale);
+</script>
+</body>
+</html>
