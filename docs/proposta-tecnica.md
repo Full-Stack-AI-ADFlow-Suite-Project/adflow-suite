@@ -70,7 +70,7 @@ Ogni requisito rimanda alle regole di dettaglio (R-xx) e ai criteri di accettazi
 | **Affidabilità** | Generazione ripresa dalla tappa interrotta; pubblicazione registrata prima della chiamata al social, al massimo un esito positivo per post; campagne ferme da 30 minuti portate in errore | CA-36, CA-50, CA-68 |
 | **Controllo dei contenuti** | Validatore a regole su ogni testo (blocchi: prezzi o premi non nei dati, parole vietate, limiti della piattaforma; avvisi: limiti editoriali); immagini AI senza prodotti finiti, persone, testi o marchi, e dichiarate nel post | CA-18, CA-57 |
 | **Costi** | Ogni chiamata all'AI registra tipo, modello e costo stimato; totale per campagna visibile all'operatore | CA-82 |
-| **Prestazioni** | Generazione di una campagna di 7 giorni in pochi minuti; pagine sotto il secondo in rete locale | Prova T3-32 [da confermare] |
+| **Prestazioni** | Generazione di una campagna di 7 giorni in pochi minuti; pagine sotto il secondo in rete locale | Prova T3-32: ~1 min 18 s per 10 post con GPT-4o (analisi 49 s, piano e testi 29 s) |
 | **Usabilità** | Interfaccia in italiano, pagine statiche di riferimento approvate, uso da telefono per l'artigiano | Confronto con le pagine statiche (chiusura T3-07) |
 | **Manutenibilità** | Moduli con confini controllati da un test; ogni servizio esterno dietro un adattatore con un'implementazione finta; oltre 1.500 test su PostgreSQL reale; controlli automatici a ogni modifica | `test_confini.py`; GitHub Actions |
 | **Portabilità** | Stessi comandi su Windows, macOS e Linux | `uv run`, `allinea.py` |
@@ -378,16 +378,24 @@ La tariffa di 30 €/ora è un valore di riferimento per sviluppatori junior: va
 
 ### 3.5 Costi di esercizio
 
-**AI.** Il costo di una campagna è la somma delle sue chiamate, tutte registrate (R-44):
+**AI.** Il modello scelto per l'MVP è **GPT-4o** (via OpenRouter/LiteLLM: `openrouter/openai/gpt-4o` per visione e testo; `openrouter/openai/gpt-5-image-mini` per le immagini), validato empiricamente con la prova su 10 post (T3-32).
+Costo medio misurato per chiamata:
+- Analisi foto: ≈ 0,004 $ per gruppo di foto (fino a 9 foto)
+- Piano editoriale: ≈ 0,011 $ per piano (senza riscritture)
+- Generazione testo post: ≈ 0,0045 $ per post
+- Immagine AI di rimpiazzo: ≈ 0,02–0,04 $ per immagine
+
+Il costo di una campagna è la somma delle sue chiamate, tutte registrate (R-44):
 
 > costo campagna = gruppi di foto × costo analisi + costo piano (con le riscritture) + post × costo testo (con le rigenerazioni) + uscite senza foto × costo immagine
 
-| Esempio | Chiamate | Costo per campagna **[da confermare con T3-32]** |
+| Esempio | Chiamate | Costo per campagna |
 |---|---|---|
-| 7 giorni, 3 post/settimana, 2 canali, 2 gruppi di foto, 1 uscita senza foto | 2 analisi, 1–2 piani, 6 testi, 1 immagine | ≈ 0,05–0,15 $ |
-| 4 settimane, 3 post/settimana, 2 canali, nessuna foto | 0 analisi, 1–2 piani, 24 testi, 12 immagini | ≈ 0,50–1,00 $ |
+| 7 giorni, 5 post/settimana, 2 canali (10 post), foto reali | 1 analisi (9 foto), 1 piano, 10 testi, 0 immagini | 0,056 $ (misurato con T3-32) |
+| 7 giorni, 3 post/settimana, 2 canali, 2 gruppi di foto, 1 uscita senza foto | 2 analisi, 1 piano, 6 testi, 1 immagine | ≈ 0,07–0,10 $ |
+| 4 settimane, 3 post/settimana, 2 canali, nessuna foto | 0 analisi, 1 piano, 24 testi, 12 immagini | ≈ 0,40–0,60 $ |
 
-L'immagine è la voce che pesa di più: con le foto della bottega la campagna costa pochi centesimi, senza foto qualche decina di centesimi o poco più. Per un consorzio di 50 botteghe con una campagna di 4 settimane al mese ciascuna: ≈ 25–50 $ al mese **[da confermare]**. Il tetto di spesa si imposta sul conto del provider; il codice non lo limita, ma l'operatore vede il costo di ogni campagna.
+L'immagine è la voce che pesa di più: con le foto della bottega la campagna costa pochi centesimi (≈ 0,05–0,06 $ per 10 post), senza foto qualche decina di centesimi. Per un consorzio di 50 botteghe con una campagna di 4 settimane al mese ciascuna: ≈ 20–30 $ al mese (con foto della bottega) o ≈ 40–50 $ al mese (senza foto). Il tetto di spesa si imposta sul conto del provider; il codice non lo limita, ma l'operatore vede il costo di ogni campagna.
 
 **Hosting.**
 
@@ -449,6 +457,6 @@ Dalla roadmap (`docs/ROADMAP.md`), in ordine indicativo:
 | Responsabili dei capitoli e collega che rilegge | Team | Subito |
 | Ore reali per persona e per sprint (3.3) | Ogni membro del team | Prima della consegna |
 | Tariffa oraria di riferimento (3.4) | Team e tutor | Prima della consegna |
-| Modello AI scelto, costo per chiamata, tempi della generazione (1.4, 3.5) | Area AI, con T3-32 | Entro il 20/10 |
+| Modello AI scelto, costo per chiamata, tempi della generazione (1.4, 3.5) | Confermato con T3-32 (GPT-4o, ~0,056 $/campagna, ~1 min 18 s) | Confermato il 14/10 |
 | Instagram reale o simulato (3.2, 3.6) | Area Meta, T3-43 | Entro il 23/10 |
 | Server e fornitore dell'hosting (3.5) | Team | Prima del pitch |

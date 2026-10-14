@@ -84,22 +84,18 @@ function AnteprimaPost({
           </Text>
         </Box>
       ) : foto ? (
-        <Box
-          mt="xs"
-          p="md"
-          style={{
-            border: "1px dashed var(--mantine-color-gray-5)",
-            borderRadius: 8,
-          }}
-        >
-          <Text size="xs" c="dimmed" ff="monospace">
-            {foto.foto_id >= 900
-              ? `foto-${foto.foto_id}.jpg`
-              : `foto-${foto.foto_id}.jpg`}
-          </Text>
-          <Badge size="xs" variant="light" mt={4}>
-            originale
-          </Badge>
+        <Box mt="xs">
+          <img
+            src={`/api/foto/${foto.foto_id}/file`}
+            alt={`Foto ${foto.foto_id}`}
+            style={{
+              width: "100%",
+              height: 200,
+              objectFit: "cover",
+              borderRadius: 8,
+              display: "block",
+            }}
+          />
         </Box>
       ) : null}
       {post.canale === "facebook" && (

@@ -113,36 +113,51 @@ export function Materiali({
             <Stack gap={6} mt="sm">
               {g.foto.map((f) => (
                 <Paper key={f.id} withBorder radius="md" p="xs">
-                  <Group justify="space-between" wrap="wrap">
-                    <Text size="xs" ff="monospace">
-                      {f.file}
-                    </Text>
-                    <Text size="xs" c="dimmed">
-                      {f.larghezza}×{f.altezza}
-                    </Text>
+                  <Group wrap="nowrap" align="flex-start" gap="sm">
+                    <img
+                      src={`/api/foto/${f.id}/file`}
+                      alt={f.file}
+                      style={{
+                        width: 52,
+                        height: 52,
+                        objectFit: "cover",
+                        borderRadius: 6,
+                        flexShrink: 0,
+                      }}
+                    />
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <Group justify="space-between" wrap="wrap">
+                        <Text size="xs" ff="monospace">
+                          {f.file}
+                        </Text>
+                        <Text size="xs" c="dimmed">
+                          {f.larghezza}×{f.altezza}
+                        </Text>
+                      </Group>
+                      <Group gap={6} mt={4} wrap="wrap">
+                        {usi.get(f.id)?.map((u) => (
+                          <Badge key={u} size="xs" variant="light">
+                            {u}
+                          </Badge>
+                        ))}
+                        {nonUsate.get(f.id) && (
+                          <Badge size="xs" variant="light" color="gray">
+                            non usata
+                          </Badge>
+                        )}
+                      </Group>
+                      {nonUsate.get(f.id) && (
+                        <Text size="xs" c="dimmed" mt={4}>
+                          non usata: {nonUsate.get(f.id)}
+                        </Text>
+                      )}
+                      {!usi.get(f.id) && !nonUsate.get(f.id) && (
+                        <Text size="xs" c="dimmed" mt={4}>
+                          non usata: resta in archivio.
+                        </Text>
+                      )}
+                    </div>
                   </Group>
-                  <Group gap={6} mt={4} wrap="wrap">
-                    {usi.get(f.id)?.map((u) => (
-                      <Badge key={u} size="xs" variant="light">
-                        {u}
-                      </Badge>
-                    ))}
-                    {nonUsate.get(f.id) && (
-                      <Badge size="xs" variant="light" color="gray">
-                        non usata
-                      </Badge>
-                    )}
-                  </Group>
-                  {nonUsate.get(f.id) && (
-                    <Text size="xs" c="dimmed" mt={4}>
-                      non usata: {nonUsate.get(f.id)}
-                    </Text>
-                  )}
-                  {!usi.get(f.id) && !nonUsate.get(f.id) && (
-                    <Text size="xs" c="dimmed" mt={4}>
-                      non usata: resta in archivio.
-                    </Text>
-                  )}
                 </Paper>
               ))}
             </Stack>
