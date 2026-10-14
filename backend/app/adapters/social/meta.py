@@ -224,7 +224,7 @@ class SocialMeta(SocialAdapter):
         except ValueError:
             errore = {}
         messaggio = self._senza_token(
-            errore.get("message") or f"Errore di Meta ({risposta.status_code})."
+            str(errore.get("message") or f"Errore di Meta ({risposta.status_code}).")
         )
         temporaneo = bool(
             errore.get("code") in CODICI_TEMPORANEI or errore.get("is_transient")
