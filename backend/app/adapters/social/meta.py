@@ -102,7 +102,7 @@ class SocialMeta(SocialAdapter):
         )
         if isinstance(esito, EsitoPubblicazione):
             return esito
-        id_post = esito.get("post_id") or esito.get("id")
+        id_post = esito.get("post_id")
         if not id_post:
             return _risposta_inattesa()
         return EsitoPubblicazione(ok=True, id_esterno=id_post)

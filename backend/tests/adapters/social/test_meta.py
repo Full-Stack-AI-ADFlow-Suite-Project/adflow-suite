@@ -204,11 +204,12 @@ def test_il_token_non_finisce_mai_nel_messaggio():
     assert "***" in esito.errore
 
 
-def test_risposta_200_senza_id_e_definitivo():
-    """Una risposta ok ma senza id non deve propagare un KeyError nel tick."""
+def test_risposta_200_senza_id_atteso_e_definitivo():
+    """Una risposta ok senza l'id richiesto non deve propagare un errore nel tick."""
 
     def handler(request: httpx.Request) -> httpx.Response:
-        return httpx.Response(200, json={"unexpected": True})
+        risposta = {"id": "photo-id"} if request.url.path.endswith("/photos") else {}
+        return httpx.Response(200, json=risposta)
 
     for canale in ("facebook", "instagram"):
         esito = _meta(handler).pubblica(canale, "Testo", HASHTAG, FOTO, URL_FOTO)
