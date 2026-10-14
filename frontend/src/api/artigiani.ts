@@ -1,10 +1,33 @@
 import { ApiErrore, richiesta } from "./http";
+import { creaArtigianoEsempio } from "./esempi/nuovi-artigiani";
 import {
   canaliEsempio,
   leggiProfiloEsempio,
   salvaProfiloEsempio,
   USA_ESEMPI,
 } from "./esempi/artigiani";
+
+/** T3-54: POST /artigiani, contratto della PR #109 (T3-11). */
+export interface NuovoArtigiano {
+  email: string;
+  nome: string;
+}
+export interface ArtigianoCreato extends NuovoArtigiano {
+  id: number;
+  password_provvisoria: string;
+}
+
+// Finché T3-11 non è su main, la pagina usa gli esempi (AGENTS.md).
+// L'opzione permette la verifica su una copia che include già quell'endpoint.
+export const CREAZIONE_USA_ESEMPI =
+  USA_ESEMPI || import.meta.env.VITE_CREAZIONE_ARTIGIANI_API !== "1";
+
+export function creaArtigiano(dati: NuovoArtigiano): Promise<ArtigianoCreato> {
+  const corpo = { email: dati.email.trim(), nome: dati.nome.trim() };
+  return CREAZIONE_USA_ESEMPI
+    ? creaArtigianoEsempio(corpo)
+    : richiesta<ArtigianoCreato>("POST", "/artigiani", corpo);
+}
 
 export interface CanaleCollegato {
   canale: string;

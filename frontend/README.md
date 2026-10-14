@@ -64,3 +64,36 @@ src/
   tema.ts            palette e caratteri delle pagine statiche (assets/adflow.css)
   index.css          token con i nomi di adflow.css; i valori stanno in tema.ts
 ```
+
+
+## Nuovo artigiano (T3-54)
+
+Operatore e admin aprono `/nuovo-artigiano` dalla barra laterale: solo email e
+nome del referente, poi la password provvisoria da annotare una volta. Confermare
+«Ho annotato la password», cambiare pagina o ricaricare la elimina dalla vista.
+La password non viene salvata nel browser né nei dati di esempio.
+
+Finché T3-11 (#109) non è su main, la sola creazione usa dati di esempio, con
+un avviso di anteprima: gli account non sono reali. Le email duplicate vengono
+ricordate in memoria fino al ricaricamento, senza password. Per verificare il
+contratto su una copia che contiene T3-11, avviare Vite con
+`VITE_CREAZIONE_ARTIGIANI_API=1` nell'ambiente del processo: invia
+`POST /api/artigiani` con `{email, nome}`. `VITE_USA_ESEMPI=1` mantiene tutti
+i servizi simulati e ha precedenza. Dopo l'integrazione dell'endpoint, attivare
+la creazione via API nella configurazione del frontend.
+
+
+### Prova browser ripetibile di T3-54
+
+`tests/nuovo-artigiano.cjs` usa Playwright già disponibile nell'ambiente
+(`PLAYWRIGHT_PATH` può indicarne il percorso). Aprire due server Vite su
+127.0.0.1:5184 e :5185, entrambi con `VITE_USA_ESEMPI=0`: sul primo
+`VITE_CREAZIONE_ARTIGIANI_API=0`, sul secondo `=1`. Eseguire poi
+`node tests/nuovo-artigiano.cjs`. Gli indirizzi si possono cambiare con
+`ARTIGIANO_ESEMPI_TEST_URL` e `ARTIGIANO_API_TEST_URL` (solo localhost).
+Il test intercetta tutte le API e blocca altre origini: non crea utenti reali.
+Verifica CA-79 nella pagina, duplicati, dati obbligatori, 401/403/409/422/500,
+doppio invio, admin/artigiano/anonimo, copia esplicita, nessuna password nello
+storage o nei log, uscita durante l'attesa, navigazione, ricaricamento e mobile.
+`SCREENSHOT_DIR` salva le schermate; quelle in `tests/evidenze/` contengono
+esclusivamente credenziali finte di test, senza possibilità di accesso.

@@ -41,6 +41,11 @@ function vociDelRuolo(ruolo: Ruolo, percorso: string): VoceNav[] {
       // Vedi campagna si apre da qui: la voce resta accesa.
       attivo: percorso === "/da-approvare" || percorso.startsWith("/campagne/"),
     },
+    {
+      label: "Nuovo artigiano",
+      to: "/nuovo-artigiano",
+      attivo: percorso === "/nuovo-artigiano",
+    },
     { label: "Artigiani", disabilitato: true, quando: "lo sprint 3" },
     { label: "Metriche", disabilitato: true, quando: "lo sprint 4" },
   ];
@@ -52,6 +57,12 @@ const ICONE: Record<string, ReactNode> = {
       <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
       <rect x="9" y="3" width="6" height="4" rx="1" />
       <path d="m9 14 2 2 4-4" />
+    </>
+  ),
+  "Nuovo artigiano": (
+    <>
+      <circle cx="9" cy="7" r="4" />
+      <path d="M3 21v-2a6 6 0 0 1 12 0v2M19 8v6M16 11h6" />
     </>
   ),
   Artigiani: (

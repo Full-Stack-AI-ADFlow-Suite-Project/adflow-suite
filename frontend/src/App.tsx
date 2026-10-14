@@ -6,6 +6,7 @@ import { Accesso } from "./pages/Accesso";
 import { Profilo, RichiedeProfilo } from "./pages/artigiano/profilo/Profilo";
 import { Campagna } from "./pages/artigiano/Campagna";
 import { DaApprovare } from "./pages/operatore/DaApprovare";
+import { NuovoArtigiano } from "./pages/operatore/NuovoArtigiano";
 import { VediCampagna } from "./pages/operatore/VediCampagna";
 
 function Ingresso() {
@@ -28,9 +29,14 @@ export default function App() {
           </RichiedeRuolo>
         }
       />
-      <Route path="/profilo" element={<RichiedeRuolo ruoli={["artigiano"]}>
-        <Profilo />
-      </RichiedeRuolo>} />
+      <Route
+        path="/profilo"
+        element={
+          <RichiedeRuolo ruoli={["artigiano"]}>
+            <Profilo />
+          </RichiedeRuolo>
+        }
+      />
       <Route
         path="/da-approvare"
         element={
@@ -44,6 +50,14 @@ export default function App() {
         element={
           <RichiedeRuolo ruoli={["operatore", "admin"]}>
             <VediCampagna />
+          </RichiedeRuolo>
+        }
+      />
+      <Route
+        path="/nuovo-artigiano"
+        element={
+          <RichiedeRuolo ruoli={["operatore", "admin"]}>
+            <NuovoArtigiano />
           </RichiedeRuolo>
         }
       />
