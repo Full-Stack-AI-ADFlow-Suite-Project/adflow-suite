@@ -218,11 +218,11 @@ def scarica_foto_pubblica(
     firma: Annotated[str | None, Query()] = None,
     scadenza: Annotated[str | None, Query()] = None,
 ) -> Response:
-    """Restituisce la foto sistemata per il canale con firma a tempo (spec R-42, CA-81, T3-23).
+    """Restituisce la foto sistemata per il canale con firma a tempo (spec R-42, CA-81).
 
     Accessibile senza autenticazione o sessione (utilizzato da Meta/Instagram per scaricare la foto).
     Se la firma è alterata, scaduta, mancante o la foto non esiste, risponde con 404
-    senza esporre alcun dato interno (constitution §3, tasks T3-23).
+    senza esporre alcun dato interno (constitution §3).
     """
     if id <= 0 or not canale or not firma:
         raise NonTrovato("Foto non trovata.")

@@ -1,4 +1,4 @@
-"""Firma a tempo e indirizzo pubblico della foto per Instagram (T3-23, spec R-42, constitution §3).
+"""Firma a tempo e indirizzo pubblico della foto per Instagram (spec R-42, constitution §3).
 
 Fornisce:
 - Calcolo e verifica della firma crittografica HMAC-SHA256 con scadenza temporale;
@@ -10,7 +10,6 @@ Fornisce:
 from datetime import datetime, timezone
 import hashlib
 import hmac
-import os
 from typing import Final
 from urllib.parse import urlencode
 
@@ -120,7 +119,7 @@ def genera_url_pubblico(
         foto_id: identificativo numerico della foto.
         canale: canale di destinazione ('instagram' o 'facebook').
         durata_secondi: validità del link in secondi dalla data di generazione.
-        url_base: prefisso dell'URL (se omesso legge FOTO_URL_PUBBLICO o lascia relativo).
+        url_base: prefisso dell'URL (se omesso usa `foto_url_pubblico` delle impostazioni o lascia relativo).
         ora: istante di riferimento (default: adesso()).
 
     Returns:
@@ -148,9 +147,7 @@ def genera_url_pubblico(
         base = url_base
     else:
         impostazioni = leggi_impostazioni()
-        base = getattr(impostazioni, "foto_url_pubblico", "") or os.getenv(
-            "FOTO_URL_PUBBLICO", ""
-        )
+        base = impostazioni.foto_url_pubblico
     base_pulita = base.strip().rstrip("/") if base else ""
 
     params = {"canale": canale_norm, "firma": firma}

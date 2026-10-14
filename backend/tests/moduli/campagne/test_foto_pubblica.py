@@ -1,4 +1,4 @@
-"""Test per l'indirizzo pubblico della foto con firma a tempo (T3-23, spec R-42, CA-81).
+"""Test per l'indirizzo pubblico della foto con firma a tempo (spec R-42, CA-81).
 
 Verifica:
 1. Calcolo e validazione crittografica della firma HMAC-SHA256 con scadenza;
@@ -6,12 +6,11 @@ Verifica:
 3. Accessibilità pubblica senza autenticazione né cookie di sessione;
 4. Restituzione dell'immagine JPEG conforme (lato corto 1080 px, rimozione EXIF/GPS);
 5. Invariante costituzionale §1.3: il file originale archiviato resta inalterato;
-6. Supporto alla variabile d'ambiente FOTO_URL_PUBBLICO per tunnel locali.
+6. Supporto all'impostazione foto_url_pubblico (FOTO_URL_PUBBLICO) per tunnel locali.
 """
 
 from datetime import datetime, timedelta, timezone
 import io
-import os
 from pathlib import Path
 from unittest.mock import patch
 
@@ -21,6 +20,7 @@ import pytest
 from sqlalchemy.orm import Session
 
 from app.adapters.archivio import ArchivioDisco, usa_archivio
+from app.core.config import leggi_impostazioni
 from app.core.errori import DatiNonValidi, NonTrovato
 from app.moduli.campagne import foto_pubblica, service
 from app.moduli.campagne.models import Foto
@@ -136,8 +136,10 @@ def test_supporto_formato_esplicito_e_compatto():
     )
 
 
-def test_genera_url_pubblico():
-    """Generazione dell'URL pubblico con e senza prefisso tunnel."""
+def test_genera_url_pubblico(monkeypatch):
+    """Generazione dell'URL pubblico: relativo, con url_base e con foto_url_pubblico."""
+    impostazioni = leggi_impostazioni()
+    monkeypatch.setattr(impostazioni, "foto_url_pubblico", "")
     foto_id = 5
     url_relativo = foto_pubblica.genera_url_pubblico(
         foto_id, canale="instagram", durata_secondi=3600
@@ -155,28 +157,14 @@ def test_genera_url_pubblico():
         "https://adflow.bottega.it/api/foto/5/pubblica?canale=instagram&firma="
     )
 
-    # Con FOTO_URL_PUBBLICO in ambiente (fallback)
-    with patch.dict(
-        os.environ, {"FOTO_URL_PUBBLICO": "https://tunnel.trycloudflare.com/"}
-    ):
-        url_env = foto_pubblica.genera_url_pubblico(foto_id, canale="instagram")
-        assert url_env.startswith(
-            "https://tunnel.trycloudflare.com/api/foto/5/pubblica?canale=instagram&firma="
-        )
-
-    # Con foto_url_pubblico configurato in Impostazioni (da .env tramite pydantic-settings)
-    from app.core.config import leggi_impostazioni
-
-    impostazioni_curr = leggi_impostazioni()
-    valore_orig = getattr(impostazioni_curr, "foto_url_pubblico", "")
-    try:
-        impostazioni_curr.foto_url_pubblico = "https://adflow.ngrok-free.app/"
-        url_cfg = foto_pubblica.genera_url_pubblico(foto_id, canale="instagram")
-        assert url_cfg.startswith(
-            "https://adflow.ngrok-free.app/api/foto/5/pubblica?canale=instagram&firma="
-        )
-    finally:
-        impostazioni_curr.foto_url_pubblico = valore_orig
+    # Con foto_url_pubblico nelle impostazioni (FOTO_URL_PUBBLICO di .env)
+    monkeypatch.setattr(
+        impostazioni, "foto_url_pubblico", "https://adflow.ngrok-free.app/"
+    )
+    url_cfg = foto_pubblica.genera_url_pubblico(foto_id, canale="instagram")
+    assert url_cfg.startswith(
+        "https://adflow.ngrok-free.app/api/foto/5/pubblica?canale=instagram&firma="
+    )
 
     # Canale o ID non validi sollevano DatiNonValidi
     with pytest.raises(DatiNonValidi):

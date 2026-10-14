@@ -1335,7 +1335,7 @@ def url_foto_pubblica(
     durata_secondi: int = DURATA_PREDEFINITA_SECONDI,
     url_base: str | None = None,
 ) -> str:
-    """Restituisce l'URL pubblico firmato a tempo per il canale (T3-23, spec R-42, CA-81).
+    """Restituisce l'URL pubblico firmato a tempo per il canale (spec R-42, CA-81).
 
     Usato da ``pubblicazione`` e dall'adattatore Meta per Instagram (plan §5, brief-meta §1).
     Verifica che la foto esista nel database prima di generare l'indirizzo.
