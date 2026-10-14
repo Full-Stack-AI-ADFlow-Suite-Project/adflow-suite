@@ -20,6 +20,7 @@ Cosa fa il codice per proteggere l'accesso e cosa deve fare chi installa AdFlow 
 - I contatori stanno in PostgreSQL (tabella `limite_login`): sopravvivono ai riavvii e valgono per tutti i processi e le istanze, senza Redis. Il conteggio usa una transazione separata dal login: un 401 non lo azzera.
 - Le chiavi sono HMAC-SHA256 di IP e account con `LOGIN_LIMITE_SEGRETO`: né IP né email si salvano in chiaro, ma restano pseudonimi (con il segreto si possono verificare). Cambiare il segreto azzera i contatori: si fa su tutte le istanze insieme.
 - Login, logout e rinnovo salvano la sessione prima di mandare il cookie.
+- `LOGIN_LIMITE_SEGRETO` firma anche gli indirizzi pubblici delle foto (`GET /foto/{id}/pubblica`, plan §3): la chiave è derivata dal segreto con una separazione di dominio, quindi non coincide con quella dei contatori. Cambiare il segreto invalida anche gli indirizzi già dati a Instagram e le foto di una pubblicazione in corso non si scaricano più: si cambia a pubblicazioni ferme, su tutte le istanze insieme.
 
 ## Cookie e proxy
 
