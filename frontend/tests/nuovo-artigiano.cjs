@@ -12,6 +12,14 @@ const ok = nome => { verifiche++; console.log('OK ' + nome); };
 
 async function prepara(browser, base = api, ruolo = 'operatore', viewport = {width: 1280, height: 900}) {
   const context = await browser.newContext({viewport});
+  // Clipboard in memoria: il test non modifica quella del computer.
+  await context.addInitScript(() => {
+    let testoCopiato = '';
+    Object.defineProperty(navigator, 'clipboard', { configurable: true, value: {
+      writeText: async testo => { testoCopiato = testo; },
+      readText: async () => testoCopiato,
+    }});
+  });
   const page = await context.newPage();
   page.setDefaultTimeout(10000);
   const errori = [];
@@ -93,11 +101,10 @@ async function controllaSegreto(page, password, messaggi) {
       await page.getByRole('heading', {name: 'Artigiano creato', exact: true}).waitFor();
       assert.equal(await page.getByLabel('Password provvisoria', {exact: true}).inputValue(), passwordFinta);
       await controllaSegreto(page, passwordFinta, messaggi);
-      await context.grantPermissions(['clipboard-read', 'clipboard-write']);
       await page.getByRole('button', {name: 'Copia password', exact: true}).click();
       await page.getByText('Password copiata.', {exact: true}).waitFor();
       assert.equal(await page.evaluate(() => navigator.clipboard.readText()), passwordFinta);
-      // La clipboard si usa solo su richiesta esplicita; il test la ripulisce.
+      // La copia parte solo su richiesta esplicita; ripulisce la clipboard di prova.
       await page.evaluate(() => navigator.clipboard.writeText(''));
       if (process.env.SCREENSHOT_DIR) {
         await fs.mkdir(process.env.SCREENSHOT_DIR, {recursive: true});
