@@ -6,37 +6,49 @@ Da ``backend/``::
     python -m app.cli crea-utente --email E --nome N --ruolo artigiano|operatore|admin
     python -m app.cli cambia-password --email E
     python -m app.cli prova-ai --campagna ID
+    python -m app.cli demo --foto CARTELLA [--quante N]
 
 La password si chiede a terminale: non passa dagli argomenti né finisce in git.
 
 ``prova-ai`` genera una campagna `inviata` con il provider scelto in
 ``backend/.env`` (``AI_PROVIDER=litellm`` per quello vero) e stampa cosa ha
 fatto e speso l'AI: è la prova su 10 post di T3-32, da ripetere per ogni modello.
+
+``demo`` prepara da database vuoto i dati della demo (T3-06, converge §4): il
+seed, la bottega della demo con il profilo e una campagna in bozza pronta da
+inviare, con le foto vere prese dalla cartella. Profilo e testi si cambiano con
+un ``demo.json`` nella stessa cartella. Le foto non entrano in git.
 """
 
 import argparse
+import json
 import sys
 import time
 import traceback
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass
-from datetime import datetime
+from dataclasses import dataclass, field
+from datetime import date, datetime, timedelta
 from decimal import Decimal
 from getpass import getpass
+from pathlib import Path
 
+from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.core.config import leggi_impostazioni
 from app.core.db import transazione
-from app.core.errori import ErroreDominio
-from app.core.orologio import adesso
+from app.core.errori import DatiNonValidi, ErroreDominio, StatoNonValido
+from app.core.orologio import ROMA, adesso
 from app.core.security import hash_password
 from app.moduli.accesso.models import Utente
 from app.moduli.accesso.service import crea_utente, cambia_password
 from app.moduli.artigiani.models import ProfiloBottega, AccountSocial
+from app.moduli.artigiani.profilo_schemas import ProfiloScrittura
+from app.moduli.artigiani.service import post_a_settimana, salva_profilo_personale
 from app.moduli.campagne import service as campagne
 from app.moduli.campagne.domain import INVIATA, IN_GENERAZIONE
+from app.moduli.campagne.schemas import CampagnaCrea, GruppoCrea
 from app.moduli.contenuti import generazione
 from app.moduli.contenuti.schemas import RiepilogoAI
 from app.moduli.contenuti.service import riepilogo_ai_della_campagna
@@ -132,6 +144,140 @@ def esegui_seed(db: Session, password: str) -> list[str]:
                     )
             db.flush()
     return creati
+
+
+# La bottega della demo (T3-06). Profilo, campagna e descrizione del gruppo
+# si possono sostituire con un file demo.json nella cartella delle foto:
+#   {"profilo": {...campi da cambiare...}, "campagna": {"titolo": ..., "descrizione": ...},
+#    "gruppo": "descrizione delle foto"}
+# Senza file valgono il profilo del seed e testi generici: ogni sviluppatore
+# prova la demo con le foto e la bottega che vuole.
+DEMO_EMAIL = "demo@example.com"
+FILE_DEMO = "demo.json"
+CAMPAGNA_DEMO = dict(
+    titolo="Campagna della demo",
+    descrizione="I lavori della bottega, dalle foto vere dell'artigiano.",
+    canali=["facebook", "instagram"],
+)
+GRUPPO_DEMO = "Lavori della bottega fotografati dall'artigiano"
+# Immagini AI che la demo deve mostrare (converge §4: meno foto dei post chiesti).
+IMMAGINI_AI_DEMO = 2
+
+
+@dataclass
+class EsitoDemo:
+    """Cosa ha preparato ``demo``: utenti nuovi, campagna, foto caricate e scartate."""
+
+    creati: list[str]
+    campagna_id: int
+    inizio: date
+    post_per_canale: int
+    caricate: list[str] = field(default_factory=list)
+    scartate: list[tuple[str, str]] = field(default_factory=list)
+
+
+def _leggi_file_demo(cartella: Path) -> dict:
+    percorso = cartella / FILE_DEMO
+    if not percorso.is_file():
+        return {}
+    try:
+        dati = json.loads(percorso.read_text(encoding="utf-8"))
+    except (UnicodeDecodeError, json.JSONDecodeError) as errore:
+        raise DatiNonValidi(f"{FILE_DEMO} non è un JSON valido: {errore}") from None
+    if not isinstance(dati, dict) or set(dati) - {"profilo", "campagna", "gruppo"}:
+        raise DatiNonValidi(
+            f"{FILE_DEMO} ammette solo le chiavi profilo, campagna e gruppo."
+        )
+    return dati
+
+
+def esegui_demo(
+    db: Session, password: str, cartella: Path, quante: int | None, ora: datetime
+) -> EsitoDemo:
+    """Seed, bottega della demo e campagna in bozza con le foto della cartella.
+
+    Le foto passano per ``campagne.carica_foto()``, con i suoi controlli: quelle
+    che non li superano (formato, lato corto sotto i 1080 px, troppi pixel) si
+    scartano con il motivo. ``quante`` = None carica i post per canale meno
+    ``IMMAGINI_AI_DEMO`` (almeno una foto); 0 carica tutte quelle valide.
+    La demo si prepara una volta sola, da database vuoto.
+    """
+    if not cartella.is_dir():
+        raise DatiNonValidi(f"La cartella delle foto non esiste: {cartella}")
+    if db.scalar(select(Utente.id).where(Utente.email == DEMO_EMAIL)) is not None:
+        raise StatoNonValido(
+            "La demo è già preparata: per rifarla si parte da un database vuoto."
+        )
+    file_demo = _leggi_file_demo(cartella)
+    try:
+        profilo = ProfiloScrittura(**{**PROFILO_SEED, **file_demo.get("profilo", {})})
+        dati_campagna = {**CAMPAGNA_DEMO, **file_demo.get("campagna", {})}
+        gruppo_demo = GruppoCrea(descrizione=file_demo.get("gruppo", GRUPPO_DEMO))
+    except (TypeError, ValidationError) as errore:
+        raise DatiNonValidi(f"Dati della demo non validi: {errore}") from None
+
+    creati = esegui_seed(db, password)
+    artigiano = crea_utente(db, DEMO_EMAIL, password, profilo.referente, "artigiano")
+    creati.append(DEMO_EMAIL)
+    salva_profilo_personale(db, artigiano.id, profilo, ora)
+
+    # Inizio tra 4 giorni (uno più dell'anticipo minimo), durata 7 giorni.
+    anticipo = leggi_impostazioni().anticipo_minimo_giorni
+    inizio = ora.astimezone(ROMA).date() + timedelta(days=anticipo + 1)
+    fine = inizio + timedelta(days=6)
+    try:
+        dati = CampagnaCrea(**dati_campagna, inizio=inizio, fine=fine)
+    except (TypeError, ValidationError) as errore:
+        raise DatiNonValidi(f"Campagna della demo non valida: {errore}") from None
+    campagna = campagne.crea_bozza(db, artigiano.id, dati, ora)
+    gruppo = campagne.crea_gruppo(
+        db, artigiano.id, "artigiano", campagna.id, gruppo_demo
+    )
+    post_per_canale = campagne.post_chiesti(
+        post_a_settimana(profilo.frequenza), inizio, fine
+    )
+    if quante is None:
+        quante = max(1, post_per_canale - IMMAGINI_AI_DEMO)
+    esito = EsitoDemo(
+        creati=creati,
+        campagna_id=campagna.id,
+        inizio=inizio,
+        post_per_canale=post_per_canale,
+    )
+    foto = sorted(p for p in cartella.iterdir() if p.is_file() and p.name != FILE_DEMO)
+    for percorso in foto:
+        if quante and len(esito.caricate) >= quante:
+            break
+        try:
+            campagne.carica_foto(
+                db,
+                artigiano.id,
+                "artigiano",
+                campagna.id,
+                percorso.read_bytes(),
+                gruppo.id,
+            )
+        except DatiNonValidi as errore:
+            esito.scartate.append((percorso.name, errore.messaggio))
+        else:
+            esito.caricate.append(percorso.name)
+    return esito
+
+
+def rapporto_demo(esito: EsitoDemo) -> str:
+    """Il riepilogo di ``demo`` da stampare, senza password."""
+    righe = [f"utente creato: {email}" for email in esito.creati]
+    righe.append(
+        f"campagna {esito.campagna_id} in bozza, dal {esito.inizio:%d/%m/%Y}: "
+        f"{len(esito.caricate)} foto caricate per {esito.post_per_canale} post "
+        "per canale"
+    )
+    righe.extend(f"  caricata  {nome}" for nome in esito.caricate)
+    righe.extend(f"  scartata  {nome}: {motivo}" for nome, motivo in esito.scartate)
+    righe.append(
+        f"Entra come {DEMO_EMAIL} e invia la campagna con la dichiarazione (passo 12)."
+    )
+    return "\n".join(righe)
 
 
 @dataclass
@@ -289,6 +435,21 @@ def _parser() -> argparse.ArgumentParser:
         "prova-ai", help="genera una campagna inviata e stampa cosa ha speso l'AI"
     )
     prova.add_argument("--campagna", required=True, type=int, help="id della campagna")
+    demo = comandi.add_parser(
+        "demo", help="seed, bottega della demo e campagna in bozza con le foto vere"
+    )
+    demo.add_argument(
+        "--foto", required=True, type=Path, help="cartella con le foto della demo"
+    )
+    demo.add_argument(
+        "--quante",
+        type=int,
+        default=None,
+        help=(
+            f"foto da caricare (default: post per canale meno {IMMAGINI_AI_DEMO}, "
+            "per vedere le immagini AI; 0 = tutte)"
+        ),
+    )
     return parser
 
 
@@ -302,6 +463,14 @@ def main(argv: Sequence[str] | None = None) -> int:
             for email, _, ruolo in UTENTI_SEED:
                 esito = "creato" if email in creati else "già presente"
                 print(f"{ruolo}: {email} ({esito})")
+        elif argomenti.comando == "demo":
+            password = _chiedi_password("Password per gli utenti della demo")
+            with transazione() as db:
+                quante = argomenti.quante
+                if quante is not None:
+                    quante = max(0, quante)
+                esito = esegui_demo(db, password, argomenti.foto, quante, adesso())
+            print(rapporto_demo(esito))
         elif argomenti.comando == "prova-ai":
             esito = esegui_prova_ai(argomenti.campagna)
             print(rapporto_prova_ai(esito))

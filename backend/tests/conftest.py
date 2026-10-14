@@ -1,6 +1,13 @@
 import asyncio
+import os
 import sys
 from collections.abc import Callable, Iterator
+
+# Nei test nessuna chiamata reale (constitution §3): i provider finti valgono
+# anche se backend/.env sceglie quelli veri per la demo. Le variabili d'ambiente
+# vincono su .env; si impostano prima di importare l'app.
+os.environ["AI_PROVIDER"] = "finto"
+os.environ["SOCIAL_PROVIDER"] = "finto"
 
 import pytest
 from alembic import command
