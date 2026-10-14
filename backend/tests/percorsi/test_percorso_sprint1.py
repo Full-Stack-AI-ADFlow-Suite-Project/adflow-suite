@@ -246,7 +246,9 @@ def test_percorso_dalla_bozza_alla_campagna_conclusa(
     assert bozza["post_chiesti_per_canale"] == {"facebook": 3, "instagram": 3}
     assert bozza["avvisi"] == []
 
-    inviata = api("POST", f"/campagne/{campagna_id}/invia")
+    inviata = api(
+        "POST", f"/campagne/{campagna_id}/invia", json={"dichiarazione": True}
+    )
     assert (inviata.status_code, inviata.json()["stato"]) == (200, "inviata")
     assert [job["task_name"] for job in coda.jobs.values()] == [GENERA_CAMPAGNA]
 
@@ -311,7 +313,14 @@ def test_percorso_con_poche_foto_e_le_cartoline(api, entra, lavora, orologio, fi
     assert bozza["post_chiesti_per_canale"] == {"facebook": 12, "instagram": 12}
     assert {"foto_poche", "riempitivi_molti"} <= set(bozza["avvisi"])
 
-    assert api("POST", f"/campagne/{campagna_id}/invia").status_code == 200
+    assert (
+        api(
+            "POST",
+            f"/campagne/{campagna_id}/invia",
+            json={"dichiarazione": True},
+        ).status_code
+        == 200
+    )
     assert lavora() == [1]
 
     entra(OPERATORE)
@@ -344,7 +353,14 @@ def test_percorso_della_riprova_dopo_tre_esecuzioni_fallite(api, entra, lavora, 
     entra(ARTIGIANO)
     campagna_id, _ = _bozza(api, UNA_SETTIMANA, foto_per_gruppo=(2, 2))
     finti.ai.comanda_errore("pianifica_campagna", "temporaneo", volte=None)
-    assert api("POST", f"/campagne/{campagna_id}/invia").status_code == 200
+    assert (
+        api(
+            "POST",
+            f"/campagne/{campagna_id}/invia",
+            json={"dichiarazione": True},
+        ).status_code
+        == 200
+    )
 
     assert lavora() == [3]
     assert _stato(api, campagna_id) == "generazione_fallita"
@@ -410,13 +426,23 @@ def test_prove_negative_del_percorso(api, entra, lavora, db, finti):
     assert _carica(api, campagna_id, gruppo_id, _foto_jpeg(200)).status_code == 201
     _account(db, "instagram").stato = "scollegato"
     db.commit()
-    rifiutata(api("POST", f"/campagne/{campagna_id}/invia"), 409)  # scollegato dopo
+    rifiutata(
+        api("POST", f"/campagne/{campagna_id}/invia", json={"dichiarazione": True}),
+        409,
+    )  # scollegato dopo
     _account(db, "instagram").stato = "collegato"
     db.commit()
 
     # errore di configurazione dell'AI: fallita subito, senza altre esecuzioni
     finti.ai.comanda_errore("analizza_gruppo", "configurazione", volte=None)
-    assert api("POST", f"/campagne/{campagna_id}/invia").status_code == 200
+    assert (
+        api(
+            "POST",
+            f"/campagne/{campagna_id}/invia",
+            json={"dichiarazione": True},
+        ).status_code
+        == 200
+    )
     assert lavora() == [1]
     entra(OPERATORE)
     vista = _vedi(api, campagna_id)

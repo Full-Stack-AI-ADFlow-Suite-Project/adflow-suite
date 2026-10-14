@@ -17,6 +17,7 @@ from .schemas import (
     CampagnaCrea,
     CampagnaDettaglio,
     CampagnaElencoItem,
+    CampagnaInvia,
     CampagnaModifica,
     FotoDettaglio,
     GruppoAggiorna,
@@ -215,8 +216,11 @@ def invia_campagna(
     db: Annotated[Session, Depends(get_db, scope="function")],
     utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
     ora: Annotated[datetime, Depends(adesso)],
+    dati: CampagnaInvia | None = None,
 ) -> CampagnaDettaglio:
-    service.invia_campagna(db, utente.id, id, ora)
+    service.invia_campagna(
+        db, utente.id, id, ora, dichiarazione=dati.dichiarazione if dati else False
+    )
     return service.dettaglio_campagna(db, utente.id, utente.ruolo, id)
 
 

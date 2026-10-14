@@ -1198,7 +1198,11 @@ def _campagna_per_invio(db: Session, campagna_id: int) -> Campagna:
 
 
 def invia_campagna(
-    db: Session, utente_id: int, campagna_id: int, ora: datetime
+    db: Session,
+    utente_id: int,
+    campagna_id: int,
+    ora: datetime,
+    dichiarazione: bool = False,
 ) -> Campagna:
     """Ricontrolla la bozza e fotografa il profilo prima di accodare la generazione."""
     rec = _campagna_per_invio(db, campagna_id)
@@ -1209,6 +1213,8 @@ def invia_campagna(
         raise NonTrovato("Campagna non trovata.")
     if rec.stato != BOZZA:
         raise StatoNonValido("Si possono inviare solo campagne in bozza.")
+    if not dichiarazione:
+        raise DatiNonValidi("Confermare la dichiarazione sulle foto prima dell'invio.")
 
     oggi = ora.astimezone(ROMA).date() if ora.tzinfo else ora.date()
     anticipo = leggi_impostazioni().anticipo_minimo_giorni
@@ -1255,14 +1261,16 @@ def invia_campagna(
                 raise DatiNonValidi("Indicare da 1 a 20 immagini da creare.")
         else:
             raise DatiNonValidi("Origine del gruppo non valida.")
-    if caricate < 4:
-        raise DatiNonValidi("Caricare almeno 4 foto prima dell'invio.")
 
     rec.profilo_snapshot = {
         colonna.name: deepcopy(getattr(profilo, colonna.name))
         for colonna in profilo.__table__.columns
         if colonna.name not in ("id", "aggiornato_il")
     }
+    rec.profilo_snapshot["dichiarazione"] = True
+    rec.profilo_snapshot["dichiarazione_data"] = (
+        ora.isoformat() if hasattr(ora, "isoformat") else str(ora)
+    )
     rec.frequenza = profilo.frequenza
     rec.obiettivo = profilo.obiettivo
     rec.inviata_il = ora
