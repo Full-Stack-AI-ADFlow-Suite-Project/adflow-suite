@@ -18,6 +18,7 @@ from sqlalchemy import select
 import app.adapters.ai as modulo_ai
 from app.adapters.ai import AIFinto, imposta_ai, usa_ai
 from app.adapters.archivio import ArchivioFinto, usa_archivio
+from app.core.config import leggi_impostazioni
 from app.core.coda import GENERA_CAMPAGNA, accoda
 from app.core.coda import app as coda_app
 from app.moduli.artigiani import service as artigiani
@@ -810,20 +811,28 @@ def test_ca58_errore_di_configurazione_fallita_subito_senza_altre_esecuzioni(db,
     assert len(_chiamate(ai, "analizza_gruppo")) == 1
 
 
-def test_ca58_provider_non_disponibile_fallita_subito_con_il_motivo(db, monkeypatch):
-    """`AI_PROVIDER=litellm`: errore di configurazione del provider (converge §3)."""
+def test_ca58_litellm_senza_i_modelli_fallita_subito_con_il_motivo(db, monkeypatch):
+    """`AI_PROVIDER=litellm` senza i modelli in `.env`: configurazione (converge §3)."""
+    import app.adapters.ai.litellm as modulo_litellm
+
     campagna = _campagna(db)
     imposta_ai(None)
-    monkeypatch.setattr(
-        modulo_ai, "leggi_impostazioni", lambda: SimpleNamespace(ai_provider="litellm")
+    senza_modelli = leggi_impostazioni().model_copy(
+        update={
+            "ai_provider": "litellm",
+            "ai_modello_visione": "",
+            "ai_modello_testo": "",
+        }
     )
+    monkeypatch.setattr(modulo_ai, "leggi_impostazioni", lambda: senza_modelli)
+    monkeypatch.setattr(modulo_litellm, "leggi_impostazioni", lambda: senza_modelli)
 
     assert jobs.esegui_generazione(campagna.id, 1) is False
 
     assert campagna.stato == "generazione_fallita"
     errore = ultimo_errore(db, campagna.id)
     assert errore.tipo == "configurazione"
-    assert "litellm" in errore.messaggio
+    assert "AI_MODELLO_VISIONE" in errore.messaggio
 
 
 @pytest.mark.parametrize("tipo", ["temporaneo", "risposta", "richiesta", "rifiuto"])

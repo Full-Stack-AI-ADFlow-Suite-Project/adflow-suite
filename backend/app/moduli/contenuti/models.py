@@ -1,5 +1,6 @@
 """Tabelle del modulo contenuti (plan §2)."""
 from datetime import datetime
+from decimal import Decimal
 from typing import Any
 
 from sqlalchemy import (
@@ -8,6 +9,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    Numeric,
     Text,
     UniqueConstraint,
     text,
@@ -177,6 +179,31 @@ class ErroreGenerazione(Base):
     messaggio: Mapped[str] = mapped_column(Text, nullable=False)
     tappa: Mapped[str] = mapped_column(Text, nullable=False)
     canale: Mapped[str | None] = mapped_column(Text, nullable=True)
+    creata_il: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=text("CURRENT_TIMESTAMP"),
+    )
+
+
+class ChiamataAI(Base):
+    """Costo di una chiamata all'AI: analisi, piano, testo o immagine (plan §2, R-44)."""
+
+    __tablename__ = "chiamata_ai"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    campagna_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("campagna.id"), nullable=False, index=True
+    )
+    post_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("post.id"), nullable=True
+    )
+    tipo: Mapped[str] = mapped_column(Text, nullable=False)
+    provider_ai: Mapped[str] = mapped_column(Text, nullable=False)
+    modello_ai: Mapped[str] = mapped_column(Text, nullable=False)
+    token_ingresso: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    token_uscita: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    n_immagini: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    costo_usd: Mapped[Decimal] = mapped_column(Numeric(12, 6), nullable=False)
     creata_il: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,

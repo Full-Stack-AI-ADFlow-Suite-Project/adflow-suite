@@ -2,10 +2,12 @@
 
 from collections.abc import Iterable
 from datetime import datetime, timedelta
+from decimal import Decimal
 
-from sqlalchemy import select, or_, and_
+from sqlalchemy import select, or_, and_, func
 from sqlalchemy.orm import Session, selectinload
 
+from app.adapters.ai import UsoAI
 from app.core.config import leggi_impostazioni
 from app.core.errori import DatiNonValidi, NonTrovato, StatoNonValido
 from app.core.orologio import ROMA
@@ -23,7 +25,7 @@ from .domain import (
     TRANSIZIONI,
     STATI_CHIUSI,
 )
-from .models import Post, VersionePost, Piano, Uscita, ErroreGenerazione
+from .models import ChiamataAI, Post, VersionePost, Piano, Uscita, ErroreGenerazione
 from .schemas import CalendarioCampagna
 
 
@@ -212,6 +214,41 @@ def uscite_della_campagna(db: Session, campagna_id: int) -> list[Uscita]:
             .order_by(Uscita.numero)
         )
     )
+
+
+def registra_chiamata_ai(
+    db: Session, campagna_id: int, uso: UsoAI | None, *, post_id: int | None = None
+) -> ChiamataAI | None:
+    """Scrive il costo di una chiamata all'AI (R-44); senza ``uso`` non fa nulla.
+
+    Si chiama subito dopo la chiamata, con l'``ultimo_uso`` dell'adattatore.
+    """
+    if uso is None:
+        return None
+    riga = ChiamataAI(
+        campagna_id=campagna_id,
+        post_id=post_id,
+        tipo=uso.tipo,
+        provider_ai=uso.provider,
+        modello_ai=uso.modello,
+        token_ingresso=uso.token_ingresso,
+        token_uscita=uso.token_uscita,
+        n_immagini=uso.immagini,
+        costo_usd=uso.costo_usd,
+    )
+    db.add(riga)
+    db.flush()
+    return riga
+
+
+def costo_ai_della_campagna(db: Session, campagna_id: int) -> Decimal:
+    """Il totale in dollari delle chiamate all'AI della campagna (R-44)."""
+    totale = db.scalar(
+        select(func.sum(ChiamataAI.costo_usd)).where(
+            ChiamataAI.campagna_id == campagna_id
+        )
+    )
+    return totale if totale is not None else Decimal(0)
 
 
 def ultimo_errore(db: Session, campagna_id: int) -> ErroreGenerazione | None:

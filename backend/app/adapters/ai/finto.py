@@ -3,6 +3,7 @@
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta
+from decimal import Decimal
 from typing import Any
 
 from app.core.orologio import ROMA
@@ -16,6 +17,7 @@ from .base import (
     PianoAI,
     PostAI,
     PostScritto,
+    UsoAI,
 )
 
 PROVIDER = "finto"
@@ -74,11 +76,15 @@ class AIFinto(AIAdapter):
 
     Il resto si chiede a comando: ``carosello=True``, ``comanda_analisi()``,
     ``comanda_errore()``, ``comanda_piano_non_valido()``, ``comanda_testo()``.
-    Ogni chiamata si registra in ``chiamate``.
+    Ogni chiamata si registra in ``chiamate`` e lascia il suo ``ultimo_uso``,
+    senza token e con il costo di ``costo_chiamata`` (0 se non si dice).
     """
 
-    def __init__(self, *, carosello: bool = False) -> None:
+    def __init__(
+        self, *, carosello: bool = False, costo_chiamata: Decimal = Decimal(0)
+    ) -> None:
         self.carosello = carosello
+        self.costo_chiamata = costo_chiamata
         self.chiamate: list[dict[str, Any]] = []
         self._errori: list[_Errore] = []
         self._analisi: dict[int, dict[str, Any]] = {}
@@ -127,6 +133,9 @@ class AIFinto(AIAdapter):
         """Fa scrivere questo testo: vuoto, troppo lungo o con parole vietate."""
         self._testi.append(_Testo(testo, list(hashtag), volte, canale))
 
+    def _uso(self, tipo: str) -> UsoAI:
+        return UsoAI(tipo, PROVIDER, MODELLO, costo_usd=self.costo_chiamata)
+
     def _solleva(
         self,
         operazione: str,
@@ -148,6 +157,7 @@ class AIFinto(AIAdapter):
     # --- interfaccia -----------------------------------------------------
 
     def analizza_gruppo(self, gruppo: GruppoAI) -> dict[int, dict[str, Any]]:
+        self.ultimo_uso = None
         ids = [foto.id for foto in gruppo.foto]
         self.chiamate.append(
             {"operazione": "analizza_gruppo", "gruppo": gruppo.id, "foto": ids}
@@ -165,6 +175,7 @@ class AIFinto(AIAdapter):
             }
             analisi.update(self._analisi.get(foto.id, {}))
             risultato[foto.id] = analisi
+        self.ultimo_uso = self._uso("analisi")
         return risultato
 
     def pianifica_campagna(
@@ -179,6 +190,7 @@ class AIFinto(AIAdapter):
         piano_precedente: Mapping[str, Any] | None = None,
         violazioni: Sequence[Mapping[str, Any]] | None = None,
     ) -> PianoAI:
+        self.ultimo_uso = None
         self.chiamate.append(
             {
                 "operazione": "pianifica_campagna",
@@ -263,6 +275,7 @@ class AIFinto(AIAdapter):
             f"Raccontare {nome} con {n_uscite} uscite distribuite sul periodo: "
             f"prima le foto scelte dall'artigiano, poi le altre."
         )
+        self.ultimo_uso = self._uso("piano")
         return PianoAI(
             contenuto={"strategia": strategia, "uscite": uscite},
             provider=PROVIDER,
@@ -283,6 +296,7 @@ class AIFinto(AIAdapter):
         testo_proposto: str | None = None,
         nota: str | None = None,
     ) -> PostScritto:
+        self.ultimo_uso = None
         chiamata = {
             "operazione": "genera_post",
             "canale": post.canale,
@@ -321,6 +335,7 @@ class AIFinto(AIAdapter):
                 comandato.volte -= 1
             testo, hashtag = comandato.testo, list(comandato.hashtag)
             break
+        self.ultimo_uso = self._uso("testo")
         return PostScritto(
             testo=testo,
             hashtag=hashtag,

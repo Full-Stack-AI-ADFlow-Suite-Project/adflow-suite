@@ -17,10 +17,13 @@ from abc import ABC, abstractmethod
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass, field
 from datetime import date, datetime
+from decimal import Decimal
 from typing import Any
 
 # R-35: i tipi di errore tecnico dell'AI.
 TIPI_ERRORE = ("temporaneo", "risposta", "configurazione", "richiesta", "rifiuto")
+# R-44: i tipi di chiamata di cui si registra il costo.
+TIPI_USO = ("analisi", "piano", "testo", "immagine")
 
 
 class ErroreAI(Exception):
@@ -109,12 +112,35 @@ class PostScritto:
     versione_prompt: str
 
 
+@dataclass
+class UsoAI:
+    """Che cosa è costata una chiamata (spec R-44).
+
+    ``immagini`` conta le immagini create; i token sono vuoti se il provider
+    non li dice. ``costo_usd`` è 0 se il prezzo del modello non si conosce.
+    """
+
+    tipo: str
+    provider: str
+    modello: str
+    token_ingresso: int | None = None
+    token_uscita: int | None = None
+    immagini: int | None = None
+    costo_usd: Decimal = Decimal(0)
+
+
 class AIAdapter(ABC):
     """Interfaccia verso il provider AI.
 
     In sviluppo e nei test si usa ``AIFinto``, che risponde senza rete. Ogni
     metodo solleva ``ErroreAI`` per gli errori tecnici di R-35.
+
+    Dopo ogni chiamata riuscita ``ultimo_uso`` dice cosa è costata; chi chiama
+    la scrive subito in ``chiamata_ai`` (R-44). All'inizio di ogni chiamata
+    torna ``None``, così un errore non lascia l'uso della chiamata di prima.
     """
+
+    ultimo_uso: UsoAI | None = None
 
     @abstractmethod
     def analizza_gruppo(self, gruppo: GruppoAI) -> dict[int, dict[str, Any]]:

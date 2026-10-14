@@ -17,7 +17,12 @@ from .generazione import (
     _snapshot,
 )
 from .models import Post, Uscita, VersionePost, VersionePostFoto
-from .service import _azzera_spunta, _intervento_attivo, _post
+from .service import (
+    _azzera_spunta,
+    _intervento_attivo,
+    _post,
+    registra_chiamata_ai,
+)
 from .validatore import BLOCCO, valida_testo
 
 # R-03: al massimo 3 rigenerazioni del testo per post (da zero e da proposta insieme).
@@ -223,6 +228,7 @@ def rigenera(
             testo_proposto=proposto,
             nota=nota,
         )
+        registra_chiamata_ai(db, campagna.id, ai.ultimo_uso, post_id=record.id)
         errori = valida_testo(scritto.testo, scritto.hashtag, record.canale, snapshot)
         if not errori:
             break
