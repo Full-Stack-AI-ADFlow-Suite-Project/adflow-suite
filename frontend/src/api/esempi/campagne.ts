@@ -14,6 +14,11 @@ import type {
   GruppoCrea,
   GruppoSintetico,
   ProfiloSnapshot,
+  CalendarioCampagna,
+  FotoCalendario,
+  PostCalendario,
+  GiornoCalendario,
+  CanaleToltoCalendario,
 } from "../campagne";
 import {
   canaliEsempio,
@@ -22,6 +27,7 @@ import {
   USA_ESEMPI,
 } from "./artigiani";
 import { sessioneEsempio } from "./accesso";
+import { leggiRevisioneRecord } from "./revisione";
 
 export { USA_ESEMPI };
 
@@ -976,6 +982,88 @@ export const esempiCampagne = {
     };
     salva(campagne);
     return conAvvisi(c);
+  },
+
+  async calendario(campagnaId: number): Promise<CalendarioCampagna> {
+    const campagne = carica();
+    const c = trova(campagne, campagnaId);
+    const u = sessioneEsempio();
+    if (u && u.ruolo === "artigiano") {
+      // Un artigiano legge solo le proprie campagne (spec R-45, CA-56)
+      if (c.profilo_id !== 1) {
+        throw new ApiErrore(404, "Campagna non trovata.");
+      }
+    }
+    if (!["attiva", "sospesa", "conclusa", "annullata"].includes(c.stato)) {
+      throw new ApiErrore(
+        409,
+        "Il calendario è disponibile dopo l'approvazione.",
+      );
+    }
+    const rev = leggiRevisioneRecord(campagnaId);
+    const tuttiPost = (rev?.uscite ?? []).flatMap((uscita) => uscita.post);
+    const visibili = tuttiPost.filter((p) =>
+      ["approvato", "pubblicato", "fallito", "annullato"].includes(p.stato),
+    );
+    const nScaduti = tuttiPost.filter((p) => p.stato === "scaduto").length;
+
+    const giorniMap = new Map<string, PostCalendario[]>();
+    for (const p of visibili) {
+      const dataIso = p.data_ora.slice(0, 10);
+      const ora = p.data_ora.includes("T")
+        ? p.data_ora.split("T")[1].slice(0, 5)
+        : "12:00";
+      const v = p.versione_corrente;
+      const foto: FotoCalendario[] = (v?.foto ?? []).map((f) => ({
+        id: f.foto_id,
+        url: `/api/foto/${f.foto_id}/file`,
+        mime: "image/jpeg",
+        larghezza: 1080,
+        altezza: 1080,
+        origine: p.riempitivo === "immagine_ai" ? "ai" : "originale",
+      }));
+      const postCal: PostCalendario = {
+        id: p.post_id,
+        data_ora: p.data_ora,
+        ora,
+        canale: p.canale,
+        stato: p.stato,
+        testo: v?.testo ?? "",
+        hashtag: v?.hashtag ?? [],
+        foto,
+      };
+      const arr = giorniMap.get(dataIso) ?? [];
+      arr.push(postCal);
+      giorniMap.set(dataIso, arr);
+    }
+
+    const giorni: GiornoCalendario[] = Array.from(giorniMap.entries())
+      .sort(([a], [b]) => a.localeCompare(b))
+      .map(([data, post]) => ({
+        data,
+        post: post.sort((a, b) => a.data_ora.localeCompare(b.data_ora)),
+      }));
+
+    const noteCanaliTolti: Record<string, string> = {};
+    for (const d of c.decisioni ?? []) {
+      if (d.esito === "canale_tolto" && d.canale && d.nota) {
+        noteCanaliTolti[d.canale] = d.nota;
+      }
+    }
+    const canaliTolti: CanaleToltoCalendario[] = (c.canali_tolti ?? []).map(
+      (canale) => ({
+        canale,
+        nota: noteCanaliTolti[canale] ?? null,
+      }),
+    );
+
+    return {
+      campagna_id: campagnaId,
+      strategia: rev?.piano?.strategia ?? null,
+      giorni,
+      canali_tolti: canaliTolti,
+      n_post_scaduti: nScaduti,
+    };
   },
 };
 
