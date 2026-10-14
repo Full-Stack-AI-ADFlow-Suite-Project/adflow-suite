@@ -335,15 +335,18 @@ def test_percorso_con_poche_foto_e_le_immagini_ai(api, entra, lavora, orologio, 
         assert {foto_id for uno in con_foto for foto_id in _foto_del_post(uno)} == set(
             foto
         )
-        # ogni post `immagine_ai` ha il suo testo; l'immagine nasce dopo il piano
-        assert all(_foto_del_post(uno) == [] for uno in immagini_ai)
-        assert all(uno["versione_corrente"]["testo"] for uno in immagini_ai)
+        # ogni post `immagine_ai` ha la sua immagine e il suo testo con la dicitura
+        assert all(len(_foto_del_post(uno)) == 1 for uno in immagini_ai)
+        assert all(
+            uno["versione_corrente"]["testo"].endswith("Immagine creata con AI")
+            for uno in immagini_ai
+        )
 
     assert api("POST", f"/campagne/{campagna_id}/approva").status_code == 200
     orologio.dopo(QUATTRO_SETTIMANE)
     worker.tick_pubblicazione(0)
-    # escono i post con una foto; quelli `immagine_ai` aspettano l'immagine (T3-34)
-    assert len(finti.social.pubblicazioni) == 8
+    # escono tutti: quelli con una foto e quelli con la loro immagine AI (R-28)
+    assert len(finti.social.pubblicazioni) == 24
     entra(OPERATORE)
     assert _stato(api, campagna_id) == "conclusa"
 

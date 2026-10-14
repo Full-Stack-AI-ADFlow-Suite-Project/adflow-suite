@@ -34,11 +34,13 @@ from .base import (
     ErroreAI,
     FotoAI,
     GruppoAI,
+    ImmagineAI,
     PianoAI,
     PostAI,
     PostScritto,
     UsoAI,
 )
+from .immagini import VERSIONE_PROMPT as VERSIONE_PROMPT_IMMAGINE
 from .schemi import RispostaAnalisi, RispostaPiano, RispostaPost
 
 PROVIDER = "litellm"
@@ -48,6 +50,10 @@ LATO_FOTO = 1024
 QUALITA_JPEG = 85
 # Il job riprova da sé (R-35): LiteLLM non deve moltiplicare i tentativi.
 TIMEOUT_SECONDI = 120
+# Le immagini AI sono sempre quadrate 1:1, di qualità media (brief-ai T3-34).
+DIMENSIONE_IMMAGINE = "1024x1024"
+QUALITA_IMMAGINE = "medium"
+FORMATI_IMMAGINE = {"PNG": "image/png", "JPEG": "image/jpeg"}
 # Del profilo l'AI vede solo ciò che serve a scrivere: non il referente, il
 # sito o i profili social.
 CAMPI_DEL_PROFILO = (
@@ -82,6 +88,8 @@ _MODELLO_SBAGLIATO = (
     "unknown model",
 )
 _IMMAGINE = ("image", "immagine")
+# Il filtro dei contenuti può arrivare come un 400 qualunque.
+_FILTRO = ("content_policy", "moderation_blocked", "safety system")
 
 
 @lru_cache
@@ -143,6 +151,8 @@ def traduci_errore(errore: Exception, *, foto_id: int | None = None) -> ErroreAI
             foto_id=foto_id,
         )
     if isinstance(errore, errori_litellm.BadRequestError):
+        if any(segnale in testo for segnale in _FILTRO):
+            return ErroreAI("rifiuto", "Il servizio AI ha rifiutato il contenuto.")
         if any(segnale in testo for segnale in _MODELLO_SBAGLIATO):
             return ErroreAI("configurazione", "Il modello AI scelto non esiste.")
         return ErroreAI(
@@ -216,6 +226,8 @@ class AILiteLLM(AIAdapter):
         self._chiave = impostazioni.openai_api_key
         self._prezzo_ingresso = impostazioni.ai_prezzo_ingresso_milione
         self._prezzo_uscita = impostazioni.ai_prezzo_uscita_milione
+        self._modello_immagini = impostazioni.ai_modello_immagini
+        self._prezzo_immagine = impostazioni.ai_prezzo_immagine
         for nome, valore in (
             ("AI_MODELLO_VISIONE", self._modello_visione),
             ("AI_MODELLO_TESTO", self._modello_testo),
@@ -293,6 +305,17 @@ class AILiteLLM(AIAdapter):
             token_uscita=uscita,
             costo_usd=costo,
         )
+
+    def _costo_immagine(self, modello: str, risposta: Any) -> Decimal:
+        """Dollari di un'immagine: prima LiteLLM, poi il prezzo di configurazione."""
+        try:
+            return Decimal(
+                str(
+                    litellm.completion_cost(completion_response=risposta, model=modello)
+                )
+            )
+        except Exception:  # noqa: BLE001 - modello di cui LiteLLM non sa il prezzo
+            return self._prezzo_immagine
 
     # --- interfaccia -----------------------------------------------------
 
@@ -449,6 +472,7 @@ class AILiteLLM(AIAdapter):
                 "descrizione_del_gruppo": post.descrizione_gruppo,
                 "foto": [_valutazione(foto) for foto in post.foto],
                 "senza_foto": not post.foto,
+                "immagine_creata_con_ai": post.riempitivo == "immagine_ai",
             },
             "scheda_del_canale": dict(scheda),
         }
@@ -478,6 +502,63 @@ class AILiteLLM(AIAdapter):
             modello=self._modello_testo,
             versione_prompt="post_v1",
         )
+
+    def genera_immagine(self, prompt: str) -> ImmagineAI:
+        self.ultimo_uso = None
+        modello = self._modello_immagini.strip()
+        if not modello:
+            raise ErroreAI("configurazione", "AI_MODELLO_IMMAGINI non è impostato.")
+        try:
+            risposta = litellm.image_generation(
+                prompt=prompt,
+                model=modello,
+                n=1,
+                size=DIMENSIONE_IMMAGINE,
+                quality=QUALITA_IMMAGINE,
+                api_key=self._chiave or None,
+                timeout=TIMEOUT_SECONDI,
+            )
+        except Exception as errore:  # noqa: BLE001 - tradotto o rilanciato sotto
+            raise traduci_errore(errore) from errore
+        immagine = _leggi_immagine(risposta, modello)
+        uso = getattr(risposta, "usage", None)
+        self.ultimo_uso = UsoAI(
+            tipo="immagine",
+            provider=PROVIDER,
+            modello=modello,
+            token_ingresso=getattr(uso, "input_tokens", None),
+            token_uscita=getattr(uso, "output_tokens", None),
+            immagini=1,
+            costo_usd=self._costo_immagine(modello, risposta),
+        )
+        return immagine
+
+
+def _leggi_immagine(risposta: Any, modello: str) -> ImmagineAI:
+    """I byte dell'immagine della risposta, se sono un PNG o un JPEG leggibile."""
+    elenco = getattr(risposta, "data", None) or []
+    codificata = getattr(elenco[0], "b64_json", None) if elenco else None
+    if not codificata:
+        raise ErroreAI("risposta", "L'AI non ha restituito nessuna immagine.")
+    try:
+        contenuto = base64.b64decode(codificata, validate=True)
+        with Image.open(BytesIO(contenuto)) as aperta:
+            formato = aperta.format or ""
+            aperta.load()
+    except (ValueError, OSError, SyntaxError, Image.DecompressionBombError):
+        raise ErroreAI(
+            "risposta", "L'immagine dell'AI non si riesce a leggere."
+        ) from None
+    mime = FORMATI_IMMAGINE.get(formato)
+    if mime is None:
+        raise ErroreAI("risposta", "L'immagine dell'AI non è un PNG né un JPEG.")
+    return ImmagineAI(
+        contenuto=contenuto,
+        mime=mime,
+        provider=PROVIDER,
+        modello=modello,
+        versione_prompt=VERSIONE_PROMPT_IMMAGINE,
+    )
 
 
 def _del_profilo(snapshot: Mapping[str, Any]) -> dict[str, Any]:

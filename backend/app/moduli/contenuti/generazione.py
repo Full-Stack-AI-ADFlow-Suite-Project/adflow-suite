@@ -8,7 +8,8 @@ sua. Un passo guarda ciò che è già salvato e fa la prima cosa che manca:
 3. piano: all'AI vanno solo le foto migliori per punteggio, fino ai post chiesti
    (R-05); piano dell'AI, controllo, righe `piano`, `uscita`, `post`; i post
    che le foto non coprono sono `immagine_ai` (R-28);
-4. testi: un post senza versione, con la sua foto se ne ha una;
+4. testi: un post senza versione, con la sua foto se ne ha una; per un post
+   `immagine_ai` l'immagine dell'uscita, creata la prima volta (R-43);
 5. fine: la campagna passa `in_revisione`.
 
 Per questo una nuova esecuzione e Riprova riprendono da sole dal punto
@@ -19,6 +20,7 @@ Si usa sempre la fotografia del profilo, mai il profilo corrente (R-11).
 
 from collections.abc import Iterator
 from contextlib import contextmanager
+from dataclasses import replace
 from datetime import datetime, timedelta
 from typing import Any
 
@@ -41,8 +43,8 @@ from app.moduli.campagne import service as campagne
 from app.moduli.notifiche import service as notifiche
 
 from . import service
-from .cartoline import componi_cartolina
-from .domain import DA_APPROVARE, SCHEDE_CANALE
+from .domain import DA_APPROVARE, IMMAGINE_AI, SCHEDE_CANALE
+from .immagini_ai import blocco_immagine_non_creata, con_dicitura, immagine_del_post
 from .models import (
     ErroreGenerazione,
     Piano,
@@ -65,6 +67,7 @@ MAX_PASSI = 1000
 AVVIO = "avvio"
 ANALISI = "analisi"
 PIANO = "piano"
+IMMAGINI = "immagini"
 TESTI = "testi"
 FINE = "fine"
 
@@ -410,21 +413,31 @@ def _gruppo_dell_uscita(db: Session, campagna: Any, uscita: Uscita) -> Any | Non
 
 
 def _scrivi(db: Session, campagna: Any, post: Post) -> None:
-    """Scrive la versione 1 del post: cartolina se serve, testo, validatore.
+    """Scrive la versione 1 del post: immagine AI se serve, testo, validatore.
 
-    Un post `immagine_ai` non ha foto nel piano: ha il suo testo, come gli altri.
+    Un post `immagine_ai` ha l'immagine della sua uscita, creata dal primo dei
+    suoi post che si scrive; il testo porta in fondo «Immagine creata con AI»,
+    aggiunta dal codice (R-43). Se l'immagine non nasce (`richiesta` o `rifiuto`
+    anche alla seconda prova) il post resta senza foto, con un blocco, e la
+    generazione continua (R-35).
 
     Un testo con blocchi o avvisi si fa riscrivere, al massimo 3 volte; poi
     si tiene l'ultimo, e il post è `da_rivedere` solo se ha un blocco (R-09).
-    Un errore `richiesta` o `rifiuto` dà una versione vuota con un blocco, e
-    la generazione continua (R-35).
+    Un errore `richiesta` o `rifiuto` sul testo dà una versione vuota con un
+    blocco, e la generazione continua (R-35).
     """
     uscita = db.get(Uscita, post.uscita_id)
     piano = service.piano_corrente(db, campagna.id)
     snapshot = _snapshot(campagna)
+    ai = ottieni_ai()
+    errori_immagine: list[dict[str, Any]] = []
 
-    if post.riempitivo == "cartolina":
-        foto = [componi_cartolina(db, campagna, uscita.tema)]
+    if post.riempitivo == IMMAGINE_AI:
+        with _nella_tappa(IMMAGINI, post.canale):
+            esito = immagine_del_post(db, campagna, ai, post, uscita.tema)
+        foto = [esito.foto] if esito.foto is not None else []
+        if esito.errore is not None:
+            errori_immagine = [blocco_immagine_non_creata(esito.errore)]
     else:
         # L'ordine delle foto è quello del piano.
         ids = _foto_del_piano(piano, uscita.numero, post.canale)
@@ -438,14 +451,20 @@ def _scrivi(db: Session, campagna: Any, post: Post) -> None:
         data_ora=post.data_ora,
         riempitivo=post.riempitivo,
         descrizione_gruppo=gruppo.descrizione if gruppo is not None else None,
-        foto=[_foto_ai(una) for una in foto],
+        # All'AI il testo di un'immagine AI si chiede dal tema, non da ciò che l'immagine mostra.
+        foto=[] if post.riempitivo == IMMAGINE_AI else [_foto_ai(una) for una in foto],
     )
 
     with _nella_tappa(TESTI, post.canale):
-        ai = ottieni_ai()
         try:
             scritto, errori = _testo_validato(
-                db, ai, campagna, da_scrivere, snapshot, post.id
+                db,
+                ai,
+                campagna,
+                da_scrivere,
+                snapshot,
+                post.id,
+                dicitura=post.riempitivo == IMMAGINE_AI and bool(foto),
             )
             testo, hashtag = scritto.testo, list(scritto.hashtag)
             firma = (scritto.provider, scritto.modello, scritto.versione_prompt)
@@ -460,6 +479,7 @@ def _scrivi(db: Session, campagna: Any, post: Post) -> None:
                     "messaggio": f"Il testo non è stato scritto. {errore.messaggio}",
                 }
             ]
+    errori = errori_immagine + errori
 
     versione = VersionePost(
         post_id=post.id,
@@ -493,8 +513,14 @@ def _testo_validato(
     post: PostAI,
     snapshot: dict[str, Any],
     post_id: int,
+    *,
+    dicitura: bool = False,
 ) -> tuple[Any, list[dict[str, Any]]]:
-    """Il testo dell'AI e ciò che il validatore ci trova, dopo le riscritture."""
+    """Il testo dell'AI e ciò che il validatore ci trova, dopo le riscritture.
+
+    Con ``dicitura`` il testo porta «Immagine creata con AI» in fondo, e il
+    validatore la conta nei caratteri (R-43).
+    """
     precedente, errori = None, None
     for _ in range(1 + RISCRITTURE):
         scritto = ai.genera_post(
@@ -506,10 +532,13 @@ def _testo_validato(
             violazioni=errori,
         )
         service.registra_chiamata_ai(db, campagna.id, ai.ultimo_uso, post_id=post_id)
+        scritto_dall_ai = scritto.testo
+        if dicitura:
+            scritto = replace(scritto, testo=con_dicitura(scritto.testo))
         errori = valida_testo(scritto.testo, scritto.hashtag, post.canale, snapshot)
         if not errori:
             break
-        precedente = scritto.testo
+        precedente = scritto_dall_ai
     return scritto, [dict(errore) for errore in errori]
 
 

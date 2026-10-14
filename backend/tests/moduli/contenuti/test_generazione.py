@@ -1,7 +1,8 @@
 """T1-34: job `genera_campagna` a tappe (plan §4, spec §2.2, R-24, R-35).
 
 CA-17, CA-18, CA-19 (fino a `generazione_fallita`), CA-20, CA-50,
-CA-57 (senza immagini: il post `immagine_ai` ha il suo testo), CA-58, CA-59,
+CA-57 (il post `immagine_ai` ha la sua immagine e il suo testo: T3-34, per il resto
+`test_immagini_ai.py`), CA-58, CA-59,
 CA-80 (le foto migliori per punteggio); poi la ripresa dalle tappe già salvate
 e gli errori tecnici secondo il tipo.
 """
@@ -16,6 +17,7 @@ from sqlalchemy import select
 
 import app.adapters.ai as modulo_ai
 from app.adapters.ai import AIFinto, imposta_ai, usa_ai
+from app.adapters.archivio import ArchivioFinto, usa_archivio
 from app.core.config import leggi_impostazioni
 from app.core.coda import GENERA_CAMPAGNA, accoda
 from app.core.coda import app as coda_app
@@ -43,6 +45,13 @@ FINE = date(2030, 1, 20)  # 14 giorni: con 3 post a settimana, 6 post chiesti
 ADESSO = datetime(2030, 1, 1, 9, tzinfo=timezone.utc)
 DUE_CANALI = ["facebook", "instagram"]
 IDONEA = {"idonea": True, "simile_a": None}
+
+
+@pytest.fixture(autouse=True)
+def archivio() -> Iterator[ArchivioFinto]:
+    """Le immagini AI nascono in un archivio in memoria, non su disco."""
+    with usa_archivio(ArchivioFinto()) as finto:
+        yield finto
 
 
 @pytest.fixture
@@ -186,12 +195,10 @@ def test_ca17_sei_uscite_sei_post_per_canale_cinque_foto_e_un_immagine_ai(db, ai
     assert uscite[0].gruppo_id is not None
 
 
-def test_ca57_i_post_che_mancano_sono_immagini_ai_con_il_loro_testo(db, ai):
-    """4 foto e 6 post chiesti: 2 `immagine_ai` per canale, ognuno con il suo testo.
-
-    L'immagine nasce dopo (T3-34): qui il post esiste, senza foto, ed è scritto
-    e validato come gli altri.
-    """
+def test_ca57_i_post_che_mancano_sono_immagini_ai_con_la_loro_immagine_e_il_loro_testo(
+    db, ai
+):
+    """4 foto e 6 post chiesti: 2 `immagine_ai` per canale, ognuno con immagine e testo."""
     ai.carosello = True  # anche se chiesto: un post è una foto
     campagna = _campagna(db, n_foto=4)
 
@@ -199,7 +206,11 @@ def test_ca57_i_post_che_mancano_sono_immagini_ai_con_il_loro_testo(db, ai):
 
     assert campagna.stato == "in_revisione"
     assert piano_corrente(db, campagna.id).debole is False
-    assert len(campagne.foto_della_campagna(db, campagna.id)) == 4
+    foto_della_campagna = campagne.foto_della_campagna(db, campagna.id)
+    assert (
+        sorted(f.origine for f in foto_della_campagna)
+        == ["caricata"] * 4 + ["creata_ai"] * 2
+    )
     per_canale = {c: _post_del_canale(db, campagna, c) for c in DUE_CANALI}
     for post in per_canale.values():
         assert len(post) == 6
@@ -207,14 +218,18 @@ def test_ca57_i_post_che_mancano_sono_immagini_ai_con_il_loro_testo(db, ai):
         assert [p.riempitivo for p in post] == [None] * 4 + ["immagine_ai"] * 2
         assert all(p.stato == "da_approvare" for p in post)
         for rimpiazzo in post[4:]:
-            assert _foto_del_post(rimpiazzo) == []
-            assert rimpiazzo.versione_corrente.testo
+            assert len(_foto_del_post(rimpiazzo)) == 1
+            assert rimpiazzo.versione_corrente.testo.endswith("Immagine creata con AI")
             assert rimpiazzo.versione_corrente.errori_validazione == []
             assert rimpiazzo.da_rivedere is False
-    # la stessa uscita su entrambi i canali: potrà avere la stessa immagine
+    # la stessa uscita su entrambi i canali ha la stessa immagine
     facebook, instagram = per_canale["facebook"], per_canale["instagram"]
     assert [p.uscita_id for p in facebook[4:]] == [p.uscita_id for p in instagram[4:]]
+    assert [_foto_del_post(p) for p in facebook[4:]] == [
+        _foto_del_post(p) for p in instagram[4:]
+    ]
     assert len(_chiamate(ai, "genera_post")) == 12
+    assert len(_chiamate(ai, "genera_immagine")) == 2
 
 
 def test_ca57_senza_foto_la_campagna_e_tutta_di_immagini_ai(db, ai):
@@ -229,7 +244,9 @@ def test_ca57_senza_foto_la_campagna_e_tutta_di_immagini_ai(db, ai):
     post = post_della_campagna(db, campagna.id)
     assert len(post) == 12
     assert {p.riempitivo for p in post} == {"immagine_ai"}
-    assert all(_foto_del_post(p) == [] and p.versione_corrente.testo for p in post)
+    assert all(len(_foto_del_post(p)) == 1 and p.versione_corrente.testo for p in post)
+    # un'immagine per uscita, non una per post
+    assert len({tuple(_foto_del_post(p)) for p in post}) == 6
 
 
 def test_ca80_all_ai_vanno_le_foto_migliori_per_punteggio_e_le_altre_restano_fuori(
@@ -300,9 +317,13 @@ def test_le_foto_usate_contano_i_loro_utilizzi(db, ai):
 
     _job(campagna.id)
 
-    immagini = campagne.foto_della_campagna(db, campagna.id)
+    immagini = [
+        f
+        for f in campagne.foto_della_campagna(db, campagna.id)
+        if f.origine == "caricata"
+    ]
     # ogni foto esce una volta su Facebook e una su Instagram
-    assert [f.origine for f in immagini] == ["caricata"] * 5
+    assert len(immagini) == 5
     assert [f.n_utilizzi for f in immagini] == [2] * 5
     assert all(f.analisi_ai["idonea"] is True for f in immagini)
 
@@ -502,7 +523,10 @@ def test_l_archivio_della_bottega_non_entra_nel_piano(db, ai):
     post = _post_del_canale(db, campagna, "instagram")
     assert [p.riempitivo for p in post] == [None] * 4 + ["immagine_ai"] * 2
     assert [_foto_del_post(p) for p in post[:4]] == [[n] for n in nuove]
-    assert all(_foto_del_post(p) == [] for p in post[4:])
+    # i rimpiazzi hanno un'immagine AI, mai una foto dell'archivio
+    creata = {f.id for f in campagne.foto_della_campagna(db, campagna.id)} - set(nuove)
+    assert {tuple(_foto_del_post(p)) for p in post[4:]} == {(n,) for n in creata}
+    assert len(creata) == 2
     # solo il gruppo della campagna si analizza: l'archivio resta com'è
     assert len(_chiamate(ai, "analizza_gruppo")) == 1
     assert all(f.n_utilizzi == 0 for f in vecchie + list(mazzo.foto))

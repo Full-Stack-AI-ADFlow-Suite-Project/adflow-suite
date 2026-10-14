@@ -113,6 +113,17 @@ class PostScritto:
 
 
 @dataclass
+class ImmagineAI:
+    """L'immagine creata dall'AI: i byte di un PNG o JPEG, con chi l'ha creata."""
+
+    contenuto: bytes
+    mime: str
+    provider: str
+    modello: str
+    versione_prompt: str
+
+
+@dataclass
 class UsoAI:
     """Che cosa è costata una chiamata (spec R-44).
 
@@ -214,5 +225,19 @@ class AIAdapter(ABC):
             testo_proposto: nella rigenerazione da testo proposto, il testo
                 dell'operatore da cui partire.
             nota: la nota facoltativa dell'operatore per la rigenerazione.
+        """
+        raise NotImplementedError
+
+    @abstractmethod
+    def genera_immagine(self, prompt: str) -> ImmagineAI:
+        """Crea l'immagine di un post senza foto (R-28, R-43).
+
+        Sempre quadrata 1:1, 1024 × 1024, qualità media. Il prompt lo scrive
+        il codice (``immagini.prompt_immagine()``); l'adattatore dice con
+        ``versione_prompt`` quale versione del file ha usato.
+
+        Raises:
+            ErroreAI: ``rifiuto`` o ``richiesta`` se il provider non accetta il
+                prompt; chi chiama prova una seconda volta con uno più semplice.
         """
         raise NotImplementedError

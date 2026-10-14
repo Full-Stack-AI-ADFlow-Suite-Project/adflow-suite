@@ -36,6 +36,9 @@ TIPI_INTERVENTO = (
 
 FORMATI_POST = ("singola", "carosello")
 TIPI_RIEMPITIVO = ("archivio", "cartolina", "immagine_ai")
+IMMAGINE_AI = "immagine_ai"
+# Il codice, non l'AI, la aggiunge in fondo al testo di un post con immagine AI (R-43).
+DICITURA_IMMAGINE_AI = "Immagine creata con AI"
 LIVELLI_VALIDATORE = ("blocco", "avviso")
 TIPI_ERRORE_GENERAZIONE = (
     "temporaneo",

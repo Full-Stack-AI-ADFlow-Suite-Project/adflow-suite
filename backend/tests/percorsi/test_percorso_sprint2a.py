@@ -524,7 +524,22 @@ def test_percorso_completo_sprint2a(
         assert sorted(foto_usate) == sorted(foto_b_nuove)
         assert not {foto_arc_1, foto_arc_2} & set(foto_usate)
         assert not set(foto_a) & set(foto_usate)
-        assert all(_foto_del_post(p) == [] for p in post_immagini_ai)
+        # ogni rimpiazzo ha la sua immagine AI, mai una foto della bottega
+        immagini_ai = [f_id for p in post_immagini_ai for f_id in _foto_del_post(p)]
+        assert len(immagini_ai) == len(set(immagini_ai)) == 8
+        assert not set(immagini_ai) & (set(foto_a) | set(foto_b_nuove))
+
+    # La stessa uscita ha la stessa immagine su entrambi i canali
+    fotografie = [
+        sorted(
+            f_id
+            for p in post_canale
+            if p["riempitivo"] == "immagine_ai"
+            for f_id in _foto_del_post(p)
+        )
+        for post_canale in per_canale_b.values()
+    ]
+    assert fotografie[0] == fotografie[1]
 
     # Operatore approva campagna B
     assert api("POST", f"/campagne/{b_id}/approva").status_code == 200
@@ -585,7 +600,12 @@ def test_percorso_completo_sprint2a(
         assert len(post_canale) == 12
         assert [p["riempitivo"] for p in post_canale].count(None) == 4
         assert [p["riempitivo"] for p in post_canale].count("immagine_ai") == 8
-        foto_usate = [f_id for p in post_canale for f_id in _foto_del_post(p)]
+        foto_usate = [
+            f_id
+            for p in post_canale
+            if p["riempitivo"] is None
+            for f_id in _foto_del_post(p)
+        ]
         assert len(foto_usate) == 4
         # né le foto di A né quelle di B né l'archivio entrano nel piano
         assert not set(foto_usate) & (set(foto_a) | set(foto_b_nuove))
