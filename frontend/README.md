@@ -2,7 +2,7 @@
 
 React + TypeScript + Vite, con Mantine. Riferimenti: `docs/agenti/plan.md` §3,
 `docs/agenti/constitution.md` §2 e §4, spec R-29; pagine statiche dell'MVP
-in `docs/appunti/pagine/` (mappa in `index.html`).
+in `docs/pagine/` (mappa in `index.html`).
 
 ## Installazione e avvio
 

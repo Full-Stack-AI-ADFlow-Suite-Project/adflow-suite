@@ -32,10 +32,12 @@ Funziona anche alla prima installazione: vedi [Setup](#-setup-fase-1---locale).
 
 Un solo canale fa testo (ADR-114): [`AGENTS.md`](AGENTS.md) e [`docs/agenti/`](docs/agenti/): perimetro dell'MVP (`perimetro-mvp.md`), regole (`constitution.md`), cosa (`spec.md`), come (`plan.md`), task (`tasks.md`), verifica (`converge.md`). Anche le persone ci trovano i task da prendere.
 
+- [`docs/proposta-tecnica.md`](docs/proposta-tecnica.md): la proposta tecnica per il cliente (analisi, architettura, piano con costi e tempi).
 - [`docs/ROADMAP.md`](docs/ROADMAP.md): ciò che non entra nell'MVP; è anche la slide della roadmap nel pitch.
-- [`docs/appunti/`](docs/appunti/LEGGIMI.md): archivio di diagrammi, note e registro delle decisioni (`ADR.md`), con le pagine statiche aggiornate all'MVP come riferimento per l'interfaccia. Il resto non fa più testo; una decisione nuova entra in `ADR.md` solo se cambia il perimetro dell'MVP.
+- [`docs/pagine/`](docs/pagine/index.html): pagine statiche dell'MVP, riferimento per l'interfaccia.
+- [`docs/ADR.md`](docs/ADR.md): registro delle decisioni, con il perché e le alternative scartate; una riga nuova solo se cambia il perimetro dell'MVP.
 - [`docs/sicurezza-accesso.md`](docs/sicurezza-accesso.md): procedura operativa per proxy, log e HTTPS (issue #16–19).
-- [`docs/archivio/`](docs/archivio/LEGGIMI.md): note datate di alcune PR, brief e script di task chiusi; non fanno testo.
+- [`docs/archivio/`](docs/archivio/LEGGIMI.md): appunti, note e diagrammi di prima dell'MVP, note datate delle PR, brief e script dei task chiusi; non fanno testo.
 
 ## 🚀 Setup (Fase 1 - Locale)
 
