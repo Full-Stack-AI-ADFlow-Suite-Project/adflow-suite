@@ -3,6 +3,7 @@
  * Vedi campagna: nota interna in ogni stato dopo l'invio, respingi e togli il
  * canale in revisione, sospendi, riattiva e annulla in campagna attiva o
  * sospesa (spec §2.3, R-18, R-32, R-33). Si decide solo qui.
+ * Congelato per l'MVP, ADR-114: le azioni di nota interna, togli canale, sospendi, riattiva e annulla sono nascoste.
  */
 import { Button, Card, Group, Text } from "@mantine/core";
 import { useState } from "react";

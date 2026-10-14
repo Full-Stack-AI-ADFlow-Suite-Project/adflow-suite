@@ -16,7 +16,6 @@ import {
 import { Link } from "react-router-dom";
 
 import type { PostVista } from "../../../api/revisione";
-import { RiprogrammaPost } from "../vedi-campagna/decisioni/RiprogrammaPost";
 import { AzioniPost } from "../vedi-campagna/post/AzioniPost";
 import { conCancelletto, interventoAttivo } from "../vedi-campagna/post/regole";
 import { StoricoVersioni } from "../vedi-campagna/post/StoricoVersioni";
@@ -35,6 +34,8 @@ function AnteprimaPost({
 }) {
   const v = post.versione_corrente;
   const foto = v?.foto?.[0];
+  const isAi =
+    post.riempitivo === "immagine_ai" || post.riempitivo === "cartolina";
   return (
     <Paper withBorder radius="md" p="sm" w={300} miw={280}>
       <Group gap="xs" wrap="nowrap">
@@ -62,24 +63,24 @@ function AnteprimaPost({
           {conCancelletto(v.hashtag)}
         </Text>
       )}
-      {post.riempitivo === "cartolina" ? (
+      {isAi ? (
         <Box
           mt="xs"
           p="md"
           style={{
-            background:
-              "linear-gradient(135deg, var(--mantine-color-verde-6), var(--mantine-color-verde-8))",
+            background: "var(--mantine-color-grape-light)",
+            border: "1px dashed var(--mantine-color-grape-4)",
             borderRadius: 8,
           }}
         >
-          <Text size="xs" c="white" fw={600}>
-            {bottega}
+          <Text size="xs" fw={600} c="grape.9">
+            Immagine creata con AI · 1:1
           </Text>
-          <Text size="xs" c="white" mt={4}>
+          <Text size="xs" c="dimmed" mt={4}>
             {tema}
           </Text>
-          <Text size="xs" c="white" mt={6} ff="monospace" opacity={0.7}>
-            cartolina
+          <Text size="xs" c="grape.7" mt={6} ff="monospace">
+            {bottega}
           </Text>
         </Box>
       ) : foto ? (
@@ -93,7 +94,7 @@ function AnteprimaPost({
         >
           <Text size="xs" c="dimmed" ff="monospace">
             {foto.foto_id >= 900
-              ? `cartolina-${foto.foto_id}.png`
+              ? `foto-${foto.foto_id}.jpg`
               : `foto-${foto.foto_id}.jpg`}
           </Text>
           <Badge size="xs" variant="light" mt={4}>
@@ -130,6 +131,8 @@ export function PostCard({
   const blocchi = errori.filter((e) => e.livello === "blocco");
   const avvisi = errori.filter((e) => e.livello === "avviso");
   const inCorso = interventoAttivo(post);
+  const isAi =
+    post.riempitivo === "immagine_ai" || post.riempitivo === "cartolina";
 
   return (
     <Card
@@ -174,8 +177,10 @@ export function PostCard({
                 {avvisi.length} avviso{avvisi.length > 1 ? "i" : ""}
               </Badge>
             )}
-            {post.riempitivo === "cartolina" && (
-              <Badge variant="light">Riempitivo · cartolina</Badge>
+            {isAi && (
+              <Badge color="grape" variant="light">
+                Immagine AI
+              </Badge>
             )}
             {inCorso && (
               <Badge color="yellow" variant="light">
@@ -236,15 +241,13 @@ export function PostCard({
           statoCampagna={statoCampagna}
           ricarica={ricarica}
         />
-        {post.stato === "fallito" &&
-          (statoCampagna === "attiva" || statoCampagna === "sospesa") && (
-            <RiprogrammaPost post={post} ricarica={ricarica} />
-          )}
+        {/* Congelato per l'MVP, ADR-114: RiprogrammaPost nascosto */}
         <StoricoVersioni post={post} />
 
-        {post.riempitivo === "cartolina" && (
+        {isAi && (
           <Text size="xs" c="dimmed">
-            Riempitivo: non usa foto nuove.
+            Immagine creata con AI: 1:1, la stessa per l'uscita su entrambi i
+            canali (R-28).
           </Text>
         )}
         {(post.stato === "scaduto" ||

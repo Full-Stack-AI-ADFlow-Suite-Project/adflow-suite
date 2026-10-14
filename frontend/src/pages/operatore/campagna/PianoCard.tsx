@@ -27,9 +27,11 @@ function perCanale(uscite: Uscita[]): Map<string, PostVista[]> {
 export function PianoCard({
   piano,
   uscite,
+  costoAi,
 }: {
   piano: Piano | null;
   uscite: Uscita[];
+  costoAi?: number | null;
 }) {
   const [aperto, setAperto] = useState(true);
   return (
@@ -40,11 +42,6 @@ export function PianoCard({
             Il piano
           </Title>
           <Group gap={8}>
-            {piano?.debole && (
-              <Badge color="yellow" variant="light">
-                Piano debole: da rivedere
-              </Badge>
-            )}
             <Text size="sm" c="dimmed">
               {aperto ? "− chiudi" : "+ apri"}
             </Text>
@@ -72,32 +69,37 @@ export function PianoCard({
                 {piano.strategia}
               </Spoiler>
             </Text>
-            {piano.debole && (
-              <Text size="sm" c="yellow" fw={500}>
-                Piano debole: per i motivi vedi le verifiche sotto.
-              </Text>
-            )}
             <Stack gap={4}>
               {[...perCanale(uscite)].map(([canale, post]) => {
-                const riempitivi = post.filter((p) => p.riempitivo).length;
+                const riempitivi = post.filter(
+                  (p) =>
+                    p.riempitivo === "immagine_ai" ||
+                    p.riempitivo === "cartolina",
+                ).length;
                 const conFoto = post.length - riempitivi;
                 return (
                   <Text key={canale} size="sm">
                     <Badge variant="light" ff="monospace" mr="xs">
                       {canale}
                     </Badge>
-                    {post.length} post · {conFoto} con foto · {riempitivi}{" "}
-                    riempitivi
-                    {riempitivi > post.length / 2 && (
-                      <Text span c="yellow" fw={500}>
-                        {" "}
-                        — più riempitivi che foto
-                      </Text>
-                    )}
+                    {post.length} post · {conFoto} con foto
+                    {riempitivi > 0 && ` · ${riempitivi} con immagine AI`}
                   </Text>
                 );
               })}
             </Stack>
+            {costoAi != null && (
+              <Text size="sm">
+                <Text span fw={500}>
+                  Costo AI della campagna:{" "}
+                </Text>
+                <b>{Number(costoAi).toFixed(2).replace(".", ",")} $</b>
+                <Text span c="dimmed">
+                  {" "}
+                  · Stima del provider (R-44)
+                </Text>
+              </Text>
+            )}
             {Array.isArray(piano.esito_controllo) && (
               <Stack gap={4} mt={4}>
                 <Text size="sm" c="dimmed">
