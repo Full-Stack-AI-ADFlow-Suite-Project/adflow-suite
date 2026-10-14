@@ -21,6 +21,7 @@ from app.moduli.contenuti import service as contenuti
 from app.moduli.notifiche import service as notifiche
 
 
+# Congelato per l'MVP, ADR-114: non estendere.
 def nota(db: Session, campagna_id: int, utente: accesso.Utente, testo: str) -> None:
     """Nota interna in ogni stato dopo l'invio: decisione ``nota`` (R-32).
 
@@ -115,6 +116,7 @@ def respingi(
         )
 
 
+# Congelato per l'MVP, ADR-114: non estendere.
 def togli_canale(
     db: Session,
     campagna_id: int,

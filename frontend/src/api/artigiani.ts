@@ -46,7 +46,6 @@ export interface DatiProfilo {
 }
 export interface ProfiloPubblico extends DatiProfilo {
   id: number;
-  logo: string | null;
   aggiornato_il: string;
 }
 /** Riepilogo usato dalla pagina Campagna già presente. */
@@ -272,7 +271,7 @@ export function erroriProfilo(p: DatiProfilo): Record<string, string> {
   return e;
 }
 export function datiScrittura(p: DatiProfilo): DatiProfilo {
-  // Elenco esplicito: id, logo e aggiornato_il letti dal server non sono scrivibili.
+  // Elenco esplicito: id e aggiornato_il letti dal server non sono scrivibili.
   const vuoto = profiloVuoto();
   return Object.fromEntries(
     Object.keys(vuoto).map((k) => {

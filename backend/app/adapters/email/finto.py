@@ -1,3 +1,4 @@
+# Congelato per l'MVP, ADR-114: non estendere.
 """Implementazione finta dell'adattatore email per sviluppo e test."""
 
 from .base import Email, EmailAdapter, ErroreInvio

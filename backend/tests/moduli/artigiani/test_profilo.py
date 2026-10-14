@@ -167,9 +167,9 @@ def test_profilo_completo_roundtrip_e_sostituzione_opzionali(client, utente_di_p
     assert client.put("/api/profilo", json=DATI).json()["storia"] is None
 
 
-def test_artigiani_isolati_e_account_logo_preservati(db, client, utente_di_prova):
+def test_artigiani_isolati_e_account_preservati(db, client, utente_di_prova):
     persona = utente_di_prova()
-    mio = profilo(db, utente_id=persona.id, logo="logo-server.png")
+    mio = profilo(db, utente_id=persona.id)
     altro = profilo(db, nome="Bottega altrui")
     account = db.scalar(select(AccountSocial).where(AccountSocial.profilo_id == mio.id))
     account.permesso = "PermessoSegreto"
@@ -177,7 +177,7 @@ def test_artigiani_isolati_e_account_logo_preservati(db, client, utente_di_prova
     risposta = client.put("/api/profilo", json=DATI)
     assert risposta.status_code == 200
     assert risposta.json()["id"] == mio.id
-    assert risposta.json()["logo"] == "logo-server.png"
+    assert "logo" not in risposta.json()
     assert "PermessoSegreto" not in risposta.text
     db.refresh(altro)
     db.refresh(account)

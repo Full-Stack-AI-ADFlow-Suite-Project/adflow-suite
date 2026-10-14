@@ -3,12 +3,12 @@
 Verifica l'intero flusso attraverso le API:
 1. Artigiano nuovo (senza profilo) -> 404, obbligatorio vuoto -> 422, salvataggio completo (CA-05, CA-07);
 2. Artigiano del seed -> Bentornato / Modifica (CA-06);
-3. Passo 7 profilo: logo e archivio permanente della bottega, con relative prove negative (CA-78);
+3. Passo 7 profilo: archivio permanente della bottega, con relative prove negative;
 4. Campagna A: bozza, modifica bozza PATCH (cambio titolo e fine, data gruppo fuori periodo -> 422, CA-08),
    invio, approvazione, avanzamento temporale di 12 giorni, pubblicazione con marcatura foto.pubblicata_su (CA-76);
-5. Campagna B: 4 settimane, fallimento per configurazione AI, cambio nome bottega e logo,
+5. Campagna B: 4 settimane, fallimento per configurazione AI, cambio nome bottega,
    riprova con AI finta -> in_revisione. Post con foto nuove, foto d'archivio mai uscite e cartoline
-   con vecchio nome e vecchio logo dello snapshot immutato (CA-16, CA-77);
+   con il vecchio nome dello snapshot immutato (CA-16);
 6. Campagna C dopo 110 giorni: post riempitivi d'archivio con foto di A uscite da > 90 giorni prima
    delle cartoline; foto di B escluse perché uscite da < 90 giorni (CA-76);
 7. Prove negative: modifica campagna non in bozza (409), archivio altrui (404), eliminazione foto
@@ -165,20 +165,9 @@ def _foto_jpeg(tinta: int, larghezza: int = 1080, altezza: int = 1350) -> bytes:
     return uscita.getvalue()
 
 
-def _immagine_logo(
-    formato: str = "PNG",
-    size: tuple[int, int] = (300, 300),
-    colore: str = "red",
-) -> bytes:
-    """Un file immagine valido per il logo."""
-    uscita = BytesIO()
-    Image.new("RGB", size, colore).save(uscita, format=formato)
-    return uscita.getvalue()
-
-
 def _dati_scrittura(profilo: dict) -> dict:
     """Estrae solo i campi ammessi in ProfiloScrittura (extra='forbid')."""
-    escludi = {"id", "logo", "aggiornato_il", "utente_id"}
+    escludi = {"id", "aggiornato_il", "utente_id"}
     return {k: v for k, v in profilo.items() if k not in escludi}
 
 
@@ -302,61 +291,8 @@ def test_percorso_completo_sprint2a(
     )
 
     # =========================================================================
-    # 3. Passo 7 del profilo: logo e archivio bottega (CA-78)
+    # 3. Passo 7 del profilo: archivio bottega (il logo è tolto, ADR-114 A7)
     # =========================================================================
-    # Prove negative logo (CA-78):
-    # - PDF
-    r_pdf = api(
-        "PUT",
-        "/profilo/logo",
-        files={"file": ("logo.pdf", b"%PDF-1.4\n%finto\n", "application/pdf")},
-    )
-    assert r_pdf.status_code == 422
-    assert "immagine valida" in r_pdf.json()["detail"].lower()
-
-    # - Oltre 2 MB
-    r_grande = api(
-        "PUT",
-        "/profilo/logo",
-        files={"file": ("logo.png", b"a" * (2 * 1024 * 1024 + 10), "image/png")},
-    )
-    assert r_grande.status_code == 422
-
-    # - Lato corto sotto 300 px
-    r_stretto = api(
-        "PUT",
-        "/profilo/logo",
-        files={"file": ("stretto.png", _immagine_logo(size=(299, 400)), "image/png")},
-    )
-    assert r_stretto.status_code == 422
-
-    # Carica logo valido (PNG 300x300)
-    logo_iniziale = _immagine_logo("PNG", (300, 300), "red")
-    r_logo = api(
-        "PUT",
-        "/profilo/logo",
-        files={"file": ("logo.png", logo_iniziale, "image/png")},
-    )
-    assert r_logo.status_code == 200
-    nome_logo1 = r_logo.json()["logo"]
-    assert nome_logo1
-
-    # Sostituisce il logo (JPEG 400x400)
-    logo_sostitutivo = _immagine_logo("JPEG", (400, 400), "green")
-    r_logo2 = api(
-        "PUT",
-        "/profilo/logo",
-        files={"file": ("logo2.jpg", logo_sostitutivo, "image/jpeg")},
-    )
-    assert r_logo2.status_code == 200
-    nome_logo2 = r_logo2.json()["logo"]
-    assert nome_logo2 != nome_logo1
-
-    # Rivede il logo (GET /profilo/logo)
-    r_vedi_logo = api("GET", "/profilo/logo")
-    assert r_vedi_logo.status_code == 200
-    assert r_vedi_logo.content == logo_sostitutivo
-
     # Archivio permanente bottega: prove negative
     # - Gruppo senza descrizione
     r_gruppo_vuoto = api("POST", "/archivio/gruppi", json={"descrizione": "   "})
@@ -542,22 +478,13 @@ def test_percorso_completo_sprint2a(
     assert lavora() == [1]
     assert _stato(api, b_id) == "generazione_fallita"
 
-    # L'artigiano cambia il nome della bottega e il logo
+    # L'artigiano cambia il nome della bottega
     nome_bottega_modificato = "Ceramiche Bianchi & Figli Rinnovate"
     profilo_aggiornato = dict(
         _dati_scrittura(api("GET", "/profilo").json()),
         nome=nome_bottega_modificato,
     )
     assert api("PUT", "/profilo", json=profilo_aggiornato).status_code == 200
-
-    logo_nuovo = _immagine_logo("PNG", (350, 350), "yellow")
-    r_nuovo_logo = api(
-        "PUT",
-        "/profilo/logo",
-        files={"file": ("logo_nuovo.png", logo_nuovo, "image/png")},
-    )
-    assert r_nuovo_logo.status_code == 200
-    nome_logo_nuovo = r_nuovo_logo.json()["logo"]
 
     # Torna l'AI finta, l'operatore preme Riprova -> in_revisione
     assert entra(OPERATORE)["ruolo"] == "operatore"
@@ -568,11 +495,9 @@ def test_percorso_completo_sprint2a(
     assert lavora() == [1]
     assert _stato(api, b_id) == "in_revisione"
 
-    # Verifica snapshot immutato (CA-16, CA-77)
+    # Verifica snapshot immutato (CA-16)
     dettaglio_b = api("GET", f"/campagne/{b_id}").json()
     assert dettaglio_b["profilo_snapshot"]["nome"] == BOTTEGA_SEED
-    assert dettaglio_b["profilo_snapshot"]["logo"] == nome_logo2
-    assert dettaglio_b["profilo_snapshot"]["logo"] != nome_logo_nuovo
 
     # Vedi campagna: 12 post per canale
     vista_b = _vedi(api, b_id)
@@ -640,12 +565,9 @@ def test_percorso_completo_sprint2a(
 
     assert api("POST", f"/campagne/{c_id}/invia").status_code == 200
     assert lavora() == [1]
-    assert _stato(api, c_id) == "piano_da_rivedere"
 
-    # L'operatore visualizza il piano debole e preme Prosegui
+    # Con poche foto la generazione non si ferma più (ADR-114, A3)
     assert entra(OPERATORE)["ruolo"] == "operatore"
-    assert api("POST", f"/campagne/{c_id}/prosegui").status_code == 200
-    assert lavora() == [1]
     assert _stato(api, c_id) == "in_revisione"
 
     vista_c = _vedi(api, c_id)

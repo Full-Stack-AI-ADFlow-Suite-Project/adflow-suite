@@ -1,3 +1,4 @@
+// Congelato per l'MVP, ADR-114: non estendere.
 /**
  * Togli il canale (R-18): i suoi post si scartano, la nota la legge anche
  * l'artigiano, la scelta è definitiva e resta sempre almeno un canale.

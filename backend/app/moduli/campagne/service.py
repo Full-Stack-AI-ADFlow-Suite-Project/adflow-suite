@@ -746,7 +746,6 @@ def dettaglio_campagna(
                     mime=f.mime,
                     larghezza=f.larghezza,
                     altezza=f.altezza,
-                    da_usare=f.da_usare,
                     origine=f.origine,
                 )
                 for f in g.foto
@@ -1106,7 +1105,6 @@ def carica_foto(
             mime=info.mime,
             larghezza=info.larghezza,
             altezza=info.altezza,
-            da_usare=False,
         )
         db.add(nuova_foto)
         db.flush()
@@ -1114,41 +1112,6 @@ def carica_foto(
     except Exception:
         archivio.elimina(nome_file)
         raise
-
-
-def imposta_stella_foto(
-    db: Session,
-    utente_id: int,
-    ruolo: str,
-    foto_id: int,
-    da_usare: bool,
-) -> Foto:
-    """Imposta il flag stella (da_usare) sulla foto (PUT /foto/{id})."""
-    if ruolo != "artigiano":
-        raise NonPermesso(
-            "Solo l'artigiano proprietario può modificare la stella della foto."
-        )
-
-    foto = db.get(Foto, foto_id)
-    if foto is None or foto.campagna_id is None:
-        raise NonTrovato("Foto non trovata.")
-
-    rec = db.get(Campagna, foto.campagna_id)
-    if rec is None:
-        raise NonTrovato("Campagna non trovata.")
-
-    profilo = artigiani_service.profilo_di(db, utente_id)
-    if profilo is None or rec.profilo_id != profilo.id:
-        raise NonTrovato("Foto non trovata.")
-
-    if rec.stato != BOZZA:
-        raise StatoNonValido(
-            "La stella può essere modificata solo per campagne in bozza."
-        )
-
-    foto.da_usare = da_usare
-    db.flush()
-    return foto
 
 
 def elimina_foto(
