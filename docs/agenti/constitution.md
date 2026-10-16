@@ -3,17 +3,17 @@
 Regole non negoziabili. Se un task le contraddice, fermati e chiedi. Il perimetro dell'MVP è in `perimetro-mvp.md` (ADR-114).
 
 ## 1. Invarianti del prodotto
-1. Si pubblica solo un post `approvato`; si approva solo la campagna intera: tutti i suoi post `da_approvare`.
+1. Si pubblica solo un post `approvato`; si approva solo la campagna intera: tutti i suoi post `da_approvare`. Dopo l'approvazione, la versione che l'operatore scrive o cambia su un post (spec R-16) nasce approvata da lui.
 2. Niente si cancella: versioni di post e foto, decisioni, campagne respinte o scadute restano.
 3. La foto originale non si modifica e non si perde mai: la sistemazione (spec R-42) lavora su una copia.
 4. Generazione e rigenerazioni usano `campagna.profilo_snapshot`, mai il profilo corrente.
-5. In campagna `attiva` o `sospesa` nessuna modifica ai post e nessun intervento sul singolo post: si sospende, si riattiva o si annulla la campagna. Unica eccezione: riprogrammare un post `fallito`.
+5. In campagna `attiva` o `sospesa` si interviene sul singolo post solo se è `approvato` ed esce tra almeno 15 minuti: modifica a mano, cambia foto, sposta, annulla (spec R-16); un post `fallito` si riprogramma. Dopo l'approvazione nessuna AI. Sulla campagna si sospende, si riattiva o si annulla.
 6. Ogni versione di un post, scritta dall'AI o dall'operatore, ha un autore e passa il validatore; una modifica a mano con un blocco non si salva.
 7. Pubblicazione idempotente: il tentativo si registra prima di chiamare il social; al massimo un `ok` per post.
 8. Gli stati cambiano solo nel modulo proprietario e solo con `verifica_transizione()` (transizioni in plan §2).
 9. Nella stessa campagna una foto non esce due volte sullo stesso canale.
 10. Il piano di una campagna ha, per ogni canale, esattamente i post chiesti: quelli che le foto non coprono hanno un'immagine AI (spec R-28).
-11. In revisione un post non si toglie: si sistema. I post di una campagna calano solo con un canale tolto o con la scadenza.
+11. In revisione un post non si toglie: si sistema. I post di una campagna calano solo con un canale tolto, con la scadenza o, dopo l'approvazione, con l'annullamento di un post (spec R-16, R-33).
 
 ## 2. Architettura
 Monolite a moduli + worker: stesso codice Python, un database, una catena di migrazioni Alembic. Nessun servizio nuovo.

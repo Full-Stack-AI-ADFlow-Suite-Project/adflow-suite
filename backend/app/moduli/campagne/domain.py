@@ -46,6 +46,12 @@ TIPI_CONTENUTO = (
 ESITO_APPROVATA = "approvata"
 ESITO_NOTA = "nota"
 ESITO_RESPINTA = "respinta"
+# Dopo l'approvazione, un post annullato dall'operatore (spec R-16).
+ESITO_POST_ANNULLATO = "post_annullato"
+# La richiesta all'artigiano e le sue risposte (spec R-46).
+ESITO_INTEGRAZIONE = "integrazione"
+ESITO_INTEGRAZIONE_FOTO = "integrazione_foto"
+ESITO_INTEGRAZIONE_RISPOSTA = "integrazione_risposta"
 ESITI_DECISIONE = (
     ESITO_APPROVATA,
     ESITO_RESPINTA,
@@ -56,5 +62,14 @@ ESITI_DECISIONE = (
     "riattivata",
     "annullata",
     "riprogrammato",
+    ESITO_POST_ANNULLATO,
+    ESITO_INTEGRAZIONE,
+    ESITO_INTEGRAZIONE_FOTO,
+    ESITO_INTEGRAZIONE_RISPOSTA,
 )
 MOTIVI_DECISIONE = ("foto", "altro")
+
+# Spec R-46: foto da sostituire in una richiesta all'artigiano, al massimo.
+MAX_FOTO_RICHIESTA = 3
+# Stato della richiesta, ricavato dalle decisioni: non è una colonna.
+STATI_RICHIESTA = ("aperta", "inviata", "decaduta")

@@ -52,10 +52,12 @@ Ogni requisito rimanda alle regole di dettaglio (R-xx) e ai criteri di accettazi
 | RF-08 | Generazione a tappe: analisi delle foto (idoneità, doppioni, punteggio), piano con i post chiesti per canale, foto migliori per punteggio, immagini AI per i post scoperti, testi validati | R-05, R-09, R-21, R-24, R-28, R-43 | CA-17…20, CA-57, CA-80 |
 | RF-09 | Errori dell'AI classificati in cinque tipi, con nuove esecuzioni automatiche o fermo in "generazione fallita" e Riprova dell'operatore | R-35 | CA-19, CA-50, CA-58…60, CA-68 |
 | RF-10 | Revisione: elenco delle campagne da approvare per urgenza; Vedi campagna con piano, uscite, post affiancati per canale, blocchi e avvisi del validatore, costo AI | R-14, R-38, R-44 | CA-21, CA-69, CA-82 |
-| RF-11 | Interventi sul post: modifica a mano (nuova versione con autore, validata) e rigenerazione del testo (3 per post) | R-02…04, R-30, R-31 | CA-26…28, CA-64, CA-66 |
+| RF-11 | Interventi sul post in revisione: modifica a mano (nuova versione con autore, validata), rigenerazione del testo (3 per post), cambia foto con un'altra del gruppo, sposta | R-02…04, R-16, R-30, R-31, R-36 | CA-26…28, CA-64, CA-66, CA-71, CA-72 |
 | RF-12 | Decisione sulla campagna: approva in blocco (mai con un post bloccato) o respingi con motivo, nota e foto da rifare; email all'artigiano | R-14, R-15, R-18 | CA-21…25 |
 | RF-13 | Scadenza morbida: un post non approvato in tempo scade; la campagna scade sotto la metà dei post chiesti | R-06 | CA-30 |
 | RF-14 | Calendario della campagna, per giorno, dopo l'approvazione, per l'artigiano e per l'operatore | R-45 | CA-56 |
+| RF-15 | Richiesta all'artigiano in revisione: una domanda e fino a 3 foto da sostituire; l'artigiano risponde dalla sua pagina Campagna, con la dichiarazione per ogni foto nuova; la campagna resta in revisione | R-41, R-46 | CA-86…90 |
+| RF-16 | Dopo l'approvazione: sui post che escono tra almeno 15 minuti modifica a mano (la versione nasce approvata), cambia foto, sposta, annulla con la nota; sospendi, riattiva e annulla la campagna; riprogramma un post fallito | R-16, R-33, R-34 | CA-29, CA-32, CA-67, CA-84, CA-85 |
 | RF-15 | Pubblicazione automatica alla data, idempotente (al massimo un'uscita per post), con la foto sistemata per il canale; errori temporanei ritentati, post fallito visibile all'operatore | R-01, R-34, R-42 | CA-36…39, CA-81, CA-83 |
 | RF-16 | Vista dell'artigiano per stato della campagna, senza mai mostrare post non approvati né note interne | §4 della specifica | CA-31, CA-70 |
 
@@ -83,7 +85,7 @@ Ogni requisito rimanda alle regole di dettaglio (R-xx) e ai criteri di accettazi
 
 **UC-03 · Generazione.** Il sistema analizza le foto, scarta quelle non idonee o doppie con il motivo, sceglie le migliori fino ai post chiesti, chiede all'AI il piano, crea un'immagine per ogni uscita senza foto (la stessa sui due canali), scrive e valida i testi e passa la campagna in revisione. *Alternative*: errore temporaneo → riprova da solo fino a 3 volte; errore di configurazione → generazione fallita subito; foto rifiutata dal provider → la foto resta fuori e si continua.
 
-**UC-04 · Revisione e approvazione.** L'operatore apre la campagna più urgente, legge piano, costo AI e post affiancati per canale; corregge un testo a mano o lo fa riscrivere all'AI; approva. I post diventano "approvati" e la campagna "attiva". *Alternative*: un post con un blocco del validatore impedisce l'approvazione finché non è sistemato; un post non approvato prima della sua data scade.
+**UC-04 · Revisione e approvazione.** L'operatore apre la campagna più urgente, legge piano, costo AI e post affiancati per canale; corregge un testo a mano o lo fa riscrivere all'AI, cambia una foto o sposta un post; approva. I post diventano "approvati" e la campagna "attiva". *Alternative*: un post con un blocco del validatore impedisce l'approvazione finché non è sistemato; un post non approvato prima della sua data scade; manca qualcosa che può dare solo l'artigiano → UC-09.
 
 **UC-05 · Respinta.** L'operatore respinge con motivo (foto, altro), nota e foto da rifare. L'artigiano riceve l'email e lo stesso messaggio nella pagina Campagna; crea una nuova campagna.
 
@@ -92,6 +94,10 @@ Ogni requisito rimanda alle regole di dettaglio (R-xx) e ai criteri di accettazi
 **UC-07 · Pubblicazione.** Ogni minuto il sistema pubblica i post approvati arrivati alla loro data, sulla pagina Facebook e sull'account Instagram, con la foto sistemata nel formato del canale. *Alternative*: errore temporaneo → ritentato; errore definitivo → post "fallito", notifica agli operatori; quando ogni post è chiuso la campagna è "conclusa".
 
 **UC-08 · Calendario.** Dopo l'approvazione l'artigiano e l'operatore leggono, giorno per giorno, i post in programma, pubblicati o falliti, con ora, canale, testo e foto.
+
+**UC-09 · Richiesta all'artigiano.** In revisione l'operatore scrive una domanda e segna fino a 3 foto da sostituire; avvisa l'artigiano a voce o con un messaggio. L'artigiano entra, la pagina Campagna gli mostra la richiesta (mai piano e post), carica una foto nuova per ogni foto segnata con la dichiarazione e invia, con una risposta se serve. L'operatore usa le foto nuove con Cambia foto e approva. *Alternative*: l'artigiano non risponde → l'operatore cambia la foto con un'altra del gruppo, oppure respinge; la richiesta non blocca mai l'approvazione.
+
+**UC-10 · Interventi dopo l'approvazione.** Un prezzo sbagliato, un prodotto esaurito, una foto contestata: l'operatore modifica, cambia foto, sposta o annulla (con la nota) un post che esce tra almeno 15 minuti, senza fermare la campagna. Se la bottega si ferma, sospende la campagna e la riattiva dopo, scegliendo quali post arretrati pubblicare subito. *Alternative*: il post esce entro 15 minuti → non si tocca più; un post fallito si riprogramma.
 
 ```mermaid
 flowchart LR
@@ -103,6 +109,9 @@ flowchart LR
   O --- UC5[UC-05 Respinta]
   O --- UC6[UC-06 Riprova]
   O --- UC8
+  A --- UC9[UC-09 Richiesta all'artigiano]
+  O --- UC9
+  O --- UC10[UC-10 Interventi dopo l'approvazione]
   S((Sistema)) --- UC3[UC-03 Generazione]
   S --- UC7[UC-07 Pubblicazione]
   UC3 -.-> AI[[Provider AI]]
@@ -111,7 +120,7 @@ flowchart LR
 
 ### 1.6 Fuori dal perimetro dell'MVP
 
-Non si costruiscono adesso, e sono descritti nella roadmap (capitolo 3.7): metriche di engagement, collegamento degli account social di ogni bottega, caroselli, ritocco delle foto con l'AI, immagini chieste dall'artigiano, foto d'archivio della bottega come rimpiazzo, pagine operatore di elenco e storico, promemoria, sospensione e annullamento delle campagne attive, abbonamenti e prezzi. Alcune funzioni sono già scritte e testate ma nascoste nell'interfaccia ("congelate"): si riattivano senza riscriverle.
+Non si costruiscono adesso, e sono descritti nella roadmap (capitolo 3.7): metriche di engagement, collegamento degli account social di ogni bottega, caroselli, ritocco delle foto con l'AI, immagini chieste dall'artigiano, foto d'archivio della bottega come rimpiazzo, pagine operatore di elenco e storico, promemoria, richiesta all'artigiano con un link da telefono senza password, abbonamenti e prezzi. Alcune funzioni sono già scritte e testate ma nascoste nell'interfaccia ("congelate"): si riattivano senza riscriverle.
 
 ---
 
@@ -184,12 +193,17 @@ stateDiagram-v2
   generazione_fallita --> scaduta
   in_revisione --> scaduta
   attiva --> conclusa: ogni post chiuso
+  attiva --> sospesa: sospendi
+  sospesa --> attiva: riattiva
+  attiva --> annullata: annulla
+  sospesa --> annullata: annulla
   respinta --> [*]
   scaduta --> [*]
   conclusa --> [*]
+  annullata --> [*]
 ```
 
-Gli stati `sospesa` e `annullata` e il vecchio `piano_da_rivedere` esistono nel codice ma nell'MVP nessuna campagna ci arriva.
+Il vecchio stato `piano_da_rivedere` esiste nel codice ma nell'MVP nessuna campagna ci arriva. La richiesta all'artigiano non è uno stato: la campagna resta `in_revisione`.
 
 **Stati del post**: `da_approvare` → `approvato` → `pubblicato` o `fallito`; `da_approvare` → `scaduto` o `scartato` (campagna respinta). "Da rivedere" non è uno stato ma un'indicazione: la versione corrente ha un blocco del validatore.
 
@@ -212,7 +226,7 @@ sequenceDiagram
   W->>AI: immagini per le uscite senza foto
   W->>AI: testo di ogni post
   W->>DB: piano, post, versioni, costi · stato in_revisione
-  O->>API: Vedi campagna, modifica o rigenera, approva
+  O->>API: Vedi campagna, modifica, rigenera o cambia foto, approva
   API->>DB: post approvati · stato attiva
   loop ogni minuto
     W->>DB: post approvati con la data raggiunta
@@ -285,8 +299,8 @@ Tutte sotto `/api`, in JSON, errori come `{"detail": "messaggio in italiano"}` c
 |---|---|
 | Accesso | `POST /auth/login` · `POST /auth/logout` · `GET /auth/me` · `GET /consorzio` · `GET /health` |
 | Artigiani | `GET /canali` · `GET`, `PUT /profilo` · `POST /artigiani` (nuovo artigiano) |
-| Campagne | `GET`, `POST /campagne` · `GET`, `PATCH /campagne/{id}` · gruppi e foto della bozza · `GET /foto/{id}/file` · `POST /campagne/{id}/invia` · `POST /campagne/{id}/riprova` · `GET /foto/{id}/pubblica` (firmato, per Instagram) |
-| Revisione | `GET /da-approvare` · `GET /campagne/{id}/post` · `POST /campagne/{id}/approva` · `POST /campagne/{id}/respingi` · `POST /post/{id}/modifica` · `POST /post/{id}/rigenera` |
+| Campagne | `GET`, `POST /campagne` · `GET`, `PATCH /campagne/{id}` · gruppi e foto della bozza · `GET /foto/{id}/file` · `POST /campagne/{id}/invia` · `POST /campagne/{id}/riprova` · `GET /foto/{id}/pubblica` (firmato, per Instagram) · `POST /campagne/{id}/richiesta` · `POST /campagne/{id}/richiesta/foto` · `POST /campagne/{id}/richiesta/invia` |
+| Revisione | `GET /da-approvare` · `GET /campagne/{id}/post` · `POST /campagne/{id}/approva` · `POST /campagne/{id}/respingi` · `POST /campagne/{id}/sospendi` · `POST /campagne/{id}/riattiva` · `POST /campagne/{id}/annulla` · `POST /post/{id}/modifica` · `POST /post/{id}/rigenera` · `GET /post/{id}/foto-possibili` · `POST /post/{id}/cambia-foto` · `POST /post/{id}/sposta` · `POST /post/{id}/annulla` · `POST /post/{id}/riprogramma` |
 | Contenuti | `GET /campagne/{id}/calendario` |
 
 La documentazione interattiva completa è generata da FastAPI (`/docs`).
@@ -344,6 +358,7 @@ Lavoro in sprint brevi, ognuno con task piccoli, un branch e una pull request pe
 | M5 · AI vera | entro il 20/10 | Adattatore LiteLLM (16/10), prova su 10 post e scelta del modello (20/10), generazione MVP, immagini AI | In corso |
 | M6 · Meta | 14–23/10 | Pagina di prova, adattatore, pubblicazione reale; se Instagram non pubblica entro il 23/10 resta simulato | In corso |
 | M7 · Interfaccia MVP | entro il 30/10 | Vedi campagna e Campagna ridotte all'MVP, calendario, nuovo artigiano, sistemazione delle foto | In corso |
+| M7b · Interventi e richiesta all'artigiano | 21–24/10 | ADR-116: interventi sul post dopo l'approvazione, cambia foto e sposta, sospendi e riattiva, richiesta all'artigiano dal suo account | Pianificato |
 | M8 · Codice bloccato | 30/10 | Chiusura: percorso della demo da database vuoto | — |
 | M9 · Consegna e pitch | 02–06/11 | Solo correzioni, slide, video di riserva, prove; pitch il 06/11 | — |
 
@@ -417,17 +432,17 @@ Con le foto della bottega pesa l'analisi delle foto, senza foto pesano le immagi
 | Costo dell'AI fuori controllo | Spesa imprevista | Costo di ogni chiamata registrato e visibile; tetto sul conto del provider |
 | Errori del provider AI durante la demo | Generazione ferma | Errori classificati con nuove esecuzioni e Riprova; video di riserva registrato il giorno prima |
 | Tempi stretti (codice bloccato il 30/10) | Funzioni incomplete | Perimetro ridotto con ADR-114; ciò che non serve alla demo è congelato o in roadmap |
-| Foto non della bottega o persone senza consenso | Rischio legale e di reputazione | Dichiarazione obbligatoria all'invio; linee guida per respingere; immagini AI senza prodotti o persone e dichiarate nel post |
+| Foto non della bottega o persone senza consenso | Rischio legale e di reputazione | Dichiarazione obbligatoria all'invio e per ogni foto nuova; cambia foto e richiesta all'artigiano in revisione; dopo l'approvazione il singolo post si cambia o si annulla; linee guida per respingere; immagini AI senza prodotti o persone e dichiarate nel post |
 
 ### 3.7 Dopo l'MVP
 
 Dalla roadmap (`docs/ROADMAP.md`), in ordine indicativo:
 
-1. **Da riattivare** (già scritto e testato): spunta, nota interna, togli canale; sospendi, riattiva, annulla, riprogramma; caroselli; foto d'archivio della bottega come rimpiazzo.
+1. **Da riattivare** (già scritto e testato): spunta, nota interna, togli canale; caroselli; foto d'archivio della bottega come rimpiazzo.
 2. **Metriche** di engagement per post, campagna e canale, con report settimanale e riepilogo di fine campagna; orari dei post scelti dalle metriche.
 3. **Collegamento degli account social** di ogni bottega con Advanced Access e App Review di Meta; campagna sospesa se un permesso scade.
 4. **Pagine dell'operatore**: ingresso, elenco artigiani, pagina artigiano con anagrafica, storico delle campagne chiuse.
-5. **Contenuti**: ritocco delle foto con l'AI, immagini chieste dall'artigiano, varianti per test A/B.
+5. **Contenuti**: ritocco delle foto con l'AI, immagini chieste dall'artigiano, varianti per test A/B; nella richiesta all'artigiano, un link da telefono senza password, l'analisi AI della foto nuova e l'immagine AI sul singolo post.
 6. **Prodotto**: abbonamento a fasce e fatturazione, approvazione dei post da parte dell'artigiano, altri canali e video.
 
 ---

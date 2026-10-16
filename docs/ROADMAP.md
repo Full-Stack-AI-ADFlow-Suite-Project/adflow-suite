@@ -10,7 +10,8 @@ Ciò che non entra nell'MVP del 6 novembre 2026 (ADR-114, `docs/agenti/perimetro
 | Caroselli: più foto in un post | Da riattivare | A8; R-21, R-28 |
 | Foto d'archivio della bottega come rimpiazzo, prima dell'immagine AI | Da riattivare | A10; R-27 |
 | Ritocco delle foto con l'AI, versioni delle foto, "ritocca di nuovo" e scelta della versione | Da costruire | C4; R-03, R-17 |
-| Cambia foto e sposta un post in revisione | Da costruire | R-36 |
+| Analisi AI della foto che l'artigiano carica con una richiesta del consorzio (oggi la giudica l'operatore) | Da costruire | ADR-116; R-46 |
+| Immagine AI chiesta dall'operatore sul singolo post, al posto di una foto | Da costruire | ADR-116 |
 | Immagini AI chieste dall'artigiano con un gruppo `create_ai` | Da costruire | A4; R-19 |
 | Immagini AI che partono da una foto vera (prodotto ambientato, sfondo nuovo) | Da costruire | proposta del team del 12/10 |
 | Varianti dei post per test A/B sull'engagement | Da costruire | proposta del team del 12/10 |
@@ -30,7 +31,9 @@ Ciò che non entra nell'MVP del 6 novembre 2026 (ADR-114, `docs/agenti/perimetro
 | Voce | Stato | Origine |
 |---|---|---|
 | Spunta "va bene", nota interna, togli canale | Da riattivare | B4; R-30, R-32 |
-| Sospendi, riattiva, annulla una campagna attiva; riprogramma un post fallito | Da riattivare | B5; R-33, R-34 |
+| Richiesta all'artigiano con un link a tempo, da telefono e senza password (nell'MVP passa dal suo account) | Da costruire | ADR-116; R-46 |
+| Indicatore di recuperabilità della campagna in revisione (chiedere all'artigiano o respingere) | Da costruire | ADR-116 |
+| Motivi codificati della sospensione e misure per motivo (nell'MVP una nota libera) | Da costruire | ADR-116; R-33 |
 | Pagine dell'operatore: ingresso con "Da sistemare", elenco artigiani, pagina artigiano, campagne chiuse | Da costruire | R-38 |
 | Anagrafica completa: codice ART, codice consorzio, telefono, iscrizione sospesa | Da costruire | R-37 |
 | Cambio password obbligato al primo accesso | Da costruire | R-37; CA-73 |

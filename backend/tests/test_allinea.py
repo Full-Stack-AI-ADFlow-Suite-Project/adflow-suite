@@ -157,7 +157,8 @@ def test_la_pagina_vera_si_legge_per_intero():
     # gli sprint 1, 2a e 2b sono in docs/archivio/tasks-sprint-1-2.md
     assert sprint == ["3"]
     for uno in sprint:
-        assert [c.numero for c in corsie if c.sprint == uno] == [0, 1, 2, 3, 4, 5]
+        # la corsia 6 è nata con ADR-116 (interventi e richiesta all'artigiano)
+        assert [c.numero for c in corsie if c.sprint == uno] == [0, 1, 2, 3, 4, 5, 6]
     letti = [t.id for c in corsie for t in c.task]
     scritti = re.findall(r"^\| (T\d[ab]?-\d\d) \|", testo, flags=re.MULTILINE)
     assert letti == scritti
