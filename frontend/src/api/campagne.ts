@@ -64,6 +64,8 @@ export interface CampagnaDettaglio {
     nota: string | null;
     foto_segnate: number[];
   } | null;
+  /** La richiesta del consorzio all'artigiano, se c'è (R-46). */
+  richiesta?: RichiestaArtigiano | null;
 }
 
 /**
@@ -83,6 +85,26 @@ export interface ProfiloSnapshot {
   /** Dichiarazione dell'artigiano all'invio (R-41) e quando l'ha data. */
   dichiarazione?: boolean;
   dichiarazione_data?: string;
+}
+
+/** Stato della richiesta del consorzio all'artigiano (R-46), ricavato dalle decisioni. */
+export type StatoRichiesta = "aperta" | "inviata" | "decaduta";
+
+/** Una foto segnata da sostituire e, se l'artigiano l'ha caricata, la nuova. */
+export interface FotoDaSostituire {
+  foto_id: number;
+  gruppo_id: number | null;
+  nuova_foto_id: number | null;
+}
+
+/** RichiestaArtigiano di schemas.py: la domanda dell'operatore e la risposta. */
+export interface RichiestaArtigiano {
+  stato: StatoRichiesta;
+  domanda: string;
+  creata_il: string;
+  foto: FotoDaSostituire[];
+  risposta: string | null;
+  inviata_il: string | null;
 }
 
 /** DecisioneSintetica di schemas.py: le decisioni dell'operatore. */
@@ -105,6 +127,8 @@ export interface CampagnaElencoItem {
   canali: string[] | null;
   bottega?: string | null;
   citta?: string | null;
+  /** Stato della richiesta del consorzio, solo nell'elenco dell'artigiano (R-46). */
+  richiesta?: StatoRichiesta | null;
 }
 
 export interface CampagnaCrea {
@@ -227,6 +251,67 @@ export function invia(
   return richiesta<CampagnaDettaglio>("POST", `/campagne/${campagnaId}/invia`, {
     dichiarazione,
   });
+}
+
+/** POST /campagne/{id}/richiesta: l'operatore chiede una risposta e fino a 3 foto da sostituire (R-46). */
+export function chiediArtigiano(
+  campagnaId: number,
+  domanda: string,
+  foto: number[],
+): Promise<RichiestaArtigiano> {
+  if (USA_ESEMPI)
+    return esempiCampagne.chiediArtigiano(campagnaId, domanda, foto);
+  return richiesta<RichiestaArtigiano>(
+    "POST",
+    `/campagne/${campagnaId}/richiesta`,
+    { domanda, foto },
+  );
+}
+
+/**
+ * POST /campagne/{id}/richiesta/foto (multipart): l'artigiano carica la foto
+ * nuova al posto di una segnata, con la dichiarazione di R-41.
+ */
+export async function caricaFotoRichiesta(
+  campagnaId: number,
+  fotoId: number,
+  file: File,
+  dichiarazione: boolean,
+): Promise<FotoSintetica> {
+  if (USA_ESEMPI)
+    return esempiCampagne.caricaFotoRichiesta(
+      campagnaId,
+      fotoId,
+      file,
+      dichiarazione,
+    );
+  const corpo = new FormData();
+  corpo.append("file", file);
+  corpo.append("foto_id", String(fotoId));
+  corpo.append("dichiarazione", dichiarazione ? "true" : "false");
+  const risposta = await fetch(`/api/campagne/${campagnaId}/richiesta/foto`, {
+    method: "POST",
+    body: corpo,
+  });
+  if (risposta.status === 401) throw new ApiErrore(401, "Sessione scaduta.");
+  if (!risposta.ok) {
+    const dati: unknown = await risposta.json().catch(() => null);
+    throw new ApiErrore(risposta.status, leggiDettaglio(dati));
+  }
+  return (await risposta.json()) as FotoSintetica;
+}
+
+/** POST /campagne/{id}/richiesta/invia: l'artigiano risponde; il testo è facoltativo se ci sono foto. */
+export function inviaRisposta(
+  campagnaId: number,
+  risposta: string | null,
+): Promise<RichiestaArtigiano> {
+  if (USA_ESEMPI) return esempiCampagne.inviaRisposta(campagnaId, risposta);
+  return richiesta<RichiestaArtigiano>(
+    "POST",
+    `/campagne/${campagnaId}/richiesta/invia`,
+    { risposta },
+  );
 }
 
 /** Dati di una foto nel calendario approvato (contenuti/schemas.py). */

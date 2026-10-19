@@ -85,6 +85,14 @@ function inArretrato(p: PostVista, adesso: string): boolean {
   return p.stato === "approvato" && p.data_ora < adesso;
 }
 
+/** La richiesta all'artigiano come la mostra la riga: solo aperta o con la risposta (R-46). */
+function richiestaDellaRiga(campagnaId: number): "aperta" | "inviata" | null {
+  const c = leggiCampagna(campagnaId);
+  const stato = c.richiesta?.stato;
+  if (stato === "inviata") return "inviata";
+  return stato === "aperta" && c.stato === "in_revisione" ? "aperta" : null;
+}
+
 export const esempiDecisioni = {
   /** CA-69: conteggi, entro quando e ultima nota, dalla più urgente. */
   async daApprovare(): Promise<CampagnaDaApprovare[]> {
@@ -113,6 +121,7 @@ export const esempiDecisioni = {
           },
           entro_quando: date[0] ?? `${c.inizio}T00:00`,
           ultima_nota: note[note.length - 1]?.nota ?? null,
+          richiesta: richiestaDellaRiga(c.id),
         };
       });
     return righe.sort((a, b) =>

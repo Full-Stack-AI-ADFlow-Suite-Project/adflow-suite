@@ -3,7 +3,7 @@
  * campagne (spec §4): una alla volta, quella che chiede qualcosa si apre da
  * sola. "Nuova campagna" sta nella stessa riga, se non c'è già una bozza.
  */
-import { Button, Group } from "@mantine/core";
+import { Badge, Button, Group } from "@mantine/core";
 
 import type { CampagnaElencoItem } from "../../../../api/campagne";
 
@@ -43,6 +43,13 @@ export function SceltaCampagna({
           color="verde"
           variant={c.id === apertaId ? "filled" : "default"}
           onClick={() => onApri(c)}
+          rightSection={
+            c.richiesta === "aperta" ? (
+              <Badge size="xs" color="yellow" variant="filled">
+                Il consorzio ti chiede qualcosa
+              </Badge>
+            ) : undefined
+          }
         >
           {c.titolo} · {STATO[c.stato] ?? c.stato}
         </Button>

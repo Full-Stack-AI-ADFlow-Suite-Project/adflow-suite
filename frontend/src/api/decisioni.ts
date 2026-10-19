@@ -27,6 +27,8 @@ export interface CampagnaDaApprovare extends CampagnaElencoItem {
   /** Data del primo post da approvare o 00:00 dell'inizio senza piano (R-38). */
   entro_quando: string | null;
   ultima_nota: string | null;
+  /** Richiesta all'artigiano aperta o con la risposta arrivata (R-46). */
+  richiesta: "aperta" | "inviata" | null;
 }
 
 export async function daApprovare(): Promise<CampagnaDaApprovare[]> {

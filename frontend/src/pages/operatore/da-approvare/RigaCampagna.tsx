@@ -48,6 +48,16 @@ export function RigaCampagna({ c }: { c: CampagnaDaApprovare }) {
             >
               {c.stato}
             </Badge>
+            {c.richiesta === "aperta" && (
+              <Badge color="yellow" variant="light">
+                Richiesta aperta
+              </Badge>
+            )}
+            {c.richiesta === "inviata" && (
+              <Badge color="verde" variant="light">
+                Risposta arrivata
+              </Badge>
+            )}
           </Group>
           <Text size="sm" c="dimmed" mt={6}>
             {data(c.inizio)} → {data(c.fine)} ·{" "}

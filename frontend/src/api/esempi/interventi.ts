@@ -519,16 +519,26 @@ export const esempiInterventi = {
     const gruppo = leggiCampagna(campagnaId).gruppi.find(
       (g) => g.id === gruppoId,
     );
+    // Le foto arrivate con una richiesta all'artigiano non hanno analisi (R-46).
+    const arrivate = new Set(
+      (leggiCampagna(campagnaId).richiesta?.foto ?? []).flatMap((f) =>
+        f.nuova_foto_id != null ? [f.nuova_foto_id] : [],
+      ),
+    );
     return (gruppo?.foto ?? [])
       .filter((f) => f.origine === "caricata" && !occupate.has(f.id))
       .map((f, i) => ({
         foto_id: f.id,
-        punteggio: Math.round((0.9 - 0.05 * i) * 100) / 100,
-        analizzata: true,
+        punteggio: arrivate.has(f.id)
+          ? null
+          : Math.round((0.9 - 0.05 * i) * 100) / 100,
+        analizzata: !arrivate.has(f.id),
       }))
       .sort(
         (a, b) =>
-          (b.punteggio ?? 0) - (a.punteggio ?? 0) || a.foto_id - b.foto_id,
+          Number(a.analizzata) - Number(b.analizzata) ||
+          (b.punteggio ?? 0) - (a.punteggio ?? 0) ||
+          a.foto_id - b.foto_id,
       );
   },
 

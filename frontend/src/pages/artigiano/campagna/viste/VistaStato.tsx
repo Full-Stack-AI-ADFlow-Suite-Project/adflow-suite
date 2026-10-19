@@ -22,6 +22,7 @@ import type { CampagnaDettaglio } from "../../../../api/campagne";
 import { Riga } from "../Riga";
 import { CanaliTolti } from "./CanaliTolti";
 import { ContattoConsorzio } from "./ContattoConsorzio";
+import { RichiestaConsorzio } from "./RichiestaConsorzio";
 import { CalendarioCampagnaView } from "../../../../components/CalendarioCampagnaView";
 
 /** I motivi di una respinta come li legge l'artigiano (spec R-18). */
@@ -180,6 +181,7 @@ export function VistaStato({
       case "in_revisione":
         return (
           <>
+            <RichiestaConsorzio key={campagna.id} campagna={campagna} />
             <Alert color="verde" variant="light" mb="md">
               I post sono pronti e li sta controllando un operatore. Ti
               scriviamo per email appena c'è una decisione. La campagna parte il{" "}

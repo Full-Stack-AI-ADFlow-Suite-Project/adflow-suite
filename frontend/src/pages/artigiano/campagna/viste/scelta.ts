@@ -1,7 +1,7 @@
 /**
  * Quale campagna apre la pagina dell'artigiano e quali restano nell'elenco
- * "Campagne passate" (spec §4). Si apre quella che chiede qualcosa: la bozza,
- * poi una respinta o scaduta non ancora sostituita, poi quella in corso, poi
+ * "Campagne passate" (spec §4). Si apre quella che chiede qualcosa: quella
+ * in revisione con una richiesta del consorzio aperta (R-46), la bozza, poi una respinta o scaduta non ancora sostituita, poi quella in corso, poi
  * quella in lavorazione.
  */
 import type { CampagnaElencoItem } from "../../../../api/campagne";
@@ -29,6 +29,7 @@ function priorita(
   c: CampagnaElencoItem,
   lista: CampagnaElencoItem[],
 ): number | null {
+  if (c.richiesta === "aperta") return -1;
   if (c.stato === "bozza") return 0;
   if (c.stato === "respinta" || c.stato === "scaduta") {
     // Resta finché l'artigiano crea una nuova campagna: l'ordine di creazione è l'id.
