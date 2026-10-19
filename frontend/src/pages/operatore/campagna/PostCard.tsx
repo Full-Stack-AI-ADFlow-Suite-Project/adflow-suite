@@ -232,12 +232,17 @@ export function PostCard({
           </Text>
         )}
 
+        {v?.tipo_intervento === "cambio_foto" && (
+          <Alert color="yellow" variant="light" py="xs">
+            Foto cambiata: rileggi il testo.
+          </Alert>
+        )}
+
         <AzioniPost
           post={post}
           statoCampagna={statoCampagna}
           ricarica={ricarica}
         />
-        {/* Congelato per l'MVP, ADR-114: RiprogrammaPost nascosto */}
         <StoricoVersioni post={post} />
 
         {isAi && (

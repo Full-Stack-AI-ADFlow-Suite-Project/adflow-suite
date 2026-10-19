@@ -27,7 +27,11 @@ from .domain import (
     GENERAZIONE_FALLITA,
     INVIATA,
     ESITI_DECISIONE,
+    ESITO_INTEGRAZIONE,
+    ESITO_INTEGRAZIONE_FOTO,
+    ESITO_INTEGRAZIONE_RISPOSTA,
     ESITO_RESPINTA,
+    MAX_FOTO_RICHIESTA,
     MOTIVI_DECISIONE,
     ORIGINI_FOTO,
     ORIGINI_GRUPPO,
@@ -49,10 +53,12 @@ from .schemas import (
     CampagnaDettaglio,
     CampagnaElencoItem,
     DecisioneSintetica,
+    FotoDaSostituire,
     FotoSintetica,
     GruppoAggiorna,
     GruppoCrea,
     GruppoSintetico,
+    RichiestaArtigiano,
 )
 
 # R-25: massimo di post al mese per fascia di `foto_policy.quantita_mese`
@@ -841,6 +847,7 @@ def dettaglio_campagna(
         avvisi=avvisi,
         profilo_snapshot=snapshot,
         decisioni=decisioni,
+        richiesta=richiesta_di(db, rec.id),
     )
 
 
@@ -1089,16 +1096,23 @@ def carica_foto(
     if gruppo.origine == "create_ai":
         raise DatiNonValidi("Non è consentito caricare foto in un gruppo create_ai.")
 
-    # Spec R-13, CA-13: al massimo 20 foto per gruppo
-    conteggio = (
-        db.scalar(select(func.count(Foto.id)).where(Foto.gruppo_id == gruppo.id)) or 0
-    )
-    if conteggio >= MAX_FOTO_PER_GRUPPO:
-        raise DatiNonValidi(
-            f"Un gruppo può contenere al massimo {MAX_FOTO_PER_GRUPPO} foto caricate."
-        )
+    _controlla_gruppo_non_pieno(db, gruppo)
 
-    # Ispezione binaria e vincoli di dimensione/sicurezza (R-13, CA-13, Defense in Depth)
+    return _salva_foto_caricata(db, rec, gruppo, contenuto)
+
+
+def _salva_foto_caricata(
+    db: Session, campagna: Campagna, gruppo: GruppoFoto, contenuto: bytes
+) -> Foto:
+    """Controlla il file, lo salva nell'archivio e crea la ``Foto`` caricata del gruppo.
+
+    Ispezione binaria e limiti dimensionali (R-13, CA-13, Defense in Depth); la
+    foto nasce senza analisi. Se la transazione fallisce il file sul disco si
+    toglie (anti-TOCTOU).
+
+    Raises:
+        DatiNonValidi: file che non è un'immagine valida (422).
+    """
     info = analizza_e_valida_immagine(contenuto)
 
     archivio = ottieni_archivio()
@@ -1108,8 +1122,8 @@ def carica_foto(
 
     try:
         nuova_foto = Foto(
-            profilo_id=profilo.id,
-            campagna_id=rec.id,
+            profilo_id=campagna.profilo_id,
+            campagna_id=campagna.id,
             gruppo_id=gruppo.id,
             origine="caricata",
             file=nome_file,
@@ -1123,6 +1137,17 @@ def carica_foto(
     except Exception:
         archivio.elimina(nome_file)
         raise
+
+
+def _controlla_gruppo_non_pieno(db: Session, gruppo: GruppoFoto) -> None:
+    """Spec R-13, CA-13: al massimo 20 foto per gruppo."""
+    conteggio = (
+        db.scalar(select(func.count(Foto.id)).where(Foto.gruppo_id == gruppo.id)) or 0
+    )
+    if conteggio >= MAX_FOTO_PER_GRUPPO:
+        raise DatiNonValidi(
+            f"Un gruppo può contenere al massimo {MAX_FOTO_PER_GRUPPO} foto caricate."
+        )
 
 
 def elimina_foto(
@@ -1397,3 +1422,234 @@ def url_foto_pubblica(
         durata_secondi=durata_secondi,
         url_base=url_base,
     )
+
+
+# --- Richiesta all'artigiano (spec R-46, ADR-116) -----------------------------------
+
+
+def _richiesta_dalle_decisioni(
+    db: Session, rec: Campagna
+) -> tuple[DecisioneCampagna, list[DecisioneCampagna]] | None:
+    """L'ultima decisione ``integrazione`` e quelle che la seguono."""
+    decisioni = list(
+        db.scalars(
+            select(DecisioneCampagna)
+            .where(
+                DecisioneCampagna.campagna_id == rec.id,
+                DecisioneCampagna.esito.in_(
+                    (
+                        ESITO_INTEGRAZIONE,
+                        ESITO_INTEGRAZIONE_FOTO,
+                        ESITO_INTEGRAZIONE_RISPOSTA,
+                    )
+                ),
+            )
+            .order_by(DecisioneCampagna.id)
+        )
+    )
+    aperture = [d for d in decisioni if d.esito == ESITO_INTEGRAZIONE]
+    if not aperture:
+        return None
+    ultima = aperture[-1]
+    return ultima, [d for d in decisioni if d.id > ultima.id]
+
+
+def richiesta_di(db: Session, campagna_id: int) -> RichiestaArtigiano | None:
+    """La richiesta del consorzio all'artigiano, o ``None`` se non ce n'è (R-46).
+
+    Usata da ``revisione`` (Campagne da approvare, plan §6). Non è una tabella:
+    la richiesta è l'ultima decisione ``integrazione`` (domanda nella nota,
+    foto da sostituire in ``foto_segnate``); le decisioni ``integrazione_foto``
+    seguenti danno le foto nuove, la prima ``integrazione_risposta`` risposta e
+    ora d'invio. Lo stato è ``inviata`` se c'è la risposta, altrimenti
+    ``aperta`` con la campagna ``in_revisione`` e ``decaduta`` se la campagna
+    ne è uscita.
+
+    Raises:
+        NonTrovato: se non esiste nessuna campagna con quell'id.
+    """
+    rec = db.get(Campagna, campagna_id)
+    if rec is None:
+        raise NonTrovato("Campagna non trovata.")
+    trovata = _richiesta_dalle_decisioni(db, rec)
+    if trovata is None:
+        return None
+    richiesta, seguenti = trovata
+    nuove = {
+        d.foto_segnate[0]: d.foto_segnate[1]
+        for d in seguenti
+        if d.esito == ESITO_INTEGRAZIONE_FOTO and len(d.foto_segnate or []) == 2
+    }
+    risposta = next(
+        (d for d in seguenti if d.esito == ESITO_INTEGRAZIONE_RISPOSTA), None
+    )
+    segnate = list(richiesta.foto_segnate or [])
+    gruppi = {f.id: f.gruppo_id for f in foto_per_id(db, segnate)}
+    if risposta is not None:
+        stato = "inviata"
+    elif rec.stato == "in_revisione":
+        stato = "aperta"
+    else:
+        stato = "decaduta"
+    return RichiestaArtigiano(
+        stato=stato,
+        domanda=richiesta.nota or "",
+        creata_il=richiesta.creata_il,
+        foto=[
+            FotoDaSostituire(
+                foto_id=foto_id,
+                gruppo_id=gruppi.get(foto_id),
+                nuova_foto_id=nuove.get(foto_id),
+            )
+            for foto_id in segnate
+        ],
+        risposta=risposta.nota if risposta is not None else None,
+        inviata_il=risposta.creata_il if risposta is not None else None,
+    )
+
+
+def apri_richiesta(
+    db: Session,
+    campagna_id: int,
+    utente_id: int,
+    domanda: str,
+    foto_ids: list[int],
+) -> RichiestaArtigiano:
+    """L'operatore chiede qualcosa all'artigiano, con fino a 3 foto da sostituire (R-46).
+
+    Scrive la decisione ``integrazione``; la campagna resta ``in_revisione``.
+    Una richiesta già aperta non blocca: la nuova la sostituisce.
+
+    Raises:
+        NonTrovato: campagna che non esiste (404).
+        StatoNonValido: la campagna non è ``in_revisione`` (409).
+        DatiNonValidi: domanda vuota, più di 3 foto o foto che non sono
+            ``caricate`` dall'artigiano per questa campagna (422).
+    """
+    rec = campagna(db, campagna_id)
+    if rec.stato != "in_revisione":
+        raise StatoNonValido(
+            "Si chiede all'artigiano solo con la campagna in revisione."
+        )
+    testo = domanda.strip()
+    if not testo:
+        raise DatiNonValidi("Scrivi la domanda per l'artigiano.")
+    ids = list(dict.fromkeys(foto_ids))
+    if len(ids) > MAX_FOTO_RICHIESTA:
+        raise DatiNonValidi(f"Si chiedono al massimo {MAX_FOTO_RICHIESTA} foto.")
+    trovate = {f.id: f for f in foto_per_id(db, ids)}
+    for foto_id in ids:
+        una = trovate.get(foto_id)
+        if (
+            una is None
+            or una.campagna_id != rec.id
+            or una.origine != "caricata"
+            or una.gruppo_id is None
+        ):
+            raise DatiNonValidi(
+                "Si possono segnare solo le foto caricate dall'artigiano per questa campagna."
+            )
+    registra_decisione(
+        db,
+        rec,
+        utente_id,
+        ESITO_INTEGRAZIONE,
+        motivo=None,
+        nota=testo,
+        foto_segnate=ids,
+    )
+    return richiesta_di(db, rec.id)
+
+
+def _richiesta_aperta_dell_artigiano(
+    db: Session, utente_id: int, campagna_id: int
+) -> tuple[Campagna, RichiestaArtigiano]:
+    """La campagna dell'artigiano e la sua richiesta aperta, altrimenti 404 o 409."""
+    rec = db.get(Campagna, campagna_id)
+    profilo = artigiani_service.profilo_di(db, utente_id)
+    if rec is None or profilo is None or rec.profilo_id != profilo.id:
+        raise NonTrovato("Campagna non trovata.")
+    aperta = richiesta_di(db, rec.id)
+    if aperta is None or aperta.stato != "aperta":
+        raise StatoNonValido("Non c'è una richiesta del consorzio aperta.")
+    return rec, aperta
+
+
+def carica_foto_richiesta(
+    db: Session,
+    utente_id: int,
+    campagna_id: int,
+    foto_id: int,
+    contenuto: bytes,
+    dichiarazione: bool,
+) -> Foto:
+    """L'artigiano carica la foto nuova al posto di una segnata (R-46, R-41, CA-87).
+
+    La foto nuova entra nel gruppo di quella segnata, senza analisi (la giudica
+    l'operatore), con i controlli di R-13. La decisione ``integrazione_foto``
+    ha la coppia ``[foto segnata, foto nuova]`` ed è la traccia della
+    dichiarazione.
+
+    Raises:
+        NonTrovato: campagna che non è dell'artigiano (404).
+        StatoNonValido: nessuna richiesta aperta o foto già sostituita (409).
+        DatiNonValidi: foto non segnata, senza dichiarazione, gruppo pieno o
+            file non valido (422).
+    """
+    rec, richiesta = _richiesta_aperta_dell_artigiano(db, utente_id, campagna_id)
+    segnata = next((f for f in richiesta.foto if f.foto_id == foto_id), None)
+    if segnata is None:
+        raise DatiNonValidi("Questa foto non è tra quelle chieste dal consorzio.")
+    if segnata.nuova_foto_id is not None:
+        raise StatoNonValido("Per questa foto hai già caricato quella nuova.")
+    if not dichiarazione:
+        raise DatiNonValidi(
+            "Confermare la dichiarazione sulle foto prima di caricarle."
+        )
+    gruppo = db.scalar(
+        select(GruppoFoto).where(GruppoFoto.id == segnata.gruppo_id).with_for_update()
+    )
+    if gruppo is None:
+        raise NonTrovato("Gruppo non trovato.")
+    _controlla_gruppo_non_pieno(db, gruppo)
+    nuova = _salva_foto_caricata(db, rec, gruppo, contenuto)
+    registra_decisione(
+        db,
+        rec,
+        utente_id,
+        ESITO_INTEGRAZIONE_FOTO,
+        motivo=None,
+        nota=None,
+        foto_segnate=[foto_id, nuova.id],
+    )
+    return nuova
+
+
+def invia_risposta(
+    db: Session, utente_id: int, campagna_id: int, risposta: str | None
+) -> RichiestaArtigiano:
+    """L'artigiano invia la risposta, con un testo facoltativo se ci sono foto (R-46, CA-88).
+
+    Raises:
+        NonTrovato: campagna che non è dell'artigiano (404).
+        StatoNonValido: nessuna richiesta aperta o foto ancora da caricare (409).
+        DatiNonValidi: senza foto segnate e senza testo (422).
+    """
+    rec, richiesta = _richiesta_aperta_dell_artigiano(db, utente_id, campagna_id)
+    nuove = [f.nuova_foto_id for f in richiesta.foto if f.nuova_foto_id is not None]
+    mancanti = len(richiesta.foto) - len(nuove)
+    if mancanti:
+        raise StatoNonValido(f"Mancano {mancanti} foto da caricare.")
+    testo = (risposta or "").strip() or None
+    if not richiesta.foto and testo is None:
+        raise DatiNonValidi("Scrivi la risposta per il consorzio.")
+    registra_decisione(
+        db,
+        rec,
+        utente_id,
+        ESITO_INTEGRAZIONE_RISPOSTA,
+        motivo=None,
+        nota=testo,
+        foto_segnate=nuove,
+    )
+    return richiesta_di(db, rec.id)

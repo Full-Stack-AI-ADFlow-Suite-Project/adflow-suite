@@ -18,6 +18,7 @@ import type {
 } from "../revisione";
 import { leggiCampagna, salvaCampagna } from "./campagne";
 import { sessioneEsempio } from "./accesso";
+import { interventiAmmessi } from "./interventi";
 
 export interface RevisioneRecord {
   piano: Piano | null;
@@ -95,6 +96,8 @@ function pst(
     intervento_dal: null,
     versione_corrente: corrente,
     versioni: corrente ? [corrente] : [],
+    // Nel seme è vuoto: `vediCampagna()` lo calcola ogni volta, come il backend.
+    interventi: [],
     ...extra,
   };
 }
@@ -716,6 +719,34 @@ function seed(): Record<number, RevisioneRecord> {
             { stato: "approvato", riempitivo: "immagine_ai" },
           ),
         ]),
+        // Due post approvati su Facebook: uno esce tra più di 15 minuti e ha i
+        // pulsanti degli interventi, l'altro tra meno e non ha nulla (R-16).
+        usc(5, "Il banco di sera", g181, [
+          pst(
+            1806,
+            "facebook",
+            "2026-10-30T18:30",
+            ver(
+              "Il banco di sera: la lampada accesa, il pezzo che aspetta la finitura.",
+              ["#falegnameria", "#bra"],
+              { foto: [{ foto_id: 1910, posizione: 0 }] },
+            ),
+            { stato: "approvato" },
+          ),
+        ]),
+        usc(6, "Tra poco in bottega", g181, [
+          pst(
+            1807,
+            "facebook",
+            new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+            ver(
+              "Tra pochi minuti: i trucioli di oggi, il profumo del rovere.",
+              ["#falegnameria", "#rovere"],
+              { foto: [{ foto_id: 1911, posizione: 0 }] },
+            ),
+            { stato: "approvato" },
+          ),
+        ]),
       ],
       foto_non_usate: [],
       ultimo_errore: null,
@@ -776,7 +807,13 @@ export const esempiRevisione = {
         chiusa_il: c.chiusa_il,
       },
       piano: r.piano,
-      uscite: r.uscite,
+      uscite: r.uscite.map((u) => ({
+        ...u,
+        post: u.post.map((p) => ({
+          ...p,
+          interventi: interventiAmmessi(p, c.stato, Date.now()),
+        })),
+      })),
       foto_non_usate: r.foto_non_usate,
       ultimo_errore: r.ultimo_errore,
       costo_ai:

@@ -1,6 +1,7 @@
 """Le viste della campagna per l'artigiano (spec §4).
 
-Nell'elenco la pagina apre la campagna che chiede qualcosa: la bozza, poi
+Nell'elenco la pagina apre la campagna che chiede qualcosa: quella in
+revisione con una richiesta del consorzio aperta (R-46), poi la bozza, poi
 una ``respinta`` o ``scaduta`` non ancora sostituita, poi quella in corso,
 poi quella in lavorazione; in fondo le "campagne passate". Nel dettaglio
 l'artigiano non legge mai le note interne né la fotografia del profilo:
@@ -34,6 +35,8 @@ def _priorita(
     campagna: CampagnaElencoItem, tutte: list[CampagnaElencoItem]
 ) -> int | None:
     """Quanto prima si apre la campagna; ``None`` la manda nelle passate."""
+    if campagna.richiesta == "aperta":
+        return -1
     if campagna.stato == domain.BOZZA:
         return 0
     if campagna.stato in (domain.RESPINTA, domain.SCADUTA):
@@ -56,6 +59,10 @@ def campagne_artigiano(
 ) -> list[CampagnaElencoItem]:
     """Le campagne dell'artigiano nell'ordine di apertura della pagina (§4)."""
     lista = service.elenca_campagne(db, utente_id, "artigiano", stati)
+    for voce in lista:
+        if voce.stato == domain.IN_REVISIONE:
+            richiesta = service.richiesta_di(db, voce.id)
+            voce.richiesta = richiesta.stato if richiesta is not None else None
     ordinate = [(c, _priorita(c, lista)) for c in lista]
     da_aprire = sorted(
         ((c, p) for c, p in ordinate if p is not None),

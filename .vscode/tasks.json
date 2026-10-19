@@ -41,7 +41,8 @@
         { "label": "2 · Foto e invio (Silvia)", "value": "2" },
         { "label": "3 · AI vera (Giovanni)", "value": "3" },
         { "label": "4 · Meta (Nilton)", "value": "4" },
-        { "label": "5 · Frontend (Angelo)", "value": "5" }
+        { "label": "5 · Frontend (Angelo)", "value": "5" },
+        { "label": "6 · Interventi e richiesta all'artigiano (Giovanni)", "value": "6" }
       ]
     }
   ]

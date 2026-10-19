@@ -1,6 +1,6 @@
 # Perimetro MVP
 
-Decisione ADR-114 del 13/10/2026, approvata dal team. Consegna e pitch il **6 novembre 2026**; codice bloccato il **30 ottobre**.
+Decisione ADR-114 del 13/10/2026, approvata dal team, aggiornata con ADR-116 del 16/10/2026 (interventi dopo l'approvazione e richiesta all'artigiano: righe B1, B5, B8–B10, C3 e pagine statiche). Consegna e pitch il **6 novembre 2026**; codice bloccato il **30 ottobre**.
 Questa pagina dice che cosa entra nell'MVP. Dove `spec.md`, `plan.md` o `tasks.md` non tornano con questa pagina, vale questa pagina.
 
 | Decisione | Significato |
@@ -70,13 +70,18 @@ In ogni caso il piano esce completo e l'operatore approva o respinge.
 
 | ID | Tema (regole) | Decisione | Nell'MVP |
 |---|---|---|---|
-| B1 | Approva, respingi, riprova, modifica a mano, rigenera testo (R-14, R-18, R-30, R-35) | Mantieni | Le sole azioni visibili in Vedi campagna |
-| B2 | Rigenerazioni del testo (R-03, R-04) | Mantieni | 3 per post |
+| B1 | Approva, respingi, riprova, modifica a mano, rigenera testo (R-14, R-18, R-30, R-35) | Mantieni | In revisione insieme a cambia foto, sposta (B8) e chiedi all'artigiano (B10) |
+| B2 | Rigenerazioni del testo (R-03, R-04) | Mantieni | 3 per post; mai dopo l'approvazione |
 | B3 | Respinta (R-18) | Mantieni | Motivo `foto` / `altro` e nota; i tre casi di respinta sono linee guida (spec §3) |
 | B4 | Spunta, nota interna, togli canale (R-30, R-32) | Congela | Nascosti |
-| B5 | Sospendi, riattiva, annulla, riprogramma (R-16, R-33, R-34) | Congela | Nascosti |
+| B5 | Sospendi, riattiva, annulla, riprogramma (R-16, R-33, R-34) | Task MVP (ADR-116) | Visibili in Vedi campagna; sospendi con una nota facoltativa, interna; la vista dell'artigiano "Pubblicazioni ferme" resta senza motivo |
 | B6 | Scadenze automatiche (R-06) | Mantieni | Nessun lavoro |
 | B7 | Promemoria 48 h (R-06) | Roadmap | — |
+| B8 | Cambia foto e sposta (R-36) | Task MVP (ADR-116) | In revisione e dopo l'approvazione. Cambia foto con un'altra foto del gruppo dell'uscita, idonea o arrivata con una richiesta (B10); mai sui post con un'immagine AI. Nessuna delle due fa partire l'AI |
+| B9 | Interventi sul post dopo l'approvazione (R-16) | Task MVP (ADR-116) | Su un post approvato che esce tra almeno 15 minuti, in campagna attiva o sospesa: modifica a mano (la versione nasce approvata), cambia foto, sposta, annulla con la nota. Senza sospendere |
+| B10 | Richiesta all'artigiano (R-46) | Task MVP (ADR-116) | In revisione: una domanda e fino a 3 foto da sostituire; l'artigiano risponde dalla pagina Campagna con il suo accesso. Non blocca Approva né Respingi; nessuna email: l'operatore avvisa l'artigiano a voce o con un messaggio; la foto nuova la giudica l'operatore |
+
+Righe B5 e B8–B10: ciò che il 24/10 non è su `main` resta fuori dall'MVP e torna com'era (ADR-116).
 
 ## C · Foto
 
@@ -84,7 +89,7 @@ In ogni caso il piano esce completo e l'operatore approva o respinge.
 |---|---|---|---|
 | C1 | Sistemazione delle foto (R-17, R-36) | Task MVP | Locale e automatica con Pillow: rotazione, GPS tolto, ritaglio 1:1 o 4:5, 1080 px, autocontrasto leggero, JPEG; una funzione per anteprima e pubblicazione |
 | C2 | Controlli sulle foto (R-13) | Mantieni | Formato, peso, 1080 px; qualità e doppioni dall'analisi dell'AI |
-| C3 | Dichiarazione dell'artigiano | Task MVP | Spunta obbligatoria all'invio: "Le foto mostrano prodotti della mia bottega; le persone riconoscibili hanno dato il consenso" |
+| C3 | Dichiarazione dell'artigiano | Task MVP | Spunta obbligatoria all'invio: "Le foto mostrano prodotti della mia bottega; le persone riconoscibili hanno dato il consenso"; la stessa per ogni foto caricata con una richiesta (B10, R-41) |
 | C4 | Ritocco AI, versioni delle foto, cicli di ritocco (R-03, R-17) | Roadmap | La migrazione 012 di `versione_foto` non si fa |
 
 ## D · Operatore, account, notifiche, pubblicazione
@@ -110,9 +115,9 @@ Si aggiornano all'MVP (T3-03) e tornano il riferimento per l'interfaccia.
 | Login | Com'è |
 | Profilo bottega | Passo 7 senza logo né archivio |
 | Campagna (passi 10–12) | Senza stella né gruppi da creare con l'AI; nessun minimo di foto; avviso dei post con immagine AI; dichiarazione al passo 12 |
-| Campagna, viste per stato | Senza `piano_da_rivedere`; calendario per giorno nelle viste dopo l'approvazione |
-| Campagne da approvare | Com'è, senza `piano_da_rivedere` |
-| Vedi campagna | Solo approva, respingi, riprova, modifica a mano, rigenera; "Immagine AI" sui post; costo AI; calendario; senza spunta, nota interna, togli canale, sospensione, ritocco, cambia foto, sposta |
+| Campagna, viste per stato | Senza `piano_da_rivedere`; calendario per giorno nelle viste dopo l'approvazione; in revisione la richiesta del consorzio, se c'è (B10) |
+| Campagne da approvare | Com'è, senza `piano_da_rivedere`; il segno della richiesta all'artigiano (B10) |
+| Vedi campagna | In revisione approva, respingi, riprova, modifica a mano, rigenera, cambia foto, sposta, chiedi all'artigiano; dopo l'approvazione gli interventi sul post (B9), riprogramma, sospendi, riattiva, annulla; "Immagine AI" sui post; costo AI; calendario; senza spunta, nota interna, togli canale, ritocco |
 | Nuovo artigiano | Solo email e nome; password provvisoria mostrata una volta |
 | Ingresso, elenco artigiani, pagina artigiano, campagne chiuse | Roadmap: restano, segnate così nella mappa |
 | Metriche | Roadmap: anteprima nel pitch |

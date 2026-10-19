@@ -74,6 +74,23 @@ export type StatoPost =
   | "scartato"
   | "annullato";
 
+/** Gli interventi che l'operatore può fare adesso su un post (spec R-16). */
+export type Intervento =
+  | "modifica"
+  | "rigenera"
+  | "cambia_foto"
+  | "sposta"
+  | "annulla"
+  | "riprogramma";
+
+/** Una foto con cui si può cambiare quella del post (GET /post/{id}/foto-possibili, R-36). */
+export interface FotoPossibile {
+  foto_id: number;
+  punteggio: number | null;
+  /** Falso: arrivata con una richiesta all'artigiano, senza analisi (R-46). */
+  analizzata: boolean;
+}
+
 /** PostSchema: riempitivo, versione corrente e storico. */
 export interface PostVista {
   post_id: number;
@@ -89,6 +106,8 @@ export interface PostVista {
   intervento_dal: string | null;
   versione_corrente: VersionePost | null;
   versioni: VersionePost[];
+  /** Gli interventi ammessi adesso: i pulsanti nascono da qui (R-16). */
+  interventi: Intervento[];
 }
 
 /** GruppoSchema: il gruppo di un'uscita o delle foto non usate. */

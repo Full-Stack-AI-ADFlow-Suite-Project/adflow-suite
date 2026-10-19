@@ -1,7 +1,7 @@
 """Schemi Pydantic per il modulo campagne (richieste e risposte API)."""
 
 from datetime import date, datetime
-from typing import Any
+from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
@@ -169,6 +169,42 @@ class EsitoRespinta(BaseModel):
     foto_segnate: list[int] = []
 
 
+class RichiestaCrea(BaseModel):
+    """Corpo di ``POST /campagne/{id}/richiesta`` (R-46): la domanda e le foto da sostituire."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    domanda: str
+    foto: list[int] = []
+
+
+class RichiestaInvia(BaseModel):
+    """Corpo facoltativo di ``POST /campagne/{id}/richiesta/invia`` (R-46)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    risposta: str | None = None
+
+
+class FotoDaSostituire(BaseModel):
+    """Una foto segnata da sostituire e, se l'artigiano l'ha caricata, la sua nuova."""
+
+    foto_id: int
+    gruppo_id: int | None
+    nuova_foto_id: int | None = None
+
+
+class RichiestaArtigiano(BaseModel):
+    """La richiesta del consorzio all'artigiano, ricavata dalle decisioni (R-46)."""
+
+    stato: Literal["aperta", "inviata", "decaduta"]
+    domanda: str
+    creata_il: datetime
+    foto: list[FotoDaSostituire]
+    risposta: str | None = None
+    inviata_il: datetime | None = None
+
+
 class CampagnaDettaglio(BaseModel):
     """Dettaglio completo di una campagna (GET /campagne/{id})."""
 
@@ -193,6 +229,7 @@ class CampagnaDettaglio(BaseModel):
     profilo_snapshot: dict[str, Any] | list[Any] | None = None
     decisioni: list[DecisioneSintetica] = []
     esito_respinta: EsitoRespinta | None = None
+    richiesta: RichiestaArtigiano | None = None
 
 
 class CampagnaElencoItem(BaseModel):
@@ -209,6 +246,8 @@ class CampagnaElencoItem(BaseModel):
     canali: list[str] | None = None
     bottega: str | None = None
     citta: str | None = None
+    # Stato della richiesta del consorzio, solo nell'elenco dell'artigiano (R-46).
+    richiesta: str | None = None
 
 
 class GruppoArchivioCrea(BaseModel):

@@ -12,6 +12,7 @@ Lo sprint di lavoro è lo **Sprint 3 · MVP** (ADR-114, `perimetro-mvp.md`): con
 | 3 · AI vera | Giovanni | Adattatore LiteLLM, prova su 10 post, generazione MVP, immagini AI |
 | 4 · Meta | Nilton | Pagina di prova, adattatore Meta, pubblicazione reale |
 | 5 · Frontend | Angelo | Vedi campagna e pagina Campagna ridotte all'MVP, calendario, nuovo artigiano |
+| 6 · Interventi e richiesta all'artigiano | Giovanni | ADR-116: interventi sul post dopo l'approvazione, cambia foto e sposta, sospendi e riattiva, richiesta all'artigiano (`brief-interventi.md`) |
 
 Nelle tabelle le aree si chiamano ancora "Corsia", perché `allinea.py` le legge così.
 
@@ -28,7 +29,7 @@ Nelle tabelle le aree si chiamano ancora "Corsia", perché `allinea.py` le legge
 
 **Ordine.** T3-01 apre lo sprint. Senza aspettarlo partono T3-02, T3-03, T3-11, T3-12, T3-21, T3-31, T3-41, T3-53 e T3-54; gli altri quando ciò che sta in "Dipende da" è su `main`. CA dello sprint: quelli di spec §6.
 
-**Date.** T3-31 entro il 16/10 e la prova su 10 post (T3-32) entro il 20/10. Meta (T3-41) parte il 14/10; se Instagram non pubblica entro il 23/10 resta simulato (D1). Codice bloccato il 30/10; dal 2 al 6/11 solo correzioni, slide, video e prove.
+**Date.** T3-31 entro il 16/10 e la prova su 10 post (T3-32) entro il 20/10. Meta (T3-41) parte il 14/10; se Instagram non pubblica entro il 23/10 resta simulato (D1). Corsia 6 (ADR-116): una persona, un task alla volta nell'ordine di `brief-interventi.md` §2; tutto su `main` entro il 24/10, prima di T3-08 parte 2, altrimenti ciò che manca resta fuori. Codice bloccato il 30/10; dal 2 al 6/11 solo correzioni, slide, video e prove.
 
 ### Corsia 0 · Comune e deliverable (tutto il team)
 
@@ -40,7 +41,7 @@ Nelle tabelle le aree si chiamano ancora "Corsia", perché `allinea.py` le legge
 | T3-05 | **Pitch**: slide e scaletta dei 10 minuti, con la roadmap e la pagina statica delle metriche come anteprima. Coordina Giovanni | la proposta tecnica di T3-02; `docs/ROADMAP.md`; `docs/pagine` | T3-02, T3-03 | slide pronte; due prove cronometrate sotto i 10 minuti | ☐ |
 | T3-06 | **Dati della demo**: nel seed un artigiano con profilo e foto vere, collegato alla pagina di prova Meta; una campagna pronta da inviare | `perimetro-mvp.md`; plan §1 | T3-01 | da database vuoto un comando prepara la demo; nessuna password o token nel codice | ☑ |
 | T3-07 | **Chiusura**: percorso della demo provato da database vuoto (converge §4) e video di riserva registrato | converge §4 | tutti i task dello sprint | tutti i CA di spec §6 verdi; percorso a mano senza errori; video salvato | ☐ |
-| T3-08 | **Sistemazione definitiva**: documenti di `docs/agenti/` allo stato di oggi (la storia in `docs/archivio/`), codice e test senza resti degli sprint, nomi coerenti, nessun cambio di comportamento. La parte 1 (documenti, archivio, file che nessun task aperto tocca) è fatta; la parte 2 segue `brief-sistemazione.md`. Entro il 29/10 | `brief-sistemazione.md`; converge §1 | T3-06, T3-11, T3-12, T3-21, T3-22, T3-23, T3-31, T3-32, T3-33, T3-34, T3-42, T3-43, T3-51, T3-52, T3-53, T3-54 | schema OpenAPI identico prima e dopo; comandi di converge §1 verdi; percorso della demo senza errori da un clone pulito; nella PR l'inventario approvato e il numero dei test prima e dopo | ☐ |
+| T3-08 | **Sistemazione definitiva**: documenti di `docs/agenti/` allo stato di oggi (la storia in `docs/archivio/`), codice e test senza resti degli sprint, nomi coerenti, nessun cambio di comportamento. La parte 1 (documenti, archivio, file che nessun task aperto tocca) è fatta; la parte 2 segue `brief-sistemazione.md`. Entro il 29/10 | `brief-sistemazione.md`; converge §1 | T3-06, T3-11, T3-12, T3-21, T3-22, T3-23, T3-31, T3-32, T3-33, T3-34, T3-42, T3-43, T3-51, T3-52, T3-53, T3-54, T3-61, T3-62, T3-63, T3-64, T3-65, T3-66 | schema OpenAPI identico prima e dopo; comandi di converge §1 verdi; percorso della demo senza errori da un clone pulito; nella PR l'inventario approvato e il numero dei test prima e dopo | ☐ |
 
 ### Corsia 1 · Nuovo artigiano e calendario (Gianluca)
 
@@ -82,6 +83,20 @@ Nelle tabelle le aree si chiamano ancora "Corsia", perché `allinea.py` le legge
 | T3-52 | Pagina Campagna MVP: niente stella né gruppi `create_ai`, nessun minimo di foto, dichiarazione al passo 12, avviso dei post con immagine AI; passo 7 del profilo senza logo né archivio | spec §2.1, R-13, R-25, R-41 | T3-01 | CA-14 e CA-54 nella pagina; build e lint puliti | ☑ |
 | T3-53 | Calendario: elenco per giorno in Vedi campagna e nella vista dell'artigiano | spec §4, R-45 | — | CA-56 nella pagina (dati di esempio finché T3-12 non è su `main`); build e lint puliti | ☑ |
 | T3-54 | Nuovo artigiano: pagina dell'operatore con email e nome; password provvisoria mostrata una sola volta | spec R-37 | — | CA-79 nella pagina (dati di esempio finché T3-11 non è su `main`); build e lint puliti | ☑ |
+
+### Corsia 6 · Interventi e richiesta all'artigiano (Giovanni)
+
+Ogni task ha in `brief-interventi.md` i file da toccare e da non toccare, le firme, i messaggi d'errore, gli schemi e i nomi dei test: si legge la sezione del proprio task, non tutto il brief.
+
+| ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
+|---|---|---|---|---|---|
+| T3-60 | **Preparazione della corsia 6** (ADR-116): regole in costituzione, perimetro, spec e plan; `brief-interventi.md`; i task; pagine statiche; valori nei `domain.py`. Giovanni con Claude | ADR-116; `perimetro-mvp.md` | — | documenti coerenti tra loro; comandi di converge §1 verdi; `tests/test_allinea.py` verde con la corsia 6 | ☑ |
+| T3-61 | **Interventi sul post, backend**: `interventi_ammessi()` dalla tabella di `contenuti/domain.py`; modifica dopo l'approvazione con la sua approvazione; sposta; annulla il post con la nota; riprogramma, sospendi con la nota, riattiva e annulla scongelati; `interventi` in Vedi campagna | `brief-interventi.md` §1 e §T3-61; spec R-16, R-30, R-33, R-34, R-36 | T3-60 | CA-29, CA-32, CA-67, CA-72, CA-84, CA-85 verdi; comandi del backend verdi | ☑ |
+| T3-62 | **Cambia foto, backend**: foto possibili e cambia foto, in revisione e dopo l'approvazione | `brief-interventi.md` §1 e §T3-62; spec R-16, R-36 | T3-61 | CA-71 verde; comandi del backend verdi | ☑ |
+| T3-63 | **Richiesta all'artigiano, backend**: chiedi, carica la foto nuova, invia la risposta; la richiesta nel dettaglio, nell'elenco dell'artigiano e in Campagne da approvare | `brief-interventi.md` §1 e §T3-63; spec R-46, R-13, R-41 | T3-60 | CA-86…CA-90 verdi; CA-13 e CA-31 ancora verdi; comandi del backend verdi | ☑ |
+| T3-64 | **Vedi campagna, interventi**: i pulsanti dagli `interventi` di ogni post (modifica, rigenera, cambia foto, sposta, annulla, riprogramma); sospendi, riattiva, annulla la campagna | `brief-interventi.md` §1 e §T3-64; `docs/pagine/AdFlow-operatore-campagna.html` | T3-60 | build e lint puliti; dati di esempio finché T3-61 e T3-62 non sono su `main`, poi API vere; screenshot nella PR | ☑ |
+| T3-65 | **Richiesta all'artigiano, frontend**: finestra e riquadro dell'operatore, segno in Campagne da approvare, riquadro dell'artigiano nella pagina Campagna | `brief-interventi.md` §1 e §T3-65; `docs/pagine/AdFlow-operatore-campagna.html`; `docs/pagine/AdFlow-campagna-stati.html` | T3-60 | build e lint puliti; dati di esempio finché T3-63 non è su `main`, poi API vere; screenshot nella PR | ☑ |
+| T3-66 | **Prova della corsia 6**: test di percorso e percorso a mano in due finestre, operatore e artigiano | `brief-interventi.md` §T3-66; converge §4 | T3-61, T3-62, T3-63, T3-64, T3-65 | CA-91 verde; passi 4, 6 e 9 di converge §4 senza errori; screenshot nella PR | ☑ |
 
 ## Dopo l'MVP
 

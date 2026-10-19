@@ -218,3 +218,30 @@ def nota_interna(
     db.add(record)
     db.flush()
     return record
+
+
+def richiesta(
+    db: Session,
+    campagna: Campagna,
+    foto=(),
+    domanda: str = "Puoi mandarci una foto nuova?",
+    operatore=None,
+) -> DecisioneCampagna:
+    """La richiesta all'artigiano: decisione ``integrazione`` con la domanda e le foto (R-46).
+
+    ``foto`` sono le foto (o gli id) da sostituire. Non cambia lo stato della campagna.
+    """
+    from tests.moduli.accesso.fabbrica import utente
+
+    if operatore is None:
+        operatore = utente(db, "operatore")
+    record = DecisioneCampagna(
+        campagna_id=campagna.id,
+        utente_id=operatore.id,
+        esito="integrazione",
+        nota=domanda,
+        foto_segnate=[getattr(una, "id", una) for una in foto],
+    )
+    db.add(record)
+    db.flush()
+    return record

@@ -8,7 +8,7 @@ from app.core.errori import DatiNonValidi, NonTrovato, StatoNonValido
 from app.moduli.contenuti.models import VersionePost, VersionePostFoto
 from app.moduli.contenuti.service import modifica_post
 from tests.moduli.accesso.fabbrica import utente
-from tests.moduli.campagne.fabbrica import campagna_in_revisione
+from tests.moduli.campagne.fabbrica import campagna_in_revisione, campagna_sospesa
 from tests.moduli.contenuti.fabbrica import post_approvato, post_da_approvare
 
 ADESSO = datetime(2030, 1, 5, 12, tzinfo=timezone.utc)
@@ -103,11 +103,34 @@ def test_ca28_dopo_3_rigenerazioni_la_modifica_resta_ammessa(db):
     assert (uno.versione_corrente.numero, uno.n_rigenerazioni_testo) == (2, 3)
 
 
-def test_ca29_in_campagna_attiva_409(db):
-    uno = post_approvato(db)
+def test_ca29_dopo_l_approvazione_entro_15_minuti_409(db):
+    uno = post_approvato(db, data_ora=ADESSO + timedelta(minutes=10))
     with pytest.raises(StatoNonValido):
         modifica_post(db, uno.id, utente(db, "operatore").id, "Testo nuovo", [], ADESSO)
     assert _versioni(db, uno) == 1
+
+
+def test_ca84_dopo_l_approvazione_oltre_15_minuti_nasce_la_versione(db):
+    operatore = utente(db, "operatore")
+    uno = post_approvato(db, data_ora=ADESSO + timedelta(minutes=16))
+    nuova = modifica_post(db, uno.id, operatore.id, "Testo nuovo", ["bottega"], ADESSO)
+    assert (nuova.numero, nuova.tipo_intervento, nuova.autore_id) == (
+        2,
+        "modifica_operatore",
+        operatore.id,
+    )
+    assert uno.stato == "approvato"
+    assert _versioni(db, uno) == 2
+
+
+def test_ca84_anche_in_campagna_sospesa(db):
+    uno = post_approvato(
+        db,
+        campagna_id=campagna_sospesa(db).id,
+        data_ora=ADESSO + timedelta(hours=2),
+    )
+    modifica_post(db, uno.id, utente(db, "operatore").id, "Testo nuovo", [], ADESSO)
+    assert _versioni(db, uno) == 2
 
 
 @pytest.mark.parametrize(

@@ -39,6 +39,39 @@ class PostRiprogramma(BaseModel):
     data_ora: datetime
 
 
+class PostSposta(BaseModel):
+    """Corpo di ``POST /post/{id}/sposta`` (R-36): la nuova data e ora."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    data_ora: datetime
+
+
+class PostAnnulla(BaseModel):
+    """Corpo di ``POST /post/{id}/annulla`` (R-36): la nota è obbligatoria."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    nota: str = Field(min_length=1)
+
+
+class PostCambiaFoto(BaseModel):
+    """Corpo di ``POST /post/{id}/cambia-foto`` (R-36): la foto scelta."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    foto_id: int
+
+
+class FotoPossibile(BaseModel):
+    """Una foto con cui si può cambiare quella del post (R-36)."""
+
+    foto_id: int
+    punteggio: float | None
+    # Falso: arrivata con una richiesta all'artigiano, senza analisi (R-46).
+    analizzata: bool
+
+
 class CampagnaSchema(BaseModel):
     """La campagna come la legge l'operatore in Vedi campagna."""
 
@@ -116,6 +149,8 @@ class PostSchema(BaseModel):
     intervento_dal: datetime | None
     versione_corrente: VersionePostSchema | None
     versioni: list[VersionePostSchema]
+    # Gli interventi che l'operatore può fare adesso (R-16): valori di INTERVENTI.
+    interventi: list[str] = []
 
 
 class GruppoSchema(BaseModel):
@@ -202,6 +237,8 @@ class CampagnaDaApprovare(BaseModel):
     conteggi: ConteggiPost | None = None
     entro_quando: datetime | None = None
     ultima_nota: str | None = None
+    # Richiesta all'artigiano (R-46): "aperta", "inviata" o None.
+    richiesta: str | None = None
 
 
 class CampagnaNota(BaseModel):
@@ -229,6 +266,14 @@ class CampagnaTogliCanale(BaseModel):
 
     canale: str
     nota: str = Field(min_length=1)
+
+
+class CampagnaSospendi(BaseModel):
+    """Corpo facoltativo di ``POST /campagne/{id}/sospendi``: la nota (R-33)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    nota: str | None = None
 
 
 class CampagnaRiattiva(BaseModel):

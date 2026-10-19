@@ -115,6 +115,7 @@
               <span class="status-pill review">in_revisione</span>
               <span class="status-pill fb">Facebook</span>
               <span class="status-pill ig">Instagram</span>
+              <span class="status-pill review">Richiesta aperta</span>
             </div>
             <div class="dati">
               <span><strong>Periodo:</strong> 01/10/2026 → 31/10/2026</span>
@@ -189,6 +190,7 @@
               <h2>Sciarpe e plaid</h2>
               <span class="status-pill review">in_revisione</span>
               <span class="status-pill fb">Facebook</span>
+              <span class="status-pill success">Risposta arrivata</span>
             </div>
             <div class="dati">
               <span><strong>Periodo:</strong> 15/10/2026 → 15/11/2026</span>
@@ -210,6 +212,7 @@
       <div class="note-pagina">
         <p><strong>Pagina statica, non interattiva.</strong> Le campagne da approvare di tutti gli artigiani, con <code>GET /da-approvare</code> (T2b-45). È la pagina di partenza dell'operatore nell'MVP. Oggi è il 28/09/2026.</p>
         <p>Stati mostrati: <code>inviata</code>, <code>in_generazione</code>, <code>generazione_fallita</code>, <code>in_revisione</code>. Da ogni riga una sola strada: <strong>Vedi campagna</strong>, dove si decide; anche Riprova sta lì. La riga porta bottega e città dal profilo (ADR-106) e, per i post, quanti hanno un'immagine AI.</p>
+        <p><strong>Richiesta all'artigiano (ADR-116, spec R-46).</strong> Una campagna con una richiesta aperta porta il segno "Richiesta aperta"; quando l'artigiano ha risposto, "Risposta arrivata": l'operatore la apre in Vedi campagna, usa le foto nuove con Cambia foto e decide. Il segno viene dal campo <code>richiesta</code> di <code>GET /da-approvare</code>; l'ordine resta quello di "entro quando".</p>
         <p><strong>Cosa cambia con l'MVP (ADR-114).</strong> Tolti: lo stato <code>piano_da_rivedere</code> (A3: il piano è sempre completo; una campagna vecchia ferma lì si legge ancora e si respinge), la nota interna (B4, congelata), il promemoria delle 48 ore (B7), il codice ART e lo storico della bottega (anagrafica, in roadmap), il pulsante Pagina artigiano (pagina in roadmap).</p>
         <p>"Entro quando" segue la scadenza morbida (ADR-95): con un piano, ogni post da approvare scade quando passa la sua data, e la campagna scade quando ne restano meno della metà; senza piano scade alle 00:00 del giorno di inizio.</p>
         <p>Esempio · pagina vuota: "Nessuna campagna da approvare. Le campagne arrivano qui appena un artigiano le invia."</p>

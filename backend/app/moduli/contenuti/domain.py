@@ -50,6 +50,31 @@ TIPI_ERRORE_GENERAZIONE = (
 TIPI_INTERVENTO_IN_CORSO = ("rigenera_totale", "rigenera_da_proposta", "ritocco_foto")
 STATI_CHIUSI = (PUBBLICATO, FALLITO, ANNULLATO, SCARTATO, SCADUTO)
 
+# Interventi dell'operatore sul singolo post (spec R-16, R-30, R-34, R-36).
+MODIFICA = "modifica"
+RIGENERA = "rigenera"
+CAMBIA_FOTO = "cambia_foto"
+SPOSTA = "sposta"
+ANNULLA = "annulla"
+RIPROGRAMMA = "riprogramma"
+INTERVENTI = (MODIFICA, RIGENERA, CAMBIA_FOTO, SPOSTA, ANNULLA, RIPROGRAMMA)
+
+# (stato della campagna, stato del post) → interventi ammessi (spec R-16).
+# Sui post APPROVATO vale anche il margine: il post esce tra almeno
+# MARGINE_SLOT_MINUTI da adesso. Mai con un intervento in corso (R-31).
+# Gli stati della campagna si scrivono per nome (plan §6).
+INTERVENTI_AMMESSI: dict[tuple[str, str], frozenset[str]] = {
+    ("in_revisione", DA_APPROVARE): frozenset(
+        {MODIFICA, RIGENERA, CAMBIA_FOTO, SPOSTA}
+    ),
+    ("attiva", APPROVATO): frozenset({MODIFICA, CAMBIA_FOTO, SPOSTA, ANNULLA}),
+    ("sospesa", APPROVATO): frozenset({MODIFICA, CAMBIA_FOTO, SPOSTA, ANNULLA}),
+    ("attiva", FALLITO): frozenset({RIPROGRAMMA}),
+    ("sospesa", FALLITO): frozenset({RIPROGRAMMA}),
+}
+# Stati dei post che tengono occupata una foto sul loro canale (costituzione §1.9).
+STATI_CHE_USANO_LA_FOTO = (DA_APPROVARE, APPROVATO, PUBBLICATO, FALLITO)
+
 # Schede MVP (R-21): proporzioni come stringhe "larghezza:altezza".
 # Sono scelte del progetto, non tutti i formati supportati dalle piattaforme.
 SCHEDE_CANALE = {

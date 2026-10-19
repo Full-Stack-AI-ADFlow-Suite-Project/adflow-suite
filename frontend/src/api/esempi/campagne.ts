@@ -19,6 +19,8 @@ import type {
   PostCalendario,
   GiornoCalendario,
   CanaleToltoCalendario,
+  RichiestaArtigiano,
+  StatoRichiesta,
 } from "../campagne";
 import {
   canaliEsempio,
@@ -299,6 +301,19 @@ function semiArtigiano(): CampagnaDettaglio[] {
       inizio: "2026-11-23",
       fine: "2026-12-20",
       stato: "in_revisione",
+      // Il consorzio chiede due foto nuove (R-46): la richiesta è aperta.
+      richiesta: {
+        stato: "aperta",
+        domanda:
+          "La foto dell'albero mostra una cliente: puoi mandarne una senza persone? Mandane anche una dei giochi su una superficie chiara.",
+        creata_il: "2026-10-12T09:30:00",
+        foto: [
+          { foto_id: 1920, gruppo_id: 192, nuova_foto_id: null },
+          { foto_id: 1922, gruppo_id: 192, nuova_foto_id: null },
+        ],
+        risposta: null,
+        inviata_il: null,
+      },
       inviata_il: "2026-10-09T15:30:00",
       chiusa_il: null,
       gruppi: [
@@ -667,6 +682,22 @@ function trova(campagne: CampagnaDettaglio[], id: number): CampagnaDettaglio {
   return c;
 }
 
+/** La richiesta decade quando la campagna esce da `in_revisione` senza risposta (R-46). */
+function conRichiesta(c: CampagnaDettaglio): CampagnaDettaglio {
+  if (!c.richiesta) return c;
+  const stato: StatoRichiesta =
+    c.richiesta.stato === "inviata"
+      ? "inviata"
+      : c.stato === "in_revisione"
+      ? "aperta"
+      : "decaduta";
+  return { ...c, richiesta: { ...c.richiesta, stato } };
+}
+
+function statoRichiesta(c: CampagnaDettaglio): StatoRichiesta | null {
+  return conRichiesta(c).richiesta?.stato ?? null;
+}
+
 function soloBozza(c: CampagnaDettaglio): void {
   if (c.stato !== "bozza")
     throw new ApiErrore(409, "Si può modificare solo una campagna in bozza.");
@@ -692,25 +723,29 @@ export const esempiCampagne = {
     return carica()
       .filter((c) => (operatore ? true : c.profilo_id === 1))
       .filter((c) => !stato || c.stato === stato)
-      .map(({ id, profilo_id, titolo, inizio, fine, stato: st, canali }) => ({
-        id,
-        profilo_id,
-        titolo,
-        inizio,
-        fine,
-        stato: st,
-        canali,
+      .map((c) => ({
+        id: c.id,
+        profilo_id: c.profilo_id,
+        titolo: c.titolo,
+        inizio: c.inizio,
+        fine: c.fine,
+        stato: c.stato,
+        canali: c.canali,
+        // Lo stato della richiesta si legge solo nell'elenco dell'artigiano (R-46).
+        ...(!operatore && c.stato === "in_revisione"
+          ? { richiesta: statoRichiesta(c) }
+          : {}),
         ...(operatore
           ? {
-              bottega: profiliEsempio[profilo_id]?.bottega ?? null,
-              citta: profiliEsempio[profilo_id]?.citta ?? null,
+              bottega: profiliEsempio[c.profilo_id]?.bottega ?? null,
+              citta: profiliEsempio[c.profilo_id]?.citta ?? null,
             }
           : {}),
       }));
   },
 
   async dettaglio(id: number): Promise<CampagnaDettaglio> {
-    const c = conAvvisi(trova(carica(), id));
+    const c = conAvvisi(conRichiesta(trova(carica(), id)));
     const utente = sessioneEsempio();
     if (utente?.ruolo === "operatore" || utente?.ruolo === "admin") return c;
     // L'artigiano non legge snapshot, note interne né le altre decisioni: solo
@@ -982,6 +1017,146 @@ export const esempiCampagne = {
     };
     salva(campagne);
     return conAvvisi(c);
+  },
+
+  /** CA-86: l'operatore chiede una risposta e fino a 3 foto caricate della campagna. */
+  async chiediArtigiano(
+    campagnaId: number,
+    domanda: string,
+    foto: number[],
+  ): Promise<RichiestaArtigiano> {
+    const utente = sessioneEsempio();
+    if (utente?.ruolo !== "operatore" && utente?.ruolo !== "admin")
+      throw new ApiErrore(403, "Non hai i permessi per questa operazione.");
+    const campagne = carica();
+    const c = trova(campagne, campagnaId);
+    if (c.stato !== "in_revisione")
+      throw new ApiErrore(
+        409,
+        "Si chiede all'artigiano solo con la campagna in revisione.",
+      );
+    const testo = domanda.trim();
+    if (!testo) throw new ApiErrore(422, "Scrivi la domanda per l'artigiano.");
+    const ids = [...new Set(foto)];
+    if (ids.length > 3)
+      throw new ApiErrore(422, "Si chiedono al massimo 3 foto.");
+    const mappa = new Map(
+      c.gruppi.flatMap((g) => g.foto.map((f) => [f.id, f] as const)),
+    );
+    if (ids.some((id) => mappa.get(id)?.origine !== "caricata"))
+      throw new ApiErrore(
+        422,
+        "Si possono segnare solo le foto caricate dall'artigiano per questa campagna.",
+      );
+    c.richiesta = {
+      stato: "aperta",
+      domanda: testo,
+      creata_il: new Date().toISOString(),
+      foto: ids.map((id) => ({
+        foto_id: id,
+        gruppo_id: mappa.get(id)?.gruppo_id ?? null,
+        nuova_foto_id: null,
+      })),
+      risposta: null,
+      inviata_il: null,
+    };
+    (c.decisioni ??= []).push({
+      id: (c.decisioni ?? []).reduce((m, d) => Math.max(m, d.id), 0) + 1,
+      esito: "integrazione",
+      canale: null,
+      post_id: null,
+      motivo: null,
+      nota: testo,
+    });
+    salva(campagne);
+    return c.richiesta;
+  },
+
+  /** CA-87: la foto nuova entra nello stesso gruppo, senza analisi; serve la dichiarazione. */
+  async caricaFotoRichiesta(
+    campagnaId: number,
+    fotoId: number,
+    file: File,
+    dichiarazione: boolean,
+  ): Promise<FotoSintetica> {
+    const campagne = carica();
+    const c = trova(campagne, campagnaId);
+    const aperta = conRichiesta(c).richiesta;
+    if (aperta?.stato !== "aperta")
+      throw new ApiErrore(409, "Non c'è una richiesta del consorzio aperta.");
+    const segnata = aperta.foto.find((f) => f.foto_id === fotoId);
+    if (!segnata)
+      throw new ApiErrore(
+        422,
+        "Questa foto non è tra quelle chieste dal consorzio.",
+      );
+    if (segnata.nuova_foto_id !== null)
+      throw new ApiErrore(
+        409,
+        "Per questa foto hai già caricato quella nuova.",
+      );
+    if (!dichiarazione)
+      throw new ApiErrore(
+        422,
+        "Confermare la dichiarazione sulle foto prima di caricarle.",
+      );
+    const gruppo = c.gruppi.find((g) => g.id === segnata.gruppo_id);
+    if (!gruppo) throw new ApiErrore(404, "Gruppo non trovato.");
+    const nuova: FotoSintetica = {
+      id: nuovoId(campagne),
+      gruppo_id: gruppo.id,
+      file: file.name,
+      mime: file.type || "image/jpeg",
+      larghezza: 1200,
+      altezza: 1200,
+      origine: "caricata",
+    };
+    gruppo.foto.push(nuova);
+    const richiesta = c.richiesta as RichiestaArtigiano;
+    const voce = richiesta.foto.find((f) => f.foto_id === fotoId);
+    if (voce) voce.nuova_foto_id = nuova.id;
+    (c.decisioni ??= []).push({
+      id: (c.decisioni ?? []).reduce((m, d) => Math.max(m, d.id), 0) + 1,
+      esito: "integrazione_foto",
+      canale: null,
+      post_id: null,
+      motivo: null,
+      nota: null,
+    });
+    salva(campagne);
+    return nuova;
+  },
+
+  /** CA-88: con tutte le foto caricate la risposta parte; senza foto serve il testo. */
+  async inviaRisposta(
+    campagnaId: number,
+    risposta: string | null,
+  ): Promise<RichiestaArtigiano> {
+    const campagne = carica();
+    const c = trova(campagne, campagnaId);
+    const aperta = conRichiesta(c).richiesta;
+    if (aperta?.stato !== "aperta")
+      throw new ApiErrore(409, "Non c'è una richiesta del consorzio aperta.");
+    const mancanti = aperta.foto.filter((f) => f.nuova_foto_id === null).length;
+    if (mancanti)
+      throw new ApiErrore(409, `Mancano ${mancanti} foto da caricare.`);
+    const testo = (risposta ?? "").trim() || null;
+    if (!aperta.foto.length && testo === null)
+      throw new ApiErrore(422, "Scrivi la risposta per il consorzio.");
+    const richiesta = c.richiesta as RichiestaArtigiano;
+    richiesta.stato = "inviata";
+    richiesta.risposta = testo;
+    richiesta.inviata_il = new Date().toISOString();
+    (c.decisioni ??= []).push({
+      id: (c.decisioni ?? []).reduce((m, d) => Math.max(m, d.id), 0) + 1,
+      esito: "integrazione_risposta",
+      canale: null,
+      post_id: null,
+      motivo: null,
+      nota: testo,
+    });
+    salva(campagne);
+    return richiesta;
   },
 
   async calendario(campagnaId: number): Promise<CalendarioCampagna> {

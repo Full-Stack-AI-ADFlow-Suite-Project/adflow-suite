@@ -143,7 +143,11 @@ export function Campagna() {
           onInviata={() => dopoInvio(vista.campagna?.id)}
         />
       ) : (
-        <VistaStato campagna={vista.campagna} onNuovaCampagna={nuovaCampagna} />
+        <VistaStato
+          campagna={vista.campagna}
+          onNuovaCampagna={nuovaCampagna}
+          onRisposta={() => void elenco().then(setLista)}
+        />
       )}
       {vista !== null && vista.tipo !== "bozza" && (
         <CampagnePassate

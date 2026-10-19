@@ -15,9 +15,12 @@ from app.core.transizioni import verifica_transizione
 from app.moduli.campagne import service as campagne
 
 from .domain import (
+    ANNULLA,
     APPROVATO,
     ANNULLATO,
     DA_APPROVARE,
+    RIPROGRAMMA,
+    SPOSTA,
     SCADUTO,
     SCARTATO,
     ESITI_PUBBLICAZIONE,
@@ -451,28 +454,12 @@ def annulla_post(
     return _porta_a(db, approvati, ANNULLATO)
 
 
-def riprogramma_post(
-    db: Session, post_id: int, data_ora: datetime, adesso: datetime
-) -> Post:
-    """Rimette in coda un post ``fallito`` con una nuova data (R-34, CA-67).
-
-    Usata da ``revisione`` per ``POST /post/{id}/riprogramma``: l'unico
-    intervento sul singolo post che la campagna attiva o sospesa ammette
-    (R-16). Il post torna ``approvato``; il contenuto non cambia. La
-    decisione ``riprogrammato`` la registra chi chiama.
+def _verifica_nuova_data(campagna, data_ora: datetime, adesso: datetime) -> None:
+    """La nuova data di un post: con il fuso, dopo il margine, nel periodo della campagna.
 
     Raises:
-        NonTrovato: se non esiste nessun post con quell'id.
-        StatoNonValido: il post non è ``fallito`` (409).
-        DatiNonValidi: ``data_ora`` fuori dal periodo della campagna o a meno
-            di 15 minuti da ``adesso`` (422).
+        DatiNonValidi: una delle tre condizioni non vale (422).
     """
-    record = _post(db, post_id)
-    if record.stato != FALLITO:
-        raise StatoNonValido("Si riprogramma solo un post fallito.")
-    campagna = campagne.campagna(db, record.campagna_id)
-    if campagna.stato not in ("attiva", "sospesa"):
-        raise StatoNonValido("La campagna non è attiva né sospesa.")
     if data_ora.tzinfo is None:
         raise DatiNonValidi("La nuova data deve avere il fuso orario.")
     margine = leggi_impostazioni().margine_slot_minuti
@@ -482,12 +469,104 @@ def riprogramma_post(
         )
     if not campagna.inizio <= data_ora.astimezone(ROMA).date() <= campagna.fine:
         raise DatiNonValidi("La nuova data deve cadere nel periodo della campagna.")
+
+
+def riprogramma_post(
+    db: Session, post_id: int, data_ora: datetime, adesso: datetime
+) -> Post:
+    """Rimette in coda un post ``fallito`` con una nuova data (R-34, CA-67).
+
+    Usata da ``revisione`` per ``POST /post/{id}/riprogramma``. Il post torna
+    ``approvato``; il contenuto non cambia. La decisione ``riprogrammato`` la
+    registra chi chiama.
+
+    Raises:
+        NonTrovato: se non esiste nessun post con quell'id.
+        StatoNonValido: ``riprogramma`` non è ammesso sul post (409), per
+            esempio perché non è ``fallito`` o la campagna non è attiva né sospesa.
+        DatiNonValidi: ``data_ora`` fuori dal periodo della campagna o a meno
+            di 15 minuti da ``adesso`` (422).
+    """
+    from .interventi import verifica_intervento  # interventi importa questo modulo
+
+    record = _post(db, post_id)
+    campagna = verifica_intervento(db, record, RIPROGRAMMA, adesso)
+    _verifica_nuova_data(campagna, data_ora, adesso)
     verifica_transizione(TRANSIZIONI, record.stato, APPROVATO)
     record.data_ora = data_ora
     record.stato = APPROVATO
     _azzera_spunta(record)
     db.flush()
     return record
+
+
+def sposta_post(
+    db: Session, post_id: int, data_ora: datetime, adesso: datetime
+) -> tuple[Post, datetime]:
+    """Sposta un post a un'altra data e ora, dove R-16 lo ammette (R-36, CA-72).
+
+    Usata da ``revisione`` per ``POST /post/{id}/sposta``: in revisione su un
+    post ``da_approvare`` e, dopo l'approvazione, su un ``approvato`` che esce
+    tra almeno 15 minuti. Lo stato del post non cambia; la spunta cade. La
+    decisione ``riprogrammato`` la registra chi chiama.
+
+    Returns:
+        Il post e la data che aveva prima.
+
+    Raises:
+        NonTrovato: se non esiste nessun post con quell'id.
+        StatoNonValido: ``sposta`` non è ammesso sul post (409).
+        DatiNonValidi: la nuova data non ha il fuso, è a meno di 15 minuti da
+            ``adesso``, cade fuori dal periodo della campagna o è uguale a
+            quella di prima (422).
+    """
+    from .interventi import verifica_intervento  # interventi importa questo modulo
+
+    record = _post(db, post_id)
+    campagna = verifica_intervento(db, record, SPOSTA, adesso)
+    _verifica_nuova_data(campagna, data_ora, adesso)
+    prima = record.data_ora
+    if data_ora == prima:
+        raise DatiNonValidi("La nuova data è uguale a quella di prima.")
+    record.data_ora = data_ora
+    _azzera_spunta(record)
+    db.flush()
+    return record, prima
+
+
+def annulla_un_post(db: Session, post_id: int, adesso: datetime) -> Post:
+    """Porta ad ``annullato`` un solo post ``approvato``, dove R-16 lo ammette (R-36, CA-85).
+
+    Usata da ``revisione`` per ``POST /post/{id}/annulla``: campagna attiva o
+    sospesa e post che esce tra almeno 15 minuti. La decisione ``post_annullato``
+    con la nota la registra chi chiama.
+
+    Raises:
+        NonTrovato: se non esiste nessun post con quell'id.
+        StatoNonValido: ``annulla`` non è ammesso sul post (409).
+    """
+    from .interventi import verifica_intervento  # interventi importa questo modulo
+
+    record = _post(db, post_id)
+    verifica_intervento(db, record, ANNULLA, adesso)
+    annulla_post(db, record.campagna_id, post_ids=[record.id])
+    return record
+
+
+def interventi_ammessi(post: Post, stato_campagna: str, adesso: datetime) -> list[str]:
+    """Gli interventi che l'operatore può fare adesso sul post (R-16, plan §6).
+
+    Usata da ``revisione`` per riempire ``interventi`` di ogni post in Vedi
+    campagna. Non apre il database: la campagna la dà chi chiama.
+
+    Returns:
+        Valori di ``INTERVENTI`` (``modifica``, ``rigenera``, ``cambia_foto``,
+        ``sposta``, ``annulla``, ``riprogramma``) nell'ordine di quella
+        tabella; vuota se il post non si tocca.
+    """
+    from .interventi import interventi_ammessi as _ammessi  # importa questo modulo
+
+    return _ammessi(post, stato_campagna, adesso)
 
 
 def segna_controllato(
@@ -531,9 +610,10 @@ def modifica_post(
     hashtag: list[str],
     adesso: datetime,
 ) -> VersionePost:
-    """Salva la modifica a mano dell'operatore come nuova versione (R-30, CA-64).
+    """Salva la modifica a mano dell'operatore come nuova versione (R-30, CA-64, CA-84).
 
-    Usata da ``revisione`` (plan §6). Nasce una versione
+    Usata da ``revisione`` (plan §6), in revisione e dopo l'approvazione: lo
+    dice ``interventi_ammessi()``. Nasce una versione
     ``modifica_operatore`` con ``utente_id`` come autore, le stesse foto della
     precedente, passata dal validatore (R-09). Non conta cicli (R-03) e
     azzera la spunta. Un post ``da_rivedere`` si sblocca se la nuova versione
@@ -541,14 +621,53 @@ def modifica_post(
 
     Raises:
         NonTrovato: se non esiste nessun post con quell'id.
-        StatoNonValido: campagna non ``in_revisione``, post non ``da_approvare``
-            o con un intervento in corso (409).
+        StatoNonValido: ``modifica`` non è ammessa sul post (409): campagna e
+            post negli stati sbagliati, intervento in corso, post ``approvato``
+            che esce entro 15 minuti o senza versione.
         DatiNonValidi: la versione avrebbe un blocco o è uguale a quella
             corrente (422); nessuna versione si salva.
     """
     from .interventi import modifica  # interventi importa questo modulo
 
     return modifica(db, post_id, utente_id, testo, hashtag, adesso)
+
+
+def foto_possibili(db: Session, post_id: int, adesso: datetime) -> list:
+    """Le foto con cui si può cambiare quella del post, la migliore in cima (R-36).
+
+    Usata da ``revisione`` per ``GET /post/{id}/foto-possibili`` (plan §6).
+    Restituisce le ``Foto`` caricate del gruppo dell'uscita, idonee o senza
+    analisi perché arrivate con una richiesta (R-46), non già su un altro post
+    vivo dello stesso canale (§1.9). Prima quelle senza analisi, poi per
+    punteggio decrescente.
+
+    Raises:
+        NonTrovato: se non esiste nessun post con quell'id.
+        StatoNonValido: ``cambia_foto`` non è ammesso sul post o il post ha
+            un'immagine AI (409).
+    """
+    from .interventi import foto_possibili as _foto_possibili  # importa questo modulo
+
+    return _foto_possibili(db, post_id, adesso)
+
+
+def cambia_foto(
+    db: Session, post_id: int, foto_id: int, utente_id: int, adesso: datetime
+) -> VersionePost:
+    """Cambia la foto di un post con una nuova versione ``cambio_foto`` (R-36, CA-71).
+
+    Usata da ``revisione`` per ``POST /post/{id}/cambia-foto`` (plan §6). Stesso
+    testo e hashtag della versione corrente, ``utente_id`` come autore, la foto
+    scelta al posto della prima; la spunta cade. Non conta cicli (R-03).
+
+    Raises:
+        NonTrovato: se non esiste nessun post con quell'id.
+        StatoNonValido: ``cambia_foto`` non è ammesso sul post (409).
+        DatiNonValidi: ``foto_id`` non è tra ``foto_possibili()`` (422).
+    """
+    from .interventi import cambia_foto as _cambia_foto  # importa questo modulo
+
+    return _cambia_foto(db, post_id, foto_id, utente_id, adesso)
 
 
 def puo_rigenerare(db: Session, post_id: int, adesso: datetime) -> bool:

@@ -22,7 +22,9 @@ import { ApiErrore } from "../../../api/http";
 import type { VediCampagna } from "../../../api/revisione";
 import { approva, riprova } from "../../../api/revisione";
 import { Riga } from "../../artigiano/campagna/Riga";
+import { ChiediArtigiano } from "../vedi-campagna/decisioni/ChiediArtigiano";
 import { Respingi } from "../vedi-campagna/decisioni/Respingi";
+import { RichiestaOperatore } from "../vedi-campagna/decisioni/RichiestaOperatore";
 import { dataOra, erroriDi, NOME_CANALE } from "./util";
 
 function Conti({ vista }: { vista: VediCampagna }) {
@@ -110,6 +112,7 @@ export function Decidi({
   const stato = vista.campagna.stato;
   const [conferma, setConferma] = useState(false);
   const [respingiAperto, setRespingiAperto] = useState(false);
+  const [chiediAperto, setChiediAperto] = useState(false);
   const [occupato, setOccupato] = useState(false);
   const [errore, setErrore] = useState<string | null>(null);
 
@@ -257,6 +260,13 @@ export function Decidi({
               Approva {daApprovare.length} post
             </Button>
             <Button
+              variant="default"
+              disabled={!campagna}
+              onClick={() => setChiediAperto(true)}
+            >
+              Chiedi all'artigiano
+            </Button>
+            <Button
               color="red"
               variant="default"
               disabled={!campagna}
@@ -266,6 +276,14 @@ export function Decidi({
             </Button>
           </Group>
         </Group>
+        {campagna?.richiesta &&
+          (campagna.richiesta.stato === "aperta" ||
+            campagna.richiesta.stato === "inviata") && (
+            <RichiestaOperatore
+              campagna={campagna}
+              richiesta={campagna.richiesta}
+            />
+          )}
         {daRivedere.length > 0 && (
           <Text size="sm" mt="sm">
             <Text span c="red" fw={500}>
@@ -299,7 +317,8 @@ export function Decidi({
             </Title>
             <Text size="sm" c="dimmed" mt={4}>
               La campagna diventa attiva e i post escono da soli alle date
-              stabilite. Dopo, il contenuto non si modifica più.
+              stabilite. Dopo l'approvazione puoi ancora intervenire sui post
+              che escono tra almeno 15 minuti.
             </Text>
             <Group mt="sm">
               <Button
@@ -337,7 +356,7 @@ export function Decidi({
                 }.`
               : "Nessun post in attesa."
             : "Nessun post esce finché non la riattivi."}{" "}
-          Il contenuto non si modifica più.
+          Sui post che escono tra almeno 15 minuti puoi ancora intervenire.
         </Text>
         <Conti vista={vista} />
       </>
@@ -387,6 +406,16 @@ export function Decidi({
           )}
         </Stack>
       </Card>
+      {chiediAperto && campagna && (
+        <ChiediArtigiano
+          campagna={campagna}
+          chiudi={() => setChiediAperto(false)}
+          fatto={() => {
+            setChiediAperto(false);
+            ricarica();
+          }}
+        />
+      )}
       {respingiAperto && campagna && (
         <Respingi
           campagna={campagna}

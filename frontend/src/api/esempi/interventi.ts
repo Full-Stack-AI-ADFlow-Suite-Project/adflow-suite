@@ -1,15 +1,22 @@
 /**
- * Dati di esempio degli interventi sul post (plan §3, spec R-03, R-30, R-31).
+ * Dati di esempio degli interventi sul post (plan §3, spec R-03, R-16, R-30,
+ * R-31, R-36).
  * Lavorano sullo stesso magazzino di `esempi/revisione.ts` (stessa chiave di
  * localStorage), così Vedi campagna rilegge subito il risultato. La
  * rigenerazione accende l'intervento in corso e, dopo pochi secondi, fa nascere
  * la nuova versione, come farebbe il job `rigenera_post`.
  */
 import { ApiErrore } from "../http";
-import type { ErroreValidazione, PostVista, Uscita } from "../revisione";
+import type {
+  ErroreValidazione,
+  FotoPossibile,
+  Intervento,
+  PostVista,
+  Uscita,
+} from "../revisione";
 import type { ModalitaRigenerazione } from "../interventi";
 import { sessioneEsempio, USA_ESEMPI } from "./accesso";
-import { leggiCampagna } from "./campagne";
+import { leggiCampagna, salvaCampagna } from "./campagne";
 
 const CHIAVE = "adflow_esempi_revisione";
 const CHIAVE_RICHIESTE = "adflow_esempi_interventi_richieste";
@@ -17,6 +24,28 @@ const ATTESA_RIGENERAZIONE_MS = 3000;
 const MAX_RIGENERAZIONI = 3;
 const SCADENZA_INTERVENTO_MS = 10 * 60 * 1000;
 const RIGENERAZIONI = ["rigenera_totale", "rigenera_da_proposta"];
+const MARGINE_MINUTI = 15;
+
+/** (stato della campagna, stato del post) → interventi ammessi (spec R-16). */
+const AMMESSI: Record<string, Intervento[]> = {
+  "in_revisione|da_approvare": [
+    "modifica",
+    "rigenera",
+    "cambia_foto",
+    "sposta",
+  ],
+  "attiva|approvato": ["modifica", "cambia_foto", "sposta", "annulla"],
+  "sospesa|approvato": ["modifica", "cambia_foto", "sposta", "annulla"],
+  "attiva|fallito": ["riprogramma"],
+  "sospesa|fallito": ["riprogramma"],
+};
+/** Stati dei post che tengono occupata una foto sul loro canale (costituzione §1.9). */
+const STATI_CHE_USANO_LA_FOTO = [
+  "da_approvare",
+  "approvato",
+  "pubblicato",
+  "fallito",
+];
 
 /** Limiti della scheda del canale (spec R-21): editoriali = avviso, piattaforma = blocco. */
 const SCHEDE: Record<
@@ -100,8 +129,86 @@ function interventoAttivo(post: PostVista, adesso: number): boolean {
   );
 }
 
-/** Solo in revisione, su un post da approvare, senza intervento in corso (R-16, R-30, R-31). */
-function ammesso(dati: Magazzino, postId: number): PostVista {
+function rigenerazioniFatte(post: PostVista): number {
+  return post.versioni.filter((v) => RIGENERAZIONI.includes(v.tipo_intervento))
+    .length;
+}
+
+/**
+ * Gli interventi ammessi adesso sul post, come `interventi_ammessi()` del
+ * backend (spec R-16): la tabella per stato di campagna e di post, meno ciò
+ * che il singolo post non permette. Esportata: Vedi campagna la usa per
+ * riempire `interventi` di ogni post.
+ */
+export function interventiAmmessi(
+  post: PostVista,
+  statoCampagna: string,
+  adesso: number,
+): Intervento[] {
+  let ammessi = [...(AMMESSI[`${statoCampagna}|${post.stato}`] ?? [])];
+  if (!ammessi.length || interventoAttivo(post, adesso)) return [];
+  if (
+    post.stato === "approvato" &&
+    new Date(post.data_ora).getTime() < adesso + MARGINE_MINUTI * 60 * 1000
+  )
+    return [];
+  if (!post.versione_corrente)
+    ammessi = ammessi.filter(
+      (i) => i !== "modifica" && i !== "rigenera" && i !== "cambia_foto",
+    );
+  if (post.riempitivo) ammessi = ammessi.filter((i) => i !== "cambia_foto");
+  if (rigenerazioniFatte(post) >= MAX_RIGENERAZIONI)
+    ammessi = ammessi.filter((i) => i !== "rigenera");
+  return ammessi;
+}
+
+/** Il primo motivo per cui l'intervento non è ammesso (stessi messaggi del backend, 409). */
+function motivoNonAmmesso(
+  post: PostVista,
+  statoCampagna: string,
+  intervento: Intervento,
+  adesso: number,
+): string {
+  const previsti = AMMESSI[`${statoCampagna}|${post.stato}`] ?? [];
+  if (previsti.includes(intervento)) {
+    if (interventoAttivo(post, adesso))
+      return "Sul post c'è un intervento in corso.";
+    if (
+      post.stato === "approvato" &&
+      new Date(post.data_ora).getTime() < adesso + MARGINE_MINUTI * 60 * 1000
+    )
+      return `Il post esce tra meno di ${MARGINE_MINUTI} minuti: non si tocca più.`;
+    if (intervento === "cambia_foto" && post.riempitivo)
+      return "Un post con un'immagine AI non cambia foto.";
+    if (
+      intervento === "rigenera" &&
+      rigenerazioniFatte(post) >= MAX_RIGENERAZIONI
+    )
+      return "Le 3 rigenerazioni del testo sono finite: resta la modifica a mano.";
+    if (!post.versione_corrente) return "Il post non ha ancora un testo.";
+  }
+  return `Questo intervento non è ammesso: la campagna è «${statoCampagna}», il post è «${post.stato}».`;
+}
+
+/** Vero se l'intervento è ammesso adesso, altrimenti 409 (come `verifica_intervento()`). */
+function ammesso(
+  dati: Magazzino,
+  postId: number,
+  intervento: Intervento,
+): { campagnaId: number; post: PostVista } {
+  const trovato = trova(dati, postId);
+  const stato = leggiCampagna(trovato.campagnaId).stato;
+  const adesso = Date.now();
+  if (!interventiAmmessi(trovato.post, stato, adesso).includes(intervento))
+    throw new ApiErrore(
+      409,
+      motivoNonAmmesso(trovato.post, stato, intervento, adesso),
+    );
+  return trovato;
+}
+
+/** La spunta «va bene» resta solo in revisione, su un post da approvare (R-30; congelata). */
+function inRevisione(dati: Magazzino, postId: number): PostVista {
   const { campagnaId, post } = trova(dati, postId);
   if (leggiCampagna(campagnaId).stato !== "in_revisione")
     throw new ApiErrore(409, "La campagna non è in revisione.");
@@ -110,6 +217,40 @@ function ammesso(dati: Magazzino, postId: number): PostVista {
   if (interventoAttivo(post, Date.now()))
     throw new ApiErrore(409, "Sul post c'è un intervento in corso.");
   return post;
+}
+
+/** Registra una decisione sulla campagna, come `registra_decisione()`. */
+function registraDecisione(
+  campagnaId: number,
+  esito: string,
+  postId: number,
+  nota: string,
+): void {
+  const c = leggiCampagna(campagnaId);
+  (c.decisioni ??= []).push({
+    id: (c.decisioni ?? []).reduce((m, d) => Math.max(m, d.id), 0) + 1,
+    esito,
+    canale: null,
+    post_id: postId,
+    motivo: null,
+    nota,
+  });
+  salvaCampagna(c);
+}
+
+/** Data e ora nel formato delle note: gg/mm/aaaa hh:mm, Europe/Rome. */
+function dataRoma(iso: string): string {
+  return new Date(iso)
+    .toLocaleString("it-IT", {
+      timeZone: "Europe/Rome",
+      day: "2-digit",
+      month: "2-digit",
+      year: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    })
+    .replace(",", "");
 }
 
 function senzaCancelletto(hashtag: string[]): string[] {
@@ -283,10 +424,9 @@ export const esempiInterventi = {
   ): Promise<void> {
     const utente = operatore();
     const dati = leggi();
-    const post = ammesso(dati, postId);
+    const { post } = ammesso(dati, postId, "modifica");
     const corrente = post.versione_corrente;
-    if (!corrente)
-      throw new ApiErrore(409, "Il post non ha ancora un testo da modificare.");
+    if (!corrente) throw new ApiErrore(409, "Il post non ha ancora un testo.");
     const nuovoTesto = testo.trim();
     const nuoviHashtag = senzaCancelletto(hashtag);
     if (
@@ -315,7 +455,7 @@ export const esempiInterventi = {
   async controllato(postId: number, valore: boolean): Promise<void> {
     const utente = operatore();
     const dati = leggi();
-    const post = ammesso(dati, postId);
+    const post = inRevisione(dati, postId);
     if (valore && post.da_rivedere)
       throw new ApiErrore(
         409,
@@ -335,21 +475,10 @@ export const esempiInterventi = {
   ): Promise<void> {
     operatore();
     const dati = leggi();
-    const post = ammesso(dati, postId);
+    const { post } = ammesso(dati, postId, "rigenera");
     const proposto = (testoProposto ?? "").trim();
     if (modalita === "da_proposta" && !proposto)
       throw new ApiErrore(422, "Scrivi il testo da cui partire.");
-    const fatte = post.versioni.filter((v) =>
-      RIGENERAZIONI.includes(v.tipo_intervento),
-    ).length;
-    if (fatte >= MAX_RIGENERAZIONI)
-      throw new ApiErrore(
-        409,
-        "Il post ha già 3 rigenerazioni: resta la modifica a mano.",
-      );
-    const corrente = post.versione_corrente;
-    if (!corrente)
-      throw new ApiErrore(409, "Il post non ha ancora un testo da rigenerare.");
     post.intervento_in_corso =
       modalita === "totale" ? "rigenera_totale" : "rigenera_da_proposta";
     post.intervento_dal = new Date().toISOString();
@@ -365,5 +494,135 @@ export const esempiInterventi = {
     );
     scrivi(dati);
     setTimeout(() => completaRigenerazione(postId), ATTESA_RIGENERAZIONE_MS);
+  },
+
+  /** CA-71: le foto del gruppo dell'uscita con cui cambiare quella del post. */
+  async fotoPossibili(postId: number): Promise<FotoPossibile[]> {
+    operatore();
+    const dati = leggi();
+    const { campagnaId, post } = ammesso(dati, postId, "cambia_foto");
+    const uscita = dati[campagnaId].uscite.find((u) => u.post.includes(post));
+    const gruppoId = uscita?.gruppo?.id;
+    if (gruppoId == null)
+      throw new ApiErrore(409, "Un post con un'immagine AI non cambia foto.");
+    const occupate = new Set(
+      post.versione_corrente?.foto.map((f) => f.foto_id) ?? [],
+    );
+    for (const altro of dati[campagnaId].uscite.flatMap((u) => u.post))
+      if (
+        altro !== post &&
+        altro.canale === post.canale &&
+        STATI_CHE_USANO_LA_FOTO.includes(altro.stato)
+      )
+        for (const f of altro.versione_corrente?.foto ?? [])
+          occupate.add(f.foto_id);
+    const gruppo = leggiCampagna(campagnaId).gruppi.find(
+      (g) => g.id === gruppoId,
+    );
+    // Le foto arrivate con una richiesta all'artigiano non hanno analisi (R-46).
+    const arrivate = new Set(
+      (leggiCampagna(campagnaId).richiesta?.foto ?? []).flatMap((f) =>
+        f.nuova_foto_id != null ? [f.nuova_foto_id] : [],
+      ),
+    );
+    return (gruppo?.foto ?? [])
+      .filter((f) => f.origine === "caricata" && !occupate.has(f.id))
+      .map((f, i) => ({
+        foto_id: f.id,
+        punteggio: arrivate.has(f.id)
+          ? null
+          : Math.round((0.9 - 0.05 * i) * 100) / 100,
+        analizzata: !arrivate.has(f.id),
+      }))
+      .sort(
+        (a, b) =>
+          Number(a.analizzata) - Number(b.analizzata) ||
+          (b.punteggio ?? 0) - (a.punteggio ?? 0) ||
+          a.foto_id - b.foto_id,
+      );
+  },
+
+  /** CA-71: versione `cambio_foto` con lo stesso testo; la foto scelta prende il primo posto. */
+  async cambiaFoto(postId: number, fotoId: number): Promise<void> {
+    const utente = operatore();
+    const possibili = await esempiInterventi.fotoPossibili(postId);
+    if (!possibili.some((f) => f.foto_id === fotoId))
+      throw new ApiErrore(
+        422,
+        "Questa foto non si può usare per il post: deve essere del gruppo dell'uscita, idonea o arrivata con una richiesta, e non già su questo canale.",
+      );
+    const dati = leggi();
+    const { post } = trova(dati, postId);
+    const corrente = post.versione_corrente;
+    if (!corrente) return;
+    const primo = Math.min(...corrente.foto.map((f) => f.posizione));
+    const rivedere = post.da_rivedere;
+    nuovaVersione(post, {
+      testo: corrente.testo,
+      hashtag: corrente.hashtag,
+      autore_id: utente.id,
+      tipo_intervento: "cambio_foto",
+      errori: Array.isArray(corrente.errori_validazione)
+        ? (corrente.errori_validazione as ErroreValidazione[])
+        : [],
+    });
+    // Cambiare la foto non cambia l'indicatore «da rivedere» (R-36).
+    post.da_rivedere = rivedere;
+    const nuova = post.versione_corrente;
+    if (nuova)
+      nuova.foto = corrente.foto.map((f) =>
+        f.posizione === primo ? { ...f, foto_id: fotoId } : f,
+      );
+    scrivi(dati);
+  },
+
+  /** CA-72: nuova data e ora, dentro il periodo, dopo il margine e diversa da quella di prima. */
+  async sposta(postId: number, dataOra: string): Promise<void> {
+    operatore();
+    const dati = leggi();
+    const { campagnaId, post } = ammesso(dati, postId, "sposta");
+    const c = leggiCampagna(campagnaId);
+    const nuova = new Date(dataOra);
+    if (Number.isNaN(nuova.getTime()))
+      throw new ApiErrore(422, "Scegli data e ora.");
+    if (nuova.getTime() < Date.now() + MARGINE_MINUTI * 60 * 1000)
+      throw new ApiErrore(
+        422,
+        `La nuova data deve essere almeno ${MARGINE_MINUTI} minuti dopo adesso.`,
+      );
+    const giorno = `${nuova.getFullYear()}-${String(
+      nuova.getMonth() + 1,
+    ).padStart(2, "0")}-${String(nuova.getDate()).padStart(2, "0")}`;
+    if (giorno < c.inizio || giorno > c.fine)
+      throw new ApiErrore(
+        422,
+        "La nuova data deve cadere nel periodo della campagna.",
+      );
+    if (nuova.getTime() === new Date(post.data_ora).getTime())
+      throw new ApiErrore(422, "La nuova data è uguale a quella di prima.");
+    const prima = post.data_ora;
+    post.data_ora = nuova.toISOString();
+    post.controllato_da = null;
+    post.controllato_il = null;
+    registraDecisione(
+      campagnaId,
+      "riprogrammato",
+      postId,
+      `Spostato dal ${dataRoma(prima)} al ${dataRoma(post.data_ora)}`,
+    );
+    scrivi(dati);
+  },
+
+  /** CA-85: il post approvato non esce più; la nota è obbligatoria. */
+  async annullaPost(postId: number, nota: string): Promise<void> {
+    operatore();
+    const pulita = nota.trim();
+    if (!pulita)
+      throw new ApiErrore(422, "Per annullare un post serve la nota.");
+    const dati = leggi();
+    const { campagnaId, post } = ammesso(dati, postId, "annulla");
+    post.stato = "annullato";
+    registraDecisione(campagnaId, "post_annullato", postId, pulita);
+    scrivi(dati);
   },
 };

@@ -25,9 +25,33 @@ from .schemas import (
     GruppoCrea,
     GruppoDettaglio,
     GruppoSintetico,
+    RichiestaArtigiano,
+    RichiestaCrea,
+    RichiestaInvia,
 )
 
 router = APIRouter(tags=["campagne"])
+
+
+def _leggi_file(file: UploadFile) -> bytes:
+    """Legge il file caricato a blocchi, con il limite di 10 MB (R-13)."""
+    letti = 0
+    blocchi = []
+    while True:
+        chunk = file.file.read(64 * 1024)
+        if not chunk:
+            break
+        letti += len(chunk)
+        if letti > DIMENSIONE_MAX_BYTE:
+            raise DatiNonValidi(
+                "La dimensione del file supera il limite massimo di 10 MB."
+            )
+        blocchi.append(chunk)
+
+    contenuto = b"".join(blocchi)
+    if not contenuto:
+        raise DatiNonValidi("Il file caricato è vuoto.")
+    return contenuto
 
 
 @router.post("/campagne", response_model=CampagnaDettaglio, status_code=201)
@@ -153,23 +177,7 @@ def carica_foto(
     except ValueError:
         raise DatiNonValidi("ID gruppo non valido.")
 
-    dimensione_max = DIMENSIONE_MAX_BYTE
-    letti = 0
-    blocchi = []
-    while True:
-        chunk = file.file.read(64 * 1024)
-        if not chunk:
-            break
-        letti += len(chunk)
-        if letti > dimensione_max:
-            raise DatiNonValidi(
-                "La dimensione del file supera il limite massimo di 10 MB."
-            )
-        blocchi.append(chunk)
-
-    contenuto = b"".join(blocchi)
-    if not contenuto:
-        raise DatiNonValidi("Il file caricato è vuoto.")
+    contenuto = _leggi_file(file)
 
     foto = service.carica_foto(
         db=db,
@@ -363,3 +371,47 @@ def elimina_gruppo_archivio(
     """Elimina un gruppo dell'archivio con le sue foto (T2a-22, plan §3)."""
     archivio.elimina_gruppo_archivio(db=db, utente_id=utente.id, gruppo_id=id)
     return Response(status_code=204)
+
+
+# Corsia 6 (ADR-116): richiesta all'artigiano (spec R-46).
+@router.post(
+    "/campagne/{id}/richiesta", response_model=RichiestaArtigiano, status_code=201
+)
+def chiedi_all_artigiano(
+    id: int,
+    dati: RichiestaCrea,
+    db: Annotated[Session, Depends(get_db)],
+    utente: Annotated[Any, Depends(richiede_ruolo("operatore"))],
+) -> RichiestaArtigiano:
+    """L'operatore chiede una risposta e fino a 3 foto da sostituire (R-46, CA-86)."""
+    return service.apri_richiesta(db, id, utente.id, dati.domanda, dati.foto)
+
+
+@router.post(
+    "/campagne/{id}/richiesta/foto", response_model=FotoDettaglio, status_code=201
+)
+def carica_foto_richiesta(
+    id: int,
+    file: Annotated[UploadFile, File(...)],
+    foto_id: Annotated[int, Form()],
+    db: Annotated[Session, Depends(get_db)],
+    utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
+    dichiarazione: Annotated[bool, Form()] = False,
+) -> FotoDettaglio:
+    """L'artigiano carica la foto nuova al posto di una segnata (R-46, R-41, CA-87)."""
+    contenuto = _leggi_file(file)
+    nuova = service.carica_foto_richiesta(
+        db, utente.id, id, foto_id, contenuto, dichiarazione
+    )
+    return FotoDettaglio.model_validate(nuova)
+
+
+@router.post("/campagne/{id}/richiesta/invia", response_model=RichiestaArtigiano)
+def invia_risposta(
+    id: int,
+    db: Annotated[Session, Depends(get_db)],
+    utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
+    dati: RichiestaInvia | None = None,
+) -> RichiestaArtigiano:
+    """L'artigiano invia la risposta alla richiesta del consorzio (R-46, CA-88)."""
+    return service.invia_risposta(db, utente.id, id, dati.risposta if dati else None)

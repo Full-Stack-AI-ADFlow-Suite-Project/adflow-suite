@@ -1,6 +1,10 @@
 /** Le regole degli interventi sul post, lette dalla pagina (spec R-03, R-30, R-31). */
 import type { PostVista, VersionePost } from "../../../../api/revisione";
 
+/** Sopra il salvataggio di una modifica o di un cambio foto dopo l'approvazione (R-16). */
+export const AVVISO_CAMPAGNA_APPROVATA =
+  "La campagna è approvata: la versione che salvi esce al posto di quella di prima, e la approvi tu.";
+
 /** R-03: al massimo 3 rigenerazioni del testo per post. */
 export const MAX_RIGENERAZIONI = 3;
 
