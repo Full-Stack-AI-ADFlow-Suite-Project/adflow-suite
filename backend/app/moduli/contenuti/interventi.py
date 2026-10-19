@@ -3,6 +3,7 @@
 from dataclasses import replace
 from datetime import datetime, timedelta
 
+from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.adapters.ai import PostAI, ottieni_ai
@@ -20,6 +21,7 @@ from .domain import (
     MODIFICA,
     RIGENERA,
     SCHEDE_CANALE,
+    STATI_CHE_USANO_LA_FOTO,
     TIPI_INTERVENTO_IN_CORSO,
 )
 from .generazione import (
@@ -106,6 +108,118 @@ def verifica_intervento(
         f"Questo intervento non è ammesso: la campagna è «{campagna.stato}», "
         f"il post è «{post.stato}»."
     )
+
+
+def _foto_della_versione(post: Post) -> set[int]:
+    corrente = post.versione_corrente
+    return {legame.foto_id for legame in corrente.legami_foto} if corrente else set()
+
+
+def foto_possibili(db: Session, post_id: int, adesso: datetime) -> list:
+    """Le foto con cui si può cambiare quella del post, la migliore in cima (R-36).
+
+    Sono le foto ``caricata`` del gruppo dell'uscita, idonee per l'analisi
+    oppure senza analisi perché arrivate con una richiesta all'artigiano (R-46),
+    che non sono nella versione corrente del post né in quella di un altro post
+    della campagna sullo stesso canale ancora vivo (costituzione §1.9). Prima
+    quelle senza analisi, poi per punteggio decrescente, poi per id.
+
+    Raises:
+        NonTrovato: il post non esiste.
+        StatoNonValido: ``cambia_foto`` non è ammesso sul post, o il post non ha
+            un gruppo di foto perché ha un'immagine AI (409).
+    """
+    record = _post(db, post_id)
+    campagna = verifica_intervento(db, record, CAMBIA_FOTO, adesso)
+    uscita = db.get(Uscita, record.uscita_id)
+    if uscita is None or uscita.gruppo_id is None:
+        raise StatoNonValido("Un post con un'immagine AI non cambia foto.")
+    occupate = _foto_della_versione(record)
+    altri = db.scalars(
+        select(Post).where(
+            Post.campagna_id == campagna.id,
+            Post.canale == record.canale,
+            Post.id != record.id,
+            Post.stato.in_(STATI_CHE_USANO_LA_FOTO),
+        )
+    )
+    for altro in altri:
+        occupate |= _foto_della_versione(altro)
+    gruppo = next(
+        (
+            g
+            for g in campagne.gruppi_della_campagna(db, campagna.id)
+            if g.id == uscita.gruppo_id
+        ),
+        None,
+    )
+    candidate = [
+        una
+        for una in (gruppo.foto if gruppo is not None else [])
+        if una.origine == "caricata"
+        and una.id not in occupate
+        and (not una.analisi_ai or una.analisi_ai.get("idonea") is True)
+    ]
+
+    def punteggio(una) -> float:
+        return float((una.analisi_ai or {}).get("punteggio") or 0)
+
+    return sorted(
+        candidate,
+        key=lambda una: (bool(una.analisi_ai), -punteggio(una), una.id),
+    )
+
+
+def cambia_foto(
+    db: Session, post_id: int, foto_id: int, utente_id: int, adesso: datetime
+) -> VersionePost:
+    """Una versione ``cambio_foto``: stesso testo, un'altra foto (R-36, CA-71).
+
+    La foto scelta prende il posto di quella nella posizione più bassa; le altre
+    posizioni (caroselli, congelati) si copiano. Testo, hashtag ed errori del
+    validatore restano quelli della versione corrente; la spunta cade, non
+    nascono cicli (R-03) e ``da_rivedere`` non cambia.
+
+    Raises:
+        NonTrovato: il post non esiste.
+        StatoNonValido: ``cambia_foto`` non è ammesso sul post (409).
+        DatiNonValidi: la foto non è tra ``foto_possibili()`` (422).
+    """
+    record = _post(db, post_id)
+    possibili = foto_possibili(db, post_id, adesso)
+    scelta = next((una for una in possibili if una.id == foto_id), None)
+    if scelta is None:
+        raise DatiNonValidi(
+            "Questa foto non si può usare per il post: deve essere del gruppo "
+            "dell'uscita, idonea o arrivata con una richiesta, e non già su questo canale."
+        )
+    corrente = record.versione_corrente
+    nuova = VersionePost(
+        post_id=record.id,
+        numero=corrente.numero + 1,
+        testo=corrente.testo,
+        hashtag=list(corrente.hashtag),
+        autore_id=utente_id,
+        tipo_intervento="cambio_foto",
+        errori_validazione=[dict(e) for e in corrente.errori_validazione or []],
+    )
+    db.add(nuova)
+    db.flush()
+    sostituita = min(legame.posizione for legame in corrente.legami_foto)
+    for legame in corrente.legami_foto:
+        db.add(
+            VersionePostFoto(
+                versione_id=nuova.id,
+                posizione=legame.posizione,
+                foto_id=scelta.id if legame.posizione == sostituita else legame.foto_id,
+            )
+        )
+    campagne.aggiorna_foto(db, scelta.id, scelta.analisi_ai, scelta.n_utilizzi + 1)
+    _azzera_spunta(record)
+    db.flush()
+    db.expire(record, ["versioni"])
+    db.expire(nuova, ["legami_foto"])
+    return nuova
 
 
 def _pulisci_hashtag(hashtag: list[str]) -> list[str]:

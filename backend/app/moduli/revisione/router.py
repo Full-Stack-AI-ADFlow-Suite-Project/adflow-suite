@@ -18,7 +18,9 @@ from .schemas import (
     CampagnaRiattiva,
     CampagnaSospendi,
     CampagnaTogliCanale,
+    FotoPossibile,
     PostAnnulla,
+    PostCambiaFoto,
     PostControllato,
     PostModifica,
     PostRigenera,
@@ -229,3 +231,27 @@ def annulla_post(
     (R-16, R-36, CA-85)."""
     interventi.annulla(db, post_id, utente.id, corpo.nota, ora)
     return {"stato": "annullato"}
+
+
+@router.get("/post/{post_id}/foto-possibili", response_model=list[FotoPossibile])
+def foto_possibili_post(
+    post_id: int,
+    db: Annotated[Session, Depends(get_db)],
+    utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
+    ora: Annotated[datetime, Depends(adesso)],
+) -> list[FotoPossibile]:
+    """Le foto con cui si può cambiare quella del post (R-36, CA-71)."""
+    return interventi.foto_possibili(db, post_id, ora)
+
+
+@router.post("/post/{post_id}/cambia-foto")
+def cambia_foto_post(
+    post_id: int,
+    corpo: PostCambiaFoto,
+    db: Annotated[Session, Depends(get_db)],
+    utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
+    ora: Annotated[datetime, Depends(adesso)],
+) -> dict[str, str]:
+    """Cambia la foto del post: versione `cambio_foto` (R-16, R-36, CA-71)."""
+    interventi.cambia_foto(db, post_id, corpo.foto_id, utente, ora)
+    return {"stato": "ok"}

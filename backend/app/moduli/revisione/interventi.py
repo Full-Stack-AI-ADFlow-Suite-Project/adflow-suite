@@ -19,6 +19,7 @@ from app.moduli.campagne import service as campagne
 from app.moduli.contenuti import service as contenuti
 
 from .models import Approvazione
+from .schemas import FotoPossibile
 
 FORMATO_DATA = "%d/%m/%Y %H:%M"
 
@@ -60,6 +61,39 @@ def modifica(
     la scrive.
     """
     nuova = contenuti.modifica_post(db, post_id, utente.id, testo, hashtag, adesso)
+    _approva_se_approvata(db, nuova, utente)
+    return nuova
+
+
+def foto_possibili(db: Session, post_id: int, adesso: datetime) -> list[FotoPossibile]:
+    """Le foto con cui si può cambiare quella del post, la migliore in cima (R-36, CA-71).
+
+    L'elenco e i controlli (409) sono in ``contenuti.foto_possibili()``;
+    ``analizzata`` è falso per le foto arrivate con una richiesta (R-46).
+    """
+    return [
+        FotoPossibile(
+            foto_id=una.id,
+            punteggio=(una.analisi_ai or {}).get("punteggio"),
+            analizzata=una.analisi_ai is not None,
+        )
+        for una in contenuti.foto_possibili(db, post_id, adesso)
+    ]
+
+
+def cambia_foto(
+    db: Session,
+    post_id: int,
+    foto_id: int,
+    utente: accesso.Utente,
+    adesso: datetime,
+):
+    """Cambia la foto del post: nasce una versione ``cambio_foto`` (R-36, CA-71).
+
+    I controlli sono in ``contenuti.cambia_foto()``. Dopo l'approvazione la
+    versione nuova ha subito la riga ``approvazione`` di chi la scrive.
+    """
+    nuova = contenuti.cambia_foto(db, post_id, foto_id, utente.id, adesso)
     _approva_se_approvata(db, nuova, utente)
     return nuova
 

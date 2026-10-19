@@ -659,3 +659,110 @@ def test_interventi_permessi_e_post_inesistente(db, client, utente_di_prova):
     assert (
         client.post("/api/post/99999/annulla", json={"nota": "Nota"}).status_code == 404
     )
+
+
+def _foto_del_post(post):
+    return [legame.foto_id for legame in post.versione_corrente.legami_foto]
+
+
+def test_ca71_cambia_foto_in_revisione_via_api(db, client, utente_di_prova):
+    campagna = campagna_in_revisione(db)
+    post = _post_di_prova(db, campagna)
+    operatore = utente_di_prova("operatore")
+    prima = _foto_del_post(post)
+
+    possibili = client.get(f"/api/post/{post.id}/foto-possibili")
+    assert possibili.status_code == 200
+    elenco = possibili.json()
+    assert len(elenco) == 3
+    assert prima[0] not in [uno["foto_id"] for uno in elenco]
+    # Le foto della fabbrica non hanno analisi: arrivano "come da richiesta".
+    assert all(
+        uno["analizzata"] is False and uno["punteggio"] is None for uno in elenco
+    )
+
+    scelta = elenco[0]["foto_id"]
+    risposta = client.post(f"/api/post/{post.id}/cambia-foto", json={"foto_id": scelta})
+    assert risposta.status_code == 200
+    assert risposta.json() == {"stato": "ok"}
+
+    db.refresh(post)
+    assert len(post.versioni) == 2
+    assert post.versione_corrente.tipo_intervento == "cambio_foto"
+    assert post.versione_corrente.autore_id == operatore.id
+    assert _foto_del_post(post) == [scelta]
+    assert db.scalar(select(Approvazione)) is None
+
+
+def test_ca71_cambia_foto_fuori_elenco_422(db, client, utente_di_prova):
+    post = _post_di_prova(db, campagna_in_revisione(db))
+    utente_di_prova("operatore")
+    foto_del_post = _foto_del_post(post)[0]
+    for sbagliata in (foto_del_post, 99999):
+        assert (
+            client.post(
+                f"/api/post/{post.id}/cambia-foto", json={"foto_id": sbagliata}
+            ).status_code
+            == 422
+        )
+    db.refresh(post)
+    assert len(post.versioni) == 1
+
+
+def test_ca71_cambia_foto_dopo_l_approvazione_ha_la_riga_approvazione(
+    db, client, utente_di_prova
+):
+    campagna = campagna_attiva(db)
+    post = post_approvato(db, campagna_id=campagna.id)
+    operatore = utente_di_prova("operatore")
+
+    scelta = client.get(f"/api/post/{post.id}/foto-possibili").json()[0]["foto_id"]
+    assert (
+        client.post(
+            f"/api/post/{post.id}/cambia-foto", json={"foto_id": scelta}
+        ).status_code
+        == 200
+    )
+
+    db.refresh(post)
+    assert post.stato == "approvato"
+    nuova = post.versione_corrente
+    assert (nuova.numero, nuova.tipo_intervento) == (2, "cambio_foto")
+    [riga] = db.scalars(
+        select(Approvazione).where(Approvazione.versione_id == nuova.id)
+    )
+    assert (riga.utente_id, riga.ruolo, riga.esito) == (
+        operatore.id,
+        "operatore",
+        "approvato",
+    )
+
+
+def test_ca71_cambia_foto_entro_15_minuti_409(db, client, utente_di_prova):
+    campagna = campagna_attiva(db)
+    post = post_approvato(db, campagna_id=campagna.id, data_ora=_tra_poco())
+    utente_di_prova("operatore")
+
+    assert client.get(f"/api/post/{post.id}/foto-possibili").status_code == 409
+    assert (
+        client.post(f"/api/post/{post.id}/cambia-foto", json={"foto_id": 1}).status_code
+        == 409
+    )
+    db.refresh(post)
+    assert len(post.versioni) == 1
+
+
+def test_ca71_cambia_foto_riservato_all_operatore(db, client, utente_di_prova):
+    post = _post_di_prova(db, campagna_in_revisione(db))
+    utente_di_prova("artigiano")
+    assert client.get(f"/api/post/{post.id}/foto-possibili").status_code == 403
+    assert (
+        client.post(f"/api/post/{post.id}/cambia-foto", json={"foto_id": 1}).status_code
+        == 403
+    )
+    utente_di_prova("operatore")
+    assert client.get("/api/post/99999/foto-possibili").status_code == 404
+    assert (
+        client.post("/api/post/99999/cambia-foto", json={"foto_id": 1}).status_code
+        == 404
+    )

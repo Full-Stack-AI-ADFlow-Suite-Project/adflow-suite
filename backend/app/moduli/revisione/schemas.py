@@ -55,6 +55,23 @@ class PostAnnulla(BaseModel):
     nota: str = Field(min_length=1)
 
 
+class PostCambiaFoto(BaseModel):
+    """Corpo di ``POST /post/{id}/cambia-foto`` (R-36): la foto scelta."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    foto_id: int
+
+
+class FotoPossibile(BaseModel):
+    """Una foto con cui si può cambiare quella del post (R-36)."""
+
+    foto_id: int
+    punteggio: float | None
+    # Falso: arrivata con una richiesta all'artigiano, senza analisi (R-46).
+    analizzata: bool
+
+
 class CampagnaSchema(BaseModel):
     """La campagna come la legge l'operatore in Vedi campagna."""
 
