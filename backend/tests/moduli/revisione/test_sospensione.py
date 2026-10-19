@@ -49,6 +49,39 @@ def test_ca32_sospendi_ferma_la_pubblicazione(db, client, utente_di_prova):
     assert decisione.utente_id == operatore.id
 
 
+def test_ca32_sospendi_con_la_nota(db, client, utente_di_prova):
+    campagna = campagna_attiva(db)
+    utente_di_prova("operatore")
+
+    risposta = client.post(
+        f"/api/campagne/{campagna.id}/sospendi",
+        json={"nota": "  Il laboratorio è chiuso per ferie  "},
+    )
+    assert risposta.status_code == 200
+
+    [decisione] = _decisioni(db, campagna.id)
+    assert decisione.esito == "sospesa"
+    assert decisione.nota == "Il laboratorio è chiuso per ferie"
+
+
+def test_ca32_sospendi_senza_corpo(db, client, utente_di_prova):
+    senza_corpo = campagna_attiva(db)
+    nota_vuota = campagna_attiva(db)
+    utente_di_prova("operatore")
+
+    assert client.post(f"/api/campagne/{senza_corpo.id}/sospendi").status_code == 200
+    assert (
+        client.post(
+            f"/api/campagne/{nota_vuota.id}/sospendi", json={"nota": "   "}
+        ).status_code
+        == 200
+    )
+
+    for campagna in (senza_corpo, nota_vuota):
+        [decisione] = _decisioni(db, campagna.id)
+        assert (decisione.esito, decisione.nota) == ("sospesa", None)
+
+
 def test_ca32_riattiva_pubblica_solo_gli_scelti(db, client, utente_di_prova):
     """Gli arretrati scelti tornano pubblicabili, gli altri diventano annullato."""
     campagna = campagna_sospesa(db)

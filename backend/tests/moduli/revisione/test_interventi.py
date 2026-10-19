@@ -5,6 +5,7 @@ from datetime import datetime, timedelta, timezone
 from sqlalchemy import select
 
 from app.moduli.campagne.models import DecisioneCampagna
+from app.moduli.revisione.models import Approvazione
 from tests.moduli.campagne.fabbrica import (
     campagna_attiva,
     campagna_in_revisione,
@@ -202,23 +203,38 @@ def test_ca28_quarta_rigenerazione_409_ma_la_modifica_resta(
     )
 
 
+def _tra_poco():
+    """Una data a 5 minuti da adesso: dentro il margine che chiude il post (R-16)."""
+    return datetime.now(timezone.utc) + timedelta(minutes=5)
+
+
+def _decisioni(db, campagna):
+    return list(
+        db.scalars(
+            select(DecisioneCampagna)
+            .where(DecisioneCampagna.campagna_id == campagna.id)
+            .order_by(DecisioneCampagna.id)
+        )
+    )
+
+
 def test_ca29_in_campagna_attiva_o_sospesa_gli_interventi_409(
     db, client, utente_di_prova
 ):
+    """Rigenera e spunta mai; modifica, sposta e annulla non entro 15 minuti."""
     attiva = campagna_attiva(db)
-    post_attiva = post_approvato(db, campagna_id=attiva.id)
     sospesa = campagna_sospesa(db)
-    post_sospesa = post_approvato(db, campagna_id=sospesa.id)
+    lontani = [
+        post_approvato(db, campagna_id=attiva.id),
+        post_approvato(db, campagna_id=sospesa.id),
+    ]
+    vicini = [
+        post_approvato(db, campagna_id=attiva.id, data_ora=_tra_poco()),
+        post_approvato(db, campagna_id=sospesa.id, data_ora=_tra_poco()),
+    ]
     utente_di_prova("operatore")
 
-    for post in (post_attiva, post_sospesa):
-        assert (
-            client.post(
-                f"/api/post/{post.id}/modifica",
-                json={"testo": "Altro testo", "hashtag": []},
-            ).status_code
-            == 409
-        )
+    for post in lontani + vicini:
         assert (
             client.post(
                 f"/api/post/{post.id}/controllato", json={"valore": True}
@@ -231,6 +247,245 @@ def test_ca29_in_campagna_attiva_o_sospesa_gli_interventi_409(
             ).status_code
             == 409
         )
+    for post in vicini:
+        assert (
+            client.post(
+                f"/api/post/{post.id}/modifica",
+                json={"testo": "Altro testo", "hashtag": []},
+            ).status_code
+            == 409
+        )
+        assert (
+            client.post(
+                f"/api/post/{post.id}/sposta", json={"data_ora": DENTRO}
+            ).status_code
+            == 409
+        )
+        assert (
+            client.post(
+                f"/api/post/{post.id}/annulla", json={"nota": "Non esce"}
+            ).status_code
+            == 409
+        )
+        db.refresh(post)
+        assert post.stato == "approvato"
+        assert len(post.versioni) == 1
+
+
+def test_ca84_modifica_dopo_l_approvazione_ha_la_riga_approvazione(
+    db, client, utente_di_prova
+):
+    campagna = campagna_attiva(db)
+    post = post_approvato(db, campagna_id=campagna.id)
+    operatore = utente_di_prova("operatore")
+
+    risposta = client.post(
+        f"/api/post/{post.id}/modifica",
+        json={"testo": "Testo corretto dopo l'approvazione", "hashtag": []},
+    )
+    assert risposta.status_code == 200
+
+    db.refresh(post)
+    assert post.stato == "approvato"
+    assert len(post.versioni) == 2
+    nuova = post.versione_corrente
+    assert nuova.tipo_intervento == "modifica_operatore"
+    [riga] = db.scalars(
+        select(Approvazione).where(Approvazione.versione_id == nuova.id)
+    )
+    assert (riga.utente_id, riga.ruolo, riga.esito) == (
+        operatore.id,
+        "operatore",
+        "approvato",
+    )
+
+
+def test_ca84_modifica_in_revisione_non_scrive_la_riga_approvazione(
+    db, client, utente_di_prova
+):
+    post = _post_di_prova(db, campagna_in_revisione(db))
+    utente_di_prova("operatore")
+
+    assert (
+        client.post(
+            f"/api/post/{post.id}/modifica",
+            json={"testo": "Testo corretto a mano", "hashtag": []},
+        ).status_code
+        == 200
+    )
+    assert db.scalar(select(Approvazione)) is None
+
+
+def test_ca84_modifica_dopo_l_approvazione_con_un_blocco_422(
+    db, client, utente_di_prova
+):
+    campagna = campagna_sospesa(db)
+    post = post_approvato(db, campagna_id=campagna.id)
+    utente_di_prova("operatore")
+
+    risposta = client.post(
+        f"/api/post/{post.id}/modifica",
+        json={"testo": "Tutto a 10€ solo oggi", "hashtag": []},
+    )
+    assert risposta.status_code == 422
+    db.refresh(post)
+    assert len(post.versioni) == 1
+    assert db.scalar(select(Approvazione)) is None
+
+
+def test_ca85_annulla_il_post_con_la_nota(db, client, utente_di_prova):
+    campagna = campagna_attiva(db)
+    post = post_approvato(db, campagna_id=campagna.id)
+    altro = post_approvato(db, campagna_id=campagna.id, canale="facebook")
+    operatore = utente_di_prova("operatore")
+
+    risposta = client.post(
+        f"/api/post/{post.id}/annulla", json={"nota": "  Il vaso è venduto  "}
+    )
+    assert risposta.status_code == 200
+    assert risposta.json() == {"stato": "annullato"}
+
+    db.refresh(post)
+    db.refresh(altro)
+    db.refresh(campagna)
+    assert post.stato == "annullato"
+    assert altro.stato == "approvato"
+    assert campagna.stato == "attiva"
+    [decisione] = _decisioni(db, campagna)
+    assert (decisione.esito, decisione.utente_id, decisione.post_id) == (
+        "post_annullato",
+        operatore.id,
+        post.id,
+    )
+    assert decisione.nota == "Il vaso è venduto"
+
+
+def test_ca85_annulla_senza_nota_422(db, client, utente_di_prova):
+    campagna = campagna_attiva(db)
+    post = post_approvato(db, campagna_id=campagna.id)
+    utente_di_prova("operatore")
+
+    for corpo in ({"nota": ""}, {"nota": "   "}, {}):
+        assert (
+            client.post(f"/api/post/{post.id}/annulla", json=corpo).status_code == 422
+        )
+    db.refresh(post)
+    assert post.stato == "approvato"
+    assert _decisioni(db, campagna) == []
+
+
+def test_ca85_annulla_in_revisione_409(db, client, utente_di_prova):
+    post = _post_di_prova(db, campagna_in_revisione(db))
+    utente_di_prova("operatore")
+
+    assert (
+        client.post(f"/api/post/{post.id}/annulla", json={"nota": "No"}).status_code
+        == 409
+    )
+    db.refresh(post)
+    assert post.stato == "da_approvare"
+
+
+def test_ca72_sposta_in_revisione(db, client, utente_di_prova):
+    campagna = campagna_in_revisione(db)
+    operatore = utente_di_prova("operatore")
+    post = _post_di_prova(
+        db, campagna, controllato_da=operatore.id, controllato_il=_tra_poco()
+    )
+
+    risposta = client.post(f"/api/post/{post.id}/sposta", json={"data_ora": DENTRO})
+    assert risposta.status_code == 200
+    assert risposta.json() == {"stato": "da_approvare"}
+
+    db.refresh(post)
+    assert post.data_ora == datetime(2030, 1, 10, 12, tzinfo=timezone.utc)
+    assert post.stato == "da_approvare"
+    assert (post.controllato_da, post.controllato_il) == (None, None)
+    assert len(post.versioni) == 1
+    [decisione] = _decisioni(db, campagna)
+    assert (decisione.esito, decisione.utente_id, decisione.post_id) == (
+        "riprogrammato",
+        operatore.id,
+        post.id,
+    )
+    assert decisione.nota == "Spostato dal 05/01/2030 13:00 al 10/01/2030 13:00"
+
+
+def test_ca72_sposta_dopo_l_approvazione(db, client, utente_di_prova):
+    campagna = campagna_attiva(db)
+    post = post_approvato(db, campagna_id=campagna.id)
+    utente_di_prova("operatore")
+
+    risposta = client.post(f"/api/post/{post.id}/sposta", json={"data_ora": DENTRO})
+    assert risposta.status_code == 200
+    assert risposta.json() == {"stato": "approvato"}
+    db.refresh(post)
+    assert post.data_ora == datetime(2030, 1, 10, 12, tzinfo=timezone.utc)
+    assert db.scalar(select(Approvazione)) is None
+
+
+def test_ca72_sposta_fuori_periodo_nel_passato_o_uguale_422(
+    db, client, utente_di_prova
+):
+    campagna = campagna_attiva(db)
+    post = post_approvato(db, campagna_id=campagna.id)
+    utente_di_prova("operatore")
+
+    for data_ora in (
+        FUORI,
+        PASSATO,
+        "2030-01-05T12:00:00+00:00",
+        "2030-01-10T12:00:00",
+    ):
+        assert (
+            client.post(
+                f"/api/post/{post.id}/sposta", json={"data_ora": data_ora}
+            ).status_code
+            == 422
+        )
+    db.refresh(post)
+    assert post.data_ora == datetime(2030, 1, 5, 12, tzinfo=timezone.utc)
+    assert _decisioni(db, campagna) == []
+
+
+def test_ca72_sposta_un_post_fallito_o_chiuso_409(db, client, utente_di_prova):
+    campagna = campagna_attiva(db)
+    fallito = post_fallito(db, campagna_id=campagna.id)
+    chiuso = post_da_approvare(db, campagna_id=campagna.id, stato="annullato")
+    utente_di_prova("operatore")
+
+    for post in (fallito, chiuso):
+        assert (
+            client.post(
+                f"/api/post/{post.id}/sposta", json={"data_ora": DENTRO}
+            ).status_code
+            == 409
+        )
+
+
+def test_vedi_campagna_dice_gli_interventi_ammessi(db, client, utente_di_prova):
+    utente_di_prova("operatore")
+    revisione = campagna_in_revisione(db)
+    _post_di_prova(db, revisione)
+    attiva = campagna_attiva(db)
+    lontano = post_approvato(db, campagna_id=attiva.id)
+    vicino = post_approvato(db, campagna_id=attiva.id, data_ora=_tra_poco())
+    fallito = post_fallito(db, campagna_id=attiva.id)
+
+    def interventi(campagna):
+        dati = client.get(f"/api/campagne/{campagna.id}/post").json()
+        return {
+            uno["post_id"]: uno["interventi"]
+            for uscita in dati["uscite"]
+            for uno in uscita["post"]
+        }
+
+    [quelli] = interventi(revisione).values()
+    assert quelli == ["modifica", "rigenera", "cambia_foto", "sposta"]
+    per_post = interventi(attiva)
+    assert per_post[lontano.id] == ["modifica", "cambia_foto", "sposta", "annulla"]
+    assert per_post[vicino.id] == []
+    assert per_post[fallito.id] == ["riprogramma"]
 
 
 def test_ca31_un_secondo_intervento_409_e_dopo_10_minuti_si_rilancia(
@@ -363,7 +618,14 @@ def test_interventi_permessi_e_post_inesistente(db, client, utente_di_prova):
     post = _post_di_prova(db, campagna)
 
     utente_di_prova("artigiano")
-    for percorso in ("modifica", "controllato", "rigenera", "riprogramma"):
+    for percorso in (
+        "modifica",
+        "controllato",
+        "rigenera",
+        "riprogramma",
+        "sposta",
+        "annulla",
+    ):
         assert (
             client.post(f"/api/post/{post.id}/{percorso}", json={}).status_code == 403
         )
@@ -389,4 +651,11 @@ def test_interventi_permessi_e_post_inesistente(db, client, utente_di_prova):
             "/api/post/99999/riprogramma", json={"data_ora": DENTRO}
         ).status_code
         == 404
+    )
+    assert (
+        client.post("/api/post/99999/sposta", json={"data_ora": DENTRO}).status_code
+        == 404
+    )
+    assert (
+        client.post("/api/post/99999/annulla", json={"nota": "Nota"}).status_code == 404
     )

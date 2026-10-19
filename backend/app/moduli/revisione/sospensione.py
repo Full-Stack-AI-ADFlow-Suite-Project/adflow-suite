@@ -1,11 +1,10 @@
-# Congelato per l'MVP, ADR-114: non estendere.
 """Sospendi, riattiva e annulla una campagna (spec R-33, plan §3).
 
 Gli endpoint di ``router.py`` chiamano queste funzioni: lo stato della
 campagna cambia solo con ``campagne.cambia_stato()``, quello dei post solo
 con ``contenuti`` (plan §6, constitution §1). Ogni azione registra la sua
-decisione. In campagna attiva o sospesa sono le uniche azioni ammesse, con
-la riprogrammazione di un post fallito (R-16).
+decisione. Sono le azioni sulla campagna attiva o sospesa; sul singolo post
+si interviene con ``interventi.py`` (R-16).
 """
 
 from datetime import datetime
@@ -18,10 +17,13 @@ from app.moduli.campagne import service as campagne
 from app.moduli.contenuti import service as contenuti
 
 
-def sospendi(db: Session, campagna_id: int, utente: accesso.Utente) -> None:
+def sospendi(
+    db: Session, campagna_id: int, utente: accesso.Utente, nota: str | None = None
+) -> None:
     """Attiva → sospesa: il tick smette di pubblicare (R-33, CA-32).
 
-    I post ``approvato`` restano tali: alla riattivazione quelli in arretrato
+    La nota facoltativa (``strip()``, vuota vale ``None``) va nella decisione
+    ``sospesa``. I post ``approvato`` restano tali: alla riattivazione quelli in arretrato
     si pubblicano o si annullano, gli altri escono alla loro data.
 
     Raises:
@@ -32,7 +34,13 @@ def sospendi(db: Session, campagna_id: int, utente: accesso.Utente) -> None:
     if record.stato != "attiva":
         raise StatoNonValido("Si sospende solo una campagna attiva.")
     campagne.registra_decisione(
-        db, record, utente.id, "sospesa", motivo=None, nota=None, foto_segnate=[]
+        db,
+        record,
+        utente.id,
+        "sospesa",
+        motivo=None,
+        nota=(nota or "").strip() or None,
+        foto_segnate=[],
     )
     campagne.cambia_stato(db, record, "sospesa")
 

@@ -39,6 +39,22 @@ class PostRiprogramma(BaseModel):
     data_ora: datetime
 
 
+class PostSposta(BaseModel):
+    """Corpo di ``POST /post/{id}/sposta`` (R-36): la nuova data e ora."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    data_ora: datetime
+
+
+class PostAnnulla(BaseModel):
+    """Corpo di ``POST /post/{id}/annulla`` (R-36): la nota è obbligatoria."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    nota: str = Field(min_length=1)
+
+
 class CampagnaSchema(BaseModel):
     """La campagna come la legge l'operatore in Vedi campagna."""
 
@@ -116,6 +132,8 @@ class PostSchema(BaseModel):
     intervento_dal: datetime | None
     versione_corrente: VersionePostSchema | None
     versioni: list[VersionePostSchema]
+    # Gli interventi che l'operatore può fare adesso (R-16): valori di INTERVENTI.
+    interventi: list[str] = []
 
 
 class GruppoSchema(BaseModel):
@@ -229,6 +247,14 @@ class CampagnaTogliCanale(BaseModel):
 
     canale: str
     nota: str = Field(min_length=1)
+
+
+class CampagnaSospendi(BaseModel):
+    """Corpo facoltativo di ``POST /campagne/{id}/sospendi``: la nota (R-33)."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    nota: str | None = None
 
 
 class CampagnaRiattiva(BaseModel):

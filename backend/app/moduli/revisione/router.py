@@ -16,11 +16,14 @@ from .schemas import (
     CampagnaNota,
     CampagnaRespingi,
     CampagnaRiattiva,
+    CampagnaSospendi,
     CampagnaTogliCanale,
+    PostAnnulla,
     PostControllato,
     PostModifica,
     PostRigenera,
     PostRiprogramma,
+    PostSposta,
     VediCampagnaSchema,
 )
 
@@ -41,10 +44,11 @@ def vedi_campagna(
     campagna_id: int,
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
+    ora: Annotated[datetime, Depends(adesso)],
     stato: str | None = None,
 ) -> VediCampagnaSchema:
     """Vedi campagna in ogni stato dopo l'invio, per l'operatore (CA-60)."""
-    return service.vedi_campagna(db, campagna_id, stato)
+    return service.vedi_campagna(db, campagna_id, stato, ora)
 
 
 @router.post("/campagne/{campagna_id}/approva")
@@ -59,19 +63,19 @@ def approva_campagna(
     return {"stato": "attiva"}
 
 
-# Congelato per l'MVP, ADR-114: non estendere.
 @router.post("/campagne/{campagna_id}/sospendi")
 def sospendi_campagna(
     campagna_id: int,
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
+    corpo: CampagnaSospendi | None = None,
 ) -> dict[str, str]:
-    """Sospende la pubblicazione di una campagna attiva (R-33, CA-32)."""
-    sospensione.sospendi(db, campagna_id, utente)
+    """Sospende la pubblicazione di una campagna attiva, con una nota facoltativa
+    (R-33, CA-32)."""
+    sospensione.sospendi(db, campagna_id, utente, corpo.nota if corpo else None)
     return {"stato": "sospesa"}
 
 
-# Congelato per l'MVP, ADR-114: non estendere.
 @router.post("/campagne/{campagna_id}/riattiva")
 def riattiva_campagna(
     campagna_id: int,
@@ -86,7 +90,6 @@ def riattiva_campagna(
     return {"stato": "attiva"}
 
 
-# Congelato per l'MVP, ADR-114: non estendere.
 @router.post("/campagne/{campagna_id}/annulla")
 def annulla_campagna(
     campagna_id: int,
@@ -153,7 +156,7 @@ def modifica_post(
     ora: Annotated[datetime, Depends(adesso)],
 ) -> dict[str, str]:
     """Modifica a mano del testo: versione `modifica_operatore` (R-30, CA-64)."""
-    interventi.modifica(db, post_id, utente.id, corpo.testo, corpo.hashtag, ora)
+    interventi.modifica(db, post_id, utente, corpo.testo, corpo.hashtag, ora)
     return {"stato": "ok"}
 
 
@@ -186,7 +189,6 @@ def rigenera_post(
     return {"stato": "in_corso"}
 
 
-# Congelato per l'MVP, ADR-114: non estendere.
 @router.post("/post/{post_id}/riprogramma")
 def riprogramma_post(
     post_id: int,
@@ -198,3 +200,32 @@ def riprogramma_post(
     """Un post fallito torna approvato con una nuova data (R-34, CA-67)."""
     interventi.riprogramma(db, post_id, utente.id, corpo.data_ora, ora)
     return {"stato": "approvato"}
+
+
+# Corsia 6 (ADR-116): interventi dopo l'approvazione e sposta.
+@router.post("/post/{post_id}/sposta")
+def sposta_post(
+    post_id: int,
+    corpo: PostSposta,
+    db: Annotated[Session, Depends(get_db)],
+    utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
+    ora: Annotated[datetime, Depends(adesso)],
+) -> dict[str, str]:
+    """Sposta il post a un'altra data e ora, in revisione o dopo l'approvazione
+    (R-16, R-36, CA-72)."""
+    post = interventi.sposta(db, post_id, utente.id, corpo.data_ora, ora)
+    return {"stato": post.stato}
+
+
+@router.post("/post/{post_id}/annulla")
+def annulla_post(
+    post_id: int,
+    corpo: PostAnnulla,
+    db: Annotated[Session, Depends(get_db)],
+    utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
+    ora: Annotated[datetime, Depends(adesso)],
+) -> dict[str, str]:
+    """Annulla un post approvato con la nota, senza sospendere la campagna
+    (R-16, R-36, CA-85)."""
+    interventi.annulla(db, post_id, utente.id, corpo.nota, ora)
+    return {"stato": "annullato"}

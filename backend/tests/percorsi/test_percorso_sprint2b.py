@@ -500,17 +500,10 @@ def test_percorso_completo_sprint2b(
     assert decisione_tolto["esito"] == "canale_tolto"
     assert decisione_tolto["nota"] == "Instagram non è adatto."
 
-    # In attiva modifica, rigenera e spunta → rifiutate (CA-29).
+    # In attiva rigenera e spunta → rifiutate (CA-29); la modifica di un post che
+    # esce tra più di 15 minuti è ammessa (CA-84), quella entro il margine no.
     assert entra(OPERATORE)
     post_attivo = _post_piano(_vedi(api, a_id))[0]
-    assert (
-        api(
-            "POST",
-            f"/post/{post_attivo['post_id']}/modifica",
-            json={"testo": "Altro testo."},
-        ).status_code
-        == 409
-    )
     assert (
         api(
             "POST",

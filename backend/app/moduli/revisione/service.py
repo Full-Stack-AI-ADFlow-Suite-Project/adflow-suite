@@ -5,6 +5,7 @@ from datetime import datetime
 from sqlalchemy.orm import Session
 
 from app.core.errori import StatoNonValido
+from app.core.orologio import adesso as ora_adesso
 from app.moduli.accesso import service as accesso
 from app.moduli.campagne import service as campagne
 from app.moduli.contenuti import service as contenuti
@@ -48,7 +49,7 @@ def _versione(versione) -> VersionePostSchema:
     )
 
 
-def _post(post) -> PostSchema:
+def _post(post, stato_campagna: str, adesso: datetime) -> PostSchema:
     corrente = post.versione_corrente
     return PostSchema(
         post_id=post.id,
@@ -64,19 +65,27 @@ def _post(post) -> PostSchema:
         intervento_dal=post.intervento_dal,
         versione_corrente=_versione(corrente) if corrente is not None else None,
         versioni=[_versione(v) for v in post.versioni],
+        interventi=contenuti.interventi_ammessi(post, stato_campagna, adesso),
     )
 
 
 def vedi_campagna(
-    db: Session, campagna_id: int, stato: str | None = None
+    db: Session,
+    campagna_id: int,
+    stato: str | None = None,
+    adesso: datetime | None = None,
 ) -> VediCampagnaSchema:
     """Tutto ciò che serve alla pagina Vedi campagna (plan §3, spec §2.3).
 
     In ogni stato dopo l'invio: la campagna, il piano corrente se c'è, le
     uscite con i post dei canali, le foto che il piano non usa con il motivo
     e l'ultimo errore della generazione. Con ``stato`` i post si filtrano;
-    piano, uscite, foto ed errore restano quelli della campagna intera.
+    piano, uscite, foto ed errore restano quelli della campagna intera. Ogni
+    post dice gli ``interventi`` che l'operatore può fare ``adesso`` (R-16);
+    senza ``adesso`` vale l'ora di ``core.orologio``.
     """
+    if adesso is None:
+        adesso = ora_adesso()
     record = campagne.campagna(db, campagna_id)
     post = contenuti.post_della_campagna(db, campagna_id)
     usate = {
@@ -102,7 +111,10 @@ def vedi_campagna(
                 if uscita.gruppo_id in gruppi
                 else None
             ),
-            post=[_post(uno) for uno in per_uscita.get(uscita.id, [])],
+            post=[
+                _post(uno, record.stato, adesso)
+                for uno in per_uscita.get(uscita.id, [])
+            ],
         )
         for uscita in contenuti.uscite_della_campagna(db, campagna_id)
     ]

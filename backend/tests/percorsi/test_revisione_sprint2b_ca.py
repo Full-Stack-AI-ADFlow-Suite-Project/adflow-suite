@@ -359,7 +359,6 @@ def test_ca32_sospendi_riattiva_annulla_e_ca29_blocco_interventi(
         if stato == "sospesa":
             _ok(api, "POST", f"/campagne/{campagna}/sospendi")
         for azione, corpo in (
-            ("modifica", {"testo": "Testo nuovo", "hashtag": []}),
             ("rigenera", {"modalita": "totale"}),
             ("controllato", {"valore": True}),
         ):

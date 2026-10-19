@@ -1,17 +1,24 @@
-"""Interventi dell'operatore sul testo di un post (spec §3, R-30)."""
+"""Interventi dell'operatore sul post: quali sono ammessi e il testo (spec §3, R-16, R-30)."""
 
 from dataclasses import replace
-from datetime import datetime
+from datetime import datetime, timedelta
 
 from sqlalchemy.orm import Session
 
 from app.adapters.ai import PostAI, ottieni_ai
+from app.core.config import leggi_impostazioni
 from app.core.errori import DatiNonValidi, StatoNonValido
 from app.moduli.campagne import service as campagne
 
 from .domain import (
+    APPROVATO,
+    CAMBIA_FOTO,
     DA_APPROVARE,
     IMMAGINE_AI,
+    INTERVENTI,
+    INTERVENTI_AMMESSI,
+    MODIFICA,
+    RIGENERA,
     SCHEDE_CANALE,
     TIPI_INTERVENTO_IN_CORSO,
 )
@@ -37,6 +44,70 @@ MAX_RIGENERAZIONI = 3
 RIGENERAZIONI = ("rigenera_totale", "rigenera_da_proposta")
 
 
+def interventi_ammessi(post: Post, stato_campagna: str, adesso: datetime) -> list[str]:
+    """Gli interventi che l'operatore può fare adesso sul post (spec R-16).
+
+    Parte da ``INTERVENTI_AMMESSI`` per (stato della campagna, stato del post) e
+    toglie ciò che il singolo post non permette: nessun intervento con uno in
+    corso (R-31) né su un ``approvato`` che esce entro il margine; senza
+    versione corrente non si modifica, rigenera o cambia foto; un'immagine AI
+    non cambia foto; a cicli finiti non si rigenera (R-03). Ordine di ``INTERVENTI``.
+    """
+    ammessi = set(INTERVENTI_AMMESSI.get((stato_campagna, post.stato), ()))
+    if not ammessi or _intervento_attivo(post, adesso):
+        return []
+    margine = timedelta(minutes=leggi_impostazioni().margine_slot_minuti)
+    if post.stato == APPROVATO and post.data_ora < adesso + margine:
+        return []
+    if post.versione_corrente is None:
+        ammessi -= {MODIFICA, RIGENERA, CAMBIA_FOTO}
+    if post.riempitivo is not None:
+        ammessi -= {CAMBIA_FOTO}
+    if post.n_rigenerazioni_testo >= MAX_RIGENERAZIONI:
+        ammessi -= {RIGENERA}
+    return [uno for uno in INTERVENTI if uno in ammessi]
+
+
+def verifica_intervento(
+    db: Session, post: Post, intervento: str, adesso: datetime
+) -> "campagne.Campagna":
+    """Restituisce la campagna se l'intervento è ammesso sul post, altrimenti 409.
+
+    Il messaggio dice il primo motivo che vale, tra quelli che riguardano un
+    intervento che lo stato di campagna e post permetterebbe (brief-interventi §1.1).
+
+    Raises:
+        NonTrovato: la campagna del post non esiste.
+        StatoNonValido: l'intervento non è ammesso (409).
+    """
+    campagna = campagne.campagna(db, post.campagna_id)
+    if intervento in interventi_ammessi(post, campagna.stato, adesso):
+        return campagna
+    previsti = INTERVENTI_AMMESSI.get((campagna.stato, post.stato), frozenset())
+    margine = leggi_impostazioni().margine_slot_minuti
+    if intervento in previsti:
+        if _intervento_attivo(post, adesso):
+            raise StatoNonValido("Sul post c'è un intervento in corso.")
+        if post.stato == APPROVATO and post.data_ora < adesso + timedelta(
+            minutes=margine
+        ):
+            raise StatoNonValido(
+                f"Il post esce tra meno di {margine} minuti: non si tocca più."
+            )
+        if intervento == CAMBIA_FOTO and post.riempitivo is not None:
+            raise StatoNonValido("Un post con un'immagine AI non cambia foto.")
+        if intervento == RIGENERA and post.n_rigenerazioni_testo >= MAX_RIGENERAZIONI:
+            raise StatoNonValido(
+                "Le 3 rigenerazioni del testo sono finite: resta la modifica a mano."
+            )
+        if post.versione_corrente is None:
+            raise StatoNonValido("Il post non ha ancora un testo.")
+    raise StatoNonValido(
+        f"Questo intervento non è ammesso: la campagna è «{campagna.stato}», "
+        f"il post è «{post.stato}»."
+    )
+
+
 def _pulisci_hashtag(hashtag: list[str]) -> list[str]:
     """Gli hashtag come li salva l'AI: senza ``#``, senza spazi, senza voci vuote."""
     puliti = (uno.strip().lstrip("#").strip() for uno in hashtag)
@@ -51,25 +122,18 @@ def modifica(
     hashtag: list[str],
     adesso: datetime,
 ) -> VersionePost:
-    """La modifica a mano come nuova versione ``modifica_operatore`` (R-30, CA-64).
+    """La modifica a mano come nuova versione ``modifica_operatore`` (R-30, CA-64, CA-84).
 
-    La versione ha lo stesso gruppo di foto della corrente e passa dal
+    Ammessa dove ``interventi_ammessi()`` la dà: in revisione e, entro i
+    limiti di R-16, dopo l'approvazione (409 negli altri casi). La versione ha lo stesso gruppo di foto della corrente e passa dal
     validatore (R-09): con un blocco, o con testo e hashtag uguali a quelli
     correnti, non si salva niente. Non conta cicli (R-03), azzera la spunta e,
     non avendo blocchi, toglie a un post ``da_rivedere`` il suo indicatore.
     Gli avvisi si salvano con la versione e non fermano nulla.
     """
     record = _post(db, post_id)
-    campagna = campagne.campagna(db, record.campagna_id)
-    if campagna.stato != "in_revisione":
-        raise StatoNonValido("La campagna non è in revisione.")
-    if record.stato != DA_APPROVARE:
-        raise StatoNonValido("Il post non è da approvare.")
-    if _intervento_attivo(record, adesso):
-        raise StatoNonValido("Sul post c'è un intervento in corso.")
+    campagna = verifica_intervento(db, record, MODIFICA, adesso)
     corrente = record.versione_corrente
-    if corrente is None:
-        raise StatoNonValido("Il post non ha ancora un testo da modificare.")
 
     testo = testo.strip()
     hashtag = _pulisci_hashtag(hashtag)
@@ -116,23 +180,11 @@ def modifica(
     return nuova
 
 
-def _si_puo_intervenire(post: Post, campagna, adesso: datetime) -> bool:
-    """Campagna in revisione, post da approvare, nessun intervento in corso (R-16, R-31)."""
-    return (
-        campagna.stato == "in_revisione"
-        and post.stato == DA_APPROVARE
-        and not _intervento_attivo(post, adesso)
-    )
-
-
 def puo_rigenerare(db: Session, post_id: int, adesso: datetime) -> bool:
     """Vero se si può chiedere una rigenerazione del testo (R-03, R-31)."""
     record = _post(db, post_id)
     campagna = campagne.campagna(db, record.campagna_id)
-    return (
-        _si_puo_intervenire(record, campagna, adesso)
-        and record.n_rigenerazioni_testo < MAX_RIGENERAZIONI
-    )
+    return RIGENERA in interventi_ammessi(record, campagna.stato, adesso)
 
 
 def accendi_intervento(db: Session, post_id: int, tipo: str, adesso: datetime) -> Post:
@@ -147,7 +199,11 @@ def accendi_intervento(db: Session, post_id: int, tipo: str, adesso: datetime) -
                 "Il post non si può rigenerare: campagna non in revisione, post non "
                 "da approvare, intervento già in corso o 3 rigenerazioni già fatte."
             )
-    elif not _si_puo_intervenire(record, campagna, adesso):
+    elif not (
+        campagna.stato == "in_revisione"
+        and record.stato == DA_APPROVARE
+        and not _intervento_attivo(record, adesso)
+    ):
         raise StatoNonValido("Il post non si può modificare adesso.")
     record.intervento_in_corso = tipo
     record.intervento_dal = adesso
