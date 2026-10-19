@@ -41,6 +41,7 @@ def da_approvare(db: Session) -> list[CampagnaDaApprovare]:
         prima_uscita = min((p.data_ora for p in in_attesa), default=None)
         nota = campagne.ultima_nota(db, campagna.id)
         bottega = artigiani.profilo(db, campagna.profilo_id)
+        richiesta = campagne.richiesta_di(db, campagna.id)
         righe.append(
             CampagnaDaApprovare(
                 id=campagna.id,
@@ -61,6 +62,11 @@ def da_approvare(db: Session) -> list[CampagnaDaApprovare]:
                 entro_quando=prima_uscita
                 or datetime.combine(campagna.inizio, time.min, tzinfo=ROMA),
                 ultima_nota=nota.nota if nota is not None else None,
+                richiesta=(
+                    richiesta.stato
+                    if richiesta is not None and richiesta.stato != "decaduta"
+                    else None
+                ),
             )
         )
     righe.sort(key=lambda riga: riga.entro_quando)

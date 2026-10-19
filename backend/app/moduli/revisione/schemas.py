@@ -220,6 +220,8 @@ class CampagnaDaApprovare(BaseModel):
     conteggi: ConteggiPost | None = None
     entro_quando: datetime | None = None
     ultima_nota: str | None = None
+    # Richiesta all'artigiano (R-46): "aperta", "inviata" o None.
+    richiesta: str | None = None
 
 
 class CampagnaNota(BaseModel):
