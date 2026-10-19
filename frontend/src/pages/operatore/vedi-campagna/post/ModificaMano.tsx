@@ -15,16 +15,23 @@ import { ApiErrore } from "../../../../api/http";
 import { modificaPost } from "../../../../api/interventi";
 import type { PostVista } from "../../../../api/revisione";
 import { NOME_CANALE } from "../../campagna/util";
-import { conCancelletto, daCampoHashtag } from "./regole";
+import {
+  AVVISO_CAMPAGNA_APPROVATA,
+  conCancelletto,
+  daCampoHashtag,
+} from "./regole";
 
 export function ModificaMano({
   post,
   aperto,
+  approvata = false,
   chiudi,
   fatto,
 }: {
   post: PostVista;
   aperto: boolean;
+  /** Campagna attiva o sospesa: la versione nuova la approva l'operatore. */
+  approvata?: boolean;
   chiudi: () => void;
   fatto: () => void;
 }) {
@@ -82,6 +89,11 @@ export function ModificaMano({
         {errore && (
           <Alert color="red" variant="light" py="xs">
             {errore}
+          </Alert>
+        )}
+        {approvata && (
+          <Alert color="yellow" variant="light" py="xs">
+            {AVVISO_CAMPAGNA_APPROVATA}
           </Alert>
         )}
         <Group justify="flex-end">

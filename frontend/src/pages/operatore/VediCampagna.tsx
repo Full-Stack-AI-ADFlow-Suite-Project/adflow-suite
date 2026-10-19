@@ -28,6 +28,7 @@ import { Decidi } from "./campagna/Decidi";
 import { Materiali } from "./campagna/Materiali";
 import { PianoCard } from "./campagna/PianoCard";
 import { UscitaCard } from "./campagna/UscitaCard";
+import { AzioniCampagna } from "./vedi-campagna/decisioni/AzioniCampagna";
 import { CalendarioCampagnaView } from "../../components/CalendarioCampagnaView";
 import { coloreCampagna, data, giorni, NOME_CANALE } from "./campagna/util";
 
@@ -135,7 +136,8 @@ export function VediCampagna() {
           </div>
 
           <Decidi vista={vista} campagna={campagna} ricarica={carica} />
-          {/* Congelato per l'MVP, ADR-114: le azioni di AzioniCampagna (nota interna, togli canale, sospendi, riattiva, annulla) sono nascoste */}
+          <AzioniCampagna vista={vista} ricarica={carica} />
+          {/* Congelato per l'MVP, ADR-114: nota interna e togli canale restano nascosti */}
           <PianoCard
             piano={vista.piano}
             uscite={vista.uscite}

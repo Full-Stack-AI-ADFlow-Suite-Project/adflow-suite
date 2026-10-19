@@ -72,10 +72,15 @@ export async function togliCanale(
   });
 }
 
-/** POST /campagne/{id}/sospendi: attiva → sospesa (R-33). */
-export async function sospendi(campagnaId: number): Promise<void> {
-  if (USA_ESEMPI) return esempiDecisioni.sospendi(campagnaId);
-  await richiesta<unknown>("POST", `/campagne/${campagnaId}/sospendi`);
+/** POST /campagne/{id}/sospendi: attiva → sospesa, con una nota interna facoltativa (R-33). */
+export async function sospendi(
+  campagnaId: number,
+  nota: string | null,
+): Promise<void> {
+  if (USA_ESEMPI) return esempiDecisioni.sospendi(campagnaId, nota);
+  await richiesta<unknown>("POST", `/campagne/${campagnaId}/sospendi`, {
+    nota,
+  });
 }
 
 /**

@@ -1,4 +1,3 @@
-// Congelato per l'MVP, ADR-114: non estendere.
 /**
  * Riprogramma un post fallito (R-34): in campagna attiva o sospesa torna
  * approvato con una nuova data e ora, dentro il periodo e almeno 15 minuti da

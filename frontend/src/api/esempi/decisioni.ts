@@ -201,13 +201,13 @@ export const esempiDecisioni = {
   },
 
   /** CA-32: attiva → sospesa. */
-  async sospendi(campagnaId: number): Promise<void> {
+  async sospendi(campagnaId: number, nota: string | null): Promise<void> {
     operatore();
     const c = leggiCampagna(campagnaId);
     if (c.stato !== "attiva")
       throw new ApiErrore(409, "Si sospende solo una campagna attiva.");
     c.stato = "sospesa";
-    decisione(c, "sospesa");
+    decisione(c, "sospesa", { nota: nota?.trim() || null });
     salvaCampagna(c);
   },
 

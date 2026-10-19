@@ -1,4 +1,3 @@
-// Congelato per l'MVP, ADR-114: non estendere.
 /**
  * Sospendi, riattiva e annulla (R-33). Ognuna ha la sua conferma: sospendere
  * ferma le uscite, riattivare chiede cosa fare dei post in arretrato, annullare
@@ -12,6 +11,7 @@ import {
   Modal,
   Stack,
   Text,
+  Textarea,
 } from "@mantine/core";
 import { useState } from "react";
 
@@ -69,18 +69,30 @@ export function Sospendi({
   chiudi: () => void;
   fatto: () => void;
 }) {
+  const [nota, setNota] = useState("");
   const { occupato, errore, esegui } = useInvio(fatto);
   return (
     <Modal opened onClose={chiudi} title="Sospendi la campagna">
       <Stack gap="sm">
         <Text size="sm">
-          Nessun post esce finché non la riattivi. Il contenuto non cambia.
+          Nessun post esce finché non la riattivi. L'artigiano vede
+          "Pubblicazioni ferme".
         </Text>
+        <Textarea
+          label="Nota interna (facoltativa)"
+          description="La leggono solo gli operatori."
+          value={nota}
+          onChange={(e) => setNota(e.currentTarget.value)}
+          autosize
+          minRows={2}
+        />
         <Azioni
           occupato={occupato}
           errore={errore}
           chiudi={chiudi}
-          conferma={() => void esegui(() => sospendi(campagnaId))}
+          conferma={() =>
+            void esegui(() => sospendi(campagnaId, nota.trim() || null))
+          }
           testo="Sospendi"
         />
       </Stack>

@@ -337,7 +337,7 @@ export function Decidi({
                 }.`
               : "Nessun post in attesa."
             : "Nessun post esce finché non la riattivi."}{" "}
-          Il contenuto non si modifica più.
+          Sui post che escono tra almeno 15 minuti puoi ancora intervenire.
         </Text>
         <Conti vista={vista} />
       </>
