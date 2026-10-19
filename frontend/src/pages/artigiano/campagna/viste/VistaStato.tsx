@@ -117,9 +117,12 @@ function RiepilogoLettura({ campagna }: { campagna: CampagnaDettaglio }) {
 export function VistaStato({
   campagna,
   onNuovaCampagna,
+  onRisposta,
 }: {
   campagna: CampagnaDettaglio;
   onNuovaCampagna: () => void;
+  /** Dopo la risposta alla richiesta del consorzio: l'elenco si rilegge. */
+  onRisposta?: () => void;
 }) {
   const pubblicazione = `Pubblicazione dal ${new Date(
     campagna.inizio + "T00:00:00",
@@ -181,7 +184,11 @@ export function VistaStato({
       case "in_revisione":
         return (
           <>
-            <RichiestaConsorzio key={campagna.id} campagna={campagna} />
+            <RichiestaConsorzio
+              key={campagna.id}
+              campagna={campagna}
+              onRisposta={onRisposta}
+            />
             <Alert color="verde" variant="light" mb="md">
               I post sono pronti e li sta controllando un operatore. Ti
               scriviamo per email appena c'è una decisione. La campagna parte il{" "}

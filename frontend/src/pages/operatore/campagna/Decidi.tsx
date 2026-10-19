@@ -317,7 +317,8 @@ export function Decidi({
             </Title>
             <Text size="sm" c="dimmed" mt={4}>
               La campagna diventa attiva e i post escono da soli alle date
-              stabilite. Dopo, il contenuto non si modifica più.
+              stabilite. Dopo l'approvazione puoi ancora intervenire sui post
+              che escono tra almeno 15 minuti.
             </Text>
             <Group mt="sm">
               <Button

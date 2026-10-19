@@ -167,8 +167,10 @@ function RigaFoto({
 
 export function RichiestaConsorzio({
   campagna: iniziale,
+  onRisposta,
 }: {
   campagna: CampagnaDettaglio;
+  onRisposta?: () => void;
 }) {
   const [campagna, setCampagna] = useState(iniziale);
   const [dichiarazione, setDichiarazione] = useState(false);
@@ -199,6 +201,7 @@ export function RichiestaConsorzio({
     try {
       await inviaRisposta(campagna.id, risposta.trim() || null);
       await rileggi();
+      onRisposta?.();
     } catch (e) {
       setErrore(
         e instanceof ApiErrore ? e.message : "Non sono riuscito a inviare.",
