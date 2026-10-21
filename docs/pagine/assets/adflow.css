@@ -2783,3 +2783,110 @@ textarea.form-input {
 .content-wrapper [id] {
   scroll-margin-top: 88px;
 }
+
+/* Corsia 7 (ADR-117): componenti nuovi, con i colori e i caratteri di oggi.
+   Il restyling è un lavoro a parte (T3-79). */
+.status-pill.ig {
+  background: var(--ig-pink-light);
+  color: var(--ig-pink);
+  border: 1px solid #fbcfe8;
+}
+
+/* Calendario settimanale: 7 colonne da lunedì a domenica, fatto a mano (E1) */
+.cal-settimana {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+}
+.cal-giorno {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  padding: 8px;
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.cal-giorno.oggi {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-light);
+}
+.cal-testa {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+.cal-testa b {
+  color: var(--text-main);
+}
+.cal-post {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  background: var(--bg-surface-subtle);
+  font-size: 12px;
+  color: var(--text-secondary);
+}
+.cal-post:hover {
+  border-color: var(--primary-border);
+}
+.cal-post b {
+  color: var(--text-main);
+  font-size: 12.5px;
+}
+.cal-post .foto.piccola {
+  width: 100%;
+  height: 56px;
+}
+.cal-post .status-pill {
+  align-self: flex-start;
+}
+@media (max-width: 768px) {
+  .cal-settimana {
+    grid-template-columns: 1fr;
+  }
+  .cal-giorno {
+    min-height: 0;
+  }
+}
+
+/* Tabella con altezza fissa, scorrimento proprio e intestazione ferma */
+.riquadro-scorrevole {
+  max-height: 420px;
+  overflow: auto;
+}
+.riquadro-scorrevole thead th {
+  position: sticky;
+  top: 0;
+  background: var(--bg-surface);
+  z-index: 1;
+}
+.riquadro-scorrevole tbody tr {
+  cursor: pointer;
+}
+.riquadro-scorrevole tbody tr:hover {
+  background: var(--bg-surface-hover);
+}
+
+/* Archivio foto: miniature a griglia, con l'etichetta delle immagini AI */
+.foto.archivio {
+  width: 100%;
+  height: 100px;
+}
+.etichetta-ai {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 10.5px;
+  font-family: "Inter", sans-serif;
+}
