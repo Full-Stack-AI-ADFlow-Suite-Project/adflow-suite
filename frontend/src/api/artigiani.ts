@@ -1,9 +1,12 @@
 import { ApiErrore, richiesta } from "./http";
+import type { CampagnaDaApprovare } from "./decisioni";
 import { creaArtigianoEsempio } from "./esempi/nuovi-artigiani";
 import {
   canaliEsempio,
+  elencoArtigianiEsempio,
   leggiProfiloEsempio,
   salvaProfiloEsempio,
+  schedaArtigianoEsempio,
   USA_ESEMPI,
 } from "./esempi/artigiani";
 
@@ -22,6 +25,97 @@ export function creaArtigiano(dati: NuovoArtigiano): Promise<ArtigianoCreato> {
   return USA_ESEMPI
     ? creaArtigianoEsempio(corpo)
     : richiesta<ArtigianoCreato>("POST", "/artigiani", corpo);
+}
+
+/** Una riga di GET /artigiani (revisione): la bottega con la sua situazione. */
+export interface ArtigianoElenco {
+  id: number;
+  email: string;
+  /** Il referente dell'account (utente.nome). */
+  nome: string;
+  attivo: boolean;
+  profilo_id: number | null;
+  /** Nullo: l'artigiano non ha ancora compilato il profilo. */
+  bottega: string | null;
+  citta: string | null;
+  tipo_prodotto: string | null;
+  canali_collegati: string[];
+  n_da_approvare: number;
+  n_in_corso: number;
+  /** L'«entro quando» più vicino tra le campagne da approvare (R-38). */
+  prossima_scadenza: string | null;
+  prossima_campagna_id: number | null;
+}
+
+/** Una campagna nelle sezioni «in corso», «chiuse» e bozza della scheda. */
+export interface CampagnaSezione {
+  id: number;
+  titolo: string;
+  stato: string;
+  inizio: string;
+  fine: string;
+  canali: string[] | null;
+  inviata_il: string | null;
+  chiusa_il: string | null;
+  n_post: number;
+  n_pubblicati: number;
+  n_falliti: number;
+  n_foto: number;
+}
+
+/** ProfiloArtigiano di schemas.py: il profilo in sola lettura nella scheda. */
+export interface ProfiloArtigiano {
+  id: number;
+  /** Il nome della bottega. */
+  nome: string;
+  referente: string;
+  citta: string;
+  tipo_prodotto: string;
+  clienti_ideali: string;
+  obiettivo: string;
+  canali: string[];
+  anni_attivita: number | null;
+  sito: string | null;
+  storia: string | null;
+  origine: string | null;
+  valori: string[] | null;
+  gamma: string | null;
+  fascia_prezzo: string | null;
+  stagionalita: string | null;
+  zona: string | null;
+  tono: string[] | null;
+  cortesia: string | null;
+  vincoli: string | null;
+  frequenza: string | null;
+  orari: Record<string, unknown> | unknown[] | null;
+  social_esistenti: Record<string, unknown> | null;
+  foto_policy: Record<string, unknown> | null;
+  eventi_ricorrenti: Record<string, unknown>[] | null;
+  chiusure: string | null;
+  aggiornato_il: string;
+}
+
+/** Risposta di GET /artigiani/{id}: il dettaglio per sezioni (plan §3). */
+export interface SchedaArtigiano {
+  artigiano: { id: number; email: string; nome: string; attivo: boolean };
+  profilo: ProfiloArtigiano | null;
+  canali_collegati: string[];
+  bozza: CampagnaSezione | null;
+  da_approvare: CampagnaDaApprovare[];
+  in_corso: CampagnaSezione[];
+  /** Le ultime 3 campagne chiuse; il totale è in `totale_chiuse`. */
+  chiuse: CampagnaSezione[];
+  totale_chiuse: number;
+}
+
+export function elencoArtigiani(): Promise<ArtigianoElenco[]> {
+  if (USA_ESEMPI) return elencoArtigianiEsempio();
+  return richiesta<ArtigianoElenco[]>("GET", "/artigiani");
+}
+
+export function schedaArtigiano(utenteId: number): Promise<SchedaArtigiano> {
+  if (USA_ESEMPI) return schedaArtigianoEsempio(utenteId);
+  return richiesta<SchedaArtigiano>("GET", `/artigiani/${utenteId}`);
 }
 
 export interface CanaleCollegato {
@@ -197,14 +291,14 @@ export const SCELTE = {
   ]),
 };
 export const PASSI = [
-  "La bottega",
-  "La tua storia",
+  "Anagrafica",
+  "Storia e identità",
   "Prodotti e valori",
-  "Clienti e obiettivo",
-  "Come parlare",
+  "Pubblico e obiettivi",
+  "Stile comunicativo",
   "Canali e frequenza",
-  "Le fotografie",
-  "Eventi e chiusure",
+  "Materiale fotografico",
+  "Eventi e orari",
   "Riepilogo",
 ];
 export const PASSO_CAMPO: Record<string, number> = {

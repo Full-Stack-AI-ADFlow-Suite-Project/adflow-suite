@@ -9,6 +9,7 @@ import type { ReactNode } from "react";
 import type { Ruolo } from "../api/accesso";
 import { useAuth } from "../contesto-auth";
 import stile from "./Guscio.module.css";
+import { LogoAdFlow } from "./LogoAdFlow";
 
 export interface VoceNav {
   label: string;
@@ -33,6 +34,12 @@ function vociDelRuolo(ruolo: Ruolo, percorso: string): VoceNav[] {
     ];
   return [
     {
+      label: "Artigiani",
+      to: "/artigiani",
+      // La scheda dell'artigiano si apre da qui: la voce resta accesa.
+      attivo: percorso === "/artigiani" || percorso.startsWith("/artigiani/"),
+    },
+    {
       label: "Da approvare",
       to: "/da-approvare",
       // Vedi campagna si apre da qui: la voce resta accesa.
@@ -47,6 +54,14 @@ function vociDelRuolo(ruolo: Ruolo, percorso: string): VoceNav[] {
 }
 
 const ICONE: Record<string, ReactNode> = {
+  Artigiani: (
+    <>
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </>
+  ),
   "Da approvare": (
     <>
       <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
@@ -105,7 +120,7 @@ function Voce({ voce }: { voce: VoceNav }) {
 export function Guscio({
   titolo,
   nav,
-  largo = 720,
+  largo = 1040,
   children,
 }: {
   titolo: string;
@@ -130,21 +145,7 @@ export function Guscio({
       <aside className={stile.barra}>
         <Link className={stile.marca} to="/">
           <span className={stile.marcaIcona}>
-            <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <polygon points="12 2 2 7 12 12 22 7 12 2" />
-              <polyline points="2 17 12 22 22 17" />
-              <polyline points="2 12 12 17 22 12" />
-            </svg>
+            <LogoAdFlow size={22} />
           </span>
           <span className={stile.marcaTesto}>
             <b>AdFlow</b>

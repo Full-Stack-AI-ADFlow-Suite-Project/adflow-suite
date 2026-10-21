@@ -1,14 +1,14 @@
 /**
  * Contesto della sessione: utente corrente, entrata e uscita.
  * Le rotte per ruolo (spec R-29): artigiano → Campagna,
- * operatore e admin → campagne da approvare.
+ * operatore e admin → elenco degli artigiani.
  */
 import { createContext, useContext } from "react";
 
 import type { Ruolo, UtentePubblico } from "./api/accesso";
 
 export function paginaIniziale(ruolo: Ruolo): string {
-  return ruolo === "artigiano" ? "/campagna" : "/da-approvare";
+  return ruolo === "artigiano" ? "/campagna" : "/artigiani";
 }
 
 export interface Auth {

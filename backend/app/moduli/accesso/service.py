@@ -371,6 +371,20 @@ def operatori(db: Session) -> list[Utente]:
     )
 
 
+def artigiani(db: Session) -> list[Utente]:
+    """Gli utenti con ruolo artigiano, in ordine di id.
+
+    Usata da ``revisione`` per l'elenco delle botteghe dell'operatore
+    (plan §3). Comprende anche gli account non attivi: l'elenco li
+    distingue con il flag ``attivo``.
+    """
+    return list(
+        db.scalars(
+            select(Utente).where(Utente.ruolo == "artigiano").order_by(Utente.id)
+        )
+    )
+
+
 def crea_artigiano(db: Session, email: str, nome: str) -> tuple[Utente, str]:
     """Crea l'utente artigiano: password casuale restituita solo al chiamante (R-37).
 
