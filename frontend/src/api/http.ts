@@ -58,12 +58,7 @@ export async function richiesta<T>(
 
   if (risposta.status === 401) {
     if (opzioni.gestisci401 !== false) gestore401?.();
-    const dati: unknown = await risposta.json().catch(() => null);
-    const dettaglio = leggiDettaglio(dati);
-    throw new ApiErrore(
-      401,
-      dettaglio === "Errore inatteso." ? "Sessione scaduta." : dettaglio,
-    );
+    throw new ApiErrore(401, "Sessione scaduta.");
   }
   if (risposta.status === 204) return undefined as T;
   if (!risposta.ok) {

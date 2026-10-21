@@ -9,7 +9,7 @@ import { useLocation, useNavigate } from "react-router-dom";
 import {
   Alert,
   Button,
-  Checkbox,
+  Container,
   Paper,
   PasswordInput,
   Stack,
@@ -22,23 +22,14 @@ import { paginaIniziale, useAuth } from "../contesto-auth";
 import { consorzio } from "../api/consorzio";
 import type { Consorzio } from "../api/accesso";
 import { ApiErrore } from "../api/http";
-import { LogoAdFlow } from "../components/LogoAdFlow";
-import stile from "./Accesso.module.css";
-
-const CHIAVE_RICORDAMI = "adflow_ricorda_email";
 
 export function Accesso() {
   const { utente, sessioneScaduta, entra } = useAuth();
   const naviga = useNavigate();
   const posizione = useLocation();
   const [contatto, setContatto] = useState<Consorzio | null>(null);
-  const [email, setEmail] = useState(
-    () => localStorage.getItem(CHIAVE_RICORDAMI) ?? "",
-  );
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [ricordami, setRicordami] = useState(() =>
-    Boolean(localStorage.getItem(CHIAVE_RICORDAMI)),
-  );
   const [errore, setErrore] = useState("");
   const [inCorso, setInCorso] = useState(false);
 
@@ -62,8 +53,6 @@ export function Accesso() {
     setErrore("");
     setInCorso(true);
     try {
-      if (ricordami) localStorage.setItem(CHIAVE_RICORDAMI, email.trim());
-      else localStorage.removeItem(CHIAVE_RICORDAMI);
       await entra(email, password);
     } catch (e) {
       setErrore(e instanceof ApiErrore ? e.dettaglio : "Errore inatteso.");
@@ -74,163 +63,54 @@ export function Accesso() {
   };
 
   return (
-    <div className={stile.pagina}>
-      <section className={stile.latoBrand} aria-label="Presentazione AdFlow">
-        <div className={stile.marca}>
-          <span className={stile.marcaIcona}>
-            <LogoAdFlow size={24} />
-          </span>
-          <span className={stile.marcaTesto}>
-            <b>AdFlow</b>
-            <span>Suite · Consorzio artigiani</span>
-          </span>
-        </div>
-
-        <div className={stile.hero}>
-          <div className={stile.badgeBrand}>Piattaforma editoriale</div>
-          <h1 className={stile.titoloHero}>
-            La comunicazione social della tua bottega, curata insieme al
-            consorzio.
-          </h1>
-          <p className={stile.sottotitoloHero}>
-            Pianificazione dei contenuti, revisione consortile e pubblicazione
-            programmata su Facebook e Instagram.
-          </p>
-          <div className={stile.pillole}>
-            <span className={stile.pillola}>
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
-              </svg>
-              <span>Identità d'impresa</span>
-            </span>
-            <span className={stile.pillola}>
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <rect x="3" y="3" width="18" height="18" rx="3" />
-                <circle cx="8.5" cy="8.5" r="1.5" />
-                <path d="M21 15l-5-5L5 21" />
-              </svg>
-              <span>Redazione assistita</span>
-            </span>
-            <span className={stile.pillola}>
-              <svg
-                viewBox="0 0 24 24"
-                fill="none"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <rect x="3" y="4" width="18" height="18" rx="2" />
-                <line x1="16" y1="2" x2="16" y2="6" />
-                <line x1="8" y1="2" x2="8" y2="6" />
-                <line x1="3" y1="10" x2="21" y2="10" />
-              </svg>
-              <span>Pianificazione social</span>
-            </span>
-          </div>
-        </div>
-      </section>
-
-      <main className={stile.latoForm}>
-        <Paper className={stile.card}>
-          <div className={stile.cardHeader}>
-            <span className={stile.cardLogo}>
-              <LogoAdFlow size={24} />
-            </span>
-            <div>
-              <Title order={3} size="h4">
-                AdFlow
-              </Title>
-              <Text size="xs" c="dimmed" fw={500}>
-                Suite · Consorzio artigiani
-              </Text>
-            </div>
-          </div>
-
-          <Title order={2} size="h3">
-            Accedi alla piattaforma
-          </Title>
-          <Text size="sm" c="dimmed" mt={4}>
-            Inserisci le credenziali assegnate dal consorzio per continuare.
+    <Container size={420} py="xl">
+      <Paper withBorder radius="md" p="xl" maw={380} mx="auto" mt="10vh">
+        <Stack gap="xs" align="center">
+          <Title order={2}>AdFlow</Title>
+          <Text size="xs" c="dimmed" ff="monospace" tt="uppercase" lts={1}>
+            Consorzio artigiani
           </Text>
-
-          {sessioneScaduta && (
-            <Alert color="verde" variant="light" mt="md">
-              La sessione è scaduta. Entra di nuovo per continuare.
-            </Alert>
-          )}
-          <form onSubmit={invia}>
-            <Stack mt="md" gap="sm">
-              <TextInput
-                label="Email"
-                name="email"
-                type="email"
-                required
-                autoComplete="username"
-                placeholder="nome@bottega.it"
-                value={email}
-                onChange={(e) => setEmail(e.currentTarget.value)}
-              />
-              <PasswordInput
-                label="Password"
-                name="password"
-                required
-                autoComplete="current-password"
-                placeholder="La tua password"
-                value={password}
-                onChange={(e) => setPassword(e.currentTarget.value)}
-              />
-              <Checkbox
-                size="xs"
-                color="verde"
-                checked={ricordami}
-                onChange={(e) => setRicordami(e.currentTarget.checked)}
-                label="Ricordami su questo dispositivo"
-              />
-              <Button
-                type="submit"
-                color="verde"
-                fullWidth
-                mt={2}
-                loading={inCorso}
-              >
-                Entra nella piattaforma →
-              </Button>
-            </Stack>
-          </form>
-          {errore && (
-            <Alert color="red" variant="light" mt="md">
-              {errore}
-            </Alert>
-          )}
-          <Text size="xs" c="dimmed" ta="center" mt="md" lh={1.5}>
-            Password dimenticata? Per il ripristino delle credenziali rivolgiti
-            alla segreteria del consorzio.
-            {contatto && (contatto.telefono || contatto.email)
-              ? ` ${[
-                  contatto.telefono ? `Tel. ${contatto.telefono}` : "",
-                  contatto.email,
-                ]
-                  .filter(Boolean)
-                  .join(" · ")}`
-              : ""}
+        </Stack>
+        {sessioneScaduta && (
+          <Alert color="verde" variant="light" mt="md">
+            La sessione è scaduta. Entra di nuovo per continuare.
+          </Alert>
+        )}
+        <form onSubmit={invia}>
+          <Stack mt="lg" gap="sm">
+            <TextInput
+              label="Email"
+              type="email"
+              required
+              autoComplete="username"
+              placeholder="nome@bottega.it"
+              value={email}
+              onChange={(e) => setEmail(e.currentTarget.value)}
+            />
+            <PasswordInput
+              label="Password"
+              required
+              autoComplete="current-password"
+              value={password}
+              onChange={(e) => setPassword(e.currentTarget.value)}
+            />
+            <Button type="submit" color="verde" fullWidth loading={inCorso}>
+              Entra
+            </Button>
+          </Stack>
+        </form>
+        {errore && (
+          <Alert color="red" variant="light" mt="md">
+            {errore}
+          </Alert>
+        )}
+        {contatto && (
+          <Text size="xs" c="dimmed" ta="center" mt="lg" lh={1.5}>
+            Hai dimenticato la password? Contatta il consorzio: ti ridà
+            l'accesso un operatore. Tel. {contatto.telefono} · {contatto.email}
           </Text>
-        </Paper>
-      </main>
-    </div>
+        )}
+      </Paper>
+    </Container>
   );
 }

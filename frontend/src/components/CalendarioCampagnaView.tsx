@@ -22,23 +22,12 @@ import {
 
 import { ApiErrore } from "../api/http";
 import { calendario, type CalendarioCampagna } from "../api/campagne";
-import { BadgeCanale, EtichettaCanale } from "./IconaCanale";
 
 export interface CalendarioCampagnaViewProps {
   campagnaId: number;
   stato: string;
   ruolo?: "artigiano" | "operatore";
 }
-
-type EsitoCalendario =
-  | { campagnaId: number; stato: string; tipo: "non-disponibile" }
-  | { campagnaId: number; stato: string; tipo: "errore"; messaggio: string }
-  | {
-      campagnaId: number;
-      stato: string;
-      tipo: "dati";
-      dati: CalendarioCampagna;
-    };
 
 const GIORNI_SETT = [
   "Domenica",
@@ -98,7 +87,10 @@ export function CalendarioCampagnaView({
   const eApprovata = ["attiva", "sospesa", "conclusa", "annullata"].includes(
     stato,
   );
-  const [esito, setEsito] = useState<EsitoCalendario | null>(null);
+  const [dati, setDati] = useState<CalendarioCampagna | null>(null);
+  const [caricamento, setCaricamento] = useState(eApprovata);
+  const [errore, setErrore] = useState<string | null>(null);
+  const [nonDisponibile, setNonDisponibile] = useState(false);
 
   useEffect(() => {
     if (!eApprovata) return;
@@ -108,44 +100,32 @@ export function CalendarioCampagnaView({
     calendario(campagnaId)
       .then((risp) => {
         if (attivo) {
-          setEsito({ campagnaId, stato, tipo: "dati", dati: risp });
+          setDati(risp);
+          setCaricamento(false);
         }
       })
       .catch((err) => {
         if (!attivo) return;
+        setCaricamento(false);
         if (err instanceof ApiErrore && err.stato === 409) {
-          setEsito({ campagnaId, stato, tipo: "non-disponibile" });
+          setNonDisponibile(true);
         } else if (err instanceof ApiErrore && err.stato === 404) {
-          setEsito({
-            campagnaId,
-            stato,
-            tipo: "errore",
-            messaggio: "Campagna non trovata.",
-          });
+          setErrore("Campagna non trovata.");
         } else {
-          setEsito({
-            campagnaId,
-            stato,
-            tipo: "errore",
-            messaggio:
-              err instanceof Error
-                ? err.message
-                : "Errore caricamento calendario",
-          });
+          setErrore(
+            err instanceof Error
+              ? err.message
+              : "Errore caricamento calendario",
+          );
         }
       });
 
     return () => {
       attivo = false;
     };
-  }, [campagnaId, eApprovata, stato]);
+  }, [campagnaId, eApprovata]);
 
-  if (
-    !eApprovata ||
-    (esito?.campagnaId === campagnaId &&
-      esito.stato === stato &&
-      esito.tipo === "non-disponibile")
-  ) {
+  if (!eApprovata || nonDisponibile) {
     return (
       <Paper withBorder radius="md" p="lg" style={{ borderStyle: "dashed" }}>
         <Text c="dimmed" size="sm">
@@ -157,8 +137,7 @@ export function CalendarioCampagnaView({
     );
   }
 
-  // Non mostra dati/errori della campagna precedente durante il cambio ID.
-  if (!esito || esito.campagnaId !== campagnaId || esito.stato !== stato) {
+  if (caricamento) {
     return (
       <Center py="xl">
         <Loader color="verde" />
@@ -166,16 +145,15 @@ export function CalendarioCampagnaView({
     );
   }
 
-  if (esito.tipo === "errore") {
+  if (errore) {
     return (
       <Alert color="red" variant="light">
-        {esito.messaggio}
+        {errore}
       </Alert>
     );
   }
 
-  if (esito.tipo !== "dati") return null;
-  const { dati } = esito;
+  if (!dati) return null;
 
   const tuttiPost = dati.giorni.flatMap((g) => g.post);
   const nTotali = tuttiPost.length;
@@ -240,19 +218,10 @@ export function CalendarioCampagnaView({
             <Text size="sm" fw={600}>
               Canali e foto:
             </Text>
-            <Group gap="sm" wrap="wrap">
-              <Text size="sm">
-                <EtichettaCanale canale="facebook" size={15} />{" "}
-                <b>{nFacebook}</b>
-              </Text>
-              <Text size="sm">
-                <EtichettaCanale canale="instagram" size={15} />{" "}
-                <b>{nInstagram}</b>
-              </Text>
-              <Text size="sm">
-                Con le tue foto <b>{nFoto}</b> · Con immagine AI <b>{nAI}</b>
-              </Text>
-            </Group>
+            <Text size="sm">
+              Facebook <b>{nFacebook}</b> · Instagram <b>{nInstagram}</b> · Con
+              le tue foto <b>{nFoto}</b> · Con immagine AI <b>{nAI}</b>
+            </Text>
           </Group>
         </Stack>
       </Paper>
@@ -360,9 +329,18 @@ export function CalendarioCampagnaView({
                     <Stack gap={4} style={{ flex: 1, minWidth: 0 }}>
                       <Group gap="xs" wrap="wrap">
                         <Text size="xs" fw={700} ff="monospace">
-                          ore {p.ora}
+                          ore {p.ora} ·{" "}
+                          {p.canale === "facebook" ? "Facebook" : "Instagram"}
                         </Text>
-                        <BadgeCanale canale={p.canale} size="xs" />
+                        {p.canale === "facebook" ? (
+                          <Badge size="xs" color="blue">
+                            Facebook
+                          </Badge>
+                        ) : (
+                          <Badge size="xs" color="grape">
+                            Instagram
+                          </Badge>
+                        )}
                         {ruolo === "operatore" ? (
                           p.stato === "pubblicato" ? (
                             <Badge size="xs" color="verde">

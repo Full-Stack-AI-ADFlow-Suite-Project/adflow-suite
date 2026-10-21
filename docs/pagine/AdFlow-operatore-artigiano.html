@@ -128,17 +128,15 @@
         </div>
       </div>
 
-      <!-- Anagrafica e social nella colonna larga, situazione a fianco -->
-      <div class="griglia-2-1">
+      <!-- Anagrafica · account social · situazione -->
+      <div class="griglia-card">
 
-        <div style="display: flex; flex-direction: column; gap: 20px;">
         <div class="surface-card">
           <div class="surface-card-header">
             <div>
               <h3 class="surface-card-title">Dati di iscrizione</h3>
               <span class="sotto">Anagrafica · gestita dall'operatore</span>
             </div>
-            <button type="button" class="btn btn-secondary btn-sm">Modifica anagrafica</button>
           </div>
           <div class="surface-card-body">
             <dl class="dati-lista">
@@ -151,6 +149,8 @@
               <div><dt>Telefono</dt><dd>0172 000 000</dd></div>
               <div><dt>Iscrizione</dt><dd><span class="status-pill success piccola">attiva</span> dal 14/03/2019</dd></div>
             </dl>
+            <button type="button" class="btn btn-secondary btn-sm" style="margin-top: 14px;">Modifica anagrafica</button>
+            <p class="nota-card">Dati fissi: li modifica solo l'operatore. Oggi inseriti a mano; in futuro importati dal sito del consorzio, dove l'artigiano è già iscritto (da decidere, ADR-38).</p>
           </div>
         </div>
 
@@ -181,9 +181,8 @@
               <button type="button" class="btn btn-primary btn-sm" style="flex: 1;">Ricollega Instagram</button>
               <button type="button" class="btn btn-secondary btn-sm">Ricollega Facebook</button>
             </div>
-            <p class="nota-card" style="margin-top: 0;">Si collega una volta, insieme all'artigiano. Se il permesso scade, alla prima pubblicazione su quel canale la campagna passa a "sospesa" (ADR-57, R-07).</p>
+            <p class="nota-card" style="margin-top: 0;">Si collega una volta, insieme all'artigiano. Senza account collegato l'artigiano non può scegliere quel canale in una campagna (ADR-57). Se il permesso scade dopo l'invio, alla prima pubblicazione su quel canale la campagna passa a "sospesa" (R-07). Nello sprint 1 gli account arrivano dal seed.</p>
           </div>
-        </div>
         </div>
 
         <div class="surface-card">
@@ -229,7 +228,7 @@
           </div>
 
           <h4 class="titolo-sezione" id="da-approvare" style="font-size: 15px; margin-bottom: 10px;">Da approvare <span class="status-pill neutral piccola">1</span></h4>
-          <div class="riga-campagna">
+          <div class="surface-card riga-campagna bordo-attn" style="margin-bottom: 22px;">
             <div>
               <div class="titolo">
                 <h3>Campagna Ottobre 2026</h3>
@@ -243,14 +242,12 @@
                 <span>6 foto in 3 gruppi · 7 dall'archivio</span>
                 <span>Inviata il 25/09/2026</span>
               </div>
-              <div class="dati" style="margin-bottom: 8px;">
+              <div class="dati">
+                <span class="status-pill neutral">26 post · 13 per canale</span>
                 <span class="status-pill review">26 da approvare</span>
                 <span class="status-pill danger">1 da rivedere</span>
-              </div>
-              <div class="dati">
-                <span>26 post · 13 per canale</span>
-                <span>5 rigenerazioni del testo usate</span>
-                <span>5 riempitivi su Facebook, oltre uno ogni due foto nuove: 2 immagini chieste dall'artigiano, 2 foto già uscite, 1 cartolina</span>
+                <span class="status-pill review" style="white-space: normal;">5 riempitivi su Facebook, oltre uno ogni due foto nuove: 2 immagini chieste dall'artigiano, 2 foto già uscite, 1 cartolina</span>
+                <span class="status-pill neutral">5 rigenerazioni del testo usate</span>
               </div>
               <p class="citazione">"A ottobre voglio spingere i regali su misura per Natale, ho anche il mercatino il weekend del 6-7 dicembre da preparare."</p>
               <div class="riquadro-nota"><strong>Entro quando:</strong> primo post da approvare giovedì 01/10 alle 18:30 · promemoria il 29/09</div>
@@ -262,7 +259,7 @@
           </div>
 
           <h4 class="titolo-sezione" id="in-corso" style="font-size: 15px; margin-bottom: 10px;">In corso <span class="status-pill neutral piccola">1</span></h4>
-          <div class="riga-campagna">
+          <div class="surface-card riga-campagna bordo-ok" style="margin-bottom: 22px;">
             <div>
               <div class="titolo">
                 <h3>Campagna Settembre 2026</h3>
@@ -275,12 +272,11 @@
                 <span>4 foto in 2 gruppi · 8 dall'archivio</span>
                 <span>Approvata il 29/08/2026</span>
               </div>
-              <div class="dati" style="margin-bottom: 8px;">
-                <span class="status-pill success">10 pubblicati</span>
-                <span class="status-pill danger">1 fallito</span>
-              </div>
               <div class="dati">
-                <span>12 post in totale · 1 approvato in attesa</span>
+                <span class="status-pill neutral">12 post</span>
+                <span class="status-pill success">10 pubblicati</span>
+                <span class="status-pill neutral">1 approvato</span>
+                <span class="status-pill danger">1 fallito</span>
               </div>
               <div class="riquadro-nota"><strong>Prossima pubblicazione:</strong> 29/09 ore 18:30 · Facebook</div>
               <div class="riquadro-nota">Post non modificabili dopo l'approvazione: se uno non va, si sospende o si annulla la campagna</div>
@@ -292,7 +288,7 @@
 
           <h4 class="titolo-sezione" id="storico" style="font-size: 15px; margin-bottom: 10px;">Storico <span class="status-pill neutral piccola">ultime 3 di 4</span></h4>
           <div class="pila">
-            <div class="riga-campagna">
+            <div class="surface-card riga-campagna bordo-errore">
               <div>
                 <div class="titolo">
                   <h3>Campagna Agosto 2026</h3>
@@ -311,7 +307,7 @@
               <div class="azioni"><a href="#" class="btn btn-secondary btn-sm">Vedi campagna →</a></div>
             </div>
 
-            <div class="riga-campagna">
+            <div class="surface-card riga-campagna bordo-ok">
               <div>
                 <div class="titolo">
                   <h3>Campagna Luglio 2026</h3>
@@ -328,7 +324,7 @@
               <div class="azioni"><a href="#" class="btn btn-secondary btn-sm">Vedi campagna →</a></div>
             </div>
 
-            <div class="riga-campagna">
+            <div class="surface-card riga-campagna bordo-attn">
               <div>
                 <div class="titolo">
                   <h3>Campagna Luglio 2026 · primo invio</h3>

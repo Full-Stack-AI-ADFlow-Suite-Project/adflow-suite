@@ -12,7 +12,6 @@ from app.moduli.accesso import service as accesso
 
 from . import decisioni, interventi, letture, service, sospensione
 from .schemas import (
-    ArtigianoElenco,
     CampagnaDaApprovare,
     CampagnaNota,
     CampagnaRespingi,
@@ -27,7 +26,6 @@ from .schemas import (
     PostRigenera,
     PostRiprogramma,
     PostSposta,
-    SchedaArtigiano,
     VediCampagnaSchema,
 )
 
@@ -41,25 +39,6 @@ def campagne_da_approvare(
 ) -> list[CampagnaDaApprovare]:
     """Campagne da approvare di tutti gli artigiani, dalla più urgente (R-38, CA-69)."""
     return letture.da_approvare(db)
-
-
-@router.get("/artigiani", response_model=list[ArtigianoElenco])
-def elenco_artigiani(
-    db: Annotated[Session, Depends(get_db)],
-    utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
-) -> list[ArtigianoElenco]:
-    """Tutti gli artigiani del consorzio, dalla scadenza più vicina."""
-    return letture.elenco_artigiani(db)
-
-
-@router.get("/artigiani/{utente_id}", response_model=SchedaArtigiano)
-def scheda_artigiano(
-    utente_id: int,
-    db: Annotated[Session, Depends(get_db)],
-    utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
-) -> SchedaArtigiano:
-    """Scheda dell'artigiano: account, profilo e campagne per sezioni."""
-    return letture.scheda_artigiano(db, utente_id)
 
 
 @router.get("/campagne/{campagna_id}/post", response_model=VediCampagnaSchema)
