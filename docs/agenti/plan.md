@@ -174,6 +174,7 @@ Le sole funzioni di `moduli/<modulo>/service.py` che un altro modulo può chiama
 | accesso | `utente_corrente` (dipendenza FastAPI → utente; rinnova la scadenza della sessione) · `richiede_ruolo(*ruoli)` (l'admin passa dove è ammesso l'operatore) | tutti i router | T1-12 (fino ad allora: utente di prova, T1-06; `richiede_ruolo` funziona già da T1-04; l'admin in T1-09) |
 | accesso | `crea_utente(email, password, nome, ruolo)` · `cambia_password(email, password)` | `cli.py` | T1-13 |
 | accesso | `crea_artigiano(db, email, nome)` → utente e password provvisoria; duplicato → 409, dati non validi → 422 | artigiani | T3-11 |
+| accesso | `artigiani(db)` → gli utenti con ruolo artigiano, in ordine di id, anche non attivi | revisione | elenco/scheda artigiano (roadmap, su richiesta del referente) |
 | artigiani | `profilo_di(utente_id)` → profilo o `None` | campagne, revisione | T1-04 |
 | artigiani | `canali_collegati(profilo_id)` → canali con account `collegato` | campagne, pubblicazione | T1-09 |
 | artigiani | `profilo(profilo_id)` → profilo o `None` · `post_a_settimana(frequenza)` → post alla settimana per canale (senza frequenza vale `decidete_voi`) | campagne, contenuti | issue #39 |

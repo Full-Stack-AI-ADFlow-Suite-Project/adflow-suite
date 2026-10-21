@@ -29,6 +29,7 @@ import {
   type GruppoSintetico,
 } from "../../../api/campagne";
 import { ApiErrore } from "../../../api/http";
+import stile from "./Passo10.module.css";
 
 const MAX_MB = 10;
 const MIN_LATO = 1080;
@@ -71,43 +72,44 @@ export function Passo11({
   };
 
   return (
-    <Paper withBorder radius="md" p="xl">
-      {onIndietro && (
-        <Text
-          size="sm"
-          c="verde"
-          td="underline"
-          mb="xs"
-          component="button"
-          onClick={onIndietro}
-          style={{
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            padding: 0,
-          }}
-        >
-          ← Modifica dati campagna
+    <Paper radius="lg" p={{ base: "md", sm: "xl" }} className={stile.form}>
+      <header className={stile.intestazione}>
+        {onIndietro && (
+          <Text
+            size="sm"
+            c="verde"
+            fw={600}
+            mb="xs"
+            component="button"
+            onClick={onIndietro}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              padding: 0,
+            }}
+          >
+            ← Modifica dati campagna
+          </Text>
+        )}
+        <Text className={stile.sopratitolo}>
+          Nuova campagna · Passaggio 2 di 3
         </Text>
-      )}
-      <Text ff="monospace" size="xs" c="verde">
-        11 · FOTO DELLA CAMPAGNA
-      </Text>
-      <Title order={2} mt={4}>
-        Le foto di questo periodo
-      </Title>
-      <Text c="dimmed" size="sm" mt={4} mb="md">
-        {campagna.titolo} · {campagna.inizio} → {campagna.fine} ·{" "}
-        {(campagna.canali ?? []).join(", ")}
-      </Text>
-      <Alert color="verde" variant="light" mb="lg">
-        Le foto si caricano a gruppi: da 1 a 20 per gruppo, con una descrizione.
-        Sono facoltative: per i post che le foto non coprono creiamo un'immagine
-        con l'AI, e i post che hai scelto escono sempre tutti. Se le foto sono
-        di più, usiamo le migliori. JPG, PNG o WEBP, fino a {MAX_MB} MB, lato
-        corto di almeno {MIN_LATO} px.
-      </Alert>
-      <Stack gap="lg">
+        <Title order={2} className={stile.titolo}>
+          Materiale fotografico della campagna
+        </Title>
+        <Text className={stile.descrizione}>
+          {campagna.titolo} · {campagna.inizio} → {campagna.fine} ·{" "}
+          {(campagna.canali ?? []).join(", ")}. Carica gli scatti suddivisi per
+          gruppo; le uscite scoperte verranno integrate con immagini AI.
+        </Text>
+        <div className={stile.avanzamento} aria-label="Passaggio 2 di 3">
+          <span className={stile.attivo} />
+          <span className={stile.attivo} />
+          <span />
+        </div>
+      </header>
+      <Stack gap="lg" className={stile.campi}>
         {campagna.gruppi.map((g, i) => (
           <GruppoEditor
             key={g.id}
@@ -208,39 +210,78 @@ function GruppoEditor({
   };
 
   return (
-    <Paper withBorder radius="md" p="md" bg="var(--mantine-color-body)">
+    <Paper
+      withBorder
+      radius="lg"
+      p="lg"
+      style={{ background: "#f8fafc", borderColor: "rgba(15, 23, 42, 0.08)" }}
+    >
       <Group justify="space-between" mb="sm">
-        <Text ff="monospace" size="xs" c="dimmed">
-          Gruppo {numero} · {gruppo.foto.length} foto
+        <Text fw={700} size="sm">
+          Gruppo {numero} ·{" "}
+          <Text span c="dimmed" fw={500}>
+            {gruppo.foto.length} foto
+          </Text>
         </Text>
-        <Text
+        <Button
+          variant="subtle"
+          color="red"
           size="xs"
-          c="dimmed"
-          td="underline"
-          component="button"
           onClick={() => gira(() => eliminaGruppo(campagna.id, gruppo.id))}
-          style={{ background: "none", border: "none", cursor: "pointer" }}
         >
           Rimuovi gruppo
-        </Text>
+        </Button>
       </Group>
-      <Group gap="xs" mb="sm" align="flex-start">
-        {gruppo.foto.map((f) => (
-          <Thumb
-            key={f.id}
-            foto={f}
-            onRimuovi={() => gira(() => eliminaFoto(f.id))}
-          />
-        ))}
+
+      <div
+        role="button"
+        tabIndex={0}
+        onClick={() => inputFile.current?.click()}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            inputFile.current?.click();
+          }
+        }}
+        onDragOver={(e) => e.preventDefault()}
+        onDrop={(e) => {
+          e.preventDefault();
+          void scegliFile(e.dataTransfer.files);
+        }}
+        style={{
+          border: "1.5px dashed rgba(13, 148, 136, 0.38)",
+          borderRadius: 14,
+          padding: "16px 18px",
+          background: "#ffffff",
+          cursor: "pointer",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "space-between",
+          gap: 12,
+          marginBottom: 14,
+        }}
+      >
+        <div>
+          <Text size="sm" fw={600} c="#0f172a">
+            {inCarico
+              ? "Caricamento foto in corso…"
+              : "Tocca o trascina qui le foto di questo gruppo"}
+          </Text>
+          <Text size="xs" c="dimmed" mt={2}>
+            JPG, PNG o WEBP · max {MAX_MB} MB · lato corto almeno {MIN_LATO} px
+          </Text>
+        </div>
         <Button
-          variant="outline"
-          color="gray"
-          w={84}
-          h={84}
+          variant="light"
+          color="verde"
+          size="xs"
           loading={inCarico}
-          onClick={() => inputFile.current?.click()}
+          onClick={(e) => {
+            e.stopPropagation();
+            inputFile.current?.click();
+          }}
         >
-          +
+          + Scegli file
         </Button>
         <input
           ref={inputFile}
@@ -250,7 +291,20 @@ function GruppoEditor({
           hidden
           onChange={(e) => scegliFile(e.currentTarget.files)}
         />
-      </Group>
+      </div>
+
+      {gruppo.foto.length > 0 && (
+        <Group gap="sm" mb="md" align="flex-start">
+          {gruppo.foto.map((f) => (
+            <Thumb
+              key={f.id}
+              foto={f}
+              onRimuovi={() => gira(() => eliminaFoto(f.id))}
+            />
+          ))}
+        </Group>
+      )}
+
       <Stack gap="sm">
         <Textarea
           label="Descrizione o richieste per queste foto"
@@ -289,36 +343,87 @@ function Thumb({
   foto: FotoSintetica;
   onRimuovi: () => void;
 }) {
+  const [erroreImg, setErroreImg] = useState(false);
   return (
     <Paper
       withBorder
-      radius="sm"
-      w={84}
-      h={84}
-      p={4}
-      style={{ position: "relative", overflow: "hidden" }}
+      radius="md"
+      w={104}
+      h={104}
+      p={0}
+      style={{
+        position: "relative",
+        overflow: "hidden",
+        background: "#ffffff",
+      }}
     >
-      <Text
-        ff="monospace"
-        size="10px"
-        ta="center"
-        style={{ wordBreak: "break-all", lineHeight: 1.3 }}
+      {!erroreImg ? (
+        <img
+          src={`/api/foto/${foto.id}/file`}
+          alt={foto.file}
+          onError={() => setErroreImg(true)}
+          style={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            display: "block",
+          }}
+        />
+      ) : (
+        <div
+          style={{
+            width: "100%",
+            height: "100%",
+            padding: 8,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+        >
+          <Text
+            ff="monospace"
+            size="10px"
+            ta="center"
+            style={{ wordBreak: "break-all", lineHeight: 1.3 }}
+          >
+            {foto.file}
+          </Text>
+        </div>
+      )}
+      <div
+        style={{
+          position: "absolute",
+          inset: "auto 0 0 0",
+          padding: "3px 6px",
+          background: "linear-gradient(transparent, rgba(15, 23, 42, 0.72))",
+        }}
       >
-        {foto.file}
-      </Text>
+        <Text
+          size="10px"
+          c="#ffffff"
+          style={{
+            whiteSpace: "nowrap",
+            overflow: "hidden",
+            textOverflow: "ellipsis",
+          }}
+        >
+          {foto.file}
+        </Text>
+      </div>
       <Text
         component="button"
+        type="button"
         aria-label="Rimuovi foto"
         onClick={onRimuovi}
         style={{
           position: "absolute",
-          top: 2,
-          right: 2,
-          width: 20,
-          height: 20,
+          top: 5,
+          right: 5,
+          width: 22,
+          height: 22,
           borderRadius: "50%",
           border: "none",
-          background: "rgba(0,0,0,.4)",
+          background: "rgba(15, 23, 42, 0.68)",
           color: "#fff",
           fontSize: 13,
           lineHeight: 1,

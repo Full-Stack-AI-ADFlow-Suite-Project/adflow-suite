@@ -241,6 +241,103 @@ class CampagnaDaApprovare(BaseModel):
     richiesta: str | None = None
 
 
+class ArtigianoElenco(BaseModel):
+    """Una riga di ``GET /artigiani``: la bottega con la sua situazione."""
+
+    id: int
+    email: str
+    nome: str
+    attivo: bool
+    profilo_id: int | None = None
+    # ``bottega`` nullo: l'artigiano non ha ancora compilato il profilo.
+    bottega: str | None = None
+    citta: str | None = None
+    tipo_prodotto: str | None = None
+    canali_collegati: list[str] = []
+    n_da_approvare: int = 0
+    n_in_corso: int = 0
+    # ``entro_quando`` più vicino tra le campagne da approvare (R-38).
+    prossima_scadenza: datetime | None = None
+    prossima_campagna_id: int | None = None
+
+
+class UtenteArtigiano(BaseModel):
+    """L'account di accesso dell'artigiano, nella sua scheda."""
+
+    id: int
+    email: str
+    nome: str
+    attivo: bool
+
+
+class ProfiloArtigiano(BaseModel):
+    """Il profilo della bottega in sola lettura, nella scheda artigiano."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: int
+    nome: str
+    referente: str
+    citta: str
+    tipo_prodotto: str
+    clienti_ideali: str
+    obiettivo: str
+    canali: list[str]
+    anni_attivita: int | None = None
+    sito: str | None = None
+    storia: str | None = None
+    origine: str | None = None
+    valori: list[str] | None = None
+    gamma: str | None = None
+    fascia_prezzo: str | None = None
+    stagionalita: str | None = None
+    zona: str | None = None
+    tono: list[str] | None = None
+    cortesia: str | None = None
+    vincoli: str | None = None
+    frequenza: str | None = None
+    orari: dict[str, Any] | list[Any] | None = None
+    social_esistenti: dict[str, Any] | None = None
+    foto_policy: dict[str, Any] | None = None
+    eventi_ricorrenti: list[dict[str, Any]] | None = None
+    chiusure: str | None = None
+    aggiornato_il: datetime
+
+
+class CampagnaSezione(BaseModel):
+    """Una campagna nelle sezioni «in corso» e «chiuse» della scheda."""
+
+    id: int
+    titolo: str
+    stato: str
+    inizio: date
+    fine: date
+    canali: list[str] | None = None
+    inviata_il: datetime | None = None
+    chiusa_il: datetime | None = None
+    n_post: int = 0
+    n_pubblicati: int = 0
+    n_falliti: int = 0
+    n_foto: int = 0
+
+
+class SchedaArtigiano(BaseModel):
+    """Risposta di ``GET /artigiani/{id}``: il dettaglio per sezioni (plan §3).
+
+    ``da_approvare`` porta le stesse righe di ``GET /da-approvare``; ``chiuse``
+    sono le ultime tre, con il totale in ``totale_chiuse``.
+    """
+
+    artigiano: UtenteArtigiano
+    profilo: ProfiloArtigiano | None
+    canali_collegati: list[str] = []
+    bozza: CampagnaSezione | None = None
+    da_approvare: list[CampagnaDaApprovare] = []
+    in_corso: list[CampagnaSezione] = []
+    chiuse: list[CampagnaSezione] = []
+    totale_chiuse: int = 0
+
+
 class CampagnaNota(BaseModel):
     """Corpo di ``POST /campagne/{id}/nota``: la nota interna (R-32)."""
 

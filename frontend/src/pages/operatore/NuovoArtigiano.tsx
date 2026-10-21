@@ -78,8 +78,8 @@ export function NuovoArtigiano() {
   }
 
   return (
-    <Guscio titolo="Nuovo artigiano" largo={680}>
-      <Stack gap="lg">
+    <Guscio titolo="Nuovo artigiano">
+      <Stack gap="lg" maw={768}>
         <Text c="dimmed">
           Crea l'accesso dell'artigiano. Il profilo della bottega lo compilerà
           al primo accesso.

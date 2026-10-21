@@ -11,17 +11,17 @@ import {
   Checkbox,
   Group,
   Paper,
+  SimpleGrid,
   Stack,
   Text,
   Title,
 } from "@mantine/core";
 
 import { invia, type CampagnaDettaglio } from "../../../api/campagne";
-import {
-  canali as apiCanali,
-  type ProfiloBottega,
-} from "../../../api/artigiani";
+import { canali as apiCanali } from "../../../api/artigiani";
 import { ApiErrore } from "../../../api/http";
+import { BadgeCanale, EtichettaCanale } from "../../../components/IconaCanale";
+import stile from "./Passo10.module.css";
 import { Riga } from "./Riga";
 
 const POST_A_SETTIMANA: Record<string, number> = {
@@ -47,13 +47,13 @@ function testoAvviso(avviso: string, daCreareConAI: number): string | null {
 
 /** Che cosa uscirà su un canale, con `n` post chiesti e `nFoto` foto caricate. */
 function stimaCanale(n: number, nFoto: number): string {
-  if (nFoto === 0) return `${n} post, tutti con un'immagine creata dall'AI`;
+  if (nFoto === 0) return `${n} post programmati (tutti con immagine AI)`;
   if (nFoto < n)
-    return `${n} post · ${nFoto} con le tue foto · ${
+    return `${n} post · ${nFoto} da scatti caricati · ${
       n - nFoto
-    } con un'immagine creata dall'AI`;
-  if (nFoto === n) return `${n} post con le tue foto`;
-  return `${n} post con le tue foto · usiamo le ${n} migliori secondo l'analisi; le altre restano tra le foto della campagna`;
+    } con immagine AI`;
+  if (nFoto === n) return `${n} post da scatti caricati`;
+  return `${n} post da scatti caricati (selezione automatica dei ${n} scatti più idonei)`;
 }
 
 function dataIT(iso: string): string {
@@ -63,12 +63,10 @@ function dataIT(iso: string): string {
 
 export function Passo12({
   campagna,
-  profilo,
   onInviata,
   onIndietro,
 }: {
   campagna: CampagnaDettaglio;
-  profilo: ProfiloBottega;
   onInviata: () => Promise<void>;
   onIndietro?: () => void;
 }) {
@@ -76,6 +74,7 @@ export function Passo12({
   const [inCorso, setInCorso] = useState(false);
   const [collegati, setCollegati] = useState<string[]>([]);
   const [dichiarazione, setDichiarazione] = useState(false);
+  const [tentatoInvio, setTentatoInvio] = useState(false);
 
   useEffect(() => {
     apiCanali()
@@ -116,6 +115,8 @@ export function Passo12({
     );
 
   const manda = async () => {
+    setTentatoInvio(true);
+    if (!dichiarazione || blocchi.length > 0) return;
     setErrore("");
     setInCorso(true);
     try {
@@ -128,129 +129,154 @@ export function Passo12({
   };
 
   return (
-    <Paper withBorder radius="md" p="xl">
-      {onIndietro && (
-        <Text
-          size="sm"
-          c="verde"
-          td="underline"
-          mb="xs"
-          component="button"
-          onClick={onIndietro}
-          style={{
-            background: "none",
-            border: "none",
-            cursor: "pointer",
-            padding: 0,
-          }}
-        >
-          ← Torna alle foto
+    <Paper radius="lg" p={{ base: "md", sm: "xl" }} className={stile.form}>
+      <header className={stile.intestazione}>
+        {onIndietro && (
+          <Text
+            size="sm"
+            c="verde"
+            fw={600}
+            mb="xs"
+            component="button"
+            onClick={onIndietro}
+            style={{
+              background: "none",
+              border: "none",
+              cursor: "pointer",
+              padding: 0,
+            }}
+          >
+            ← Torna alle foto
+          </Text>
+        )}
+        <Text className={stile.sopratitolo}>
+          Nuova campagna · Passaggio 3 di 3
         </Text>
-      )}
-      <Text ff="monospace" size="xs" c="verde">
-        12 · RIEPILOGO
-      </Text>
-      <Title order={2} mt={4} mb="lg">
-        Rivedi prima di inviare
-      </Title>
-      <Stack gap="lg">
-        <div>
-          <Title order={4} mb={4}>
-            Identità
-          </Title>
-          <Riga nome="Bottega" valore={profilo.bottega} />
-          <Riga nome="Referente" valore={profilo.referente} />
-          <Riga nome="Città" valore={profilo.citta} />
+        <Title order={2} className={stile.titolo}>
+          Verifica e invio al consorzio
+        </Title>
+        <Text className={stile.descrizione}>
+          Verifica i parametri della campagna e conferma la dichiarazione per
+          procedere con l'invio.
+        </Text>
+        <div className={stile.avanzamento} aria-label="Passaggio 3 di 3">
+          <span className={stile.attivo} />
+          <span className={stile.attivo} />
+          <span className={stile.attivo} />
         </div>
-        <div>
-          <Title order={4} mb={4}>
-            Prodotti e pubblico
-          </Title>
-          <Riga nome="Tipo di prodotto" valore={profilo.tipo_prodotto} />
-          <Riga nome="Obiettivo" valore={profilo.obiettivo} />
-        </div>
-        <div>
-          <Title order={4} mb={4}>
-            Logistica
-          </Title>
-          <Riga
-            nome="Ritmo scelto"
-            valore={`${postSett} a settimana per canale · con ${
-              (campagna.canali ?? []).length
-            } canali ${
-              postSett * (campagna.canali ?? []).length
-            } post a settimana`}
-          />
-        </div>
-        <div>
-          <Title order={4} mb={4}>
-            Durata e canali
-          </Title>
-          <Riga nome="Nome campagna" valore={campagna.titolo} />
-          <Riga
-            nome="Periodo"
-            valore={`${dataIT(campagna.inizio)} → ${dataIT(
-              campagna.fine,
-            )} · ${giorni} giorni`}
-          />
-          <Riga nome="Canali" valore={(campagna.canali ?? []).join(", ")} />
-          <Riga nome="Post chiesti" valore={`${chiesti} per canale`} />
-        </div>
-        <div>
-          <Title order={4} mb={4}>
-            Foto della campagna
-          </Title>
-          <Riga
-            nome="Foto caricate"
-            valore={`${nFoto} foto in ${gruppiFoto.length} gruppi`}
-          />
-        </div>
-        <div>
-          <Title order={4} mb={4}>
-            Che cosa uscirà · stima
-          </Title>
+      </header>
+      <Stack gap="md" className={stile.campi}>
+        <section className={stile.sezione}>
+          <Group justify="space-between" align="center" mb="sm" wrap="wrap">
+            <div>
+              <Text size="xs" c="dimmed" fw={600} tt="uppercase" lts={0.5}>
+                Campagna
+              </Text>
+              <Title order={3} size="h4" mt={2}>
+                {campagna.titolo}
+              </Title>
+            </div>
+            <Group gap={6} wrap="wrap">
+              {(campagna.canali ?? []).map((c) => (
+                <BadgeCanale key={c} canale={c} size="sm" />
+              ))}
+            </Group>
+          </Group>
+
+          <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="xs" mb="sm">
+            <Paper radius="md" p="sm" bg="#ffffff">
+              <Text size="xs" c="dimmed" fw={600}>
+                Periodo
+              </Text>
+              <Text size="sm" fw={600} mt={2}>
+                {dataIT(campagna.inizio)} → {dataIT(campagna.fine)}
+              </Text>
+              <Text size="xs" c="dimmed">
+                {giorni} giorni
+              </Text>
+            </Paper>
+            <Paper radius="md" p="sm" bg="#ffffff">
+              <Text size="xs" c="dimmed" fw={600}>
+                Ritmo
+              </Text>
+              <Text size="sm" fw={600} mt={2}>
+                {postSett} post / sett.
+              </Text>
+              <Text size="xs" c="dimmed">
+                per ogni canale
+              </Text>
+            </Paper>
+            <Paper radius="md" p="sm" bg="#ffffff">
+              <Text size="xs" c="dimmed" fw={600}>
+                Foto caricate
+              </Text>
+              <Text size="sm" fw={600} mt={2}>
+                {nFoto} foto
+              </Text>
+              <Text size="xs" c="dimmed">
+                in {gruppiFoto.length} gruppi
+              </Text>
+            </Paper>
+            <Paper radius="md" p="sm" bg="#ffffff">
+              <Text size="xs" c="dimmed" fw={600}>
+                Uscite previste
+              </Text>
+              <Text size="sm" fw={600} mt={2}>
+                {chiesti} post / canale
+              </Text>
+              <Text size="xs" c="dimmed">
+                {mancanti > 0 ? `${mancanti} con AI` : "tutte con tue foto"}
+              </Text>
+            </Paper>
+          </SimpleGrid>
+
           {(campagna.canali ?? []).map((c) => (
             <Riga
               key={c}
-              nome={c}
+              nome={<EtichettaCanale canale={c} size={16} />}
               valore={stimaCanale(
                 campagna.post_chiesti_per_canale[c] ?? chiesti,
                 nFoto,
               )}
             />
           ))}
-        </div>
+        </section>
+
         {avvisi.length > 0 && (
-          <Alert color="orange" variant="light">
-            <b>Avvisi, puoi inviare lo stesso.</b>
-            <ul style={{ margin: "6px 0 0", paddingLeft: 20 }}>
-              {avvisi.map((a) => (
-                <li key={a}>{a}</li>
-              ))}
-            </ul>
+          <Alert color="orange" variant="light" py="sm">
+            <Text size="xs" fw={600}>
+              Nota: {avvisi[0]}
+            </Text>
           </Alert>
         )}
-        {mancanti > 0 && (
-          <Alert color="verde" variant="light">
-            Le immagini create dall'AI mostrano ambienti, materiali, attrezzi,
-            lavorazioni, atmosfere e stagioni: mai un prodotto finito come se
-            fosse tuo, mai persone riconoscibili, testi o marchi. Sono quadrate
-            e il post dice "Immagine creata con AI". Le controlla il consorzio
-            prima che escano.
-          </Alert>
-        )}
-        <Checkbox
-          color="verde"
-          required
-          checked={dichiarazione}
-          onChange={(e) => setDichiarazione(e.currentTarget.checked)}
-          label="Le foto mostrano prodotti della mia bottega; le persone riconoscibili hanno dato il consenso."
-          error={
-            dichiarazione
-              ? undefined
-              : "Per inviare conferma la dichiarazione sulle foto."
-          }
-        />
+
+        <Paper
+          withBorder
+          radius="md"
+          p="md"
+          style={{
+            background: dichiarazione ? "#e8f7f5" : "#ffffff",
+            borderColor: dichiarazione
+              ? "rgba(13, 148, 136, 0.35)"
+              : "rgba(15, 23, 42, 0.1)",
+          }}
+        >
+          <Checkbox
+            color="verde"
+            checked={dichiarazione}
+            onChange={(e) => {
+              setDichiarazione(e.currentTarget.checked);
+              if (e.currentTarget.checked) setTentatoInvio(false);
+            }}
+            label="Confermo i dati della campagna; eventuali foto caricate appartengono alla mia bottega e hanno il consenso delle persone ritratte."
+            error={
+              tentatoInvio && !dichiarazione
+                ? "Spunta la casella per inviare la campagna."
+                : undefined
+            }
+          />
+        </Paper>
+
         {blocchi.length > 0 && (
           <Alert
             color="red"
@@ -269,7 +295,7 @@ export function Passo12({
             {errore}
           </Alert>
         )}
-        <Group justify="space-between" mt="sm">
+        <Group justify="space-between" mt="xs" className={stile.azioni}>
           {onIndietro ? (
             <Button variant="default" onClick={onIndietro}>
               ← Torna alle foto
@@ -279,12 +305,12 @@ export function Passo12({
           )}
           <Button
             color="verde"
-            size="lg"
             loading={inCorso}
-            disabled={blocchi.length > 0 || !dichiarazione}
+            disabled={blocchi.length > 0}
             onClick={manda}
+            className={stile.continua}
           >
-            Invia all'operatore
+            Invia all'operatore →
           </Button>
         </Group>
       </Stack>

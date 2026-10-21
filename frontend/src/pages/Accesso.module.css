@@ -1,0 +1,205 @@
+.pagina {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: minmax(420px, 1.08fr) minmax(380px, 0.92fr);
+  background: var(--bg-app);
+}
+
+.latoBrand {
+  position: relative;
+  overflow: hidden;
+  padding: 44px 56px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  color: #ffffff;
+  border-right: 1px solid rgba(15, 23, 42, 0.08);
+  background:
+    linear-gradient(
+      180deg,
+      rgba(15, 25, 28, 0.18) 0%,
+      rgba(13, 148, 136, 0.14) 42%,
+      rgba(12, 24, 27, 0.78) 78%,
+      rgba(10, 20, 23, 0.9) 100%
+    ),
+    url("https://images.unsplash.com/photo-1578749556568-bc2c40e68b61?w=1400&auto=format&fit=crop&q=85")
+      center / cover no-repeat;
+}
+
+.marca {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 14px 8px 8px;
+  border-radius: 16px;
+  background: rgba(15, 22, 25, 0.62);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  width: fit-content;
+}
+
+.marcaIcona {
+  width: 40px;
+  height: 40px;
+  border-radius: 11px;
+  background: linear-gradient(145deg, #134e4a 0%, #0d9488 100%);
+  border: 1px solid rgba(165, 243, 235, 0.34);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 18px rgba(13, 148, 136, 0.32);
+}
+
+.marcaTesto b {
+  display: block;
+  font-family: "Space Grotesk", var(--mantine-font-family);
+  font-size: 18.5px;
+  font-weight: 600;
+  color: #ffffff;
+  letter-spacing: -0.025em;
+  line-height: 1.15;
+}
+
+.marcaTesto span {
+  font-size: 11px;
+  color: rgba(231, 246, 245, 0.8);
+  font-weight: 500;
+}
+
+.hero {
+  max-width: 560px;
+  margin-top: auto;
+  padding-top: 24px;
+}
+
+.badgeBrand {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 13px;
+  border-radius: 20px;
+  background: rgba(15, 22, 25, 0.55);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(165, 243, 235, 0.42);
+  color: #a5f3eb;
+  font-size: 11.5px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  margin-bottom: 12px;
+}
+
+.titoloHero {
+  font-family: "Space Grotesk", var(--mantine-font-family);
+  font-size: clamp(1.9rem, 2.8vw, 2.45rem);
+  font-weight: 600;
+  line-height: 1.14;
+  letter-spacing: -0.025em;
+  color: #ffffff;
+  margin: 0 0 10px;
+  text-shadow: 0 2px 16px rgba(0, 0, 0, 0.35);
+}
+
+.sottotitoloHero {
+  font-size: 15px;
+  line-height: 1.55;
+  color: rgba(231, 246, 245, 0.9);
+  font-weight: 400;
+  max-width: 500px;
+  margin: 0 0 20px;
+}
+
+.pillole {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.pillola {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 999px;
+  background: rgba(15, 20, 25, 0.82);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  backdrop-filter: blur(12px);
+  font-size: 12.5px;
+  font-weight: 600;
+  color: #ffffff;
+  white-space: nowrap;
+}
+
+.pillola svg {
+  width: 15px;
+  height: 15px;
+  stroke: #a5f3eb;
+  flex: none;
+}
+
+.latoForm {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 28px;
+  background: radial-gradient(
+      circle at 80% 15%,
+      rgba(217, 245, 243, 0.7) 0%,
+      transparent 45%
+    ),
+    var(--bg-app);
+}
+
+.card {
+  width: 100%;
+  max-width: 376px;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(20px);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  padding: 28px 28px;
+  box-shadow:
+    0 20px 48px rgba(15, 23, 42, 0.09),
+    0 0 0 1px rgba(255, 255, 255, 0.6);
+}
+
+.cardHeader {
+  display: none;
+  align-items: center;
+  gap: 11px;
+  margin-bottom: 18px;
+}
+
+.cardLogo {
+  width: 38px;
+  height: 38px;
+  border-radius: 11px;
+  background: linear-gradient(145deg, #134e4a 0%, #0d9488 100%);
+  border: 1px solid rgba(165, 243, 235, 0.35);
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 8px 18px rgba(13, 148, 136, 0.28);
+  flex: none;
+}
+
+@media (max-width: 900px) {
+  .pagina {
+    grid-template-columns: 1fr;
+  }
+
+  .latoBrand {
+    display: none;
+  }
+
+  .cardHeader {
+    display: flex;
+  }
+
+  .card {
+    padding: 26px 22px;
+  }
+}

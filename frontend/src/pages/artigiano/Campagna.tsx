@@ -5,7 +5,7 @@
  * quella che chiede qualcosa e in cima c'è la riga di scelta (spec §4).
  */
 import { useCallback, useEffect, useState } from "react";
-import { Center, Loader } from "@mantine/core";
+import { Alert, Center, Loader } from "@mantine/core";
 
 import {
   dettaglio,
@@ -18,7 +18,6 @@ import {
   type ProfiloBottega,
 } from "../../api/artigiani";
 import { Guscio } from "../../components/Guscio";
-import { Bentornato } from "./campagna/Bentornato";
 import { Bozza } from "./campagna/Bozza";
 import { CampagnePassate } from "./campagna/viste/CampagnePassate";
 import { scegli } from "./campagna/viste/scelta";
@@ -26,7 +25,6 @@ import { SceltaCampagna } from "./campagna/viste/SceltaCampagna";
 import { VistaStato } from "./campagna/viste/VistaStato";
 
 type Vista =
-  | { tipo: "bentornato" }
   | { tipo: "bozza"; campagna: CampagnaDettaglio | null }
   | { tipo: "stato"; campagna: CampagnaDettaglio };
 
@@ -55,7 +53,7 @@ export function Campagna() {
       try {
         [p, lista] = await Promise.all([apiProfilo(), elenco()]);
       } catch {
-        setVista({ tipo: "bentornato" });
+        setVista({ tipo: "bozza", campagna: null });
         return;
       }
       setProfilo(p);
@@ -66,7 +64,7 @@ export function Campagna() {
         await mostra(daAprire);
         return;
       }
-      setVista({ tipo: "bentornato" });
+      setVista({ tipo: "bozza", campagna: null });
     },
     [mostra],
   );
@@ -89,7 +87,10 @@ export function Campagna() {
     [],
   );
 
-  const nuovaCampagna = useCallback(() => setVista({ tipo: "bentornato" }), []);
+  const nuovaCampagna = useCallback(
+    () => setVista({ tipo: "bozza", campagna: null }),
+    [],
+  );
   /** Dopo l'invio si resta sulla campagna appena inviata, non su un'altra. */
   const dopoInvio = useCallback(
     async (inviataId?: number) => {
@@ -100,8 +101,7 @@ export function Campagna() {
   );
 
   const { visibili, passate } = scegli(lista);
-  const mostrata =
-    vista !== null && vista.tipo !== "bentornato" ? vista.campagna : null;
+  const mostrata = vista !== null ? vista.campagna : null;
   const apertaId = mostrata?.id ?? null;
   const inChiaro = visibili.some((c) => c.id === apertaId);
   // Una sola campagna: la riga serve per crearne un'altra, tranne dove la
@@ -128,20 +128,26 @@ export function Campagna() {
         <Center py="xl">
           <Loader color="verde" />
         </Center>
-      ) : vista.tipo === "bentornato" ? (
-        <Bentornato
-          profilo={profilo}
-          respinta={respintaRecente}
-          onAvanti={() => setVista({ tipo: "bozza", campagna: null })}
-        />
       ) : vista.tipo === "bozza" ? (
-        <Bozza
-          campagna={vista.campagna}
-          profilo={profilo}
-          onCambiata={ricarica}
-          onCreata={apriBozza}
-          onInviata={() => dopoInvio(vista.campagna?.id)}
-        />
+        <>
+          {respintaRecente?.esito_respinta && !vista.campagna && (
+            <Alert color="orange" variant="light" mb="md">
+              Il consorzio non ha approvato "{respintaRecente.titolo}" (motivo:{" "}
+              <b>{respintaRecente.esito_respinta.motivo}</b>
+              {respintaRecente.esito_respinta.nota
+                ? ` — "${respintaRecente.esito_respinta.nota}"`
+                : ""}
+              ).
+            </Alert>
+          )}
+          <Bozza
+            campagna={vista.campagna}
+            profilo={profilo}
+            onCambiata={ricarica}
+            onCreata={apriBozza}
+            onInviata={() => dopoInvio(vista.campagna?.id)}
+          />
+        </>
       ) : (
         <VistaStato
           campagna={vista.campagna}

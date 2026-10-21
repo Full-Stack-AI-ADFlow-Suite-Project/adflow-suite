@@ -19,6 +19,8 @@ import {
 import type { CampagnaDettaglio } from "../../../api/campagne";
 import type { VediCampagna } from "../../../api/revisione";
 import { SCELTE } from "../../../api/artigiani";
+import { BadgeCanale } from "../../../components/IconaCanale";
+import { Riga } from "../../artigiano/campagna/Riga";
 import { data, NOME_CANALE } from "./util";
 
 function etichetta(
@@ -192,91 +194,73 @@ export function Materiali({
 
       <Stack gap="md">
         <Card withBorder radius="lg" p="lg">
-          <Title order={3} size="h4">
-            Che cosa ha chiesto l'artigiano
+          <Title order={3} size="h4" mb="xs">
+            Indicazioni dell'impresa
           </Title>
-          <Stack gap={4} mt="sm">
-            <Text size="sm">
-              <Text span c="dimmed">
-                Testo dell'artigiano:{" "}
-              </Text>
-              {campagna.descrizione ?? "—"}
-            </Text>
-            <Text size="sm">
-              <Text span c="dimmed">
-                Canali chiesti:{" "}
-              </Text>
-              {(campagna.canali ?? [])
-                .map((c) => NOME_CANALE[c] ?? c)
-                .join(", ")}
-            </Text>
-            <Text size="sm">
-              <Text span c="dimmed">
-                Ritmo chiesto:{" "}
-              </Text>
-              {campagna.frequenza
-                ? FREQUENZE[campagna.frequenza] ?? campagna.frequenza
-                : "—"}
-            </Text>
-            <Text size="sm">
-              <Text span c="dimmed">
-                Obiettivo:{" "}
-              </Text>
-              {etichetta("obiettivo", campagna.obiettivo)}
-            </Text>
+          <Stack gap={0}>
+            <Riga
+              nome="Note di campagna"
+              valore={campagna.descrizione ?? "—"}
+            />
+            <Riga
+              nome="Canali richiesti"
+              valore={
+                (campagna.canali ?? []).length > 0 ? (
+                  <Group gap={6} wrap="wrap">
+                    {(campagna.canali ?? []).map((c) => (
+                      <BadgeCanale key={c} canale={c} size="xs" />
+                    ))}
+                  </Group>
+                ) : (
+                  "—"
+                )
+              }
+            />
+            <Riga
+              nome="Frequenza"
+              valore={
+                campagna.frequenza
+                  ? FREQUENZE[campagna.frequenza] ?? campagna.frequenza
+                  : "—"
+              }
+            />
+            <Riga
+              nome="Obiettivo"
+              valore={etichetta("obiettivo", campagna.obiettivo)}
+            />
           </Stack>
         </Card>
 
         <Card withBorder radius="lg" p="lg">
-          <Title order={3} size="h4">
-            Profilo bottega · fotografia
+          <Title order={3} size="h4" mb="xs">
+            Profilo impresa all'invio
           </Title>
           {snap ? (
             <>
-              <Stack gap={4} mt="sm">
-                <Text size="sm">
-                  <Text span c="dimmed">
-                    Bottega:{" "}
-                  </Text>
-                  {snap.nome} · {snap.citta ?? "—"}
-                </Text>
-                <Text size="sm">
-                  <Text span c="dimmed">
-                    Chi:{" "}
-                  </Text>
-                  {snap.referente ?? "—"}
-                </Text>
-                <Text size="sm">
-                  <Text span c="dimmed">
-                    Che cosa fa:{" "}
-                  </Text>
-                  {etichetta("tipo_prodotto", snap.tipo_prodotto)}
-                </Text>
-                <Text size="sm">
-                  <Text span c="dimmed">
-                    Obiettivo:{" "}
-                  </Text>
-                  {etichetta("obiettivo", snap.obiettivo)}
-                </Text>
-                <Text size="sm">
-                  <Text span c="dimmed">
-                    Clienti:{" "}
-                  </Text>
-                  {snap.clienti_ideali ?? "—"}
-                </Text>
-                <Text size="sm">
-                  <Text span c="dimmed">
-                    Tono:{" "}
-                  </Text>
-                  {(snap.tono ?? []).join(", ") || "—"}
-                </Text>
+              <Stack gap={0}>
+                <Riga
+                  nome="Bottega"
+                  valore={`${snap.nome ?? "—"} · ${snap.citta ?? "—"}`}
+                />
+                <Riga nome="Referente" valore={snap.referente ?? "—"} />
+                <Riga
+                  nome="Tipo di prodotto"
+                  valore={etichetta("tipo_prodotto", snap.tipo_prodotto)}
+                />
+                <Riga
+                  nome="Obiettivo"
+                  valore={etichetta("obiettivo", snap.obiettivo)}
+                />
+                <Riga
+                  nome="Clienti ideali"
+                  valore={snap.clienti_ideali ?? "—"}
+                />
+                <Riga
+                  nome="Tono"
+                  valore={(snap.tono ?? []).join(", ") || "—"}
+                />
                 {snap.vincoli && (
-                  <Text size="sm">
-                    <Text span c="dimmed">
-                      Da non dire:{" "}
-                    </Text>
-                    {snap.vincoli}
-                  </Text>
+                  <Riga nome="Da non dire" valore={snap.vincoli} />
                 )}
               </Stack>
               <Text size="xs" c="dimmed" mt="sm">

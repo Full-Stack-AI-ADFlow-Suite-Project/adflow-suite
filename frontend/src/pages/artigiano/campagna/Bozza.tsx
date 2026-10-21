@@ -14,8 +14,15 @@ import {
 import type { ProfiloBottega } from "../../../api/artigiani";
 import { ApiErrore } from "../../../api/http";
 import { Passo10 } from "./Passo10";
+import stile from "./Passo10.module.css";
 import { Passo11 } from "./Passo11";
 import { Passo12 } from "./Passo12";
+
+const PASSI_BOZZA: { codice: 10 | 11 | 12; numero: number; label: string }[] = [
+  { codice: 10, numero: 1, label: "Durata e canali" },
+  { codice: 11, numero: 2, label: "Foto della campagna" },
+  { codice: 12, numero: 3, label: "Riepilogo e invio" },
+];
 
 export function Bozza({
   campagna,
@@ -50,37 +57,62 @@ export function Bozza({
     }
   };
 
-  if (passo === 10) {
-    return (
-      <Passo10
-        key={campagna?.id ?? "nuova"}
-        profilo={profilo}
-        campagna={campagna}
-        errore={errore}
-        onContinua={continua10}
-      />
-    );
-  }
-
-  if (!campagna) return null;
-
-  if (passo === 11) {
-    return (
-      <Passo11
-        campagna={campagna}
-        onCambiata={onCambiata}
-        onIndietro={() => setPasso(10)}
-        onAvanti={() => setPasso(12)}
-      />
-    );
-  }
-
   return (
-    <Passo12
-      campagna={campagna}
-      profilo={profilo}
-      onIndietro={() => setPasso(11)}
-      onInviata={onInviata}
-    />
+    <div className={stile.layout}>
+      <aside className={stile.indice} aria-label="Passi della campagna">
+        <div className={stile.indiceTitolo}>Nuova campagna · 3 passi</div>
+        <div className={stile.indiceLista}>
+          {PASSI_BOZZA.map((voce) => {
+            const attivo = passo === voce.codice;
+            const completato = passo > voce.codice;
+            const disabilitato = voce.codice !== 10 && !campagna;
+            const classi = [
+              stile.vocePasso,
+              attivo ? stile.vocePassoAttiva : "",
+              completato ? stile.vocePassoCompletata : "",
+            ]
+              .filter(Boolean)
+              .join(" ");
+            return (
+              <button
+                key={voce.codice}
+                type="button"
+                disabled={disabilitato}
+                className={classi}
+                onClick={() => setPasso(voce.codice)}
+              >
+                <span className={stile.voceNumero}>
+                  {completato ? "✓" : voce.numero}
+                </span>
+                <span>{voce.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </aside>
+
+      {passo === 10 || !campagna ? (
+        <Passo10
+          key={campagna?.id ?? "nuova"}
+          profilo={profilo}
+          campagna={campagna}
+          errore={errore}
+          onContinua={continua10}
+        />
+      ) : passo === 11 ? (
+        <Passo11
+          campagna={campagna}
+          onCambiata={onCambiata}
+          onIndietro={() => setPasso(10)}
+          onAvanti={() => setPasso(12)}
+        />
+      ) : (
+        <Passo12
+          campagna={campagna}
+          onIndietro={() => setPasso(11)}
+          onInviata={onInviata}
+        />
+      )}
+    </div>
   );
 }

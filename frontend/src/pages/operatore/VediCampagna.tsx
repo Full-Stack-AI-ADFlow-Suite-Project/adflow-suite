@@ -9,7 +9,10 @@ import {
   Badge,
   Card,
   Center,
+  Group,
   Loader,
+  Paper,
+  SimpleGrid,
   Stack,
   Tabs,
   Text,
@@ -24,13 +27,14 @@ import { ApiErrore } from "../../api/http";
 import type { VediCampagna as Vista } from "../../api/revisione";
 import { vediCampagna } from "../../api/revisione";
 import { Guscio } from "../../components/Guscio";
+import { BadgeCanale } from "../../components/IconaCanale";
 import { Decidi } from "./campagna/Decidi";
 import { Materiali } from "./campagna/Materiali";
 import { PianoCard } from "./campagna/PianoCard";
 import { UscitaCard } from "./campagna/UscitaCard";
 import { AzioniCampagna } from "./vedi-campagna/decisioni/AzioniCampagna";
 import { CalendarioCampagnaView } from "../../components/CalendarioCampagnaView";
-import { coloreCampagna, data, giorni, NOME_CANALE } from "./campagna/util";
+import { coloreCampagna, data, giorni } from "./campagna/util";
 
 const BOTTEGA_SCONOSCIUTA = "Bottega";
 
@@ -74,9 +78,14 @@ export function VediCampagna() {
     campagna?.profilo_snapshot?.nome ?? (campagna ? "" : BOTTEGA_SCONOSCIUTA);
   const citta = campagna?.profilo_snapshot?.citta ?? null;
   const postTotali = vista?.uscite.reduce((n, u) => n + u.post.length, 0) ?? 0;
+  const postDaRivedere =
+    vista?.uscite.reduce(
+      (n, u) => n + u.post.filter((p) => p.da_rivedere).length,
+      0,
+    ) ?? 0;
 
   return (
-    <Guscio titolo="Vedi campagna" largo={1100}>
+    <Guscio titolo="Vedi campagna">
       <Text size="sm" mb="md">
         <Anchor component={Link} to="/da-approvare" c="dimmed">
           ← Campagne da approvare
@@ -100,49 +109,87 @@ export function VediCampagna() {
 
       {vista && (
         <Stack gap="lg">
-          <div>
-            <Text size="sm" c="dimmed">
-              Campagna · {(vista.campagna.canali ?? []).length} canali ·{" "}
-              {postTotali} post
-            </Text>
-            <Title order={1} size="h2" mt={2}>
-              {vista.campagna.titolo}{" "}
-              <Badge
-                color={coloreCampagna(vista.campagna.stato)}
-                variant="light"
-                ff="monospace"
-                size="lg"
-              >
-                {vista.campagna.stato}
-              </Badge>
-            </Title>
-            <Text size="sm" c="dimmed" mt={6}>
-              {bottega}
-              {citta ? ` · ${citta}` : ""} · {data(vista.campagna.inizio)} →{" "}
-              {data(vista.campagna.fine)} ·{" "}
-              {giorni(vista.campagna.inizio, vista.campagna.fine)} giorni ·{" "}
-              {(vista.campagna.canali ?? [])
-                .map((c) => NOME_CANALE[c] ?? c)
-                .join(" e ")}
-              {vista.campagna.inviata_il
-                ? ` · inviata il ${data(vista.campagna.inviata_il)}`
-                : ""}
-              {vista.costo_ai != null
-                ? ` · Costo AI: ${Number(vista.costo_ai)
-                    .toFixed(2)
-                    .replace(".", ",")} $`
-                : ""}
-            </Text>
-          </div>
+          <Paper withBorder radius="lg" p="lg" bg="#ffffff">
+            <Group justify="space-between" align="flex-start" wrap="wrap">
+              <div>
+                <Text size="xs" c="verde" fw={700} tt="uppercase" lts={0.8}>
+                  {bottega}
+                  {citta ? ` · ${citta}` : ""}
+                </Text>
+                <Group gap="sm" align="center" mt={4}>
+                  <Title order={1} size="h2">
+                    {vista.campagna.titolo}
+                  </Title>
+                  <Badge
+                    color={coloreCampagna(vista.campagna.stato)}
+                    variant="light"
+                    ff="monospace"
+                    size="lg"
+                  >
+                    {vista.campagna.stato}
+                  </Badge>
+                </Group>
+                <Text size="sm" c="dimmed" mt={6}>
+                  {data(vista.campagna.inizio)} → {data(vista.campagna.fine)} (
+                  {giorni(vista.campagna.inizio, vista.campagna.fine)} giorni)
+                  {vista.campagna.inviata_il
+                    ? ` · Inviata il ${data(vista.campagna.inviata_il)}`
+                    : ""}
+                </Text>
+              </div>
+              <Group gap={6} wrap="wrap">
+                {(vista.campagna.canali ?? []).map((c) => (
+                  <BadgeCanale key={c} canale={c} size="sm" />
+                ))}
+              </Group>
+            </Group>
+
+            <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="sm" mt="md">
+              <Paper radius="md" p="sm" bg="#f1f5f9">
+                <Text size="xs" c="dimmed" fw={600}>
+                  Uscite
+                </Text>
+                <Text size="lg" fw={700}>
+                  {vista.uscite.length}
+                </Text>
+              </Paper>
+              <Paper radius="md" p="sm" bg="#f1f5f9">
+                <Text size="xs" c="dimmed" fw={600}>
+                  Post totali
+                </Text>
+                <Text size="lg" fw={700}>
+                  {postTotali}
+                </Text>
+              </Paper>
+              <Paper radius="md" p="sm" bg="#f1f5f9">
+                <Text size="xs" c="dimmed" fw={600}>
+                  Post da rivedere
+                </Text>
+                <Text
+                  size="lg"
+                  fw={700}
+                  c={postDaRivedere > 0 ? "red" : "verde"}
+                >
+                  {postDaRivedere}
+                </Text>
+              </Paper>
+              <Paper radius="md" p="sm" bg="#f1f5f9">
+                <Text size="xs" c="dimmed" fw={600}>
+                  Costo AI
+                </Text>
+                <Text size="lg" fw={700}>
+                  {vista.costo_ai != null
+                    ? `${Number(vista.costo_ai).toFixed(2).replace(".", ",")} $`
+                    : "—"}
+                </Text>
+              </Paper>
+            </SimpleGrid>
+          </Paper>
 
           <Decidi vista={vista} campagna={campagna} ricarica={carica} />
           <AzioniCampagna vista={vista} ricarica={carica} />
           {/* Congelato per l'MVP, ADR-114: nota interna e togli canale restano nascosti */}
-          <PianoCard
-            piano={vista.piano}
-            uscite={vista.uscite}
-            costoAi={vista.costo_ai}
-          />
+          <PianoCard piano={vista.piano} />
 
           <Tabs defaultValue="uscite">
             <Tabs.List>
