@@ -4,9 +4,11 @@ import { RichiedeRuolo } from "./auth";
 import { paginaIniziale, useAuth } from "./contesto-auth";
 import { Accesso } from "./pages/Accesso";
 import { Profilo, RichiedeProfilo } from "./pages/artigiano/profilo/Profilo";
+import { Archivio } from "./pages/artigiano/Archivio";
 import { Campagna } from "./pages/artigiano/Campagna";
 import { Campagne } from "./pages/artigiano/Campagne";
 import { Ingresso } from "./pages/artigiano/Ingresso";
+import { ArchivioArtigiano } from "./pages/operatore/ArchivioArtigiano";
 import { Artigiani } from "./pages/operatore/Artigiani";
 import { Artigiano } from "./pages/operatore/Artigiano";
 import { CampagneArtigiano } from "./pages/operatore/CampagneArtigiano";
@@ -41,6 +43,16 @@ export default function App() {
           <RichiedeRuolo ruoli={["artigiano"]}>
             <RichiedeProfilo>
               <Campagne />
+            </RichiedeProfilo>
+          </RichiedeRuolo>
+        }
+      />
+      <Route
+        path="/archivio"
+        element={
+          <RichiedeRuolo ruoli={["artigiano"]}>
+            <RichiedeProfilo>
+              <Archivio />
             </RichiedeProfilo>
           </RichiedeRuolo>
         }
@@ -100,6 +112,14 @@ export default function App() {
         element={
           <RichiedeRuolo ruoli={["operatore", "admin"]}>
             <CampagneArtigiano />
+          </RichiedeRuolo>
+        }
+      />
+      <Route
+        path="/artigiani/:id/archivio"
+        element={
+          <RichiedeRuolo ruoli={["operatore", "admin"]}>
+            <ArchivioArtigiano />
           </RichiedeRuolo>
         }
       />

@@ -32,6 +32,11 @@ function vociDelRuolo(ruolo: Ruolo, percorso: string): VoceNav[] {
         attivo: percorso === "/campagne" || percorso === "/campagna",
       },
       {
+        label: "Archivio foto",
+        to: "/archivio",
+        attivo: percorso === "/archivio",
+      },
+      {
         label: "Profilo bottega",
         to: "/profilo",
         attivo: percorso === "/profilo",
@@ -64,6 +69,13 @@ const ICONE: Record<string, ReactNode> = {
       <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
       <rect x="9" y="3" width="6" height="4" rx="1" />
       <path d="m9 14 2 2 4-4" />
+    </>
+  ),
+  "Archivio foto": (
+    <>
+      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+      <circle cx="8.5" cy="8.5" r="1.5" />
+      <polyline points="21 15 16 10 5 21" />
     </>
   ),
   Artigiani: (

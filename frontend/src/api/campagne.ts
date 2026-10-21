@@ -327,6 +327,46 @@ export function inviaRisposta(
   );
 }
 
+/** La campagna di un blocco dell'archivio foto (CampagnaDelBlocco di schemas.py). */
+export interface CampagnaDelBlocco {
+  id: number;
+  titolo: string;
+  stato: StatoCampagna;
+  inizio: string;
+  fine: string;
+}
+
+/** Una foto dell'archivio in sola lettura (FotoArchivio di schemas.py, R-47). */
+export interface FotoArchivio {
+  id: number;
+  /** /api/foto/{id}/file */
+  url: string;
+  origine: "caricata" | "creata_ai";
+  mime: string;
+  larghezza: number;
+  altezza: number;
+  /** {canale: ultima pubblicazione}; vuoto se la foto non è mai uscita. */
+  pubblicata_su: Record<string, string>;
+}
+
+/** Un blocco di GET /archivio-foto: le foto di una campagna (BloccoArchivio). */
+export interface BloccoArchivio {
+  /** `null`: foto senza campagna (l'archivio di prima, R-27). */
+  campagna: CampagnaDelBlocco | null;
+  foto: FotoArchivio[];
+}
+
+/**
+ * GET /archivio-foto: l'archivio in sola lettura, a blocchi per campagna. Per
+ * l'operatore `artigiano` (l'id dell'utente) è obbligatorio; per l'artigiano
+ * non conta (R-47, CA-95, CA-96).
+ */
+export function archivioFoto(artigiano?: number): Promise<BloccoArchivio[]> {
+  if (USA_ESEMPI) return esempiCampagne.archivioFoto(artigiano);
+  const query = artigiano === undefined ? "" : `?artigiano=${artigiano}`;
+  return richiesta<BloccoArchivio[]>("GET", `/archivio-foto${query}`);
+}
+
 /** Dati di una foto nel calendario approvato (contenuti/schemas.py). */
 export interface FotoCalendario {
   id: number;

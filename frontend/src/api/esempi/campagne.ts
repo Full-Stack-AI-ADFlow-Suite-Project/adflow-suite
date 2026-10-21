@@ -6,10 +6,12 @@
  */
 import { ApiErrore } from "../http";
 import type {
+  BloccoArchivio,
   CampagnaCrea,
   CampagnaModifica,
   CampagnaDettaglio,
   CampagnaElencoItem,
+  FotoArchivio,
   FotoSintetica,
   GruppoCrea,
   GruppoSintetico,
@@ -715,6 +717,16 @@ function nuovoId(campagne: CampagnaDettaglio[]): number {
   return massimo + 1;
 }
 
+/** Le campagne dopo l'approvazione: l'artigiano ne vede le immagini AI (R-47). */
+const STATI_APPROVATA = ["attiva", "sospesa", "conclusa", "annullata"];
+
+/** Un quadrato colorato con il nome della foto: negli esempi non ci sono file. */
+function segnaposto(etichetta: string, ai: boolean, seme: number): string {
+  const colore = `hsl(${(seme * 47) % 360} 35% ${ai ? 62 : 72}%)`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><rect width="400" height="400" fill="${colore}"/><text x="200" y="210" font-family="sans-serif" font-size="26" text-anchor="middle" fill="white">${etichetta}</text></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
 export const esempiCampagne = {
   async elenco(
     stato?: string,
@@ -1162,6 +1174,65 @@ export const esempiCampagne = {
     });
     salva(campagne);
     return richiesta;
+  },
+
+  /**
+   * GET /archivio-foto (R-47): le foto dei gruppi di ogni campagna, più
+   * un'immagine AI per le campagne approvate, che l'artigiano vede solo da
+   * lì (CA-95). Negli esempi `artigiano` coincide con la bottega (1–4).
+   */
+  async archivioFoto(artigiano?: number): Promise<BloccoArchivio[]> {
+    const utente = sessioneEsempio();
+    const operatore =
+      utente?.ruolo === "operatore" || utente?.ruolo === "admin";
+    if (operatore && artigiano === undefined)
+      throw new ApiErrore(422, "Indica l'artigiano di cui vedere le foto.");
+    const profilo = operatore ? artigiano : 1;
+    return carica()
+      .filter((c) => c.profilo_id === profilo)
+      .sort((a, b) => b.id - a.id)
+      .map((c): BloccoArchivio => {
+        const approvata = STATI_APPROVATA.includes(c.stato);
+        const caricate = c.gruppi.flatMap((g) => g.foto);
+        const foto = caricate.map(
+          (f, i): FotoArchivio => ({
+            id: f.id,
+            url: segnaposto(f.file.replace(/\.\w+$/, ""), false, f.id),
+            origine: "caricata",
+            mime: f.mime,
+            larghezza: f.larghezza,
+            altezza: f.altezza,
+            // Le prime foto di una campagna approvata sono già uscite.
+            pubblicata_su:
+              approvata && i < 2
+                ? { facebook: `${c.inizio}T09:00:00+00:00` }
+                : {},
+          }),
+        );
+        if (operatore || approvata)
+          foto.push({
+            id: 100000 + c.id,
+            url: segnaposto("immagine creata dall'AI", true, c.id),
+            origine: "creata_ai",
+            mime: "image/png",
+            larghezza: 1024,
+            altezza: 1024,
+            pubblicata_su: approvata
+              ? { instagram: `${c.inizio}T17:00:00+00:00` }
+              : {},
+          });
+        return {
+          campagna: {
+            id: c.id,
+            titolo: c.titolo,
+            stato: c.stato,
+            inizio: c.inizio,
+            fine: c.fine,
+          },
+          foto,
+        };
+      })
+      .filter((b) => b.foto.length > 0);
   },
 
   async calendario(campagnaId: number): Promise<CalendarioCampagna> {
