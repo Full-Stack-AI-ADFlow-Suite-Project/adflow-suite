@@ -30,6 +30,25 @@ class GiornoCalendario(BaseModel):
     post: list[PostCalendario]
 
 
+class PostSettimana(PostCalendario):
+    """Un post del calendario settimanale (spec R-48)."""
+
+    campagna_id: int
+    campagna_titolo: str
+    bottega: str | None
+
+
+class GiornoSettimana(BaseModel):
+    data: date
+    post: list[PostSettimana]
+
+
+class CalendarioSettimana(BaseModel):
+    dal: date  # lunedì
+    al: date  # domenica
+    giorni: list[GiornoSettimana]  # sempre 7, anche vuoti
+
+
 class CanaleToltoCalendario(BaseModel):
     canale: str
     nota: str | None
