@@ -84,11 +84,16 @@ def elenca_campagne(
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[Any, Depends(utente_corrente)],
     stato: Annotated[list[str] | None, Query()] = None,
+    artigiano: Annotated[int | None, Query()] = None,
 ) -> list[CampagnaElencoItem]:
-    """Elenca le campagne accessibili all'utente (l'artigiano vede solo le sue, operatore/admin tutte con bottega e città)."""
+    """Elenca le campagne accessibili all'utente (l'artigiano vede solo le sue, operatore/admin tutte con bottega e città).
+
+    Con ``artigiano`` l'operatore vede solo le campagne di quell'artigiano
+    (CA-94); per l'artigiano il parametro non conta.
+    """
     if utente.ruolo == "artigiano":
         return viste.campagne_artigiano(db, utente.id, stato)
-    return service.elenca_campagne(db, utente.id, utente.ruolo, stato)
+    return service.elenca_campagne(db, utente.id, utente.ruolo, stato, artigiano)
 
 
 @router.get("/campagne/{id}", response_model=CampagnaDettaglio)

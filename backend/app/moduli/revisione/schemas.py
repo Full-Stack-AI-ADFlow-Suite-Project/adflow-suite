@@ -241,6 +241,23 @@ class CampagnaDaApprovare(BaseModel):
     richiesta: str | None = None
 
 
+class ArtigianoElenco(BaseModel):
+    """Una riga di ``GET /artigiani`` (spec R-38, CA-92)."""
+
+    id: int  # id dell'utente artigiano
+    nome: str  # nome dell'account
+    email: str
+    attivo: bool
+    bottega: str | None = None  # None: profilo da compilare
+    referente: str | None = None
+    citta: str | None = None
+    canali_collegati: list[str] = []
+    n_da_approvare: int
+    n_in_corso: int
+    # Il più vicino entro_quando tra le campagne da approvare.
+    prossima_scadenza: datetime | None = None
+
+
 class CampagnaNota(BaseModel):
     """Corpo di ``POST /campagne/{id}/nota``: la nota interna (R-32)."""
 

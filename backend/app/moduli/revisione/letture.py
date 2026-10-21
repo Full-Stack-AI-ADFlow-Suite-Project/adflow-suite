@@ -12,13 +12,14 @@ from datetime import datetime, time
 from sqlalchemy.orm import Session
 
 from app.core.orologio import ROMA
+from app.moduli.accesso import service as accesso
 from app.moduli.artigiani import service as artigiani
 from app.moduli.campagne import service as campagne
 from app.moduli.contenuti import service as contenuti
 
-from .schemas import CampagnaDaApprovare, ConteggiPost
+from .schemas import ArtigianoElenco, CampagnaDaApprovare, ConteggiPost
 
-# Spec §4: gli stati della sezione «Da approvare».
+# Spec §4: gli stati della sezione «Da approvare» e di «In corso».
 _STATI_DA_APPROVARE = (
     "inviata",
     "in_generazione",
@@ -26,6 +27,66 @@ _STATI_DA_APPROVARE = (
     "generazione_fallita",
     "in_revisione",
 )
+_STATI_IN_CORSO = ("attiva", "sospesa")
+
+
+def _entro_quando(campagna, post) -> datetime:
+    """Entro quando la campagna va approvata (spec R-38).
+
+    La data del primo post ``da_approvare``; se il piano non c'è, le 00:00
+    (Europe/Rome) del giorno di inizio.
+    """
+    prima_uscita = min(
+        (p.data_ora for p in post if p.stato == "da_approvare"), default=None
+    )
+    return prima_uscita or datetime.combine(campagna.inizio, time.min, tzinfo=ROMA)
+
+
+def elenco_artigiani(db: Session) -> list[ArtigianoElenco]:
+    """Tutti gli artigiani con la situazione delle loro campagne (spec R-38, CA-92).
+
+    Prima chi ha la scadenza più vicina (chi non ne ha va in fondo), poi per
+    bottega, o per nome dell'account se il profilo manca, senza maiuscole.
+    """
+    righe: list[ArtigianoElenco] = []
+    for utente in accesso.artigiani(db):
+        bottega = artigiani.profilo_di(db, utente.id)
+        da_approvare_ora = []
+        n_in_corso = 0
+        if bottega is not None:
+            for campagna in campagne.campagne_di(db, bottega.id):
+                if campagna.stato in _STATI_DA_APPROVARE:
+                    post = contenuti.post_della_campagna(db, campagna.id)
+                    da_approvare_ora.append(_entro_quando(campagna, post))
+                elif campagna.stato in _STATI_IN_CORSO:
+                    n_in_corso += 1
+        righe.append(
+            ArtigianoElenco(
+                id=utente.id,
+                nome=utente.nome,
+                email=utente.email,
+                attivo=utente.attivo,
+                bottega=bottega.nome if bottega is not None else None,
+                referente=bottega.referente if bottega is not None else None,
+                citta=bottega.citta if bottega is not None else None,
+                canali_collegati=(
+                    artigiani.canali_collegati(db, bottega.id)
+                    if bottega is not None
+                    else []
+                ),
+                n_da_approvare=len(da_approvare_ora),
+                n_in_corso=n_in_corso,
+                prossima_scadenza=min(da_approvare_ora, default=None),
+            )
+        )
+    righe.sort(
+        key=lambda r: (
+            r.prossima_scadenza is None,
+            r.prossima_scadenza.timestamp() if r.prossima_scadenza else 0.0,
+            (r.bottega or r.nome).casefold(),
+        )
+    )
+    return righe
 
 
 def da_approvare(db: Session) -> list[CampagnaDaApprovare]:
@@ -38,7 +99,6 @@ def da_approvare(db: Session) -> list[CampagnaDaApprovare]:
         for p in post:
             if p.riempitivo:
                 riempitivi[p.canale] = riempitivi.get(p.canale, 0) + 1
-        prima_uscita = min((p.data_ora for p in in_attesa), default=None)
         nota = campagne.ultima_nota(db, campagna.id)
         bottega = artigiani.profilo(db, campagna.profilo_id)
         richiesta = campagne.richiesta_di(db, campagna.id)
@@ -59,8 +119,7 @@ def da_approvare(db: Session) -> list[CampagnaDaApprovare]:
                     da_rivedere=sum(1 for p in in_attesa if p.da_rivedere),
                     riempitivi=riempitivi,
                 ),
-                entro_quando=prima_uscita
-                or datetime.combine(campagna.inizio, time.min, tzinfo=ROMA),
+                entro_quando=_entro_quando(campagna, post),
                 ultima_nota=nota.nota if nota is not None else None,
                 richiesta=(
                     richiesta.stato

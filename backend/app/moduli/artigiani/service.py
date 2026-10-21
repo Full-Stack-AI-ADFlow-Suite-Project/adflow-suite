@@ -8,9 +8,10 @@ from sqlalchemy.orm import Session
 
 from .models import AccountSocial, ProfiloBottega
 from .domain import CANALI, POST_A_SETTIMANA
-from .schemas import CanaleCollegato, NuovoArtigiano, ArtigianoCreato
+from .schemas import CanaleCollegato, NuovoArtigiano, ArtigianoCreato, SchedaArtigiano
+from app.core.errori import NonTrovato
 from app.moduli.accesso import service as accesso
-from .profilo_schemas import ProfiloScrittura
+from .profilo_schemas import ProfiloPubblico, ProfiloScrittura
 
 
 def stato_canali(db: Session, utente_id: int) -> list[CanaleCollegato]:
@@ -119,6 +120,29 @@ def salva_profilo_personale(
                 .on_conflict_do_nothing(constraint="uq_account_social_piattaforma")
             )
     return record
+
+
+def scheda_artigiano(db: Session, utente_id: int) -> SchedaArtigiano:
+    """Account, canali e profilo di un artigiano, per l'operatore (spec R-38, CA-93).
+
+    L'id di un operatore o di un utente che non esiste è lo stesso 404: la
+    pagina non rivela chi ha un account.
+    """
+    try:
+        record = accesso.utente(db, utente_id)
+    except NonTrovato:
+        record = None
+    if record is None or record.ruolo != "artigiano":
+        raise NonTrovato("Artigiano non trovato.")
+    bottega = profilo_di(db, record.id)
+    return SchedaArtigiano(
+        id=record.id,
+        nome=record.nome,
+        email=record.email,
+        attivo=record.attivo,
+        profilo=ProfiloPubblico.model_validate(bottega) if bottega else None,
+        canali_collegati=canali_collegati(db, bottega.id) if bottega else [],
+    )
 
 
 def crea_artigiano(db: Session, dati: NuovoArtigiano) -> ArtigianoCreato:
