@@ -1,31 +1,132 @@
-/* Token del foglio di stile delle pagine statiche
-   (docs/pagine/assets/adflow.css, ADR-113), con gli stessi nomi.
-   I valori stanno in tema.ts. Solo tema chiaro. */
+/* Token dal CSS effettivo del template Bill Splitter. */
 :root {
-  --bg-app: var(--mantine-color-gray-0);
+  --bg-app: #f2f8f8;
   --bg-surface: var(--mantine-color-white);
-  --bg-surface-subtle: var(--mantine-color-gray-1);
-  --border-hairline: var(--mantine-color-gray-3);
-  --border-strong: var(--mantine-color-gray-4);
+  --bg-surface-subtle: #e3f4f3;
+  --bg-surface-accent: #d9f5f3;
+  --border-hairline: rgba(16, 29, 33, 0.13);
+  --border-strong: rgba(16, 29, 33, 0.2);
   --text-main: var(--mantine-color-gray-9);
   --text-secondary: var(--mantine-color-gray-7);
   --text-muted: var(--mantine-color-gray-6);
   --text-faint: var(--mantine-color-gray-5);
-  --primary: var(--mantine-color-blu-6);
-  --primary-light: var(--mantine-color-blu-0);
-  --sidebar-width: 250px;
+  --primary: #007974;
+  --primary-hover: #006c68;
+  --primary-light: #d9f5f3;
+  --focus-ring: #258b86;
+  --sidebar-width: 264px;
+  --surface-shadow: 0 4px 16px rgba(16, 29, 33, 0.045);
+  --surface-shadow-hover: 0 10px 28px rgba(16, 29, 33, 0.075);
 
   color-scheme: light;
+}
+
+html {
+  background: var(--bg-app);
 }
 
 body {
   background: var(--bg-app);
   color: var(--text-main);
   margin: 0;
+  font-family: var(--mantine-font-family);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
 }
 
 h1,
 h2,
-h3 {
-  letter-spacing: -0.015em;
+h3,
+h4 {
+  font-family: "Space Grotesk", var(--mantine-font-family);
+  letter-spacing: -0.02em;
+  font-weight: 600;
+}
+
+.mantine-Paper-root,
+.mantine-Card-root {
+  border-color: var(--border-hairline);
+}
+
+.mantine-Card-root {
+  box-shadow: var(--surface-shadow);
+}
+
+.mantine-Button-root {
+  font-weight: 600;
+  transition:
+    background-color 160ms ease,
+    box-shadow 160ms ease,
+    transform 160ms ease;
+}
+
+.mantine-Button-root[data-variant="filled"] {
+  background-image: linear-gradient(135deg, #258b86 0%, #007974 100%);
+  box-shadow: 0 4px 14px rgba(0, 121, 116, 0.24);
+}
+
+.mantine-Button-root[data-variant="filled"]:hover {
+  background-image: linear-gradient(135deg, #007974 0%, #006c68 100%);
+  box-shadow: 0 8px 22px rgba(0, 121, 116, 0.34);
+  transform: translateY(-2px);
+}
+
+.mantine-Input-input,
+.mantine-Select-input,
+.mantine-MultiSelect-input {
+  min-height: 46px;
+  padding-top: 11px;
+  padding-bottom: 11px;
+  border-color: var(--border-hairline);
+  border-radius: 12px;
+  background: #ffffff;
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease;
+}
+
+.mantine-Textarea-input {
+  padding-top: 12px;
+  padding-bottom: 12px;
+}
+
+.mantine-InputWrapper-label {
+  margin-bottom: 7px;
+  color: #101d21;
+  font-size: 13.5px;
+  font-weight: 600;
+}
+
+.mantine-SimpleGrid-root:has(> .mantine-InputWrapper-root) {
+  align-items: start;
+}
+
+.mantine-SimpleGrid-root > .mantine-InputWrapper-root {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.mantine-SimpleGrid-root > .mantine-InputWrapper-root > .mantine-Input-wrapper {
+  margin-top: auto;
+}
+
+.mantine-InputWrapper-description {
+  margin-top: 6px;
+  color: #53696b;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.mantine-Input-input:focus,
+.mantine-Select-input:focus,
+.mantine-MultiSelect-input:focus {
+  border-color: var(--primary);
+  border-width: 1.5px;
+  box-shadow: 0 0 0 3.5px rgba(37, 139, 134, 0.16);
+}
+
+::selection {
+  background: var(--bg-surface-accent);
+  color: var(--primary-hover);
 }

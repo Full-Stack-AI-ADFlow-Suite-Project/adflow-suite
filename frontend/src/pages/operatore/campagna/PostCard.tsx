@@ -16,6 +16,7 @@ import {
 import { Link } from "react-router-dom";
 
 import type { PostVista } from "../../../api/revisione";
+import { BadgeCanale, IconaCanale } from "../../../components/IconaCanale";
 import { AzioniPost } from "../vedi-campagna/post/AzioniPost";
 import { conCancelletto, interventoAttivo } from "../vedi-campagna/post/regole";
 import { StoricoVersioni } from "../vedi-campagna/post/StoricoVersioni";
@@ -37,46 +38,58 @@ function AnteprimaPost({
   const isAi =
     post.riempitivo === "immagine_ai" || post.riempitivo === "cartolina";
   return (
-    <Paper withBorder radius="md" p="sm" w={300} miw={280}>
-      <Group gap="xs" wrap="nowrap">
-        <Avatar color="verde" radius="xl" size={30}>
-          {bottega.slice(0, 1).toUpperCase()}
-        </Avatar>
-        <Stack gap={0}>
-          <Text size="xs" fw={600}>
-            {bottega}
-          </Text>
-          <Text size="xs" c="dimmed">
-            {post.canale === "facebook" ? "Pubblico" : citta}
-          </Text>
-        </Stack>
+    <Paper
+      withBorder
+      radius="md"
+      p={0}
+      w="100%"
+      style={{
+        overflow: "hidden",
+        background: "#ffffff",
+        borderColor: "rgba(16, 29, 33, 0.11)",
+      }}
+    >
+      <Group
+        justify="space-between"
+        px="sm"
+        py={10}
+        wrap="nowrap"
+        style={{ borderBottom: "1px solid rgba(16, 29, 33, 0.07)" }}
+      >
+        <Group gap="xs" wrap="nowrap">
+          <Avatar color="verde" radius="xl" size={32}>
+            {bottega.slice(0, 1).toUpperCase()}
+          </Avatar>
+          <Stack gap={0}>
+            <Text size="xs" fw={700} c="#101d21">
+              {bottega}
+            </Text>
+            <Text size="11px" c="dimmed">
+              {post.canale === "facebook"
+                ? "Pagina · Pubblico"
+                : citta || "Profilo Instagram"}
+            </Text>
+          </Stack>
+        </Group>
+        <IconaCanale canale={post.canale} size={18} />
       </Group>
-      <Text size="xs" mt="xs" style={{ whiteSpace: "pre-line" }}>
-        {v?.testo
-          ? v.testo.length > 300
-            ? v.testo.slice(0, 300) + "…"
-            : v.testo
-          : null}
-      </Text>
-      {!!v?.hashtag?.length && (
-        <Text size="xs" c="verde" mt={4}>
-          {conCancelletto(v.hashtag)}
-        </Text>
-      )}
+
       {isAi ? (
         <Box
-          mt="xs"
           p="md"
           style={{
-            background: "var(--mantine-color-grape-light)",
-            border: "1px dashed var(--mantine-color-grape-4)",
-            borderRadius: 8,
+            background: "linear-gradient(145deg, #f3eefc 0%, #eae3f8 100%)",
+            borderBottom: "1px dashed var(--mantine-color-grape-4)",
+            minHeight: 190,
+            display: "flex",
+            flexDirection: "column",
+            justifyContent: "center",
           }}
         >
-          <Text size="xs" fw={600} c="grape.9">
+          <Badge color="grape" variant="light" w="fit-content" mb={6}>
             Immagine creata con AI · 1:1
-          </Text>
-          <Text size="xs" c="dimmed" mt={4}>
+          </Badge>
+          <Text size="sm" fw={600} c="grape.9">
             {tema}
           </Text>
           <Text size="xs" c="grape.7" mt={6} ff="monospace">
@@ -84,25 +97,40 @@ function AnteprimaPost({
           </Text>
         </Box>
       ) : foto ? (
-        <Box mt="xs">
+        <Box style={{ background: "#f2f8f8" }}>
           <img
             src={`/api/foto/${foto.foto_id}/file`}
             alt={`Foto ${foto.foto_id}`}
             style={{
               width: "100%",
-              height: 200,
+              aspectRatio: "1 / 1",
+              maxHeight: 280,
               objectFit: "cover",
-              borderRadius: 8,
               display: "block",
             }}
           />
         </Box>
       ) : null}
-      {post.canale === "facebook" && (
-        <Text size="xs" c="dimmed" mt="xs" ta="center" fs="italic">
-          In anteprima non si vedono Mi piace e commenti.
+
+      <Box p="sm">
+        <Text size="xs" style={{ whiteSpace: "pre-line", lineHeight: 1.55 }}>
+          {v?.testo
+            ? v.testo.length > 340
+              ? v.testo.slice(0, 340) + "…"
+              : v.testo
+            : null}
         </Text>
-      )}
+        {!!v?.hashtag?.length && (
+          <Text size="xs" c="verde" fw={600} mt={6}>
+            {conCancelletto(v.hashtag)}
+          </Text>
+        )}
+        {post.canale === "facebook" && (
+          <Text size="11px" c="dimmed" mt="xs" fs="italic">
+            In anteprima non si vedono Mi piace e commenti.
+          </Text>
+        )}
+      </Box>
     </Paper>
   );
 }
@@ -147,12 +175,7 @@ export function PostCard({
       <Stack gap="sm">
         <Group justify="space-between" wrap="wrap">
           <Group gap={6} wrap="wrap">
-            <Badge
-              color={post.canale === "facebook" ? "indigo" : "pink"}
-              variant="light"
-            >
-              {NOME_CANALE[post.canale] ?? post.canale}
-            </Badge>
+            <BadgeCanale canale={post.canale} size="sm" />
             <Text size="sm" c="dimmed" ff="monospace">
               {dataOra(post.data_ora)}
             </Text>

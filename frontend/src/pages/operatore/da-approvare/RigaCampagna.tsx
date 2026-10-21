@@ -6,6 +6,7 @@ import { Badge, Box, Button, Card, Group, Text } from "@mantine/core";
 import { Link } from "react-router-dom";
 
 import type { CampagnaDaApprovare } from "../../../api/decisioni";
+import { BadgeCanale } from "../../../components/IconaCanale";
 import { coloreCampagna, data, dataOra, NOME_CANALE } from "../campagna/util";
 
 const BORDO: Record<string, string | undefined> = {
@@ -59,10 +60,14 @@ export function RigaCampagna({ c }: { c: CampagnaDaApprovare }) {
               </Badge>
             )}
           </Group>
-          <Text size="sm" c="dimmed" mt={6}>
-            {data(c.inizio)} → {data(c.fine)} ·{" "}
-            {(c.canali ?? []).map((x) => NOME_CANALE[x] ?? x).join(", ")}
-          </Text>
+          <Group gap="xs" mt={6} wrap="wrap">
+            <Text size="sm" c="dimmed">
+              {data(c.inizio)} → {data(c.fine)}
+            </Text>
+            {(c.canali ?? []).map((x) => (
+              <BadgeCanale key={x} canale={x} size="xs" />
+            ))}
+          </Group>
           {c.entro_quando && (
             <Text size="sm" mt={6}>
               <b>Entro quando:</b> {dataOra(c.entro_quando)}
