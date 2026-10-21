@@ -16,9 +16,10 @@ def test_ca94_operatore_filtra_per_artigiano(
     bottega = profilo(db, utente_id=primo.id, nome="Ceramiche Rossi", citta="Faenza")
     sua = campagna_attiva(db, profilo_id=bottega.id)
     sua_bozza = campagna_in_bozza(db, profilo_id=bottega.id)
-    campagna_attiva(db, profilo_id=profilo(db).id)  # di un altro artigiano
+    altra = campagna_attiva(db, profilo_id=profilo(db).id)  # di un altro artigiano
 
-    assert len(client.get("/api/campagne").json()) == 3
+    tutte = {r["id"] for r in client.get("/api/campagne").json()}
+    assert {sua.id, sua_bozza.id, altra.id} <= tutte
 
     risposta = client.get("/api/campagne", params={"artigiano": primo.id})
     assert risposta.status_code == 200

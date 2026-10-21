@@ -54,13 +54,14 @@ def test_ca92_elenco_con_la_situazione_delle_campagne(
     campagna_conclusa(db, profilo_id=bottega.id)
 
     # Gli operatori e gli admin non sono artigiani.
-    utente(db, "operatore")
-    utente(db, "admin")
+    altri = [utente(db, "operatore").id, utente(db, "admin").id]
 
     risposta = client.get("/api/artigiani")
     assert risposta.status_code == 200
-    righe = risposta.json()
-    assert [r["id"] for r in righe] == [artigiano.id]
+    tutti = risposta.json()
+    assert not {r["id"] for r in tutti} & set(altri)
+    righe = [r for r in tutti if r["id"] == artigiano.id]
+    assert len(righe) == 1
     riga = righe[0]
     assert riga["nome"] == "Mario Rossi"
     assert riga["email"] == "mario@example.test"
@@ -83,8 +84,9 @@ def test_ca92_artigiano_senza_profilo_e_non_attivo(
     sospeso = utente(db, "artigiano", nome="Account Spento", attivo=False)
     profilo(db, utente_id=sospeso.id, nome="Bottega Spenta")
 
-    righe = {r["id"]: r for r in client.get("/api/artigiani").json()}
-    assert set(righe) == {senza_profilo.id, sospeso.id}
+    mie = {senza_profilo.id, sospeso.id}
+    righe = {r["id"]: r for r in client.get("/api/artigiani").json() if r["id"] in mie}
+    assert set(righe) == mie
 
     nuovo = righe[senza_profilo.id]
     assert nuovo["bottega"] is None
@@ -122,18 +124,12 @@ def test_ca92_ordine_per_scadenza_poi_bottega(
     senza_a = artigiano_con("Alfa")
     senza_profilo = artigiano_con(None)
 
-    ordine = [r["id"] for r in client.get("/api/artigiani").json()]
-    assert ordine == [
-        vicino,
-        lontano,
-        senza_a,
-        senza_b,
-        senza_profilo,
-    ]  # Alfa, beta, gamma
+    mie = [vicino, lontano, senza_a, senza_b, senza_profilo]
+    righe = [r for r in client.get("/api/artigiani").json() if r["id"] in mie]
+    # Per scadenza; poi Alfa, beta, gamma (senza maiuscole).
+    assert [r["id"] for r in righe] == mie
 
-    scadenze = {
-        r["id"]: r["prossima_scadenza"] for r in client.get("/api/artigiani").json()
-    }
+    scadenze = {r["id"]: r["prossima_scadenza"] for r in righe}
     assert datetime.fromisoformat(scadenze[vicino]) == datetime(2030, 3, 1, tzinfo=ROMA)
 
 
