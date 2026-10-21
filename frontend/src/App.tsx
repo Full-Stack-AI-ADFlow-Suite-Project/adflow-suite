@@ -5,11 +5,14 @@ import { paginaIniziale, useAuth } from "./contesto-auth";
 import { Accesso } from "./pages/Accesso";
 import { Profilo, RichiedeProfilo } from "./pages/artigiano/profilo/Profilo";
 import { Campagna } from "./pages/artigiano/Campagna";
+import { Campagne } from "./pages/artigiano/Campagne";
+import { Ingresso } from "./pages/artigiano/Ingresso";
 import { DaApprovare } from "./pages/operatore/DaApprovare";
 import { NuovoArtigiano } from "./pages/operatore/NuovoArtigiano";
 import { VediCampagna } from "./pages/operatore/VediCampagna";
 
-function Ingresso() {
+/** Porta alla pagina di partenza del ruolo (spec R-29). */
+function Partenza() {
   const { utente } = useAuth();
   if (!utente) return <Navigate to="/accesso" replace />;
   return <Navigate to={paginaIniziale(utente.ruolo)} replace />;
@@ -19,6 +22,26 @@ export default function App() {
   return (
     <Routes>
       <Route path="/accesso" element={<Accesso />} />
+      <Route
+        path="/ingresso"
+        element={
+          <RichiedeRuolo ruoli={["artigiano"]}>
+            <RichiedeProfilo>
+              <Ingresso />
+            </RichiedeProfilo>
+          </RichiedeRuolo>
+        }
+      />
+      <Route
+        path="/campagne"
+        element={
+          <RichiedeRuolo ruoli={["artigiano"]}>
+            <RichiedeProfilo>
+              <Campagne />
+            </RichiedeProfilo>
+          </RichiedeRuolo>
+        }
+      />
       <Route
         path="/campagna"
         element={
@@ -61,8 +84,8 @@ export default function App() {
           </RichiedeRuolo>
         }
       />
-      <Route path="/" element={<Ingresso />} />
-      <Route path="*" element={<Ingresso />} />
+      <Route path="/" element={<Partenza />} />
+      <Route path="*" element={<Partenza />} />
     </Routes>
   );
 }

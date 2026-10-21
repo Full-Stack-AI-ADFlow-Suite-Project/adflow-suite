@@ -6,6 +6,7 @@
  */
 import { useCallback, useEffect, useState } from "react";
 import { Center, Loader } from "@mantine/core";
+import { useSearchParams } from "react-router-dom";
 
 import {
   dettaglio,
@@ -71,11 +72,14 @@ export function Campagna() {
     [mostra],
   );
 
+  // `?id=`: l'Ingresso e l'elenco Campagne aprono la pagina su una campagna.
+  const idScelto = Number(useSearchParams()[0].get("id")) || undefined;
+
   useEffect(() => {
     // Carica la campagna all'apertura della pagina: setState solo dopo l'attesa.
     // oxlint-disable-next-line react/set-state-in-effect
-    void carica();
-  }, [carica]);
+    void carica(idScelto);
+  }, [carica, idScelto]);
 
   const apriBozza = useCallback((c: CampagnaDettaglio) => {
     setVista({ tipo: "bozza", campagna: c });

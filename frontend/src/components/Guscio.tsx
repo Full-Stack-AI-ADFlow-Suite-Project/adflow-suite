@@ -24,7 +24,13 @@ export interface VoceNav {
 function vociDelRuolo(ruolo: Ruolo, percorso: string): VoceNav[] {
   if (ruolo === "artigiano")
     return [
-      { label: "Campagna", to: "/campagna", attivo: percorso === "/campagna" },
+      { label: "Ingresso", to: "/ingresso", attivo: percorso === "/ingresso" },
+      {
+        label: "Campagne",
+        to: "/campagne",
+        // La pagina Campagna si apre da qui: la voce resta accesa.
+        attivo: percorso === "/campagne" || percorso === "/campagna",
+      },
       {
         label: "Profilo bottega",
         to: "/profilo",
@@ -60,13 +66,14 @@ const ICONE: Record<string, ReactNode> = {
       <path d="M3 21v-2a6 6 0 0 1 12 0v2M19 8v6M16 11h6" />
     </>
   ),
-  Campagna: (
+  Ingresso: (
     <>
-      <rect x="3" y="4" width="18" height="18" rx="2" />
-      <line x1="16" y1="2" x2="16" y2="6" />
-      <line x1="8" y1="2" x2="8" y2="6" />
-      <line x1="3" y1="10" x2="21" y2="10" />
+      <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+      <polyline points="9 22 9 12 15 12 15 22" />
     </>
+  ),
+  Campagne: (
+    <path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z" />
   ),
   "Profilo bottega": (
     <>
