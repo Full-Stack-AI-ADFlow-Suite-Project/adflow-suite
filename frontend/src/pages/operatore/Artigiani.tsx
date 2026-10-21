@@ -1,136 +1,168 @@
 /**
  * Elenco degli artigiani del consorzio (GET /artigiani, plan §3).
  *
- * Prima pagina dell'operatore: tutte le botteghe con la loro situazione.
- * Il nome della bottega apre la scheda dell'artigiano; la tabella resta in
- * una finestra scrollabile così l'elenco cresce senza perdere la testata.
+ * Prima pagina dell'operatore: KPI sulle botteghe, ricerca e la tabella
+ * in una finestra scrollabile. Il nome della bottega — o tutta la riga —
+ * apre la scheda dell'artigiano.
  */
-import {
-  Alert,
-  Badge,
-  Button,
-  Card,
-  Center,
-  Group,
-  Loader,
-  Paper,
-  ScrollArea,
-  Stack,
-  Table,
-  Text,
-  TextInput,
-} from "@mantine/core";
-import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import { Alert, Button, Center, Loader, Text, TextInput } from "@mantine/core";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { Link, useNavigate } from "react-router-dom";
 
 import { elencoArtigiani, type ArtigianoElenco } from "../../api/artigiani";
 import { BadgeCanale } from "../../components/IconaCanale";
 import { Guscio } from "../../components/Guscio";
 import { dataOra } from "./campagna/util";
+import stile from "./Artigiani.module.css";
+
+const ICONE_KPI = {
+  botteghe: (
+    <>
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </>
+  ),
+  daApprovare: (
+    <>
+      <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
+      <rect x="9" y="3" width="6" height="4" rx="1" />
+      <path d="m9 14 2 2 4-4" />
+    </>
+  ),
+  inCorso: (
+    <>
+      <polyline points="22 12 18 12 15 21 9 3 6 12 2 12" />
+    </>
+  ),
+  daCompilare: (
+    <>
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+      <polyline points="14 2 14 8 20 8" />
+      <line x1="12" y1="18" x2="12" y2="12" />
+      <line x1="9" y1="15" x2="15" y2="15" />
+    </>
+  ),
+};
 
 function Kpi({
   label,
   valore,
-  colore,
+  icona,
+  avviso,
 }: {
   label: string;
   valore: number;
-  colore?: string;
+  icona: ReactNode;
+  avviso?: boolean;
 }) {
   return (
-    <Paper withBorder radius="md" p="md" bg="#ffffff">
-      <Text size="xs" c="dimmed" fw={600} tt="uppercase" lts={0.5}>
-        {label}
-      </Text>
-      <Text size="xl" fw={800} c={colore} mt={4}>
-        {valore}
-      </Text>
-    </Paper>
+    <div className={stile.kpiCard}>
+      <div className={`${stile.kpiIcona} ${avviso ? stile.avviso : ""}`}>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          {icona}
+        </svg>
+      </div>
+      <div className={stile.kpiTesto}>
+        <div className={stile.kpiLabel}>{label}</div>
+        <div className={`${stile.kpiNumero} ${avviso ? stile.avviso : ""}`}>
+          {valore}
+        </div>
+      </div>
+    </div>
   );
 }
 
 function RigaArtigiano({ r }: { r: ArtigianoElenco }) {
+  const naviga = useNavigate();
+  const scheda = `/artigiani/${r.id}`;
   const canali = ["facebook", "instagram"];
   return (
-    <Table.Tr>
-      <Table.Td>
-        <Text
-          component={Link}
-          to={`/artigiani/${r.id}`}
-          fw={700}
-          size="sm"
-          c="dark"
-          style={{ textDecoration: "none" }}
+    <tr
+      tabIndex={0}
+      onClick={() => naviga(scheda)}
+      onKeyDown={(e) => {
+        if (e.key === "Enter") naviga(scheda);
+      }}
+    >
+      <td>
+        <Link
+          to={scheda}
+          className={stile.bottega}
+          onClick={(e) => e.stopPropagation()}
         >
           {r.bottega ?? r.nome}
-        </Text>
-        <Text size="xs" c="dimmed">
+        </Link>
+        <div className={stile.referente}>
           {r.bottega ? r.nome : r.email}
           {r.citta ? ` · ${r.citta}` : ""}
-        </Text>
-      </Table.Td>
-      <Table.Td>
+        </div>
+      </td>
+      <td>
         {r.bottega ? (
-          <Badge color="verde" variant="light">
-            profilo compilato
-          </Badge>
+          <span className={`${stile.badge} ${stile.badgeNeutro}`}>
+            Profilo compilato
+          </span>
         ) : (
-          <Badge color="yellow" variant="light">
-            profilo da compilare
-          </Badge>
+          <span className={`${stile.badge} ${stile.badgeAttesa}`}>
+            Profilo da compilare
+          </span>
         )}
         {!r.attivo && (
-          <Badge color="gray" variant="light" ml={6}>
-            sospeso
-          </Badge>
+          <span className={`${stile.badge} ${stile.badgeSpento}`}>Sospeso</span>
         )}
-      </Table.Td>
-      <Table.Td>
-        <Group gap={4} wrap="nowrap">
+      </td>
+      <td>
+        <div className={stile.canali}>
           {canali.map((canale) =>
             r.canali_collegati.includes(canale) ? (
               <BadgeCanale key={canale} canale={canale} size="xs" />
             ) : (
-              <Badge key={canale} color="gray" variant="outline" size="sm">
+              <span
+                key={canale}
+                className={`${stile.badge} ${stile.badgeSpento}`}
+              >
                 {canale === "facebook" ? "Fb" : "Ig"}
-              </Badge>
+              </span>
             ),
           )}
-        </Group>
-      </Table.Td>
-      <Table.Td>
-        {r.n_da_approvare > 0 ? (
-          <Badge color="yellow" variant="light">
-            {r.n_da_approvare}
-          </Badge>
-        ) : (
-          <Text size="sm" c="dimmed">
-            0
-          </Text>
-        )}
-      </Table.Td>
-      <Table.Td>
-        <Text size="sm">{r.n_in_corso}</Text>
-      </Table.Td>
-      <Table.Td>
+        </div>
+      </td>
+      <td>
+        <span
+          className={`${stile.contatore} ${
+            r.n_da_approvare > 0 ? stile.contatoreAttesa : stile.contatoreNeutro
+          }`}
+        >
+          {r.n_da_approvare}
+        </span>
+      </td>
+      <td>
+        <span
+          className={`${stile.contatore} ${
+            r.n_in_corso > 0 ? stile.contatoreVerde : stile.contatoreNeutro
+          }`}
+        >
+          {r.n_in_corso}
+        </span>
+      </td>
+      <td>
         {r.prossima_scadenza ? (
-          <Text
-            size="sm"
-            fw={600}
-            component={Link}
+          <Link
             to={`/campagne/${r.prossima_campagna_id}`}
-            c="dark"
-            style={{ textDecoration: "none" }}
+            className={stile.scadenza}
+            onClick={(e) => e.stopPropagation()}
           >
             {dataOra(r.prossima_scadenza)}
-          </Text>
+          </Link>
         ) : (
-          <Text size="sm" c="dimmed">
+          <span className={stile.vuoto}>
             {r.bottega ? "—" : "— · profilo da compilare"}
-          </Text>
+          </span>
         )}
-      </Table.Td>
-    </Table.Tr>
+      </td>
+    </tr>
   );
 }
 
@@ -162,24 +194,30 @@ export function Artigiani() {
   return (
     <Guscio titolo="Artigiani" largo={1100}>
       {lista && (
-        <Group grow mb="lg" preventGrowOverflow={false} wrap="wrap">
-          <Kpi label="Botteghe iscritte" valore={lista.length} />
+        <div className={stile.kpi}>
+          <Kpi
+            label="Botteghe iscritte"
+            valore={lista.length}
+            icona={ICONE_KPI.botteghe}
+          />
           <Kpi
             label="Con campagne da approvare"
             valore={nDaApprovare}
-            colore={
-              nDaApprovare > 0 ? "var(--mantine-color-yellow-8)" : undefined
-            }
+            icona={ICONE_KPI.daApprovare}
+            avviso={nDaApprovare > 0}
           />
-          <Kpi label="Con campagne in corso" valore={nInCorso} />
+          <Kpi
+            label="Con campagne in corso"
+            valore={nInCorso}
+            icona={ICONE_KPI.inCorso}
+          />
           <Kpi
             label="Profilo da compilare"
             valore={nSenzaProfilo}
-            colore={
-              nSenzaProfilo > 0 ? "var(--mantine-color-yellow-8)" : undefined
-            }
+            icona={ICONE_KPI.daCompilare}
+            avviso={nSenzaProfilo > 0}
           />
-        </Group>
+        </div>
       )}
 
       {errore && (
@@ -194,15 +232,35 @@ export function Artigiani() {
       )}
 
       {lista && (
-        <Stack gap="md">
-          <Group justify="space-between" align="center" wrap="wrap">
-            <TextInput
-              aria-label="Cerca artigiano"
-              placeholder="Cerca per bottega, referente, città o email"
-              value={cerca}
-              onChange={(e) => setCerca(e.currentTarget.value)}
-              w={380}
-            />
+        <div className={stile.tabella}>
+          <div className={stile.barra}>
+            <div className={stile.barraSx}>
+              <TextInput
+                aria-label="Cerca artigiano"
+                placeholder="Cerca per bottega, referente, città o email"
+                value={cerca}
+                onChange={(e) => setCerca(e.currentTarget.value)}
+                w={340}
+                leftSection={
+                  <svg
+                    width="15"
+                    height="15"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    aria-hidden="true"
+                  >
+                    <circle cx="11" cy="11" r="7" />
+                    <line x1="21" y1="21" x2="16.5" y2="16.5" />
+                  </svg>
+                }
+              />
+              <Text className={stile.conteggio} component="span">
+                {visibili.length} di {lista.length} botteghe
+              </Text>
+            </div>
             <Button
               color="verde"
               component={Link}
@@ -225,48 +283,34 @@ export function Artigiani() {
             >
               Nuovo artigiano
             </Button>
-          </Group>
-
-          <Card withBorder radius="md" p={0} style={{ overflow: "hidden" }}>
-            <ScrollArea.Autosize mah={560} type="auto">
-              <Table highlightOnHover verticalSpacing="sm" miw={760}>
-                <Table.Thead
-                  style={{
-                    position: "sticky",
-                    top: 0,
-                    background: "#ffffff",
-                    zIndex: 1,
-                  }}
-                >
-                  <Table.Tr>
-                    <Table.Th>Bottega</Table.Th>
-                    <Table.Th>Stato</Table.Th>
-                    <Table.Th>Canali collegati</Table.Th>
-                    <Table.Th>Da approvare</Table.Th>
-                    <Table.Th>In corso</Table.Th>
-                    <Table.Th>Prossima scadenza</Table.Th>
-                  </Table.Tr>
-                </Table.Thead>
-                <Table.Tbody>
-                  {visibili.map((r) => (
-                    <RigaArtigiano key={r.id} r={r} />
-                  ))}
-                </Table.Tbody>
-              </Table>
-              {!visibili.length && (
-                <Text c="dimmed" size="sm" p="lg" ta="center">
-                  {cerca
-                    ? "Nessun artigiano corrisponde alla ricerca."
-                    : "Nessun artigiano ancora iscritto. Crealo da «Nuovo artigiano»."}
-                </Text>
-              )}
-            </ScrollArea.Autosize>
-          </Card>
-          <Text size="xs" c="dimmed">
-            Il nome della bottega apre la sua pagina con profilo e campagne.
-            Mostrati {visibili.length} su {lista.length} artigiani.
-          </Text>
-        </Stack>
+          </div>
+          <div className={stile.scorri}>
+            <table>
+              <thead>
+                <tr>
+                  <th>Bottega</th>
+                  <th>Stato</th>
+                  <th>Canali collegati</th>
+                  <th>Da approvare</th>
+                  <th>In corso</th>
+                  <th>Prossima scadenza</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visibili.map((r) => (
+                  <RigaArtigiano key={r.id} r={r} />
+                ))}
+              </tbody>
+            </table>
+            {!visibili.length && (
+              <div className={stile.vuota}>
+                {cerca
+                  ? "Nessun artigiano corrisponde alla ricerca."
+                  : "Nessun artigiano ancora iscritto. Crealo da «Nuovo artigiano»."}
+              </div>
+            )}
+          </div>
+        </div>
       )}
     </Guscio>
   );

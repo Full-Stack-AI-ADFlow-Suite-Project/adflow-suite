@@ -8,14 +8,12 @@
 import {
   Alert,
   Anchor,
-  Badge,
   Card,
   Center,
   Divider,
   Group,
   Loader,
   Stack,
-  Table,
   Text,
 } from "@mantine/core";
 import { useEffect, useState, type ReactNode } from "react";
@@ -30,16 +28,31 @@ import type { CampagnaDaApprovare } from "../../api/decisioni";
 import { BadgeCanale } from "../../components/IconaCanale";
 import { Guscio } from "../../components/Guscio";
 import { coloreCampagna, data, dataOra } from "./campagna/util";
+import stile from "./Artigiani.module.css";
 
 function periodo(inizio: string, fine: string): string {
   return `${data(inizio)} – ${data(fine)}`;
 }
 
+/** Classe del badge per lo stato della campagna (colori di coloreCampagna). */
+const CLASSE_STATO: Record<string, string> = {
+  verde: stile.badgeVerde,
+  red: stile.badgeRosso,
+  yellow: stile.badgeAttesa,
+  orange: stile.badgeArancio,
+  dark: stile.badgeScuro,
+  gray: stile.badgeNeutro,
+};
+
 function BadgeStato({ stato }: { stato: string }) {
   return (
-    <Badge color={coloreCampagna(stato)} variant="light">
+    <span
+      className={`${stile.badge} ${
+        CLASSE_STATO[coloreCampagna(stato)] ?? stile.badgeNeutro
+      }`}
+    >
       {stato.replaceAll("_", " ")}
-    </Badge>
+    </span>
   );
 }
 
@@ -63,27 +76,21 @@ function Voce({
   );
 }
 
-function RigaCampagna({ c, extra }: { c: CampagnaSezione; extra?: ReactNode }) {
+function RigaSezione({ c, extra }: { c: CampagnaSezione; extra?: ReactNode }) {
   return (
-    <Table.Tr>
-      <Table.Td>
-        <Anchor
-          component={Link}
-          to={`/campagne/${c.id}`}
-          fw={600}
-          size="sm"
-          c="dark"
-        >
+    <tr>
+      <td>
+        <Link to={`/campagne/${c.id}`} className={stile.bottega}>
           {c.titolo}
-        </Anchor>
-      </Table.Td>
-      <Table.Td>
+        </Link>
+      </td>
+      <td>
         <BadgeStato stato={c.stato} />
-      </Table.Td>
-      <Table.Td>
+      </td>
+      <td>
         <Text size="sm">{periodo(c.inizio, c.fine)}</Text>
-      </Table.Td>
-      <Table.Td>
+      </td>
+      <td>
         <Text size="sm">
           {c.n_post} post
           {c.n_falliti > 0 && (
@@ -93,9 +100,9 @@ function RigaCampagna({ c, extra }: { c: CampagnaSezione; extra?: ReactNode }) {
             </Text>
           )}
         </Text>
-      </Table.Td>
+      </td>
       {extra}
-    </Table.Tr>
+    </tr>
   );
 }
 
@@ -112,54 +119,58 @@ function TabellaCampagne({
 }) {
   if (!campagne.length) return null;
   return (
-    <Card withBorder radius="md" p="lg">
+    <Card withBorder radius="lg" p="lg">
       <Text fw={700} mb="sm">
         {titolo}
       </Text>
-      <Table verticalSpacing="sm">
-        <Table.Thead>
-          <Table.Tr>
-            <Table.Th>Campagna</Table.Th>
-            <Table.Th>Stato</Table.Th>
-            <Table.Th>Periodo</Table.Th>
-            <Table.Th>Post</Table.Th>
-            {intestazioneExtra}
-          </Table.Tr>
-        </Table.Thead>
-        <Table.Tbody>
-          {campagne.map((c) => (
-            <RigaCampagna key={c.id} c={c} extra={rigaExtra?.(c)} />
-          ))}
-        </Table.Tbody>
-      </Table>
+      <div className={stile.tabella}>
+        <table>
+          <thead>
+            <tr>
+              <th>Campagna</th>
+              <th>Stato</th>
+              <th>Periodo</th>
+              <th>Post</th>
+              {intestazioneExtra}
+            </tr>
+          </thead>
+          <tbody>
+            {campagne.map((c) => (
+              <RigaSezione key={c.id} c={c} extra={rigaExtra?.(c)} />
+            ))}
+          </tbody>
+        </table>
+      </div>
     </Card>
   );
 }
 
 function RigaDaApprovare({ c }: { c: CampagnaDaApprovare }) {
   return (
-    <Table.Tr>
-      <Table.Td>
-        <Anchor
-          component={Link}
-          to={`/campagne/${c.id}`}
-          fw={600}
-          size="sm"
-          c="dark"
-        >
+    <tr>
+      <td>
+        <Link to={`/campagne/${c.id}`} className={stile.bottega}>
           {c.titolo}
-        </Anchor>
-      </Table.Td>
-      <Table.Td>
+        </Link>
+      </td>
+      <td>
         <BadgeStato stato={c.stato} />
-      </Table.Td>
-      <Table.Td>
+      </td>
+      <td>
         <Text size="sm">{periodo(c.inizio, c.fine)}</Text>
-      </Table.Td>
-      <Table.Td>
-        <Text size="sm">{c.conteggi?.da_approvare ?? "—"} da approvare</Text>
-      </Table.Td>
-      <Table.Td>
+      </td>
+      <td>
+        <span
+          className={`${stile.contatore} ${
+            (c.conteggi?.da_approvare ?? 0) > 0
+              ? stile.contatoreAttesa
+              : stile.contatoreNeutro
+          }`}
+        >
+          {c.conteggi?.da_approvare ?? 0}
+        </span>
+      </td>
+      <td>
         {c.entro_quando ? (
           <Text size="sm" fw={600}>
             {dataOra(c.entro_quando)}
@@ -169,8 +180,8 @@ function RigaDaApprovare({ c }: { c: CampagnaDaApprovare }) {
             —
           </Text>
         )}
-      </Table.Td>
-    </Table.Tr>
+      </td>
+    </tr>
   );
 }
 
@@ -211,12 +222,12 @@ export function Artigiano() {
   const titolo = p?.nome ?? a.nome;
 
   return (
-    <Guscio titolo="Artigiani" largo={1100}>
+    <Guscio titolo="Artigiani">
       <Anchor component={Link} to="/artigiani" c="dimmed" size="sm" mb="xs">
         ← Tutti gli artigiani
       </Anchor>
 
-      <Card withBorder radius="md" p="lg" mb="lg">
+      <Card withBorder radius="lg" p="lg" mb="lg" mt="xs">
         <Group justify="space-between" align="flex-start" wrap="wrap">
           <div>
             <Text size="xl" fw={800} lh={1.2}>
@@ -229,23 +240,23 @@ export function Artigiano() {
           </div>
           <Group gap={6} justify="flex-end">
             {p ? (
-              <Badge color="verde" variant="light">
-                profilo compilato
-              </Badge>
+              <span className={`${stile.badge} ${stile.badgeNeutro}`}>
+                Profilo compilato
+              </span>
             ) : (
-              <Badge color="yellow" variant="light">
-                profilo da compilare
-              </Badge>
+              <span className={`${stile.badge} ${stile.badgeAttesa}`}>
+                Profilo da compilare
+              </span>
             )}
             {!a.attivo && (
-              <Badge color="gray" variant="light">
-                account sospeso
-              </Badge>
+              <span className={`${stile.badge} ${stile.badgeSpento}`}>
+                Account sospeso
+              </span>
             )}
             {scheda.bozza && (
-              <Badge color="gray" variant="outline">
-                bozza in corso
-              </Badge>
+              <span className={`${stile.badge} ${stile.badgeSpento}`}>
+                Bozza in corso
+              </span>
             )}
           </Group>
         </Group>
@@ -277,26 +288,28 @@ export function Artigiano() {
       </Card>
 
       {scheda.da_approvare.length > 0 && (
-        <Card withBorder radius="md" p="lg" mb="lg">
+        <Card withBorder radius="lg" p="lg" mb="lg">
           <Text fw={700} mb="sm">
             Da approvare · {scheda.da_approvare.length}
           </Text>
-          <Table verticalSpacing="sm">
-            <Table.Thead>
-              <Table.Tr>
-                <Table.Th>Campagna</Table.Th>
-                <Table.Th>Stato</Table.Th>
-                <Table.Th>Periodo</Table.Th>
-                <Table.Th>Post</Table.Th>
-                <Table.Th>Entro</Table.Th>
-              </Table.Tr>
-            </Table.Thead>
-            <Table.Tbody>
-              {scheda.da_approvare.map((c) => (
-                <RigaDaApprovare key={c.id} c={c} />
-              ))}
-            </Table.Tbody>
-          </Table>
+          <div className={stile.tabella}>
+            <table>
+              <thead>
+                <tr>
+                  <th>Campagna</th>
+                  <th>Stato</th>
+                  <th>Periodo</th>
+                  <th>Post da approvare</th>
+                  <th>Entro</th>
+                </tr>
+              </thead>
+              <tbody>
+                {scheda.da_approvare.map((c) => (
+                  <RigaDaApprovare key={c.id} c={c} />
+                ))}
+              </tbody>
+            </table>
+          </div>
         </Card>
       )}
 
@@ -309,13 +322,13 @@ export function Artigiano() {
               : "Campagne chiuse"
           }
           campagne={scheda.chiuse}
-          intestazioneExtra={<Table.Th>Chiusa il</Table.Th>}
+          intestazioneExtra={<th>Chiusa il</th>}
           rigaExtra={(c) => (
-            <Table.Td>
+            <td>
               <Text size="sm" c="dimmed">
                 {c.chiusa_il ? data(c.chiusa_il) : "—"}
               </Text>
-            </Table.Td>
+            </td>
           )}
         />
         {!scheda.da_approvare.length &&
@@ -330,7 +343,7 @@ export function Artigiano() {
       </Stack>
 
       {p && (
-        <Card withBorder radius="md" p="lg" mt="lg">
+        <Card withBorder radius="lg" p="lg" mt="lg">
           <Group justify="space-between" align="center" mb="sm">
             <Text fw={700}>Profilo della bottega</Text>
             <Text size="xs" c="dimmed">
