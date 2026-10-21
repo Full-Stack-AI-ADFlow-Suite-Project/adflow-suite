@@ -1,69 +1,64 @@
 import { createTheme, rem } from "@mantine/core";
 import type { CSSVariablesResolver, MantineColorsTuple } from "@mantine/core";
 
-// Scala teal di Tailwind (50 → 900), il verde primario dell'app.
-const tealTemplate: MantineColorsTuple = [
-  "#f0fdfa",
-  "#ccfbf1",
-  "#99f6e4",
-  "#5eead4",
-  "#2dd4bf",
-  "#14b8a6",
-  "#0d9488",
-  "#0f766e",
-  "#115e59",
-  "#134e4a",
+// Palette e caratteri del foglio di stile delle pagine statiche
+// (docs/pagine/assets/adflow.css, ADR-113). Solo tema chiaro.
+const blu: MantineColorsTuple = [
+  "#eff6ff", // --primary-light
+  "#dbeafe",
+  "#bfdbfe", // --primary-border
+  "#93c5fd",
+  "#60a5fa",
+  "#3b82f6",
+  "#2563eb", // --primary
+  "#1d4ed8", // --primary-hover
+  "#1e40af",
+  "#1e3a8a",
 ];
 
-const grigi: MantineColorsTuple = [
-  "#f8fafc",
-  "#f1f5f9",
-  "#e2e8f0",
-  "#cbd5e1",
-  "#94a3b8",
-  "#64748b",
-  "#475569",
-  "#334155",
+// I grigi di Mantine con i valori del foglio di stile: fondo, bordi e testi.
+const gray: MantineColorsTuple = [
+  "#f8fafc", // --bg-app
+  "#f1f5f9", // --bg-surface-subtle
+  "#e9eef5",
+  "#e2e8f0", // --border-hairline
+  "#cbd5e1", // --border-strong
+  "#94a3b8", // --text-faint
+  "#64748b", // --text-muted
+  "#475569", // --text-secondary
   "#1e293b",
-  "#0f172a",
+  "#0f172a", // --text-main
 ];
 
 const inter =
-  '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif';
-const spaceGrotesk =
-  '"Space Grotesk", "Inter", -apple-system, BlinkMacSystemFont, sans-serif';
+  '"Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif';
 
 export const tema = createTheme({
-  colors: {
-    // Nomi usati dai componenti esistenti, tutti allineati al teal del demo.
-    blu: tealTemplate,
-    verde: tealTemplate,
-    green: tealTemplate,
-    gray: grigi,
-  },
-  primaryColor: "verde",
+  // `verde` è il nome di prima del colore primario: le pagine lo scrivono
+  // ancora (`color="verde"`). Resta finché non lo tolgono (#76).
+  colors: { blu, verde: blu, gray },
+  primaryColor: "blu",
   primaryShade: 6,
-  black: "#0f172a",
+  black: gray[9],
   fontFamily: inter,
   fontFamilyMonospace:
-    '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
+    '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace',
   headings: {
-    fontFamily: spaceGrotesk,
-    fontWeight: "600",
+    fontFamily: inter,
+    fontWeight: "700",
     textWrap: "balance",
   },
-  radius: { xs: rem(8), sm: rem(12), md: rem(17.6), lg: rem(20), xl: rem(24) },
+  radius: { sm: rem(6), md: rem(10), lg: rem(14) },
   defaultRadius: "md",
 });
 
+// Bordo delle card e fondo al passaggio del mouse: Mantine li prende da
+// due grigi più scuri di quelli del foglio di stile.
 export const variabili: CSSVariablesResolver = () => ({
   variables: {},
   light: {
-    "--mantine-color-body": "#f8fafc",
-    "--mantine-color-default": "#ffffff",
-    "--mantine-color-default-border": "#e2e8f0",
-    "--mantine-color-default-hover": "#f1f5f9",
-    "--mantine-color-dimmed": "#475569",
+    "--mantine-color-default-border": "var(--mantine-color-gray-3)",
+    "--mantine-color-default-hover": "var(--mantine-color-gray-1)",
   },
   dark: {},
 });

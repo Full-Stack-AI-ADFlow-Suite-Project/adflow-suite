@@ -5,8 +5,6 @@ import { paginaIniziale, useAuth } from "./contesto-auth";
 import { Accesso } from "./pages/Accesso";
 import { Profilo, RichiedeProfilo } from "./pages/artigiano/profilo/Profilo";
 import { Campagna } from "./pages/artigiano/Campagna";
-import { Artigiani } from "./pages/operatore/Artigiani";
-import { Artigiano } from "./pages/operatore/Artigiano";
 import { DaApprovare } from "./pages/operatore/DaApprovare";
 import { NuovoArtigiano } from "./pages/operatore/NuovoArtigiano";
 import { VediCampagna } from "./pages/operatore/VediCampagna";
@@ -36,22 +34,6 @@ export default function App() {
         element={
           <RichiedeRuolo ruoli={["artigiano"]}>
             <Profilo />
-          </RichiedeRuolo>
-        }
-      />
-      <Route
-        path="/artigiani"
-        element={
-          <RichiedeRuolo ruoli={["operatore", "admin"]}>
-            <Artigiani />
-          </RichiedeRuolo>
-        }
-      />
-      <Route
-        path="/artigiani/:id"
-        element={
-          <RichiedeRuolo ruoli={["operatore", "admin"]}>
-            <Artigiano />
           </RichiedeRuolo>
         }
       />

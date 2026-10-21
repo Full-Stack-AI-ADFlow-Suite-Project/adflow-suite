@@ -1,5 +1,6 @@
 /** Il piano editoriale sotto la decisione: strategia, sintesi per canale e verifiche. */
 import {
+  Badge,
   Card,
   Group,
   Spoiler,
@@ -10,9 +11,28 @@ import {
 } from "@mantine/core";
 import { useState } from "react";
 
-import type { Piano } from "../../../api/revisione";
+import type { Piano, PostVista, Uscita } from "../../../api/revisione";
 
-export function PianoCard({ piano }: { piano: Piano | null }) {
+function perCanale(uscite: Uscita[]): Map<string, PostVista[]> {
+  const mappa = new Map<string, PostVista[]>();
+  for (const u of uscite)
+    for (const p of u.post) {
+      const l = mappa.get(p.canale) ?? [];
+      l.push(p);
+      mappa.set(p.canale, l);
+    }
+  return mappa;
+}
+
+export function PianoCard({
+  piano,
+  uscite,
+  costoAi,
+}: {
+  piano: Piano | null;
+  uscite: Uscita[];
+  costoAi?: number | null;
+}) {
   const [aperto, setAperto] = useState(true);
   return (
     <Card withBorder radius="lg" p="lg">
@@ -31,7 +51,7 @@ export function PianoCard({ piano }: { piano: Piano | null }) {
       {aperto &&
         (!piano ? (
           <Text size="sm" c="dimmed" mt="sm">
-            Il piano editoriale sarà disponibile al termine della generazione.
+            Il piano si vedrà qui, quando ci sarà.
           </Text>
         ) : (
           <Stack gap="sm" mt="sm">
@@ -49,6 +69,37 @@ export function PianoCard({ piano }: { piano: Piano | null }) {
                 {piano.strategia}
               </Spoiler>
             </Text>
+            <Stack gap={4}>
+              {[...perCanale(uscite)].map(([canale, post]) => {
+                const riempitivi = post.filter(
+                  (p) =>
+                    p.riempitivo === "immagine_ai" ||
+                    p.riempitivo === "cartolina",
+                ).length;
+                const conFoto = post.length - riempitivi;
+                return (
+                  <Text key={canale} size="sm">
+                    <Badge variant="light" ff="monospace" mr="xs">
+                      {canale}
+                    </Badge>
+                    {post.length} post · {conFoto} con foto
+                    {riempitivi > 0 && ` · ${riempitivi} con immagine AI`}
+                  </Text>
+                );
+              })}
+            </Stack>
+            {costoAi != null && (
+              <Text size="sm">
+                <Text span fw={500}>
+                  Costo AI della campagna:{" "}
+                </Text>
+                <b>{Number(costoAi).toFixed(2).replace(".", ",")} $</b>
+                <Text span c="dimmed">
+                  {" "}
+                  · Stima del provider (R-44)
+                </Text>
+              </Text>
+            )}
             {Array.isArray(piano.esito_controllo) && (
               <Stack gap={4} mt={4}>
                 <Text size="sm" c="dimmed">

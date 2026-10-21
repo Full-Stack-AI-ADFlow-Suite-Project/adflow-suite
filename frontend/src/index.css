@@ -1,134 +1,31 @@
-/* Token di superficie: grigi slate neutri + teal Tailwind. */
+/* Token del foglio di stile delle pagine statiche
+   (docs/pagine/assets/adflow.css, ADR-113), con gli stessi nomi.
+   I valori stanno in tema.ts. Solo tema chiaro. */
 :root {
-  --bg-app: #f8fafc;
+  --bg-app: var(--mantine-color-gray-0);
   --bg-surface: var(--mantine-color-white);
-  --bg-surface-subtle: #f1f5f9;
-  --bg-surface-accent: #ccfbf1;
-  --border-hairline: #e2e8f0;
-  --border-strong: #cbd5e1;
-  --text-main: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #94a3b8;
-  --text-faint: #cbd5e1;
-  --primary: #0d9488;
-  --primary-hover: #0f766e;
-  --primary-light: #ccfbf1;
-  --focus-ring: #14b8a6;
-  --sidebar-width: 264px;
-  --surface-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05),
-    0 2px 4px -2px rgba(0, 0, 0, 0.03);
-  --surface-shadow-hover: 0 10px 15px -3px rgba(0, 0, 0, 0.08),
-    0 4px 6px -4px rgba(0, 0, 0, 0.05);
+  --bg-surface-subtle: var(--mantine-color-gray-1);
+  --border-hairline: var(--mantine-color-gray-3);
+  --border-strong: var(--mantine-color-gray-4);
+  --text-main: var(--mantine-color-gray-9);
+  --text-secondary: var(--mantine-color-gray-7);
+  --text-muted: var(--mantine-color-gray-6);
+  --text-faint: var(--mantine-color-gray-5);
+  --primary: var(--mantine-color-blu-6);
+  --primary-light: var(--mantine-color-blu-0);
+  --sidebar-width: 250px;
 
   color-scheme: light;
-}
-
-html {
-  background: var(--bg-app);
 }
 
 body {
   background: var(--bg-app);
   color: var(--text-main);
   margin: 0;
-  font-family: var(--mantine-font-family);
-  -webkit-font-smoothing: antialiased;
-  text-rendering: optimizeLegibility;
 }
 
 h1,
 h2,
-h3,
-h4 {
-  font-family: "Space Grotesk", var(--mantine-font-family);
-  letter-spacing: -0.02em;
-  font-weight: 600;
-}
-
-.mantine-Paper-root,
-.mantine-Card-root {
-  border-color: var(--border-hairline);
-}
-
-.mantine-Card-root {
-  box-shadow: var(--surface-shadow);
-}
-
-.mantine-Button-root {
-  font-weight: 600;
-  transition:
-    background-color 160ms ease,
-    box-shadow 160ms ease,
-    transform 160ms ease;
-}
-
-.mantine-Button-root[data-variant="filled"] {
-  background-image: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%);
-  box-shadow: 0 4px 14px rgba(13, 148, 136, 0.24);
-}
-
-.mantine-Button-root[data-variant="filled"]:hover {
-  background-image: linear-gradient(135deg, #0d9488 0%, #0f766e 100%);
-  box-shadow: 0 8px 22px rgba(13, 148, 136, 0.34);
-  transform: translateY(-2px);
-}
-
-.mantine-Input-input,
-.mantine-Select-input,
-.mantine-MultiSelect-input {
-  min-height: 46px;
-  padding-top: 11px;
-  padding-bottom: 11px;
-  border-color: var(--border-hairline);
-  border-radius: 12px;
-  background: #ffffff;
-  transition:
-    border-color 150ms ease,
-    box-shadow 150ms ease;
-}
-
-.mantine-Textarea-input {
-  padding-top: 12px;
-  padding-bottom: 12px;
-}
-
-.mantine-InputWrapper-label {
-  margin-bottom: 7px;
-  color: #0f172a;
-  font-size: 13.5px;
-  font-weight: 600;
-}
-
-.mantine-SimpleGrid-root:has(> .mantine-InputWrapper-root) {
-  align-items: start;
-}
-
-.mantine-SimpleGrid-root > .mantine-InputWrapper-root {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-}
-
-.mantine-SimpleGrid-root > .mantine-InputWrapper-root > .mantine-Input-wrapper {
-  margin-top: auto;
-}
-
-.mantine-InputWrapper-description {
-  margin-top: 6px;
-  color: #475569;
-  font-size: 13px;
-  line-height: 1.5;
-}
-
-.mantine-Input-input:focus,
-.mantine-Select-input:focus,
-.mantine-MultiSelect-input:focus {
-  border-color: var(--primary);
-  border-width: 1.5px;
-  box-shadow: 0 0 0 3.5px rgba(20, 184, 166, 0.16);
-}
-
-::selection {
-  background: var(--bg-surface-accent);
-  color: var(--primary-hover);
+h3 {
+  letter-spacing: -0.015em;
 }

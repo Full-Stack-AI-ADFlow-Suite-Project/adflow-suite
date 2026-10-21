@@ -46,7 +46,7 @@ export function SceltaCampagna({
           rightSection={
             c.richiesta === "aperta" ? (
               <Badge size="xs" color="yellow" variant="filled">
-                Richiesta dal consorzio
+                Il consorzio ti chiede qualcosa
               </Badge>
             ) : undefined
           }

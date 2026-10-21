@@ -1,6 +1,6 @@
 # Perimetro MVP
 
-Decisione ADR-114 del 13/10/2026, approvata dal team, aggiornata con ADR-116 del 16/10/2026 (interventi dopo l'approvazione e richiesta all'artigiano: righe B1, B5, B8–B10, C3 e pagine statiche). Consegna e pitch il **6 novembre 2026**; codice bloccato il **30 ottobre**.
+Decisione ADR-114 del 13/10/2026, approvata dal team, aggiornata con ADR-116 del 16/10/2026 (interventi dopo l'approvazione e richiesta all'artigiano: righe B1, B5, B8–B10, C3 e pagine statiche) e con ADR-117 del 21/10/2026 (pagine dell'artigiano e dell'operatore, archivio foto, calendario settimanale: blocco H, riga E1 e pagine statiche). Consegna e pitch il **6 novembre 2026**; codice bloccato il **30 ottobre**.
 Questa pagina dice che cosa entra nell'MVP. Dove `spec.md`, `plan.md` o `tasks.md` non tornano con questa pagina, vale questa pagina.
 
 | Decisione | Significato |
@@ -32,7 +32,7 @@ Questa pagina dice che cosa entra nell'MVP. Dove `spec.md`, `plan.md` o `tasks.m
 | A7 | Logo (R-40) | Togli | Il logo è una foto come le altre |
 | A8 | Caroselli (R-21, R-28) | Congela | Un post = una foto |
 | A9 | Date e ore dei post (R-08) | Mantieni | Le decide l'AI nel piano; il controllo R-08 resta |
-| A10 | Archivio della bottega come rimpiazzo (R-27) | Congela | Ogni foto mancante diventa un'immagine AI |
+| A10 | Archivio della bottega come rimpiazzo (R-27) | Congela | Ogni foto mancante diventa un'immagine AI. La vista dell'archivio in sola lettura è H4 |
 | A11 | Foto con la stella (R-23) | Togli | Le foto le sceglie la valutazione dell'AI; la colonna `da_usare` resta |
 | A12 | Spesa per le immagini AI | Task MVP | Nessun tetto; costo di ogni chiamata AI registrato e mostrato in Vedi campagna |
 
@@ -55,9 +55,23 @@ In ogni caso il piano esce completo e l'operatore approva o respinge.
 
 | ID | Tema (regole) | Decisione | Nell'MVP |
 |---|---|---|---|
-| E1 | Calendario editoriale | Task MVP | Solo per campagna: in Vedi campagna e nella vista dell'artigiano; elenco per giorno, nessuna libreria nuova |
+| E1 | Calendario editoriale | Task MVP (ADR-117) | Per campagna: in Vedi campagna e nella vista dell'artigiano, elenco per giorno. Settimanale (H5): griglia da lunedì a domenica fatta a mano, dell'artigiano con i suoi post, dell'operatore con i post di tutti gli artigiani. Nessuna libreria nuova; mensile e trascinamento in roadmap |
 | E2 | Metriche (R-39) | Roadmap | Nel pitch la pagina statica delle metriche come anteprima |
 | E3 | Stato dei canali collegati (`GET /canali`) | Mantieni | Copre "gestire le piattaforme" |
+
+## H · Pagine dell'artigiano e dell'operatore (ADR-117)
+
+| ID | Tema (regole) | Decisione | Nell'MVP |
+|---|---|---|---|
+| H1 | Ingresso dell'artigiano (R-29) | Task MVP | Pagina d'arrivo dopo l'accesso: in evidenza la richiesta del consorzio (B10); avvisi di bozza, campagne in lavorazione, respinta e scaduta, senza piano né post; "Nuova campagna" se non c'è una bozza; campagne in corso; la settimana in corso del calendario (H5) |
+| H2 | Campagne dell'artigiano (spec §4) | Task MVP | Barra: Ingresso, Campagne, Calendario, Archivio foto, Profilo bottega, Esci. Elenco con prima le campagne in corso, poi quelle in lavorazione, poi le passate (respinte comprese); un clic apre la pagina Campagna su quella campagna, che resta com'è |
+| H3 | Pagine dell'operatore (R-38) | Task MVP | Elenco artigiani in un riquadro scorrevole, con ricerca nel browser; pagina dell'artigiano con il profilo in sola lettura; campagne dell'artigiano con in cima quelle in corso e da approvare. Ingresso dell'operatore con "Da sistemare": roadmap |
+| H4 | Archivio foto (R-47) | Task MVP | Vista in sola lettura, per l'artigiano e per l'operatore, a blocchi per campagna: foto caricate e immagini AI (all'artigiano solo quelle delle campagne approvate). L'archivio come rimpiazzo nel piano (A10) e l'archivio modificabile restano congelati. Nessuna migrazione: la foto ha già profilo e campagna |
+| H5 | Calendario settimanale (R-48) | Task MVP | Vedi E1 |
+| H6 | Pagine in comune | Task MVP | Campagne, archivio foto e calendario sono lo stesso componente per i due ruoli, con pulsanti e funzioni diversi |
+| H7 | Restyling grafico | Task MVP | Un lavoro dedicato (T3-79), separato dalle pagine nuove, per l'app e le pagine statiche insieme; nessun cambio di comportamento |
+
+Blocco H: ciò che il 28/10 non è su `main` resta fuori dall'MVP e la sua parte di regole torna com'era; T3-79 entro il 30/10 o resta fuori (ADR-117).
 
 ## G · Deliverable della traccia
 
@@ -119,7 +133,9 @@ Si aggiornano all'MVP (T3-03) e tornano il riferimento per l'interfaccia.
 | Campagne da approvare | Com'è, senza `piano_da_rivedere`; il segno della richiesta all'artigiano (B10) |
 | Vedi campagna | In revisione approva, respingi, riprova, modifica a mano, rigenera, cambia foto, sposta, chiedi all'artigiano; dopo l'approvazione gli interventi sul post (B9), riprogramma, sospendi, riattiva, annulla; "Immagine AI" sui post; costo AI; calendario; senza spunta, nota interna, togli canale, ritocco |
 | Nuovo artigiano | Solo email e nome; password provvisoria mostrata una volta |
-| Ingresso, elenco artigiani, pagina artigiano, campagne chiuse | Roadmap: restano, segnate così nella mappa |
+| Ingresso dell'artigiano, Campagne dell'artigiano, Archivio foto, Calendario settimanale | Nuove (ADR-117, H1, H2, H4, H5) |
+| Elenco artigiani, pagina artigiano, campagne dell'artigiano | Nell'MVP (ADR-117, H3): elenco scorrevole; pagina con il profilo in sola lettura, senza anagrafica completa né account da collegare; campagne con in cima quelle in corso e da approvare |
+| Ingresso dell'operatore | Roadmap: resta, segnata così nella mappa |
 | Metriche | Roadmap: anteprima nel pitch |
 
 ## F · Processo

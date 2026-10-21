@@ -95,25 +95,25 @@
       <div class="page-header">
         <div class="page-title-group">
           <h1 class="page-title">Mappa delle pagine</h1>
-          <span class="status-pill success">7 MVP · 5 roadmap</span>
+          <span class="status-pill success">14 MVP · 2 roadmap</span>
         </div>
       </div>
 
       <p class="lead">
-        Nell'MVP del 6 novembre 2026 il programma ha sei pagine: una comune, due dell'artigiano e tre dell'operatore. Ognuna ha qui la sua pagina statica, con dati di esempio: la Campagna ne ha due. Il 14/10/2026 le pagine sono state allineate al perimetro dell'MVP (ADR-114, T3-03): tolto ciò che è tolto o congelato, aggiunto ciò che è nuovo (immagini AI, dichiarazione, costo AI, calendario per giorno, nuovo artigiano con email e nome). Il 16/10/2026 si sono aggiunti gli interventi di ADR-116 (T3-60): in Vedi campagna Cambia foto, Sposta, Chiedi all'artigiano e, dopo l'approvazione, gli interventi sul post, Sospendi, Riattiva, Annulla e Riprogramma; nella Campagna dell'artigiano la richiesta del consorzio e le viste sospesa e annullata; in Campagne da approvare il segno della richiesta. Sono il riferimento per l'interfaccia. Le altre cinque pagine restano, segnate roadmap: la pagina delle metriche va nel pitch come anteprima. Lo stile sta tutto in <code>assets/adflow.css</code> (ADR-113).
+        Nell'MVP del 6 novembre 2026 il programma ha sei pagine: una comune, due dell'artigiano e tre dell'operatore. Ognuna ha qui la sua pagina statica, con dati di esempio: la Campagna ne ha due. Il 14/10/2026 le pagine sono state allineate al perimetro dell'MVP (ADR-114, T3-03): tolto ciò che è tolto o congelato, aggiunto ciò che è nuovo (immagini AI, dichiarazione, costo AI, calendario per giorno, nuovo artigiano con email e nome). Il 16/10/2026 si sono aggiunti gli interventi di ADR-116 (T3-60): in Vedi campagna Cambia foto, Sposta, Chiedi all'artigiano e, dopo l'approvazione, gli interventi sul post, Sospendi, Riattiva, Annulla e Riprogramma; nella Campagna dell'artigiano la richiesta del consorzio e le viste sospesa e annullata; in Campagne da approvare il segno della richiesta. Sono il riferimento per l'interfaccia. Il 21/10/2026 la corsia 7 (ADR-117, T3-70) ha aggiunto l'ingresso e le campagne dell'artigiano, l'archivio foto e il calendario settimanale, in comune tra i due ruoli, e ha portato nell'MVP elenco, pagina e campagne dell'artigiano per l'operatore. Due pagine restano segnate roadmap: l'ingresso dell'operatore e le metriche, che vanno nel pitch come anteprima. Lo stile sta tutto in <code>assets/adflow.css</code> (ADR-113).
       </p>
 
       <div class="metrics-stat-grid" style="margin-bottom: 14px;">
         <div class="metric-stat-card">
-          <div class="value">6</div>
-          <div class="title" style="margin: 6px 0 0;">pagine del programma nell'MVP</div>
+          <div class="value">13</div>
+          <div class="title" style="margin: 6px 0 0;">pagine del programma nell'MVP: 6 di prima e 7 della corsia 7</div>
         </div>
         <div class="metric-stat-card">
-          <div class="value" style="color: var(--success-text);">7</div>
+          <div class="value" style="color: var(--success-text);">14</div>
           <div class="title" style="margin: 6px 0 0;">pagine statiche MVP: la Campagna ne ha due</div>
         </div>
         <div class="metric-stat-card">
-          <div class="value">5</div>
+          <div class="value">2</div>
           <div class="title" style="margin: 6px 0 0;">pagine statiche roadmap</div>
         </div>
       </div>
@@ -143,7 +143,7 @@
       <!-- Artigiano -->
       <section style="margin-bottom: 32px;">
         <h2 class="titolo-sezione">Artigiano</h2>
-        <p class="lead">Profilo una volta, poi una Campagna a ogni invio. Dopo l'invio la pagina Campagna mostra lo stato della campagna al posto dei passi; dopo l'approvazione, il calendario per giorno.</p>
+        <p class="lead">Dopo l'accesso l'Ingresso; profilo una volta, poi una Campagna a ogni invio. Dopo l'invio la pagina Campagna mostra lo stato della campagna al posto dei passi; dopo l'approvazione, il calendario per giorno.</p>
         <div class="mappa-griglia">
           <div class="surface-card pagina-card">
             <div class="testa"><span>2 · Profilo bottega</span><span class="status-pill success">MVP</span></div>
@@ -167,13 +167,31 @@
               <a href="AdFlow-campagna-stati.html" class="btn btn-primary btn-sm">Dopo l'invio →</a>
             </div>
           </div>
+          <div class="surface-card pagina-card">
+            <div class="testa"><span>7 · Ingresso</span><span class="status-pill success">MVP</span></div>
+            <p>La pagina d'arrivo: in evidenza la richiesta del consorzio; gli avvisi di bozza, campagne in lavorazione, respinta e scaduta; Nuova campagna; le campagne in corso; Questa settimana dal calendario.</p>
+            <div class="sprint"><strong>MVP</strong> T3-74, T3-77 · ADR-117 (H1)</div>
+            <div class="piede">
+              <code>AdFlow-ingresso.html</code>
+              <a href="AdFlow-ingresso.html" class="btn btn-primary btn-sm">Apri la pagina →</a>
+            </div>
+          </div>
+          <div class="surface-card pagina-card">
+            <div class="testa"><span>8 · Campagne</span><span class="status-pill success">MVP</span></div>
+            <p>Prima le campagne in corso, poi quelle in lavorazione, poi le passate con le respinte; un clic apre la pagina Campagna su quella.</p>
+            <div class="sprint"><strong>MVP</strong> T3-74 · ADR-117 (H2)</div>
+            <div class="piede">
+              <code>AdFlow-campagne.html</code>
+              <a href="AdFlow-campagne.html" class="btn btn-primary btn-sm">Apri la pagina →</a>
+            </div>
+          </div>
         </div>
       </section>
 
       <!-- Operatore -->
       <section style="margin-bottom: 32px;">
         <h2 class="titolo-sezione">Operatore</h2>
-        <p class="lead">Dopo l'accesso, le campagne da approvare; da ogni riga Vedi campagna, l'unico posto in cui si decide. A parte, la creazione di un nuovo artigiano.</p>
+        <p class="lead">Dopo l'accesso, le campagne da approvare; da ogni riga Vedi campagna, l'unico posto in cui si decide. A parte, la creazione di un nuovo artigiano e, dall'ADR-117, le pagine degli artigiani.</p>
         <div class="mappa-griglia">
           <div class="surface-card pagina-card">
             <div class="testa"><span>4 · Campagne da approvare</span><span class="status-pill success">MVP</span></div>
@@ -202,6 +220,59 @@
               <a href="AdFlow-operatore-nuovo-artigiano.html" class="btn btn-primary btn-sm">Apri la pagina →</a>
             </div>
           </div>
+          <div class="surface-card pagina-card">
+            <div class="testa"><span>11 · Elenco artigiani</span><span class="status-pill success">MVP</span></div>
+            <p>Tutte le botteghe, anche senza profilo, in un riquadro scorrevole con la ricerca: canali collegati, campagne da approvare e in corso, prossima scadenza.</p>
+            <div class="sprint"><strong>MVP</strong> T3-71, T3-75 · ADR-117 (H3)</div>
+            <div class="piede">
+              <code>AdFlow-operatore-elenco.html</code>
+              <a href="AdFlow-operatore-elenco.html" class="btn btn-primary btn-sm">Apri la pagina →</a>
+            </div>
+          </div>
+          <div class="surface-card pagina-card">
+            <div class="testa"><span>12 · Pagina artigiano</span><span class="status-pill success">MVP</span></div>
+            <p>Account, canali collegati e profilo in sola lettura; da qui le campagne e l'archivio foto della bottega.</p>
+            <div class="sprint"><strong>MVP</strong> T3-71, T3-75 · ADR-117 (H3)</div>
+            <div class="piede">
+              <code>AdFlow-operatore-artigiano.html</code>
+              <a href="AdFlow-operatore-artigiano.html" class="btn btn-primary btn-sm">Apri la pagina →</a>
+            </div>
+          </div>
+          <div class="surface-card pagina-card">
+            <div class="testa"><span>13 · Campagne dell'artigiano</span><span class="status-pill success">MVP</span></div>
+            <p>In cima quelle in corso e da approvare, la bozza come riga informativa, poi lo storico; un clic apre Vedi campagna.</p>
+            <div class="sprint"><strong>MVP</strong> T3-71, T3-75 · ADR-117 (H3, H6)</div>
+            <div class="piede">
+              <code>AdFlow-operatore-artigiano-campagne.html</code>
+              <a href="AdFlow-operatore-artigiano-campagne.html" class="btn btn-primary btn-sm">Apri la pagina →</a>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- In comune -->
+      <section style="margin-bottom: 32px;">
+        <h2 class="titolo-sezione">In comune tra artigiano e operatore</h2>
+        <p class="lead">Lo stesso componente per i due ruoli, con dati e pulsanti diversi (ADR-117, H6). Anche le Campagne lo sono (8 e 13).</p>
+        <div class="mappa-griglia">
+          <div class="surface-card pagina-card">
+            <div class="testa"><span>9 · Archivio foto</span><span class="status-pill success">MVP</span></div>
+            <p>Le foto di una bottega a blocchi per campagna, in sola lettura: caricate e immagini AI (all'artigiano solo quelle delle campagne approvate), con i canali dove sono uscite.</p>
+            <div class="sprint"><strong>MVP</strong> T3-72, T3-76 · ADR-117 (H4) · spec R-47</div>
+            <div class="piede">
+              <code>AdFlow-archivio-foto.html</code>
+              <a href="AdFlow-archivio-foto.html" class="btn btn-primary btn-sm">Apri la pagina →</a>
+            </div>
+          </div>
+          <div class="surface-card pagina-card">
+            <div class="testa"><span>10 · Calendario settimanale</span><span class="status-pill success">MVP</span></div>
+            <p>Da lunedì a domenica, fatto a mano: per l'artigiano i suoi post, per l'operatore quelli di tutti gli artigiani, con il filtro per bottega.</p>
+            <div class="sprint"><strong>MVP</strong> T3-73, T3-77 · ADR-117 (H5, E1) · spec R-48</div>
+            <div class="piede">
+              <code>AdFlow-calendario.html</code>
+              <a href="AdFlow-calendario.html" class="btn btn-primary btn-sm">Apri la pagina →</a>
+            </div>
+          </div>
         </div>
       </section>
 
@@ -212,38 +283,11 @@
         <div class="mappa-griglia">
           <div class="surface-card pagina-card">
             <div class="testa"><span>Ingresso dell'operatore</span><span class="status-pill review">roadmap</span></div>
-            <p>Tre porte e l'elenco di ciò che va sistemato. Nell'MVP l'operatore arriva su Campagne da approvare.</p>
+            <p>Tre porte e l'elenco di ciò che va sistemato. Nell'MVP l'operatore arriva su Campagne da approvare. Le altre tre pagine roadmap dell'operatore sono nell'MVP dall'ADR-117.</p>
             <div class="sprint">Domande chiuse: ADR-105</div>
             <div class="piede">
               <code>AdFlow-operatore-ingresso.html</code>
               <a href="AdFlow-operatore-ingresso.html" class="btn btn-secondary btn-sm">Apri la pagina →</a>
-            </div>
-          </div>
-          <div class="surface-card pagina-card">
-            <div class="testa"><span>Elenco artigiani</span><span class="status-pill review">roadmap</span></div>
-            <p>Tutte le botteghe del consorzio: iscrizione, account social, campagne da approvare e in corso, prossima scadenza.</p>
-            <div class="sprint">Domande chiuse: ADR-107</div>
-            <div class="piede">
-              <code>AdFlow-operatore-elenco.html</code>
-              <a href="AdFlow-operatore-elenco.html" class="btn btn-secondary btn-sm">Apri la pagina →</a>
-            </div>
-          </div>
-          <div class="surface-card pagina-card">
-            <div class="testa"><span>Pagina artigiano</span><span class="status-pill review">roadmap</span></div>
-            <p>Anagrafica, pagine social collegate, profilo in lettura; campagne da approvare, in corso e ultime chiuse.</p>
-            <div class="sprint">ADR-53, ADR-54</div>
-            <div class="piede">
-              <code>AdFlow-operatore-artigiano.html</code>
-              <a href="AdFlow-operatore-artigiano.html" class="btn btn-secondary btn-sm">Apri la pagina →</a>
-            </div>
-          </div>
-          <div class="surface-card pagina-card">
-            <div class="testa"><span>Campagne chiuse di un artigiano</span><span class="status-pill review">roadmap</span></div>
-            <p>Lo storico completo di una bottega, con un filtro per esito.</p>
-            <div class="sprint">Domande chiuse: ADR-108</div>
-            <div class="piede">
-              <code>AdFlow-operatore-artigiano-campagne.html</code>
-              <a href="AdFlow-operatore-artigiano-campagne.html" class="btn btn-secondary btn-sm">Apri la pagina →</a>
             </div>
           </div>
           <div class="surface-card pagina-card">
@@ -265,8 +309,8 @@
         </div>
         <div class="surface-card-body">
           <ul class="testo-card" style="padding-left: 20px; display: flex; flex-direction: column; gap: 8px;">
-            <li><strong>Sei pagine nell'MVP</strong> (ADR-114): accesso; profilo e campagna dell'artigiano; campagne da approvare, Vedi campagna e nuovo artigiano dell'operatore. Le altre cinque pagine dell'operatore approvate prima (ADR-53, ADR-54) sono in roadmap.</li>
-            <li><strong>Il calendario dell'artigiano</strong> sta dentro la pagina Campagna, nelle viste dopo l'approvazione (ADR-55): non è una pagina a sé. È un elenco per giorno, senza librerie nuove (E1).</li>
+            <li><strong>Tredici pagine nell'MVP.</strong> Sei dall'ADR-114: accesso; profilo e campagna dell'artigiano; campagne da approvare, Vedi campagna e nuovo artigiano dell'operatore. Sette dall'ADR-117: ingresso e campagne dell'artigiano; elenco, pagina e campagne dell'artigiano per l'operatore; archivio foto e calendario settimanale, in comune. Restano in roadmap l'ingresso dell'operatore e le metriche.</li>
+            <li><strong>Due calendari.</strong> Quello della campagna sta dentro la pagina Campagna e Vedi campagna, elenco per giorno (ADR-55, R-45). Quello settimanale è una pagina a sé, griglia da lunedì a domenica fatta a mano (ADR-117, R-48). Nessuna libreria nuova (E1).</li>
             <li><strong>Admin.</strong> Non ha pagine: gli operatori si creano da riga di comando. Entra come un operatore (ADR-102).</li>
             <li><strong>Account social.</strong> Nell'MVP tutti pubblicano sulla pagina di prova Meta del team (D1, D3): nessuna pagina per collegarli.</li>
           </ul>
@@ -274,7 +318,7 @@
       </div>
 
       <div class="note-pagina">
-        <p>Fonti: ADR-47 (due pagine dell'artigiano), ADR-53 e ADR-54 (pagine dell'operatore), ADR-55, ADR-89…111 (Vedi campagna), ADR-113 (stile), ADR-114 e <code>docs/agenti/perimetro-mvp.md</code> (perimetro dell'MVP, sezione Pagine statiche). Task da docs/agenti/tasks.md.</p>
+        <p>Fonti: ADR-47 (due pagine dell'artigiano), ADR-53 e ADR-54 (pagine dell'operatore), ADR-55, ADR-89…111 (Vedi campagna), ADR-113 (stile), ADR-114 e <code>docs/agenti/perimetro-mvp.md</code> (perimetro dell'MVP, sezione Pagine statiche), ADR-117 (corsia 7, <code>docs/agenti/brief-pagine.md</code>). Task da docs/agenti/tasks.md.</p>
       </div>
 
     </main>

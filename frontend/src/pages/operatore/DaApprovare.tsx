@@ -6,11 +6,8 @@ import {
   Alert,
   Card,
   Center,
-  Group,
   Loader,
-  Paper,
   Select,
-  SimpleGrid,
   Stack,
   Text,
 } from "@mantine/core";
@@ -71,62 +68,26 @@ export function DaApprovare() {
   }, [lista]);
 
   const visibili = (lista ?? []).filter((c) => !stato || c.stato === stato);
-  const nInRevisione = (lista ?? []).filter(
-    (c) => c.stato === "in_revisione",
-  ).length;
-  const nDaRivedere = (lista ?? []).filter(
-    (c) =>
-      c.stato === "piano_da_rivedere" ||
-      c.stato === "generazione_fallita" ||
-      (c.conteggi?.da_rivedere ?? 0) > 0,
-  ).length;
-  const nInGenerazione = (lista ?? []).filter(
-    (c) => c.stato === "inviata" || c.stato === "in_generazione",
-  ).length;
 
   return (
-    <Guscio titolo="Campagne da approvare">
-      {lista && (
-        <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="sm" mb="lg">
-          <Paper withBorder radius="md" p="md" bg="#ffffff">
-            <Text size="xs" c="dimmed" fw={600} tt="uppercase" lts={0.5}>
-              In coda totali
+    <Guscio titolo="Campagne da approvare" largo={1100}>
+      <Text c="dimmed" size="sm" mb="md">
+        Dalla più urgente: per "entro quando", cioè la data del primo post da
+        approvare o le 00:00 del giorno di inizio se il piano non c'è. Si decide
+        sempre in Vedi campagna.
+      </Text>
+      <Alert color="verde" variant="light" mb="lg">
+        Stati mostrati:{" "}
+        {STATI_DA_APPROVARE.map((s, i) => (
+          <span key={s}>
+            {i > 0 && ", "}
+            <Text span ff="monospace" size="sm">
+              {s}
             </Text>
-            <Text size="xl" fw={800} mt={4}>
-              {lista.length}
-            </Text>
-          </Paper>
-          <Paper withBorder radius="md" p="md" bg="#ffffff">
-            <Text size="xs" c="dimmed" fw={600} tt="uppercase" lts={0.5}>
-              Pronte in revisione
-            </Text>
-            <Text size="xl" fw={800} c="verde" mt={4}>
-              {nInRevisione}
-            </Text>
-          </Paper>
-          <Paper withBorder radius="md" p="md" bg="#ffffff">
-            <Text size="xs" c="dimmed" fw={600} tt="uppercase" lts={0.5}>
-              Richiedono attenzione
-            </Text>
-            <Text
-              size="xl"
-              fw={800}
-              c={nDaRivedere > 0 ? "red" : undefined}
-              mt={4}
-            >
-              {nDaRivedere}
-            </Text>
-          </Paper>
-          <Paper withBorder radius="md" p="md" bg="#ffffff">
-            <Text size="xs" c="dimmed" fw={600} tt="uppercase" lts={0.5}>
-              In elaborazione AI
-            </Text>
-            <Text size="xl" fw={800} mt={4}>
-              {nInGenerazione}
-            </Text>
-          </Paper>
-        </SimpleGrid>
-      )}
+          </span>
+        ))}
+        . Da ogni riga si va in <b>Vedi campagna</b> per decidere.
+      </Alert>
 
       {errore && (
         <Alert color="red" variant="light" mb="md">
@@ -141,18 +102,14 @@ export function DaApprovare() {
 
       {lista && (
         <>
-          <Group justify="space-between" align="center" mb="md" wrap="wrap">
-            <Select
-              aria-label="Filtra per stato"
-              data={filtri}
-              value={stato}
-              onChange={setStato}
-              w={280}
-            />
-            <Text size="xs" c="dimmed">
-              Mostrate {visibili.length} su {lista.length} campagne
-            </Text>
-          </Group>
+          <Select
+            aria-label="Filtra per stato"
+            data={filtri}
+            value={stato}
+            onChange={setStato}
+            w={280}
+            mb="md"
+          />
           <Stack gap="sm">
             {visibili.map((c) => (
               <RigaCampagna key={c.id} c={c} />

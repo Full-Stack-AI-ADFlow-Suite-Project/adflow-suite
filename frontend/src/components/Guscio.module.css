@@ -1,4 +1,5 @@
-/* Cornice dell'app: sidebar scura (slate-900) + area di lavoro chiara (#f8fafc). */
+/* Cornice con la barra laterale: misure e regole di
+   docs/pagine/assets/adflow.css (ADR-113). I token sono in index.css. */
 .guscio {
   display: flex;
   min-height: 100vh;
@@ -6,98 +7,87 @@
 
 .barra {
   width: var(--sidebar-width);
-  background: linear-gradient(180deg, #0f172a 0%, #0b1120 100%);
-  border-right: 1px solid rgba(255, 255, 255, 0.07);
-  box-shadow: 12px 0 36px rgba(10, 20, 23, 0.16);
+  background: var(--bg-surface);
+  border-right: 1px solid var(--border-hairline);
   display: flex;
   flex-direction: column;
   position: fixed;
   inset: 0 auto 0 0;
   z-index: 50;
-  color: #f0fdfa;
 }
 
 .marca {
-  padding: 24px 22px 20px;
+  padding: 20px 20px 16px;
   display: flex;
   align-items: center;
-  gap: 13px;
+  gap: 12px;
   color: inherit;
   text-decoration: none;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
 }
 
 .marcaIcona {
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
   flex: none;
-  background: linear-gradient(145deg, #134e4a 0%, #0d9488 100%);
-  border: 1px solid rgba(165, 243, 235, 0.24);
+  background: linear-gradient(
+    135deg,
+    var(--mantine-color-blu-5) 0%,
+    var(--mantine-color-blu-7) 100%
+  );
   color: var(--mantine-color-white);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 20px rgba(13, 148, 136, 0.32);
+  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.25);
 }
 
 .marcaTesto b {
   display: block;
-  font-family: "Space Grotesk", var(--mantine-font-family);
-  font-size: 18px;
-  font-weight: 600;
+  font-size: 17px;
+  font-weight: 700;
   line-height: 1.2;
-  color: #ffffff;
-  letter-spacing: -0.025em;
+  color: var(--text-main);
 }
 
 .marcaTesto span {
   font-size: 11px;
   font-weight: 500;
-  color: #94a3b8;
+  color: var(--text-muted);
 }
 
 .voci {
-  padding: 18px 14px;
+  padding: 12px 14px;
   flex: 1;
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
 }
 
 .voce {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 11px 14px;
-  color: #cbd5e1;
+  padding: 9px 12px;
+  color: var(--text-secondary);
   font-weight: 500;
   font-size: 13.5px;
   line-height: 1.5;
-  border-radius: 12px;
+  border-radius: var(--mantine-radius-md);
   text-decoration: none;
-  border: 1px solid transparent;
-  transition:
-    background-color 150ms ease,
-    border-color 150ms ease,
-    color 150ms ease,
-    transform 150ms ease;
 }
 
 a.voce:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: #ffffff;
-  transform: translateX(2px);
+  background: var(--bg-surface-subtle);
+  color: var(--text-main);
 }
 
 .voce.attiva,
 a.voce.attiva:hover {
-  background: rgba(13, 148, 136, 0.24);
-  border-color: rgba(45, 212, 191, 0.28);
-  color: #ffffff;
+  background: var(--primary-light);
+  color: var(--primary);
   font-weight: 600;
-  box-shadow: inset 3px 0 0 #14b8a6;
 }
 
 .voce svg {
@@ -112,9 +102,9 @@ a.voce.attiva:hover {
 }
 
 .piede {
-  padding: 14px 16px 18px;
-  border-top: 1px solid rgba(255, 255, 255, 0.08);
-  background: rgba(0, 0, 0, 0.18);
+  padding: 14px 16px;
+  border-top: 1px solid var(--border-hairline);
+  background: var(--bg-app);
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -124,10 +114,7 @@ a.voce.attiva:hover {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 10px;
-  border-radius: 13px;
-  background: rgba(255, 255, 255, 0.055);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+  padding: 6px;
   min-width: 0;
 }
 
@@ -139,7 +126,6 @@ a.voce.attiva:hover {
 .utenteNome {
   font-size: 13px;
   font-weight: 600;
-  color: #ffffff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -147,8 +133,7 @@ a.voce.attiva:hover {
 
 .utenteRuolo {
   font-size: 11.5px;
-  color: #94a3b8;
-  text-transform: capitalize;
+  color: var(--text-muted);
 }
 
 .esci {
@@ -156,31 +141,27 @@ a.voce.attiva:hover {
   align-items: center;
   justify-content: center;
   gap: 6px;
-  padding: 9px 10px;
-  background: rgba(255, 255, 255, 0.04);
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 10px;
+  padding: 6px 10px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--mantine-radius-sm);
   font-family: inherit;
   font-size: 12px;
-  font-weight: 600;
-  color: #cbd5e1;
+  font-weight: 500;
+  color: var(--text-secondary);
   cursor: pointer;
-  transition:
-    background-color 150ms ease,
-    border-color 150ms ease,
-    color 150ms ease;
 }
 
 .esci:hover {
-  background: rgba(255, 255, 255, 0.1);
-  border-color: rgba(255, 255, 255, 0.18);
-  color: #ffffff;
+  background: var(--bg-surface-subtle);
+  border-color: var(--border-strong);
+  color: var(--text-main);
 }
 
 .marca:focus-visible,
 .voce:focus-visible,
 .esci:focus-visible {
-  outline: 2px solid var(--focus-ring);
+  outline: 2px solid var(--primary);
   outline-offset: 2px;
 }
 
@@ -188,7 +169,7 @@ a.voce.attiva:hover {
   margin-left: var(--sidebar-width);
   flex: 1;
   min-width: 0;
-  padding: 38px 44px 64px;
+  padding: 24px 32px 56px;
 }
 
 .pagina {
@@ -196,53 +177,31 @@ a.voce.attiva:hover {
   margin: 0 auto;
 }
 
-.pagina > h1 {
-  margin-bottom: 24px;
-  color: var(--text-main);
-  font-size: clamp(1.6rem, 2.3vw, 1.95rem);
-  font-weight: 600;
-  letter-spacing: -0.03em;
-}
-
-/* Su mobile la navigazione diventa una barra orizzontale scorrevole. */
+/* Schermo stretto: la barra torna in alto, come nelle pagine statiche. */
 @media (max-width: 860px) {
   .guscio {
     flex-direction: column;
   }
 
   .barra {
-    position: sticky;
-    top: 0;
-    width: 100%;
+    position: static;
+    width: auto;
     flex-direction: row;
-    flex-wrap: nowrap;
+    flex-wrap: wrap;
     align-items: center;
     border-right: none;
     border-bottom: 1px solid var(--border-hairline);
-    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
-    z-index: 100;
   }
 
   .marca {
-    padding: 9px 12px;
-  }
-
-  .marcaIcona {
-    width: 34px;
-    height: 34px;
-    border-radius: 11px;
+    padding: 10px 16px;
   }
 
   .voci {
     flex-direction: row;
-    flex-wrap: nowrap;
-    padding: 6px 8px;
-    overflow-x: auto;
-    scrollbar-width: none;
-  }
-
-  .voci::-webkit-scrollbar {
-    display: none;
+    flex-wrap: wrap;
+    padding: 6px 10px;
+    overflow: visible;
   }
 
   .piede {
@@ -250,60 +209,11 @@ a.voce.attiva:hover {
     align-items: center;
     border-top: none;
     background: none;
-    padding: 6px 10px;
-    flex: none;
-  }
-
-  .utente {
-    display: none;
-  }
-
-  .esci {
-    padding: 8px;
-  }
-
-  .esci span {
-    display: none;
+    padding: 6px 16px;
   }
 
   .contenuto {
     margin-left: 0;
-    padding: 26px 22px 44px;
-  }
-}
-
-@media (max-width: 560px) {
-  .marca {
-    gap: 8px;
-    padding-left: 10px;
-    padding-right: 6px;
-  }
-
-  .marcaTesto b {
-    font-size: 16px;
-  }
-
-  .marcaTesto span {
-    font-size: 10px;
-  }
-
-  .voci {
-    gap: 2px;
-    padding-right: 4px;
-  }
-
-  .voce {
-    gap: 7px;
-    padding: 8px 10px;
-    font-size: 12px;
-  }
-
-  .voce svg {
-    width: 16px;
-    height: 16px;
-  }
-
-  .contenuto {
-    padding: 22px 16px 36px;
+    padding: 16px 16px 40px;
   }
 }
