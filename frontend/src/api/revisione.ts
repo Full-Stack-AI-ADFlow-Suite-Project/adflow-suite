@@ -6,6 +6,7 @@
 import type { CampagnaDettaglio } from "./campagne";
 import { richiesta } from "./http";
 import { esempiRevisione } from "./esempi/revisione";
+import { elencoArtigianiEsempio } from "./esempi/elenco-artigiani";
 import { USA_ESEMPI } from "./esempi/accesso";
 
 /** Livello e regola di un esito del validatore (contenuti/validatore.py). */
@@ -154,6 +155,29 @@ export interface VediCampagna {
   foto_non_usate: GruppoFotoNonUsate[];
   ultimo_errore: ErroreGenerazione | null;
   costo_ai: number;
+}
+
+/** Una riga di GET /artigiani (ArtigianoElenco di schemas.py, spec R-38). */
+export interface ArtigianoElenco {
+  /** L'id dell'utente artigiano. */
+  id: number;
+  nome: string;
+  email: string;
+  attivo: boolean;
+  /** `null`: il profilo è da compilare. */
+  bottega: string | null;
+  referente: string | null;
+  citta: string | null;
+  canali_collegati: string[];
+  n_da_approvare: number;
+  n_in_corso: number;
+  /** Il più vicino «entro quando» tra le campagne da approvare. */
+  prossima_scadenza: string | null;
+}
+
+export function elencoArtigiani(): Promise<ArtigianoElenco[]> {
+  if (USA_ESEMPI) return elencoArtigianiEsempio();
+  return richiesta<ArtigianoElenco[]>("GET", "/artigiani");
 }
 
 export function vediCampagna(campagnaId: number): Promise<VediCampagna> {

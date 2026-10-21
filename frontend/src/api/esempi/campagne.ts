@@ -716,12 +716,17 @@ function nuovoId(campagne: CampagnaDettaglio[]): number {
 }
 
 export const esempiCampagne = {
-  async elenco(stato?: string): Promise<CampagnaElencoItem[]> {
+  async elenco(
+    stato?: string,
+    artigiano?: number,
+  ): Promise<CampagnaElencoItem[]> {
     const utente = sessioneEsempio();
     const operatore =
       utente?.ruolo === "operatore" || utente?.ruolo === "admin";
+    // `artigiano` è l'id dell'utente; negli esempi coincide con la bottega (1–4).
     return carica()
       .filter((c) => (operatore ? true : c.profilo_id === 1))
+      .filter((c) => !operatore || !artigiano || c.profilo_id === artigiano)
       .filter((c) => !stato || c.stato === stato)
       .map((c) => ({
         id: c.id,

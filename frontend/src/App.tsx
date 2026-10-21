@@ -7,6 +7,9 @@ import { Profilo, RichiedeProfilo } from "./pages/artigiano/profilo/Profilo";
 import { Campagna } from "./pages/artigiano/Campagna";
 import { Campagne } from "./pages/artigiano/Campagne";
 import { Ingresso } from "./pages/artigiano/Ingresso";
+import { Artigiani } from "./pages/operatore/Artigiani";
+import { Artigiano } from "./pages/operatore/Artigiano";
+import { CampagneArtigiano } from "./pages/operatore/CampagneArtigiano";
 import { DaApprovare } from "./pages/operatore/DaApprovare";
 import { NuovoArtigiano } from "./pages/operatore/NuovoArtigiano";
 import { VediCampagna } from "./pages/operatore/VediCampagna";
@@ -73,6 +76,30 @@ export default function App() {
         element={
           <RichiedeRuolo ruoli={["operatore", "admin"]}>
             <VediCampagna />
+          </RichiedeRuolo>
+        }
+      />
+      <Route
+        path="/artigiani"
+        element={
+          <RichiedeRuolo ruoli={["operatore", "admin"]}>
+            <Artigiani />
+          </RichiedeRuolo>
+        }
+      />
+      <Route
+        path="/artigiani/:id"
+        element={
+          <RichiedeRuolo ruoli={["operatore", "admin"]}>
+            <Artigiano />
+          </RichiedeRuolo>
+        }
+      />
+      <Route
+        path="/artigiani/:id/campagne"
+        element={
+          <RichiedeRuolo ruoli={["operatore", "admin"]}>
+            <CampagneArtigiano />
           </RichiedeRuolo>
         }
       />

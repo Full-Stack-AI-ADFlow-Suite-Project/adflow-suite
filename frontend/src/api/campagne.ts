@@ -154,10 +154,23 @@ export interface GruppoCrea {
   n_immagini?: number | null;
 }
 
-export function elenco(stato?: string): Promise<CampagnaElencoItem[]> {
-  if (USA_ESEMPI) return esempiCampagne.elenco(stato);
-  const filtro = stato ? `?stato=${encodeURIComponent(stato)}` : "";
-  return richiesta<CampagnaElencoItem[]>("GET", `/campagne${filtro}`);
+/**
+ * GET /campagne. `artigiano` (l'id dell'utente) è per l'operatore: solo le
+ * campagne di quell'artigiano (R-38, CA-94); per l'artigiano non conta.
+ */
+export function elenco(
+  stato?: string,
+  artigiano?: number,
+): Promise<CampagnaElencoItem[]> {
+  if (USA_ESEMPI) return esempiCampagne.elenco(stato, artigiano);
+  const filtri = new URLSearchParams();
+  if (stato) filtri.set("stato", stato);
+  if (artigiano !== undefined) filtri.set("artigiano", String(artigiano));
+  const query = filtri.toString();
+  return richiesta<CampagnaElencoItem[]>(
+    "GET",
+    `/campagne${query ? `?${query}` : ""}`,
+  );
 }
 
 export function dettaglio(id: number): Promise<CampagnaDettaglio> {
