@@ -13,12 +13,12 @@
   flex-direction: column;
   justify-content: space-between;
   color: #ffffff;
-  border-right: 1px solid rgba(16, 29, 33, 0.08);
+  border-right: 1px solid rgba(15, 23, 42, 0.08);
   background:
     linear-gradient(
       180deg,
       rgba(15, 25, 28, 0.18) 0%,
-      rgba(0, 121, 116, 0.14) 42%,
+      rgba(13, 148, 136, 0.14) 42%,
       rgba(12, 24, 27, 0.78) 78%,
       rgba(10, 20, 23, 0.9) 100%
     ),
@@ -42,13 +42,13 @@
   width: 40px;
   height: 40px;
   border-radius: 11px;
-  background: linear-gradient(145deg, #173337 0%, #007974 100%);
+  background: linear-gradient(145deg, #134e4a 0%, #0d9488 100%);
   border: 1px solid rgba(165, 243, 235, 0.34);
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 18px rgba(0, 121, 116, 0.32);
+  box-shadow: 0 8px 18px rgba(13, 148, 136, 0.32);
 }
 
 .marcaTesto b {
@@ -157,11 +157,11 @@
   max-width: 376px;
   background: rgba(255, 255, 255, 0.96);
   backdrop-filter: blur(20px);
-  border: 1px solid rgba(16, 29, 33, 0.08);
+  border: 1px solid rgba(15, 23, 42, 0.08);
   border-radius: 18px;
   padding: 28px 28px;
   box-shadow:
-    0 20px 48px rgba(16, 29, 33, 0.09),
+    0 20px 48px rgba(15, 23, 42, 0.09),
     0 0 0 1px rgba(255, 255, 255, 0.6);
 }
 
@@ -176,13 +176,13 @@
   width: 38px;
   height: 38px;
   border-radius: 11px;
-  background: linear-gradient(145deg, #173337 0%, #007974 100%);
+  background: linear-gradient(145deg, #134e4a 0%, #0d9488 100%);
   border: 1px solid rgba(165, 243, 235, 0.35);
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 18px rgba(0, 121, 116, 0.28);
+  box-shadow: 0 8px 18px rgba(13, 148, 136, 0.28);
   flex: none;
 }
 

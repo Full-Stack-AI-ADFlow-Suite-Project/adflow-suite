@@ -1,4 +1,4 @@
-/* Cornice dell'app: sidebar scura (#101d21) + area di lavoro chiara (#f2f8f8). */
+/* Cornice dell'app: sidebar scura (slate-900) + area di lavoro chiara (#f8fafc). */
 .guscio {
   display: flex;
   min-height: 100vh;
@@ -6,7 +6,7 @@
 
 .barra {
   width: var(--sidebar-width);
-  background: linear-gradient(180deg, #101d21 0%, #0c171a 100%);
+  background: linear-gradient(180deg, #0f172a 0%, #0b1120 100%);
   border-right: 1px solid rgba(255, 255, 255, 0.07);
   box-shadow: 12px 0 36px rgba(10, 20, 23, 0.16);
   display: flex;
@@ -14,7 +14,7 @@
   position: fixed;
   inset: 0 auto 0 0;
   z-index: 50;
-  color: #e7f6f5;
+  color: #f0fdfa;
 }
 
 .marca {
@@ -32,13 +32,13 @@
   height: 40px;
   border-radius: 12px;
   flex: none;
-  background: linear-gradient(145deg, #173337 0%, #007974 100%);
+  background: linear-gradient(145deg, #134e4a 0%, #0d9488 100%);
   border: 1px solid rgba(165, 243, 235, 0.24);
   color: var(--mantine-color-white);
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 8px 20px rgba(0, 121, 116, 0.32);
+  box-shadow: 0 8px 20px rgba(13, 148, 136, 0.32);
 }
 
 .marcaTesto b {
@@ -54,7 +54,7 @@
 .marcaTesto span {
   font-size: 11px;
   font-weight: 500;
-  color: #94afad;
+  color: #94a3b8;
 }
 
 .voci {
@@ -71,7 +71,7 @@
   align-items: center;
   gap: 12px;
   padding: 11px 14px;
-  color: #b5cdcb;
+  color: #cbd5e1;
   font-weight: 500;
   font-size: 13.5px;
   line-height: 1.5;
@@ -93,11 +93,11 @@ a.voce:hover {
 
 .voce.attiva,
 a.voce.attiva:hover {
-  background: rgba(0, 121, 116, 0.24);
-  border-color: rgba(114, 194, 189, 0.28);
+  background: rgba(13, 148, 136, 0.24);
+  border-color: rgba(45, 212, 191, 0.28);
   color: #ffffff;
   font-weight: 600;
-  box-shadow: inset 3px 0 0 #258b86;
+  box-shadow: inset 3px 0 0 #14b8a6;
 }
 
 .voce svg {
@@ -147,7 +147,7 @@ a.voce.attiva:hover {
 
 .utenteRuolo {
   font-size: 11.5px;
-  color: #94afad;
+  color: #94a3b8;
   text-transform: capitalize;
 }
 
@@ -163,7 +163,7 @@ a.voce.attiva:hover {
   font-family: inherit;
   font-size: 12px;
   font-weight: 600;
-  color: #cbdedd;
+  color: #cbd5e1;
   cursor: pointer;
   transition:
     background-color 150ms ease,
@@ -219,7 +219,7 @@ a.voce.attiva:hover {
     align-items: center;
     border-right: none;
     border-bottom: 1px solid var(--border-hairline);
-    box-shadow: 0 4px 18px rgba(16, 29, 33, 0.045);
+    box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
     z-index: 100;
   }
 

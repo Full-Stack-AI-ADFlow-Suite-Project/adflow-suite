@@ -122,8 +122,8 @@ export function BadgeCanale({
           textTransform: "none",
           fontWeight: 600,
           background: "#ffffff",
-          borderColor: "rgba(16, 29, 33, 0.12)",
-          color: "#101d21",
+          borderColor: "rgba(15, 23, 42, 0.12)",
+          color: "#0f172a",
           paddingLeft: 7,
         },
       }}

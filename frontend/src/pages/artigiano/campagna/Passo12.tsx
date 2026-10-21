@@ -257,8 +257,8 @@ export function Passo12({
           style={{
             background: dichiarazione ? "#e8f7f5" : "#ffffff",
             borderColor: dichiarazione
-              ? "rgba(0, 121, 116, 0.35)"
-              : "rgba(16, 29, 33, 0.1)",
+              ? "rgba(13, 148, 136, 0.35)"
+              : "rgba(15, 23, 42, 0.1)",
           }}
         >
           <Checkbox

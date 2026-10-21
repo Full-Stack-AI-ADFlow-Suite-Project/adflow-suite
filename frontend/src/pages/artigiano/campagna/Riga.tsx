@@ -11,7 +11,7 @@ export function Riga({ nome, valore }: { nome: ReactNode; valore: ReactNode }) {
         alignItems: "baseline",
         gap: 12,
         padding: "9px 0",
-        borderTop: "1px solid rgba(16, 29, 33, 0.08)",
+        borderTop: "1px solid rgba(15, 23, 42, 0.08)",
       }}
     >
       <Text

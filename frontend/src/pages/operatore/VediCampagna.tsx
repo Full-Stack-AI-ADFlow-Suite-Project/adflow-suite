@@ -145,7 +145,7 @@ export function VediCampagna() {
             </Group>
 
             <SimpleGrid cols={{ base: 2, sm: 4 }} spacing="sm" mt="md">
-              <Paper radius="md" p="sm" bg="#f2f8f8">
+              <Paper radius="md" p="sm" bg="#f1f5f9">
                 <Text size="xs" c="dimmed" fw={600}>
                   Uscite
                 </Text>
@@ -153,7 +153,7 @@ export function VediCampagna() {
                   {vista.uscite.length}
                 </Text>
               </Paper>
-              <Paper radius="md" p="sm" bg="#f2f8f8">
+              <Paper radius="md" p="sm" bg="#f1f5f9">
                 <Text size="xs" c="dimmed" fw={600}>
                   Post totali
                 </Text>
@@ -161,7 +161,7 @@ export function VediCampagna() {
                   {postTotali}
                 </Text>
               </Paper>
-              <Paper radius="md" p="sm" bg="#f2f8f8">
+              <Paper radius="md" p="sm" bg="#f1f5f9">
                 <Text size="xs" c="dimmed" fw={600}>
                   Post da rivedere
                 </Text>
@@ -173,7 +173,7 @@ export function VediCampagna() {
                   {postDaRivedere}
                 </Text>
               </Paper>
-              <Paper radius="md" p="sm" bg="#f2f8f8">
+              <Paper radius="md" p="sm" bg="#f1f5f9">
                 <Text size="xs" c="dimmed" fw={600}>
                   Costo AI
                 </Text>

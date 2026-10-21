@@ -46,7 +46,7 @@ function AnteprimaPost({
       style={{
         overflow: "hidden",
         background: "#ffffff",
-        borderColor: "rgba(16, 29, 33, 0.11)",
+        borderColor: "rgba(15, 23, 42, 0.11)",
       }}
     >
       <Group
@@ -54,14 +54,14 @@ function AnteprimaPost({
         px="sm"
         py={10}
         wrap="nowrap"
-        style={{ borderBottom: "1px solid rgba(16, 29, 33, 0.07)" }}
+        style={{ borderBottom: "1px solid rgba(15, 23, 42, 0.07)" }}
       >
         <Group gap="xs" wrap="nowrap">
           <Avatar color="verde" radius="xl" size={32}>
             {bottega.slice(0, 1).toUpperCase()}
           </Avatar>
           <Stack gap={0}>
-            <Text size="xs" fw={700} c="#101d21">
+            <Text size="xs" fw={700} c="#0f172a">
               {bottega}
             </Text>
             <Text size="11px" c="dimmed">
@@ -97,7 +97,7 @@ function AnteprimaPost({
           </Text>
         </Box>
       ) : foto ? (
-        <Box style={{ background: "#f2f8f8" }}>
+        <Box style={{ background: "#f1f5f9" }}>
           <img
             src={`/api/foto/${foto.foto_id}/file`}
             alt={`Foto ${foto.foto_id}`}

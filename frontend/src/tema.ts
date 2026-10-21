@@ -1,31 +1,31 @@
 import { createTheme, rem } from "@mantine/core";
 import type { CSSVariablesResolver, MantineColorsTuple } from "@mantine/core";
 
-// Palette teal estratta dal CSS del template Bill Splitter.
+// Scala teal di Tailwind (50 → 900), il verde primario dell'app.
 const tealTemplate: MantineColorsTuple = [
-  "#e7f6f5",
-  "#d9f5f3",
-  "#c6eae7",
-  "#a5d9d5",
-  "#72c2bd",
-  "#258b86",
-  "#007974",
-  "#006c68",
-  "#005a57",
-  "#004743",
+  "#f0fdfa",
+  "#ccfbf1",
+  "#99f6e4",
+  "#5eead4",
+  "#2dd4bf",
+  "#14b8a6",
+  "#0d9488",
+  "#0f766e",
+  "#115e59",
+  "#134e4a",
 ];
 
 const grigi: MantineColorsTuple = [
-  "#f2f8f8",
-  "#e3f4f3",
-  "#d9f5f3",
-  "#cbdedd",
-  "#b5cdcb",
-  "#94afad",
-  "#718b89",
-  "#53696b",
-  "#304649",
-  "#101d21",
+  "#f8fafc",
+  "#f1f5f9",
+  "#e2e8f0",
+  "#cbd5e1",
+  "#94a3b8",
+  "#64748b",
+  "#475569",
+  "#334155",
+  "#1e293b",
+  "#0f172a",
 ];
 
 const inter =
@@ -43,7 +43,7 @@ export const tema = createTheme({
   },
   primaryColor: "verde",
   primaryShade: 6,
-  black: "#101d21",
+  black: "#0f172a",
   fontFamily: inter,
   fontFamilyMonospace:
     '"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
@@ -59,11 +59,11 @@ export const tema = createTheme({
 export const variabili: CSSVariablesResolver = () => ({
   variables: {},
   light: {
-    "--mantine-color-body": "#f2f8f8",
+    "--mantine-color-body": "#f8fafc",
     "--mantine-color-default": "#ffffff",
-    "--mantine-color-default-border": "rgba(16, 29, 33, 0.13)",
-    "--mantine-color-default-hover": "#f7fbfa",
-    "--mantine-color-dimmed": "#53696b",
+    "--mantine-color-default-border": "#e2e8f0",
+    "--mantine-color-default-hover": "#f1f5f9",
+    "--mantine-color-dimmed": "#475569",
   },
   dark: {},
 });

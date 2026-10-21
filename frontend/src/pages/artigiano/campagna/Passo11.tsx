@@ -214,7 +214,7 @@ function GruppoEditor({
       withBorder
       radius="lg"
       p="lg"
-      style={{ background: "#f8fbfb", borderColor: "rgba(16, 29, 33, 0.08)" }}
+      style={{ background: "#f8fafc", borderColor: "rgba(15, 23, 42, 0.08)" }}
     >
       <Group justify="space-between" mb="sm">
         <Text fw={700} size="sm">
@@ -249,7 +249,7 @@ function GruppoEditor({
           void scegliFile(e.dataTransfer.files);
         }}
         style={{
-          border: "1.5px dashed rgba(0, 121, 116, 0.38)",
+          border: "1.5px dashed rgba(13, 148, 136, 0.38)",
           borderRadius: 14,
           padding: "16px 18px",
           background: "#ffffff",
@@ -262,7 +262,7 @@ function GruppoEditor({
         }}
       >
         <div>
-          <Text size="sm" fw={600} c="#101d21">
+          <Text size="sm" fw={600} c="#0f172a">
             {inCarico
               ? "Caricamento foto in corso…"
               : "Tocca o trascina qui le foto di questo gruppo"}
@@ -395,7 +395,7 @@ function Thumb({
           position: "absolute",
           inset: "auto 0 0 0",
           padding: "3px 6px",
-          background: "linear-gradient(transparent, rgba(16, 29, 33, 0.72))",
+          background: "linear-gradient(transparent, rgba(15, 23, 42, 0.72))",
         }}
       >
         <Text
@@ -423,7 +423,7 @@ function Thumb({
           height: 22,
           borderRadius: "50%",
           border: "none",
-          background: "rgba(16, 29, 33, 0.68)",
+          background: "rgba(15, 23, 42, 0.68)",
           color: "#fff",
           fontSize: 13,
           lineHeight: 1,
