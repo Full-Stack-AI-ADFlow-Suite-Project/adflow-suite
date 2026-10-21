@@ -23,7 +23,7 @@ Ciò che non entra nell'MVP del 6 novembre 2026 (ADR-114, `docs/agenti/perimetro
 |---|---|---|
 | Metriche di engagement per post, campagna e canale, lette ogni giorno | Da costruire | E2; R-39; CA-44, CA-75 |
 | Report settimanale agli operatori e riepilogo di fine campagna all'artigiano | Da costruire | R-39 |
-| Calendario d'insieme di tutte le campagne, per l'operatore | Da costruire | E1 |
+| Calendario mensile, con trascinamento dei post (nell'MVP la settimana, ADR-117) | Da costruire | E1; R-48 |
 | Orari dei post scelti dalle metriche della pagina | Da costruire | appunti in archivio (sfasamento e orari) |
 
 ## Operatore e account
@@ -34,7 +34,8 @@ Ciò che non entra nell'MVP del 6 novembre 2026 (ADR-114, `docs/agenti/perimetro
 | Richiesta all'artigiano con un link a tempo, da telefono e senza password (nell'MVP passa dal suo account) | Da costruire | ADR-116; R-46 |
 | Indicatore di recuperabilità della campagna in revisione (chiedere all'artigiano o respingere) | Da costruire | ADR-116 |
 | Motivi codificati della sospensione e misure per motivo (nell'MVP una nota libera) | Da costruire | ADR-116; R-33 |
-| Pagine dell'operatore: ingresso con "Da sistemare", elenco artigiani, pagina artigiano, campagne chiuse | Da costruire | R-38 |
+| Ingresso dell'operatore con "Da sistemare"; nell'elenco artigiani codice, iscrizione e stato degli account per canale; pagina a parte delle campagne chiuse (elenco, pagina e campagne dell'artigiano sono nell'MVP, ADR-117) | Da costruire | R-29, R-38 |
+| Archivio foto modificabile: caricare, eliminare e organizzare le foto della bottega (nell'MVP in sola lettura, ADR-117) | Da costruire | R-27, R-47 |
 | Anagrafica completa: codice ART, codice consorzio, telefono, iscrizione sospesa | Da costruire | R-37 |
 | Cambio password obbligato al primo accesso | Da costruire | R-37; CA-73 |
 | Collegamento degli account social di ogni artigiano (OAuth), con Advanced Access, App Review e verifica aziendale di Meta | Da costruire | D3 |
