@@ -15,7 +15,7 @@ from app.core.orologio import adesso
 from app.moduli.accesso.service import richiede_ruolo
 
 from . import service
-from .schemas import CanaleCollegato, NuovoArtigiano, ArtigianoCreato
+from .schemas import ArtigianoCreato, CanaleCollegato, NuovoArtigiano, SchedaArtigiano
 from .profilo_schemas import ProfiloScrittura, ProfiloPubblico
 
 router = APIRouter(tags=["artigiani"])
@@ -81,6 +81,18 @@ def salva_profilo(
 
 
 router.include_router(profili)
+
+
+@router.get("/artigiani/{utente_id}", response_model=SchedaArtigiano)
+def scheda_artigiano(
+    utente_id: int,
+    db: Annotated[Session, Depends(get_db, scope="function")],
+    operatore: Annotated[Any, Depends(richiede_ruolo("operatore"))],
+    response: Response,
+) -> SchedaArtigiano:
+    """Account e profilo di un artigiano in sola lettura (R-38, CA-93)."""
+    response.headers["Cache-Control"] = "no-store"
+    return service.scheda_artigiano(db, utente_id)
 
 
 @router.post("/artigiani", status_code=201, response_model=ArtigianoCreato)

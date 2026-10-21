@@ -250,6 +250,37 @@ class CampagnaElencoItem(BaseModel):
     richiesta: str | None = None
 
 
+class CampagnaDelBlocco(BaseModel):
+    """La campagna a cui appartiene un blocco dell'archivio foto (spec R-47)."""
+
+    id: int
+    titolo: str
+    stato: str
+    inizio: date
+    fine: date
+
+
+class FotoArchivio(BaseModel):
+    """Una foto dell'archivio in sola lettura (spec R-47)."""
+
+    id: int
+    url: str  # /api/foto/{id}/file
+    origine: str  # caricata | creata_ai
+    mime: str
+    larghezza: int
+    altezza: int
+    # {canale: ultima pubblicazione}; vuoto se la foto non è mai uscita.
+    pubblicata_su: dict[str, datetime] = {}
+
+
+class BloccoArchivio(BaseModel):
+    """Un blocco di ``GET /archivio-foto``: le foto di una campagna (spec R-47)."""
+
+    # None: foto senza campagna (l'archivio di prima, R-27).
+    campagna: CampagnaDelBlocco | None
+    foto: list[FotoArchivio]
+
+
 class GruppoArchivioCrea(BaseModel):
     """Payload per la creazione di un gruppo nell'archivio della bottega (POST /archivio/gruppi)."""
 

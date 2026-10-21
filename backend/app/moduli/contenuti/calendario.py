@@ -1,5 +1,7 @@
 """Calendario della campagna approvata, con i post per giorno (spec R-45, CA-56)."""
+from collections.abc import Iterable
 from datetime import date
+from typing import Any
 
 from sqlalchemy.orm import Session
 
@@ -9,6 +11,7 @@ from app.moduli.campagne import service as campagne
 
 from . import service
 from .domain import APPROVATO, PUBBLICATO, FALLITO, ANNULLATO, SCADUTO
+from .models import Post
 from .schemas import (
     CalendarioCampagna,
     GiornoCalendario,
@@ -18,55 +21,73 @@ from .schemas import (
 )
 
 
+# I post che il calendario mostra (spec R-45, R-48).
+STATI_VISIBILI = (APPROVATO, PUBBLICATO, FALLITO, ANNULLATO)
+
+
+def immagini_dei_post(db: Session, post: Iterable[Post]) -> dict[int, Any]:
+    """Le foto delle versioni correnti dei post, per id (di qualunque campagna)."""
+    foto_ids = {
+        legame.foto_id
+        for p in post
+        if p.versione_corrente is not None
+        for legame in p.versione_corrente.legami_foto
+    }
+    return {f.id: f for f in campagne.foto_per_id(db, foto_ids)}
+
+
+def costruisci_post(
+    post: Post, immagini: dict[int, Any], profilo_id: int
+) -> PostCalendario:
+    """Un post del calendario: testo, hashtag e foto della versione corrente.
+
+    La stessa costruzione serve il calendario della campagna e quello
+    settimanale (spec R-45, R-48). Una foto di un'altra bottega non si mostra.
+    """
+    versione = post.versione_corrente
+    foto = []
+    if versione is not None:
+        for legame in sorted(versione.legami_foto, key=lambda l: l.posizione):
+            immagine = immagini.get(legame.foto_id)
+            if immagine is None:
+                continue
+            if immagine.profilo_id != profilo_id:
+                raise NonTrovato("Foto non trovata.")
+            foto.append(
+                FotoCalendario(
+                    id=immagine.id,
+                    url=f"/api/foto/{immagine.id}/file",
+                    mime=immagine.mime,
+                    larghezza=immagine.larghezza,
+                    altezza=immagine.altezza,
+                    origine=immagine.origine,
+                )
+            )
+    return PostCalendario(
+        id=post.id,
+        data_ora=post.data_ora,
+        ora=post.data_ora.astimezone(ROMA).strftime("%H:%M"),
+        canale=post.canale,
+        stato=post.stato,
+        testo=versione.testo if versione is not None else "",
+        hashtag=list(versione.hashtag) if versione is not None else [],
+        foto=foto,
+    )
+
+
 def leggi(
     db: Session, campagna_id: int, utente_id: int, ruolo: str
 ) -> CalendarioCampagna:
     campagna = campagne.campagna_per_calendario(db, campagna_id, utente_id, ruolo)
     piano = service.piano_corrente(db, campagna_id)
     tutti = service.post_della_campagna(db, campagna_id)
-    visibili = [
-        p for p in tutti if p.stato in (APPROVATO, PUBBLICATO, FALLITO, ANNULLATO)
-    ]
-    foto_ids = {
-        legame.foto_id
-        for post in visibili
-        if post.versione_corrente is not None
-        for legame in post.versione_corrente.legami_foto
-    }
-    immagini = {f.id: f for f in campagne.foto_per_id(db, foto_ids)}
+    visibili = [p for p in tutti if p.stato in STATI_VISIBILI]
+    immagini = immagini_dei_post(db, visibili)
     giorni: dict[date, list[PostCalendario]] = {}
     for post in visibili:
-        versione = post.versione_corrente
-        foto = []
-        if versione is not None:
-            for legame in sorted(versione.legami_foto, key=lambda l: l.posizione):
-                immagine = immagini.get(legame.foto_id)
-                if immagine is None:
-                    continue
-                if immagine.profilo_id != campagna.profilo_id:
-                    raise NonTrovato("Foto non trovata.")
-                foto.append(
-                    FotoCalendario(
-                        id=immagine.id,
-                        url=f"/api/foto/{immagine.id}/file",
-                        mime=immagine.mime,
-                        larghezza=immagine.larghezza,
-                        altezza=immagine.altezza,
-                        origine=immagine.origine,
-                    )
-                )
-        locale = post.data_ora.astimezone(ROMA)
-        giorni.setdefault(locale.date(), []).append(
-            PostCalendario(
-                id=post.id,
-                data_ora=post.data_ora,
-                ora=locale.strftime("%H:%M"),
-                canale=post.canale,
-                stato=post.stato,
-                testo=versione.testo if versione is not None else "",
-                hashtag=list(versione.hashtag) if versione is not None else [],
-                foto=foto,
-            )
+        giorno = post.data_ora.astimezone(ROMA).date()
+        giorni.setdefault(giorno, []).append(
+            costruisci_post(post, immagini, campagna.profilo_id)
         )
     note = {d.canale: d.nota for d in campagne.decisioni_canali_tolti(db, campagna_id)}
     return CalendarioCampagna(

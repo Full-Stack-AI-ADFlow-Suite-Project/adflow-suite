@@ -154,10 +154,23 @@ export interface GruppoCrea {
   n_immagini?: number | null;
 }
 
-export function elenco(stato?: string): Promise<CampagnaElencoItem[]> {
-  if (USA_ESEMPI) return esempiCampagne.elenco(stato);
-  const filtro = stato ? `?stato=${encodeURIComponent(stato)}` : "";
-  return richiesta<CampagnaElencoItem[]>("GET", `/campagne${filtro}`);
+/**
+ * GET /campagne. `artigiano` (l'id dell'utente) è per l'operatore: solo le
+ * campagne di quell'artigiano (R-38, CA-94); per l'artigiano non conta.
+ */
+export function elenco(
+  stato?: string,
+  artigiano?: number,
+): Promise<CampagnaElencoItem[]> {
+  if (USA_ESEMPI) return esempiCampagne.elenco(stato, artigiano);
+  const filtri = new URLSearchParams();
+  if (stato) filtri.set("stato", stato);
+  if (artigiano !== undefined) filtri.set("artigiano", String(artigiano));
+  const query = filtri.toString();
+  return richiesta<CampagnaElencoItem[]>(
+    "GET",
+    `/campagne${query ? `?${query}` : ""}`,
+  );
 }
 
 export function dettaglio(id: number): Promise<CampagnaDettaglio> {
@@ -314,6 +327,46 @@ export function inviaRisposta(
   );
 }
 
+/** La campagna di un blocco dell'archivio foto (CampagnaDelBlocco di schemas.py). */
+export interface CampagnaDelBlocco {
+  id: number;
+  titolo: string;
+  stato: StatoCampagna;
+  inizio: string;
+  fine: string;
+}
+
+/** Una foto dell'archivio in sola lettura (FotoArchivio di schemas.py, R-47). */
+export interface FotoArchivio {
+  id: number;
+  /** /api/foto/{id}/file */
+  url: string;
+  origine: "caricata" | "creata_ai";
+  mime: string;
+  larghezza: number;
+  altezza: number;
+  /** {canale: ultima pubblicazione}; vuoto se la foto non è mai uscita. */
+  pubblicata_su: Record<string, string>;
+}
+
+/** Un blocco di GET /archivio-foto: le foto di una campagna (BloccoArchivio). */
+export interface BloccoArchivio {
+  /** `null`: foto senza campagna (l'archivio di prima, R-27). */
+  campagna: CampagnaDelBlocco | null;
+  foto: FotoArchivio[];
+}
+
+/**
+ * GET /archivio-foto: l'archivio in sola lettura, a blocchi per campagna. Per
+ * l'operatore `artigiano` (l'id dell'utente) è obbligatorio; per l'artigiano
+ * non conta (R-47, CA-95, CA-96).
+ */
+export function archivioFoto(artigiano?: number): Promise<BloccoArchivio[]> {
+  if (USA_ESEMPI) return esempiCampagne.archivioFoto(artigiano);
+  const query = artigiano === undefined ? "" : `?artigiano=${artigiano}`;
+  return richiesta<BloccoArchivio[]>("GET", `/archivio-foto${query}`);
+}
+
 /** Dati di una foto nel calendario approvato (contenuti/schemas.py). */
 export interface FotoCalendario {
   id: number;
@@ -340,6 +393,39 @@ export interface PostCalendario {
 export interface GiornoCalendario {
   data: string;
   post: PostCalendario[];
+}
+
+/** PostSettimana di contenuti/schemas.py: un post del calendario settimanale (R-48). */
+export interface PostSettimana extends PostCalendario {
+  campagna_id: number;
+  campagna_titolo: string;
+  bottega: string | null;
+}
+
+/** GiornoSettimana: i post di un giorno, in ordine d'ora. */
+export interface GiornoSettimana {
+  data: string;
+  post: PostSettimana[];
+}
+
+/** CalendarioSettimana: GET /calendario, sempre 7 giorni da lunedì a domenica. */
+export interface CalendarioSettimana {
+  /** Il lunedì, in formato AAAA-MM-GG. */
+  dal: string;
+  al: string;
+  giorni: GiornoSettimana[];
+}
+
+/**
+ * GET /calendario?dal=: la settimana che comincia a `dal` (un lunedì); senza
+ * data, quella di oggi. L'artigiano vede i suoi post, l'operatore tutti (R-48).
+ */
+export function calendarioSettimana(
+  dal?: string,
+): Promise<CalendarioSettimana> {
+  if (USA_ESEMPI) return esempiCampagne.calendarioSettimana(dal);
+  const query = dal ? `?dal=${encodeURIComponent(dal)}` : "";
+  return richiesta<CalendarioSettimana>("GET", `/calendario${query}`);
 }
 
 /** CanaleToltoCalendario: note dei canali tolti, visibili all'artigiano. */

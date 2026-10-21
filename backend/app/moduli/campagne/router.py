@@ -12,8 +12,9 @@ from app.core.errori import DatiNonValidi, NonTrovato
 from app.core.orologio import adesso
 from app.moduli.accesso.service import richiede_ruolo, utente_corrente
 
-from . import archivio, bozza, service, viste
+from . import archivio, archivio_foto, bozza, service, viste
 from .schemas import (
+    BloccoArchivio,
     CampagnaCrea,
     CampagnaDettaglio,
     CampagnaElencoItem,
@@ -84,11 +85,16 @@ def elenca_campagne(
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[Any, Depends(utente_corrente)],
     stato: Annotated[list[str] | None, Query()] = None,
+    artigiano: Annotated[int | None, Query()] = None,
 ) -> list[CampagnaElencoItem]:
-    """Elenca le campagne accessibili all'utente (l'artigiano vede solo le sue, operatore/admin tutte con bottega e città)."""
+    """Elenca le campagne accessibili all'utente (l'artigiano vede solo le sue, operatore/admin tutte con bottega e città).
+
+    Con ``artigiano`` l'operatore vede solo le campagne di quell'artigiano
+    (CA-94); per l'artigiano il parametro non conta.
+    """
     if utente.ruolo == "artigiano":
         return viste.campagne_artigiano(db, utente.id, stato)
-    return service.elenca_campagne(db, utente.id, utente.ruolo, stato)
+    return service.elenca_campagne(db, utente.id, utente.ruolo, stato, artigiano)
 
 
 @router.get("/campagne/{id}", response_model=CampagnaDettaglio)
@@ -199,6 +205,19 @@ def elimina_foto(
     """Elimina una singola foto dalla campagna in bozza."""
     service.elimina_foto(db=db, utente_id=utente.id, ruolo=utente.ruolo, foto_id=id)
     return Response(status_code=204)
+
+
+@router.get("/archivio-foto", response_model=list[BloccoArchivio])
+def leggi_archivio_foto(
+    db: Annotated[Session, Depends(get_db)],
+    utente: Annotated[Any, Depends(richiede_ruolo("artigiano", "operatore"))],
+    artigiano: Annotated[int | None, Query()] = None,
+) -> list[BloccoArchivio]:
+    """L'archivio foto in sola lettura, a blocchi per campagna (R-47, CA-95, CA-96).
+
+    L'artigiano vede le sue foto; l'operatore indica l'artigiano con ``artigiano``.
+    """
+    return archivio_foto.leggi(db, utente.id, utente.ruolo, artigiano)
 
 
 @router.get("/foto/{id}/file")

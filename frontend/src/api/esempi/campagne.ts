@@ -6,15 +6,20 @@
  */
 import { ApiErrore } from "../http";
 import type {
+  BloccoArchivio,
   CampagnaCrea,
   CampagnaModifica,
   CampagnaDettaglio,
   CampagnaElencoItem,
+  FotoArchivio,
   FotoSintetica,
   GruppoCrea,
   GruppoSintetico,
   ProfiloSnapshot,
   CalendarioCampagna,
+  CalendarioSettimana,
+  GiornoSettimana,
+  PostSettimana,
   FotoCalendario,
   PostCalendario,
   GiornoCalendario,
@@ -715,13 +720,28 @@ function nuovoId(campagne: CampagnaDettaglio[]): number {
   return massimo + 1;
 }
 
+/** Le campagne dopo l'approvazione: l'artigiano ne vede le immagini AI (R-47). */
+const STATI_APPROVATA = ["attiva", "sospesa", "conclusa", "annullata"];
+
+/** Un quadrato colorato con il nome della foto: negli esempi non ci sono file. */
+function segnaposto(etichetta: string, ai: boolean, seme: number): string {
+  const colore = `hsl(${(seme * 47) % 360} 35% ${ai ? 62 : 72}%)`;
+  const svg = `<svg xmlns="http://www.w3.org/2000/svg" width="400" height="400"><rect width="400" height="400" fill="${colore}"/><text x="200" y="210" font-family="sans-serif" font-size="26" text-anchor="middle" fill="white">${etichetta}</text></svg>`;
+  return `data:image/svg+xml;utf8,${encodeURIComponent(svg)}`;
+}
+
 export const esempiCampagne = {
-  async elenco(stato?: string): Promise<CampagnaElencoItem[]> {
+  async elenco(
+    stato?: string,
+    artigiano?: number,
+  ): Promise<CampagnaElencoItem[]> {
     const utente = sessioneEsempio();
     const operatore =
       utente?.ruolo === "operatore" || utente?.ruolo === "admin";
+    // `artigiano` è l'id dell'utente; negli esempi coincide con la bottega (1–4).
     return carica()
       .filter((c) => (operatore ? true : c.profilo_id === 1))
+      .filter((c) => !operatore || !artigiano || c.profilo_id === artigiano)
       .filter((c) => !stato || c.stato === stato)
       .map((c) => ({
         id: c.id,
@@ -1157,6 +1177,158 @@ export const esempiCampagne = {
     });
     salva(campagne);
     return richiesta;
+  },
+
+  /**
+   * GET /archivio-foto (R-47): le foto dei gruppi di ogni campagna, più
+   * un'immagine AI per le campagne approvate, che l'artigiano vede solo da
+   * lì (CA-95). Negli esempi `artigiano` coincide con la bottega (1–4).
+   */
+  async archivioFoto(artigiano?: number): Promise<BloccoArchivio[]> {
+    const utente = sessioneEsempio();
+    const operatore =
+      utente?.ruolo === "operatore" || utente?.ruolo === "admin";
+    if (operatore && artigiano === undefined)
+      throw new ApiErrore(422, "Indica l'artigiano di cui vedere le foto.");
+    const profilo = operatore ? artigiano : 1;
+    return carica()
+      .filter((c) => c.profilo_id === profilo)
+      .sort((a, b) => b.id - a.id)
+      .map((c): BloccoArchivio => {
+        const approvata = STATI_APPROVATA.includes(c.stato);
+        const caricate = c.gruppi.flatMap((g) => g.foto);
+        const foto = caricate.map(
+          (f, i): FotoArchivio => ({
+            id: f.id,
+            url: segnaposto(f.file.replace(/\.\w+$/, ""), false, f.id),
+            origine: "caricata",
+            mime: f.mime,
+            larghezza: f.larghezza,
+            altezza: f.altezza,
+            // Le prime foto di una campagna approvata sono già uscite.
+            pubblicata_su:
+              approvata && i < 2
+                ? { facebook: `${c.inizio}T09:00:00+00:00` }
+                : {},
+          }),
+        );
+        if (operatore || approvata)
+          foto.push({
+            id: 100000 + c.id,
+            url: segnaposto("immagine creata dall'AI", true, c.id),
+            origine: "creata_ai",
+            mime: "image/png",
+            larghezza: 1024,
+            altezza: 1024,
+            pubblicata_su: approvata
+              ? { instagram: `${c.inizio}T17:00:00+00:00` }
+              : {},
+          });
+        return {
+          campagna: {
+            id: c.id,
+            titolo: c.titolo,
+            stato: c.stato,
+            inizio: c.inizio,
+            fine: c.fine,
+          },
+          foto,
+        };
+      })
+      .filter((b) => b.foto.length > 0);
+  },
+
+  /**
+   * GET /calendario (R-48): i post di un'agenda tipo (Facebook lunedì,
+   * mercoledì e sabato; Instagram martedì, giovedì e sabato) delle campagne
+   * approvate che coprono ogni giorno della settimana. Quelli già passati
+   * risultano pubblicati, uno ogni tanto non pubblicato; gli altri in programma.
+   */
+  async calendarioSettimana(dal?: string): Promise<CalendarioSettimana> {
+    const utente = sessioneEsempio();
+    const operatore =
+      utente?.ruolo === "operatore" || utente?.ruolo === "admin";
+    const adesso = new Date();
+    const due = (n: number) => String(n).padStart(2, "0");
+    const oggi = `${adesso.getFullYear()}-${due(adesso.getMonth() + 1)}-${due(
+      adesso.getDate(),
+    )}`;
+    const giornoSett = (data: string) =>
+      (new Date(`${data}T00:00:00Z`).getUTCDay() + 6) % 7; // 0 = lunedì
+    const piu = (data: string, n: number) =>
+      new Date(Date.parse(`${data}T00:00:00Z`) + n * 86400000)
+        .toISOString()
+        .slice(0, 10);
+    if (dal && giornoSett(dal) !== 0)
+      throw new ApiErrore(422, "La settimana comincia di lunedì.");
+    const lunedi = dal ?? piu(oggi, -giornoSett(oggi));
+
+    const campagne = carica().filter(
+      (c) =>
+        STATI_APPROVATA.includes(c.stato) && (operatore || c.profilo_id === 1),
+    );
+    const giorni: GiornoSettimana[] = [];
+    for (let i = 0; i < 7; i++) {
+      const data = piu(lunedi, i);
+      const post: PostSettimana[] = [];
+      for (const c of campagne) {
+        if (data < c.inizio || data > c.fine) continue;
+        const canali = (c.canali ?? []).filter(
+          (x) => !(c.canali_tolti ?? []).includes(x),
+        );
+        const agenda: [string, number, string][] = [
+          ["facebook", 0, "09:00"],
+          ["instagram", 1, "18:30"],
+          ["facebook", 2, "09:00"],
+          ["instagram", 3, "18:30"],
+          ["facebook", 5, "10:00"],
+          ["instagram", 5, "10:30"],
+        ];
+        const foto = c.gruppi.flatMap((g) => g.foto);
+        agenda
+          .filter(([canale, g]) => g === i && canali.includes(canale))
+          .forEach(([canale, , ora], k) => {
+            const quando = `${data}T${ora}:00`;
+            const passato = new Date(quando) < adesso;
+            const immagine = foto[(i + k) % Math.max(foto.length, 1)];
+            post.push({
+              id: Number(data.replaceAll("-", "")) * 100 + c.id * 2 + k,
+              data_ora: quando,
+              ora,
+              canale,
+              stato: !passato
+                ? "approvato"
+                : i === 2 && canale === "facebook" && c.id % 2 === 0
+                ? "fallito"
+                : "pubblicato",
+              testo: `Post di esempio di ${c.titolo}`,
+              hashtag: [],
+              foto: immagine
+                ? [
+                    {
+                      id: immagine.id,
+                      url: segnaposto(
+                        immagine.file.replace(/\.\w+$/, ""),
+                        false,
+                        immagine.id,
+                      ),
+                      mime: immagine.mime,
+                      larghezza: immagine.larghezza,
+                      altezza: immagine.altezza,
+                      origine: immagine.origine,
+                    },
+                  ]
+                : [],
+              campagna_id: c.id,
+              campagna_titolo: c.titolo,
+              bottega: profiliEsempio[c.profilo_id]?.bottega ?? null,
+            });
+          });
+      }
+      post.sort((a, b) => a.data_ora.localeCompare(b.data_ora) || a.id - b.id);
+      giorni.push({ data, post });
+    }
+    return { dal: lunedi, al: piu(lunedi, 6), giorni };
   },
 
   async calendario(campagnaId: number): Promise<CalendarioCampagna> {

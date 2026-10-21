@@ -1,5 +1,6 @@
 import { ApiErrore, richiesta } from "./http";
 import { creaArtigianoEsempio } from "./esempi/nuovi-artigiani";
+import { schedaArtigianoEsempio } from "./esempi/elenco-artigiani";
 import {
   canaliEsempio,
   leggiProfiloEsempio,
@@ -27,6 +28,23 @@ export function creaArtigiano(dati: NuovoArtigiano): Promise<ArtigianoCreato> {
 export interface CanaleCollegato {
   canale: string;
   collegato: boolean;
+}
+
+/** GET /artigiani/{id}: account e profilo in sola lettura (SchedaArtigiano, R-38). */
+export interface SchedaArtigiano {
+  id: number;
+  nome: string;
+  email: string;
+  attivo: boolean;
+  /** Come GET /profilo; `null`: il profilo è da compilare. */
+  profilo: ProfiloPubblico | null;
+  canali_collegati: string[];
+}
+
+export function schedaArtigiano(id: number): Promise<SchedaArtigiano> {
+  return USA_ESEMPI
+    ? schedaArtigianoEsempio(id)
+    : richiesta<SchedaArtigiano>("GET", `/artigiani/${id}`);
 }
 export type Json =
   | string

@@ -2,6 +2,8 @@
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from .profilo_schemas import ProfiloPubblico
+
 
 class CanaleCollegato(BaseModel):
     canale: str
@@ -32,3 +34,15 @@ class ArtigianoCreato(BaseModel):
     email: str
     nome: str
     password_provvisoria: str = Field(repr=False)
+
+
+class SchedaArtigiano(BaseModel):
+    """``GET /artigiani/{id}``: account e profilo in sola lettura (spec R-38)."""
+
+    id: int
+    nome: str
+    email: str
+    attivo: bool
+    # Lo schema di GET /profilo; None se l'artigiano non l'ha ancora compilato.
+    profilo: ProfiloPubblico | None
+    canali_collegati: list[str]

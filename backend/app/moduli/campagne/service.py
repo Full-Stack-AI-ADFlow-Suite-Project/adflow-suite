@@ -16,6 +16,7 @@ from app.core.config import leggi_impostazioni
 from app.core.errori import DatiNonValidi, NonPermesso, NonTrovato, StatoNonValido
 from app.core.orologio import ROMA
 from app.core.transizioni import verifica_transizione
+from app.moduli.accesso import service as accesso_service
 from app.moduli.artigiani import service as artigiani_service
 
 from .domain import (
@@ -652,16 +653,35 @@ def crea_bozza(
     return nuova
 
 
+def utente_artigiano(db: Session, utente_id: int) -> int:
+    """L'id dell'utente se è un artigiano; altrimenti ``NonTrovato`` (404).
+
+    Per le letture dell'operatore su un artigiano (``artigiano=`` di
+    ``GET /campagne`` e di ``GET /archivio-foto``): l'id di un operatore o di
+    un utente che non esiste è lo stesso 404.
+    """
+    try:
+        record = accesso_service.utente(db, utente_id)
+    except NonTrovato:
+        record = None
+    if record is None or record.ruolo != "artigiano":
+        raise NonTrovato("Artigiano non trovato.")
+    return record.id
+
+
 def elenca_campagne(
     db: Session,
     utente_id: int,
     ruolo: str,
     stati: list[str] | None = None,
+    artigiano: int | None = None,
 ) -> list[CampagnaElencoItem]:
     """Elenca le campagne accessibili all'utente autenticato.
 
-    L'artigiano visualizza solo le proprie campagne.
-    L'operatore e l'admin visualizzano tutte le campagne del consorzio con bottega e città.
+    L'artigiano visualizza solo le proprie campagne e ``artigiano`` non conta.
+    L'operatore e l'admin visualizzano tutte le campagne del consorzio con
+    bottega e città; con ``artigiano`` (l'id dell'utente, spec R-38, CA-94)
+    solo quelle di quell'artigiano, nessuna se non ha un profilo.
     Supporta il filtro ripetibile per stati (CA-54).
     """
     if stati:
@@ -678,6 +698,11 @@ def elenca_campagne(
         query = query.where(Campagna.profilo_id == profilo.id)
     elif ruolo not in ("operatore", "admin"):
         return []
+    elif artigiano is not None:
+        profilo = artigiani_service.profilo_di(db, utente_artigiano(db, artigiano))
+        if profilo is None:
+            return []
+        query = query.where(Campagna.profilo_id == profilo.id)
 
     if stati:
         query = query.where(Campagna.stato.in_(stati))
