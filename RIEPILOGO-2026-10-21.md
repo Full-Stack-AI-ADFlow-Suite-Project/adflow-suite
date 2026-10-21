@@ -1,6 +1,10 @@
 # Riepilogo modifiche — 21 ottobre 2026
 
-Branch: `feature/artigiani-elenco-operatore`
+Branch: `feature/artigiani-elenco-operatore` (unico branch usato oggi; basato su
+`origin/main` al merge PR #133). I tre commit di oggi — restyling, feature
+artigiani e rifinitura — sono tutti qui dentro. Il branch locale
+`feature/prototipo-stile`, dove il restyling era iniziato non committato, è
+rimasto indietro e **non contiene** il lavoro: tutto è sul branch corrente.
 
 Due aree di lavoro: il **restyling dell'interfaccia** e la **feature "elenco +
 scheda artigiani per l'operatore"** (richiesta dal docente, era marcata Roadmap
