@@ -17,6 +17,9 @@ import type {
   GruppoSintetico,
   ProfiloSnapshot,
   CalendarioCampagna,
+  CalendarioSettimana,
+  GiornoSettimana,
+  PostSettimana,
   FotoCalendario,
   PostCalendario,
   GiornoCalendario,
@@ -1233,6 +1236,99 @@ export const esempiCampagne = {
         };
       })
       .filter((b) => b.foto.length > 0);
+  },
+
+  /**
+   * GET /calendario (R-48): i post di un'agenda tipo (Facebook lunedì,
+   * mercoledì e sabato; Instagram martedì, giovedì e sabato) delle campagne
+   * approvate che coprono ogni giorno della settimana. Quelli già passati
+   * risultano pubblicati, uno ogni tanto non pubblicato; gli altri in programma.
+   */
+  async calendarioSettimana(dal?: string): Promise<CalendarioSettimana> {
+    const utente = sessioneEsempio();
+    const operatore =
+      utente?.ruolo === "operatore" || utente?.ruolo === "admin";
+    const adesso = new Date();
+    const due = (n: number) => String(n).padStart(2, "0");
+    const oggi = `${adesso.getFullYear()}-${due(adesso.getMonth() + 1)}-${due(
+      adesso.getDate(),
+    )}`;
+    const giornoSett = (data: string) =>
+      (new Date(`${data}T00:00:00Z`).getUTCDay() + 6) % 7; // 0 = lunedì
+    const piu = (data: string, n: number) =>
+      new Date(Date.parse(`${data}T00:00:00Z`) + n * 86400000)
+        .toISOString()
+        .slice(0, 10);
+    if (dal && giornoSett(dal) !== 0)
+      throw new ApiErrore(422, "La settimana comincia di lunedì.");
+    const lunedi = dal ?? piu(oggi, -giornoSett(oggi));
+
+    const campagne = carica().filter(
+      (c) =>
+        STATI_APPROVATA.includes(c.stato) && (operatore || c.profilo_id === 1),
+    );
+    const giorni: GiornoSettimana[] = [];
+    for (let i = 0; i < 7; i++) {
+      const data = piu(lunedi, i);
+      const post: PostSettimana[] = [];
+      for (const c of campagne) {
+        if (data < c.inizio || data > c.fine) continue;
+        const canali = (c.canali ?? []).filter(
+          (x) => !(c.canali_tolti ?? []).includes(x),
+        );
+        const agenda: [string, number, string][] = [
+          ["facebook", 0, "09:00"],
+          ["instagram", 1, "18:30"],
+          ["facebook", 2, "09:00"],
+          ["instagram", 3, "18:30"],
+          ["facebook", 5, "10:00"],
+          ["instagram", 5, "10:30"],
+        ];
+        const foto = c.gruppi.flatMap((g) => g.foto);
+        agenda
+          .filter(([canale, g]) => g === i && canali.includes(canale))
+          .forEach(([canale, , ora], k) => {
+            const quando = `${data}T${ora}:00`;
+            const passato = new Date(quando) < adesso;
+            const immagine = foto[(i + k) % Math.max(foto.length, 1)];
+            post.push({
+              id: Number(data.replaceAll("-", "")) * 100 + c.id * 2 + k,
+              data_ora: quando,
+              ora,
+              canale,
+              stato: !passato
+                ? "approvato"
+                : i === 2 && canale === "facebook" && c.id % 2 === 0
+                ? "fallito"
+                : "pubblicato",
+              testo: `Post di esempio di ${c.titolo}`,
+              hashtag: [],
+              foto: immagine
+                ? [
+                    {
+                      id: immagine.id,
+                      url: segnaposto(
+                        immagine.file.replace(/\.\w+$/, ""),
+                        false,
+                        immagine.id,
+                      ),
+                      mime: immagine.mime,
+                      larghezza: immagine.larghezza,
+                      altezza: immagine.altezza,
+                      origine: immagine.origine,
+                    },
+                  ]
+                : [],
+              campagna_id: c.id,
+              campagna_titolo: c.titolo,
+              bottega: profiliEsempio[c.profilo_id]?.bottega ?? null,
+            });
+          });
+      }
+      post.sort((a, b) => a.data_ora.localeCompare(b.data_ora) || a.id - b.id);
+      giorni.push({ data, post });
+    }
+    return { dal: lunedi, al: piu(lunedi, 6), giorni };
   },
 
   async calendario(campagnaId: number): Promise<CalendarioCampagna> {

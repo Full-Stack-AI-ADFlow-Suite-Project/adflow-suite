@@ -395,6 +395,39 @@ export interface GiornoCalendario {
   post: PostCalendario[];
 }
 
+/** PostSettimana di contenuti/schemas.py: un post del calendario settimanale (R-48). */
+export interface PostSettimana extends PostCalendario {
+  campagna_id: number;
+  campagna_titolo: string;
+  bottega: string | null;
+}
+
+/** GiornoSettimana: i post di un giorno, in ordine d'ora. */
+export interface GiornoSettimana {
+  data: string;
+  post: PostSettimana[];
+}
+
+/** CalendarioSettimana: GET /calendario, sempre 7 giorni da lunedì a domenica. */
+export interface CalendarioSettimana {
+  /** Il lunedì, in formato AAAA-MM-GG. */
+  dal: string;
+  al: string;
+  giorni: GiornoSettimana[];
+}
+
+/**
+ * GET /calendario?dal=: la settimana che comincia a `dal` (un lunedì); senza
+ * data, quella di oggi. L'artigiano vede i suoi post, l'operatore tutti (R-48).
+ */
+export function calendarioSettimana(
+  dal?: string,
+): Promise<CalendarioSettimana> {
+  if (USA_ESEMPI) return esempiCampagne.calendarioSettimana(dal);
+  const query = dal ? `?dal=${encodeURIComponent(dal)}` : "";
+  return richiesta<CalendarioSettimana>("GET", `/calendario${query}`);
+}
+
 /** CanaleToltoCalendario: note dei canali tolti, visibili all'artigiano. */
 export interface CanaleToltoCalendario {
   canale: string;

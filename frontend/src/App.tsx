@@ -1,8 +1,10 @@
+import type { ReactNode } from "react";
 import { Navigate, Route, Routes } from "react-router-dom";
 
 import { RichiedeRuolo } from "./auth";
 import { paginaIniziale, useAuth } from "./contesto-auth";
 import { Accesso } from "./pages/Accesso";
+import { Calendario } from "./pages/Calendario";
 import { Profilo, RichiedeProfilo } from "./pages/artigiano/profilo/Profilo";
 import { Archivio } from "./pages/artigiano/Archivio";
 import { Campagna } from "./pages/artigiano/Campagna";
@@ -21,6 +23,16 @@ function Partenza() {
   const { utente } = useAuth();
   if (!utente) return <Navigate to="/accesso" replace />;
   return <Navigate to={paginaIniziale(utente.ruolo)} replace />;
+}
+
+/** Il profilo serve solo all'artigiano: operatore e admin passano (spec R-29). */
+function ConProfiloSeArtigiano({ children }: { children: ReactNode }) {
+  const { utente } = useAuth();
+  return utente?.ruolo === "artigiano" ? (
+    <RichiedeProfilo>{children}</RichiedeProfilo>
+  ) : (
+    children
+  );
 }
 
 export default function App() {
@@ -44,6 +56,16 @@ export default function App() {
             <RichiedeProfilo>
               <Campagne />
             </RichiedeProfilo>
+          </RichiedeRuolo>
+        }
+      />
+      <Route
+        path="/calendario"
+        element={
+          <RichiedeRuolo ruoli={["artigiano", "operatore", "admin"]}>
+            <ConProfiloSeArtigiano>
+              <Calendario />
+            </ConProfiloSeArtigiano>
           </RichiedeRuolo>
         }
       />

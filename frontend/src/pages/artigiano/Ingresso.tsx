@@ -6,6 +6,7 @@
  */
 import {
   Alert,
+  Anchor,
   Button,
   Card,
   Center,
@@ -18,7 +19,13 @@ import {
 import { useEffect, useState, type ReactNode } from "react";
 import { Link } from "react-router-dom";
 
-import { elenco, type CampagnaElencoItem } from "../../api/campagne";
+import {
+  calendarioSettimana,
+  elenco,
+  type CalendarioSettimana as Settimana,
+  type CampagnaElencoItem,
+} from "../../api/campagne";
+import { CalendarioSettimana } from "../../components/CalendarioSettimana";
 import { ElencoCampagne } from "../../components/campagne/ElencoCampagne";
 import { sezioniDi } from "../../components/campagne/sezioni";
 import { Guscio } from "../../components/Guscio";
@@ -94,6 +101,44 @@ function avvisi(lista: CampagnaElencoItem[]): ReactNode[] {
       ];
     return [];
   });
+}
+
+/** La settimana in corso del calendario (H5): lo stesso componente della pagina Calendario. */
+function QuestaSettimana() {
+  const [settimana, setSettimana] = useState<Settimana | null>(null);
+  const [errore, setErrore] = useState(false);
+
+  useEffect(() => {
+    calendarioSettimana()
+      .then(setSettimana)
+      .catch(() => setErrore(true));
+  }, []);
+
+  return (
+    <section aria-label="Questa settimana">
+      <Title order={2} size="h4" mb="xs">
+        Questa settimana
+      </Title>
+      <Text c="dimmed" size="sm" mb="sm">
+        I tuoi post da lunedì a domenica.{" "}
+        <Anchor component={Link} to="/calendario">
+          Apri il calendario
+        </Anchor>
+      </Text>
+      {errore && (
+        <Alert color="red" variant="light">
+          Non sono riuscita a leggere il calendario.
+        </Alert>
+      )}
+      {settimana && (
+        <CalendarioSettimana
+          calendario={settimana}
+          lato="artigiano"
+          link={(p) => `/campagna?id=${p.campagna_id}`}
+        />
+      )}
+    </section>
+  );
 }
 
 export function Ingresso() {
@@ -184,7 +229,7 @@ export function Ingresso() {
             link={aprila}
             vuoto="Nessuna campagna in corso."
           />
-          {/* Questa settimana: il calendario settimanale arriva con T3-77. */}
+          <QuestaSettimana />
         </Stack>
       )}
     </Guscio>

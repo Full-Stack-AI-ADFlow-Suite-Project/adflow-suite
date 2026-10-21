@@ -32,6 +32,11 @@ function vociDelRuolo(ruolo: Ruolo, percorso: string): VoceNav[] {
         attivo: percorso === "/campagne" || percorso === "/campagna",
       },
       {
+        label: "Calendario",
+        to: "/calendario",
+        attivo: percorso === "/calendario",
+      },
+      {
         label: "Archivio foto",
         to: "/archivio",
         attivo: percorso === "/archivio",
@@ -56,6 +61,11 @@ function vociDelRuolo(ruolo: Ruolo, percorso: string): VoceNav[] {
       attivo: percorso === "/artigiani" || percorso.startsWith("/artigiani/"),
     },
     {
+      label: "Calendario",
+      to: "/calendario",
+      attivo: percorso === "/calendario",
+    },
+    {
       label: "Nuovo artigiano",
       to: "/nuovo-artigiano",
       attivo: percorso === "/nuovo-artigiano",
@@ -69,6 +79,14 @@ const ICONE: Record<string, ReactNode> = {
       <path d="M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2" />
       <rect x="9" y="3" width="6" height="4" rx="1" />
       <path d="m9 14 2 2 4-4" />
+    </>
+  ),
+  Calendario: (
+    <>
+      <rect x="3" y="4" width="18" height="18" rx="2" />
+      <line x1="16" y1="2" x2="16" y2="6" />
+      <line x1="8" y1="2" x2="8" y2="6" />
+      <line x1="3" y1="10" x2="21" y2="10" />
     </>
   ),
   "Archivio foto": (

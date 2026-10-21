@@ -1,0 +1,99 @@
+/* Calendario settimanale: sette colonne da lunedì a domenica, fatto a mano
+   (E1). Misure e regole di docs/pagine/assets/adflow.css; i token sono in
+   index.css. */
+.settimana {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.giorno {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--mantine-radius-md);
+  padding: 8px;
+  min-height: 160px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.oggi {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px var(--primary-light);
+}
+
+.testa {
+  font-size: 12.5px;
+  color: var(--text-muted);
+  padding-bottom: 6px;
+  border-bottom: 1px solid var(--border-hairline);
+}
+
+.testa b {
+  color: var(--text-main);
+}
+
+.vuoto {
+  font-size: 12px;
+  color: var(--text-faint);
+}
+
+.post {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid var(--border-hairline);
+  border-radius: 8px;
+  background: var(--bg-surface-subtle);
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-decoration: none;
+}
+
+.post:hover {
+  border-color: var(--primary);
+}
+
+.post:focus-visible {
+  outline: 2px solid var(--primary);
+  outline-offset: 2px;
+}
+
+.post b {
+  color: var(--text-main);
+  font-size: 12.5px;
+}
+
+.riga {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+
+.ora {
+  font-family: var(--mantine-font-family-monospace);
+  color: var(--text-main);
+}
+
+.foto {
+  width: 100%;
+  height: 56px;
+  object-fit: cover;
+  border-radius: 6px;
+  background: var(--border-hairline);
+}
+
+/* Schermo stretto: le colonne diventano un elenco per giorno. */
+@media (max-width: 768px) {
+  .settimana {
+    grid-template-columns: 1fr;
+  }
+
+  .giorno {
+    min-height: 0;
+  }
+}
