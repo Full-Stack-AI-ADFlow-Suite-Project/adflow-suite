@@ -223,7 +223,14 @@ class AILiteLLM(AIAdapter):
         impostazioni = leggi_impostazioni()
         self._modello_visione = impostazioni.ai_modello_visione
         self._modello_testo = impostazioni.ai_modello_testo
-        self._chiave = impostazioni.openai_api_key
+        self._chiave = (
+            (impostazioni.openrouter_api_key or impostazioni.openai_api_key)
+            if any(
+                m.startswith("openrouter/")
+                for m in (self._modello_visione, self._modello_testo)
+            )
+            else (impostazioni.openai_api_key or impostazioni.openrouter_api_key)
+        )
         self._prezzo_ingresso = impostazioni.ai_prezzo_ingresso_milione
         self._prezzo_uscita = impostazioni.ai_prezzo_uscita_milione
         self._modello_immagini = impostazioni.ai_modello_immagini

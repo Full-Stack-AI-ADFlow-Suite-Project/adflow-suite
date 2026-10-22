@@ -57,6 +57,7 @@ class Impostazioni(BaseSettings):
     ai_modello_testo: str = ""
     ai_modello_immagini: str = ""
     openai_api_key: str = ""
+    openrouter_api_key: str = ""
     # Dollari per milione di token: servono solo se LiteLLM non conosce il
     # prezzo del modello (spec R-44).
     ai_prezzo_ingresso_milione: Decimal = Decimal(0)
