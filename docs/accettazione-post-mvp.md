@@ -7,7 +7,33 @@
 
 Che cosa controllare, con quali strumenti e con quali soglie prima di autorizzare lo sviluppo completo, più un piano d'azione da dettagliare nei prossimi task. I riferimenti a file e righe valgono per il commit `6a8e2ed`.
 
+## Come si procede
+
+Questo documento si usa in due passi, prima di leggere il resto.
+
+1. **Domande.** Chi lo apre risponde alle nove domande qui sotto. Un agente le fa alla persona **una alla volta**, propone la risposta predefinita e non decide al posto suo; se una risposta manca si ferma e chiede, come vuole `AGENTS.md`.
+2. **Corsia.** Con le risposte si genera la **corsia 9** dello sprint 4, task da T4-90 a T4-99: la tabella per `docs/agenti/tasks.md`, il brief `docs/agenti/brief-accettazione.md` e la riga ADR-119. La [pagina interattiva](https://claude.ai/artifact/8zNobVKA66gNF2TeE9reRY) (si apre solo se è stata condivisa con te) fa le domande appena la apri e genera tutto da sola. Senza la pagina si parte dalla corsia del [§12](#12-corsia-9-con-le-risposte-predefinite), generata con le risposte predefinite, e si applica la colonna «Che cosa cambia».
+3. **Nulla va su `main` finché il documento è una bozza.** La corsia entra nel repository con il task T4-90, dopo l'approvazione del team.
+
+**Perché la corsia 9.** La corsia 8 è già proposta per l'interfaccia (branch `feature/proposta-corsia-8-interfaccia`, sprint 3, ADR-118). Se quella proposta non passa, questa può diventare la 8: si rinumerano i task e gli ADR.
+
+### Le nove domande
+
+| # | Domanda | Risposte possibili (in grassetto la predefinita) | Che cosa cambia |
+|---|---|---|---|
+| 1 | Quanto del piano volete fare? | **Tutto il piano**; L'essenziale per la produzione | Con l'essenziale T4-95 e T4-96 perdono copertura, mutazioni, test dei componenti e contratto dei tipi. |
+| 2 | Chi lavora alla corsia 9? | **Giovanni**; **Gianluca**; **Silvia**; **Nilton**; **Angelo** (più di una) | Cambia il «Chi» di ogni task e l'intestazione della corsia. |
+| 3 | Quanto tempo a settimana dà ogni persona alla corsia? | Tempo pieno; **Metà tempo**; Un giorno a settimana | Cambia le date di ogni task e la fine della corsia. |
+| 4 | Da quando si parte? | una data; **lunedì 9/11/2026** | Sposta tutte le date. |
+| 5 | L'hosting è già deciso? | Sì, è deciso; **Non ancora**; Per ora solo in locale | Cambia T4-97, T4-98 e T4-99; con «Non ancora» resta aperta la decisione D-02. |
+| 6 | C'è budget per verifiche esterne? | Pentest e consulente privacy; **Solo il consulente privacy**; Nessuno per ora | Cambia T4-93 e T4-99, e quanto durano. |
+| 7 | Conoscete i numeri attesi di utilizzo? | Sì, li conosciamo; **Da definire con il cliente** | Cambia il «Fatto quando» di T4-98. |
+| 8 | La doppia approvazione (R-03): quando la verifichiamo? | **Subito, prima della consegna**; Nel piano, in T4-94 | Con «Subito» compare un passo fuori dalla corsia, prima del 6/11. |
+| 9 | Le rotte congelate /api/archivio… restano esposte? | **Restano montate**; Toglierle dalla composizione | Cambia T4-92 e la riga dell'ADR-119. |
+
 ## Indice
+
+- [Come si procede](#come-si-procede)
 
 0. [Sintesi](#0-sintesi)
 1. [Metodo](#1-metodo)
@@ -21,6 +47,7 @@ Che cosa controllare, con quali strumenti e con quali soglie prima di autorizzar
 9. [Piano d'azione](#9-piano-dazione)
 10. [Decisioni aperte](#10-decisioni-aperte)
 11. [Appendice](#11-appendice)
+12. [Corsia 9 con le risposte predefinite](#12-corsia-9-con-le-risposte-predefinite)
 
 ---
 
@@ -362,7 +389,7 @@ Lo sviluppo completo si autorizza quando tutte le caselle sono spuntate, oppure 
 
 ## 9. Piano d'azione
 
-Una proposta da trasformare in task, ognuno con il suo brief, come per gli sprint. Le stime sono in persona-giorni e indicative: si correggono dopo la prima settimana. Le date partono da lunedì 9/11, dopo la consegna del 6/11; martedì 8/12 è festivo.
+Una proposta da trasformare in task, ognuno con il suo brief, come per gli sprint. Le stime sono in persona-giorni e indicative: si correggono dopo la prima settimana. Le date partono da lunedì 9/11, dopo la consegna del 6/11; martedì 8/12 è festivo. Il calendario qui sotto è quello di partenza; quello con le vostre persone, il vostro tempo e le vostre scelte esce dalle domande di [Come si procede](#come-si-procede), che raccolgono i 17 pacchetti in 10 task della corsia 9 ([§12](#12-corsia-9-con-le-risposte-predefinite)).
 
 ### Calendario
 
@@ -554,6 +581,320 @@ docker run -t ghcr.io/zaproxy/zaproxy:stable zap-baseline.py -t https://staging.
 | **Test con stato** | Lo strumento genera sequenze casuali di azioni e controlla gli invarianti dopo ognuna. |
 | **RPO / RTO** | Quanti dati si possono perdere al massimo (RPO) e in quanto tempo si torna in servizio (RTO). |
 | **STRIDE** | Sei categorie di minacce: falsificazione, manomissione, ripudio, fuga di informazioni, negazione del servizio, aumento dei privilegi. |
+
+## 12. Corsia 9 con le risposte predefinite
+
+Generata il 24/10/2026 con le risposte in grassetto della tabella delle domande. È un esempio: con risposte diverse cambiano persone, date, stime e alcune modifiche (colonna «Che cosa cambia»). Le date contano metà tempo a persona e i festivi.
+
+### 12.1 Prima della consegna, fuori dalla corsia
+
+- **Doppia approvazione (R-03).** Un test con due richieste parallele su `revisione.approva()`. Se passano entrambe, blocco della riga della campagna e vincolo sulla decisione `approvata`. Branch `feature/fix-approvazione-concorrente`, PR rivista dal referente dei file comuni: rientra tra le correzioni ammesse fino al 6/11.
+- **Cambio d'ora del 25/10/2026.** Un test sugli slot dei post tra il 24 e il 26/10 con l'orologio iniettato (`core/orologio.py`): nessun post saltato o doppio. La demo si svolge dopo il cambio.
+
+### 12.2 Blocco per `docs/agenti/tasks.md`
+
+Va in fondo agli sprint; `allinea.py` lo legge così com'è, dopo che T4-90 gli fa accettare la corsia 9.
+
+```markdown
+## Sprint 4 · Accettazione dopo l'MVP (sicurezza, qualità, esercizio)
+
+Lo sprint 4 verifica l'MVP prima di autorizzare lo sviluppo completo (ADR-119, `docs/accettazione-post-mvp.md`). Non aggiunge funzioni: prove, difese, esercizio e conformità.
+
+**Ordine.** T4-90 apre la corsia dopo la chiusura dello sprint 3 (T3-07). Poi, senza aspettarsi tra loro, T4-91, T4-92, T4-93, T4-94 e T4-96; gli altri quando ciò che sta in "Dipende da" è su `main`. T4-99 chiude la corsia con la decisione.
+
+**Date.** Dal lunedì 9 novembre 2026 a circa giovedì 4 febbraio 2027, con metà tempo a persona. Stime indicative, da rivedere dopo la prima settimana.
+
+### Corsia 9 · Accettazione e sicurezza (tutto il team)
+
+Ogni task ha in `brief-accettazione.md` i file da toccare e da non toccare e il suo "Fatto quando": si legge la sezione del proprio task, non tutto il brief.
+
+| ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
+|---|---|---|---|---|---|
+| T4-90 | **Preparazione della corsia 9**: ADR-119, `brief-accettazione.md`, corsia 9 in questa pagina, `allinea.py` che accetta la corsia 9; il documento di accettazione passa da bozza ad approvato con le risposte alle domande. Giovanni | `docs/accettazione-post-mvp.md`; ADR-114; `perimetro-mvp.md` | T3-07 | documenti coerenti tra loro; `uv run python allinea.py 9` mostra T4-91 tra i pronti; `tests/test_allinea.py` verde con la corsia 9; comandi di converge §1 verdi | ☐ |
+| T4-91 | **Dipendenze bloccate e CI di sicurezza**: runtime e test in due file con gli hash, `httpx` dichiarato, workflow di sicurezza obbligatorio, Dependabot, SBOM a ogni rilascio. Nilton | `brief-accettazione.md` §T4-91; `accettazione-post-mvp.md` §5.3; converge §1 | T4-90 | la CI installa con `--require-hashes`; nell'ambiente di produzione non c'è pytest; `sicurezza.yml` è obbligatorio per unire; i risultati iniziali sono corretti o hanno un'eccezione scritta; gitleaks su tutta la storia senza segreti validi | ☐ |
+| T4-92 | **Permessi e difese HTTP**: matrice dei permessi su tutte le operazioni, header di sicurezza, controllo dell'origine, pixel delle foto al caricamento, limite delle azioni che costano chiamate AI. Gianluca | `brief-accettazione.md` §T4-92; `accettazione-post-mvp.md` §5.4; constitution §3; `docs/sicurezza-accesso.md` | T4-90 | ogni operazione dello schema ha la sua riga e un'operazione nuova senza riga fa fallire la CI; test degli header e del rifiuto cross-site; foto oltre il limite di pixel rifiutata al caricamento; oltre il limite delle azioni risposta 429; ZAP baseline senza avvisi sugli header | ☐ |
+| T4-93 | **Dati personali e AI Act**: registro dei trattamenti, informativa, contratti con i fornitori, cancellazione e conservazione, trasparenza delle immagini AI. Silvia | `brief-accettazione.md` §T4-93; `accettazione-post-mvp.md` §5.5; constitution §1.2 | T4-90 | registro e informativa firmati dal titolare; DPA con i fornitori verificati; ADR 120 e 121 approvati; le modifiche al prodotto che ne escono sono task nuovi | ☐ |
+| T4-94 | **Concorrenza**: richieste parallele su approvazione, interventi, rigenerazione, invio e pubblicazione; correzioni dove un test fallisce (l'approvazione è già stata verificata prima del 6/11). Giovanni | `brief-accettazione.md` §T4-94; `accettazione-post-mvp.md` §7.3; constitution §1 e §2; plan §6 | T4-90 | gli scenari di §7.3 verdi e ripetuti 50 volte senza fallire; ogni correzione con il suo test | ☐ |
+| T4-95 | **Invarianti, fuzzing, copertura e mutazioni**: test con stato sulle macchine a stati, attacchi agli 11 invarianti, fuzzing dell'API dallo schema, copertura dei rami e test di mutazione. Gianluca | `brief-accettazione.md` §T4-95; `accettazione-post-mvp.md` §4.3 e §6 | T4-91, T4-94 | nessun controesempio su 10 000 sequenze; ogni invariante con un test che prova a violarlo; zero 500 dal fuzzing; soglie di copertura di §6 in CI; mutanti sopravvissuti analizzati | ☐ |
+| T4-96 | **Frontend: test, E2E, accessibilità e contratto API**: test dei componenti, percorso della demo in Playwright a due ruoli, controllo di accessibilità, tipi generati dallo schema OpenAPI. Angelo | `brief-accettazione.md` §T4-96; `accettazione-post-mvp.md` §6; converge §4; `brief-sistemazione.md` punto 7 | T4-90 | E2E verde in CI da database vuoto, con il video come artefatto; nessuna violazione di accessibilità grave o critica; una differenza tra schema e tipi fa fallire la CI; build e lint puliti | ☐ |
+| T4-97 | **Rilascio, staging, osservabilità e backup**: container, compose e proxy, staging sul fornitore che si sceglierà, backup e ripristino, metriche e allarmi. Nilton | `brief-accettazione.md` §T4-97; `accettazione-post-mvp.md` §6 e §7.5; `docs/sicurezza-accesso.md`; decisione D-02 | T4-91 | staging installato da zero seguendo solo i documenti; issue #17 chiusa con le prove; rilascio, rollback e ripristino eseguiti e cronometrati; RPO e RTO scritti; un allarme di prova arriva alla persona giusta | ☐ |
+| T4-98 | **Minacce, carico e guasti**: modello delle minacce, verifiche a mano di §5.4 compresa la prompt injection, prove di carico e guasti provocati sullo staging. Silvia | `brief-accettazione.md` §T4-98; `accettazione-post-mvp.md` §5.2, §5.4 e §7; decisione D-01 | T4-92, T4-94, T4-97 | ogni minaccia di §5.2 ha una difesa o un rischio accettato e firmato; ogni guasto di §7.4 ha l'esito atteso; i difetti trovati sono task nuovi; report di carico, picco e durata confrontato con gli obiettivi decisi in D-01 | ☐ |
+| T4-99 | **Verifica ASVS, pentest e decisione**: checklist ASVS 5.0 livello 2 con le prove, pentest, ADR dei prerequisiti per lo sviluppo completo, riunione di decisione con i criteri di §8. Giovanni | `brief-accettazione.md` §T4-99; `accettazione-post-mvp.md` §5.1 e §8 | tutti i task dello sprint | checklist ASVS 5.0 L2 compilata con una prova per requisito; ADR dei prerequisiti approvati; verbale della decisione con le eccezioni firmate; pentest interno approfondito sullo staging, risultati gravi corretti e rischio di non avere un pentest esterno accettato per iscritto | ☐ |
+
+Riga da aggiungere alla tabella delle aree, in cima a questa pagina:
+
+| 9 · Accettazione e sicurezza | tutto il team | ADR-119: verifiche di sicurezza, concorrenza, qualità ed esercizio prima dello sviluppo completo (`brief-accettazione.md`) |
+```
+
+### 12.3 Riga per `docs/ADR.md`
+
+```markdown
+| 119 | 24/10 | **Sprint 4 · accettazione dopo l'MVP** (corsia 9, T4-90…T4-99, `brief-accettazione.md`). Prima dello sviluppo completo si verificano sicurezza, concorrenza, qualità ed esercizio con i criteri di `docs/accettazione-post-mvp.md` §8. Ambito: tutto il piano; persone: tutto il team; hosting: da decidere; verifiche esterne: solo il consulente privacy; rotte congelate `/api/archivio…`: restano montate. | Servono prove ripetibili prima di aggiungere funzioni; i punti R-01…R-15 del documento bloccano la produzione o lo sviluppo completo | Passare subito allo sviluppo completo; affidarsi solo a un pentest esterno senza prove interne |  |
+```
+
+### 12.4 Brief della corsia, per `docs/agenti/brief-accettazione.md`
+
+#### Brief · Corsia 9 · Accettazione e sicurezza (T4-90…T4-99)
+
+Per chi fa un task della corsia 9. Decisione: ADR-119. Leggi prima `constitution.md`, poi **solo** la sezione del tuo task qui sotto e le parti di `docs/accettazione-post-mvp.md` che cita. Dove il codice di `main` è diverso da come è descritto qui, fermati e chiedi.
+
+**Decisioni prese con le domande** (24/10):
+
+- Ambito: Tutto il piano.
+- Persone: Giovanni, Gianluca, Silvia, Nilton, Angelo.
+- Tempo a settimana: Metà tempo.
+- Inizio: lunedì 9 novembre 2026.
+- Hosting: da decidere.
+- Verifiche esterne: Solo il consulente privacy.
+- Numeri di utilizzo: Da definire con il cliente.
+- Doppia approvazione: Subito, prima della consegna.
+- Rotte congelate: Restano montate.
+
+**Regole di lavoro per tutti i task.**
+- Un branch `feature/<id>-<breve>` da `main`; fai solo il tuo task; tocca i file elencati e i loro test. Se ti serve un file che non è nell'elenco, fermati e chiedi.
+- Nessun cambio di comportamento che il task non chiede. Ogni difetto trovato è una PR a parte, con il suo test e il riferimento al task che l'ha trovato.
+- Gli strumenti di verifica stanno nei `requirements` di sviluppo o in CI, mai nel runtime; ogni libreria nuova ha nome, motivo e licenza nella PR.
+- Nei test nessuna chiamata reale ad AI, Meta o email; sullo staging solo la pagina Meta di prova.
+- In report, screenshot e log allegati nessun segreto, token, cookie o dato personale vero.
+- Fatto quando, per ogni task: il suo "Fatto quando" qui sotto, i comandi di converge §1 verdi e la casella in `tasks.md`.
+
+---
+
+##### T4-90 · Preparazione della corsia 9
+
+**Chi**: Giovanni · **Stima**: 2 giorni · **Dipende da**: T3-07 · **Copre**: —
+
+**Leggi**: `docs/accettazione-post-mvp.md`; ADR-114; `perimetro-mvp.md`.
+
+**File e modifiche**:
+- `docs/ADR.md`: riga 119 con le decisioni prese con le domande (testo generato con le domande).
+- `docs/accettazione-post-mvp.md`: via l'avviso di bozza; risposte alle domande in §10; stato «approvato».
+- `docs/agenti/tasks.md`: sezione «Sprint 4 · Accettazione dopo l'MVP» con la corsia 9 (testo generato con le domande) e riga 9 nella tabella delle aree.
+- `docs/agenti/brief-accettazione.md`: nuovo, una sezione per task (testo generato con le domande).
+- `docs/agenti/constitution.md` §4: 429 anche per il limite delle azioni che costano chiamate AI (serve a T4-92).
+- `allinea.py`: la scelta della corsia accetta `9` (oggi `"01234567"`, riga 377; la 8 la aggiunge la corsia dell'interfaccia, se approvata) e il messaggio dice «da 0 a 9».
+- `backend/tests/test_allinea.py`: un caso con lo sprint 4 e la corsia 9.
+- `.vscode/tasks.json`: le voci mancanti fino alla 9 nell'elenco delle corsie (oggi si ferma alla 6).
+- `AGENTS.md`: lo sprint corrente, dopo la chiusura dello sprint 3.
+
+**Da non toccare**: codice dell'app: il task cambia solo documenti, `allinea.py` e il suo test.
+
+**Fatto quando**: documenti coerenti tra loro; `uv run python allinea.py 9` mostra T4-91 tra i pronti; `tests/test_allinea.py` verde con la corsia 9; comandi di converge §1 verdi.
+
+**Nota**: Cambia `allinea.py`: lo rivede il referente dei file comuni.
+
+##### T4-91 · Dipendenze bloccate e CI di sicurezza
+
+**Chi**: Nilton · **Stima**: 4 giorni · **Dipende da**: T4-90 · **Copre**: PA-01, PA-02 · R-05, R-06, R-07
+
+**Leggi**: `brief-accettazione.md` §T4-91; `accettazione-post-mvp.md` §5.3; converge §1.
+
+**File e modifiche**:
+- `backend/requirements.in`: dipendenze del runtime, con `httpx` dichiarato (oggi arriva solo tramite litellm).
+- `backend/requirements-dev.in`: pytest, httpx2, black, pre-commit, cryptography.
+- `backend/requirements.txt` e `backend/requirements-dev.txt`: generati con `uv pip compile --generate-hashes`.
+- `.github/workflows/backend.yml`: installa i due file con `--require-hashes`.
+- `allinea.py` e `backend/README.md`: installano i due file.
+- `.github/workflows/sicurezza.yml`: nuovo; pip-audit, `npm audit --omit=dev`, bandit, semgrep, gitleaks, SBOM con cyclonedx.
+- `.github/dependabot.yml`: nuovo; pip, npm e GitHub Actions, una volta a settimana.
+- `docs/agenti/converge.md` §1: i controlli nuovi.
+
+**Da non toccare**: codice dell'app; gli strumenti di analisi stanno solo in CI, non nei `requirements`.
+
+**Fatto quando**: la CI installa con `--require-hashes`; nell'ambiente di produzione non c'è pytest; `sicurezza.yml` è obbligatorio per unire; i risultati iniziali sono corretti o hanno un'eccezione scritta; gitleaks su tutta la storia senza segreti validi.
+
+**Nota**: Cambia `requirements.txt` e `allinea.py`: lo rivede il referente dei file comuni. Un segreto trovato si considera compromesso e si cambia prima di unire.
+
+##### T4-92 · Permessi e difese HTTP
+
+**Chi**: Gianluca · **Stima**: 7 giorni · **Dipende da**: T4-90 · **Copre**: PA-03, PA-04 · R-01, R-02, R-15
+
+**Leggi**: `brief-accettazione.md` §T4-92; `accettazione-post-mvp.md` §5.4; constitution §3; `docs/sicurezza-accesso.md`.
+
+**File e modifiche**:
+- `backend/tests/permessi/matrice.py`: esito atteso per operazione × ruolo (anonimo, artigiano A, artigiano B, operatore, admin), 52 operazioni.
+- `backend/tests/permessi/test_matrice_permessi.py`: legge `app.openapi()`, prova ogni cella e fallisce se un'operazione non ha la sua riga.
+- `backend/app/core/intestazioni.py`: nuovo middleware; `X-Content-Type-Options: nosniff`, `Content-Security-Policy: frame-ancestors 'none'`, `Referrer-Policy`, `Cache-Control: no-store` sulle risposte con dati personali.
+- `backend/app/core/origine.py`: nuovo; POST, PUT, PATCH e DELETE con `Origin` o `Sec-Fetch-Site` non ammessi → 403 ed evento `cross_site_rejected`.
+- `backend/app/core/limite_azioni.py`: nuovo; contatore per utente su PostgreSQL, come `limite_login`, per invio della campagna e rigenerazione (429).
+- `backend/alembic/versions/`: tabella del contatore delle azioni.
+- `backend/app/core/config.py` e `backend/.env.example`: `ORIGINI_AMMESSE` e il limite delle azioni per utente e per ora.
+- `backend/app/main.py`: registra i middleware.
+- `backend/app/adapters/archivio/base.py`: controllo dei pixel già al caricamento, come chiede la costituzione §3, se manca.
+- `docs/sicurezza-accesso.md`: esempio Nginx con HSTS e CSP; gli eventi nuovi.
+
+**Da non toccare**: `campagne/archivio.py` (congelato); messaggi e codici esistenti.
+
+**Fatto quando**: ogni operazione dello schema ha la sua riga e un'operazione nuova senza riga fa fallire la CI; test degli header e del rifiuto cross-site; foto oltre il limite di pixel rifiutata al caricamento; oltre il limite delle azioni risposta 429; ZAP baseline senza avvisi sugli header.
+
+**Nota**: Cambia `core/`, la composizione e `alembic/`: lo rivede il referente dei file comuni. Ogni differenza tra matrice e comportamento è un difetto: PR a parte con il suo test.
+
+##### T4-93 · Dati personali e AI Act
+
+**Chi**: Silvia · **Stima**: 3 giorni · **Dipende da**: T4-90 · **Copre**: PA-13
+
+**Leggi**: `brief-accettazione.md` §T4-93; `accettazione-post-mvp.md` §5.5; constitution §1.2.
+
+**File e modifiche**:
+- `docs/conformita/registro-trattamenti.md`: nuovo (GDPR art. 30).
+- `docs/conformita/informativa-artigiani.md`: nuovo.
+- `docs/conformita/fornitori.md`: nuovo; DPA con OpenAI/OpenRouter e Meta, trasferimenti fuori dall'UE.
+- `docs/ADR.md`: riga 120, cancellazione e conservazione rispetto all'invariante §1.2 (per esempio anonimizzare invece di cancellare).
+- `docs/ADR.md`: riga 121, trasparenza delle immagini AI (AI Act art. 50) rispetto alla dicitura di T3-34.
+- `docs/conformita/dpia.md`: solo se la valutazione dice che serve.
+
+**Da non toccare**: codice: le modifiche al prodotto diventano task a parte.
+
+**Fatto quando**: registro e informativa firmati dal titolare; DPA con i fornitori verificati; ADR 120 e 121 approvati; le modifiche al prodotto che ne escono sono task nuovi.
+
+**Nota**: Con il consulente privacy: il lavoro del team è di circa 3 giorni, ma servono circa 4 settimane di calendario.
+
+##### T4-94 · Concorrenza
+
+**Chi**: Giovanni · **Stima**: 3 giorni · **Dipende da**: T4-90 · **Copre**: PA-05 · R-03, R-04
+
+**Leggi**: `brief-accettazione.md` §T4-94; `accettazione-post-mvp.md` §7.3; constitution §1 e §2; plan §6.
+
+**File e modifiche**:
+- `backend/tests/concorrenza/conftest.py`: aiuto con `threading.Barrier`, una connessione a PostgreSQL per richiesta.
+- `backend/tests/concorrenza/test_approvazione.py`, `test_interventi.py`, `test_invio.py`, `test_pubblicazione.py`: gli scenari di §7.3.
+- `backend/app/moduli/campagne/service.py`: funzione che legge la campagna con il blocco della riga (`with_for_update`), scritta in plan §6.
+- `backend/app/moduli/revisione/service.py`: `approva()` e `respingi()` usano la lettura con il blocco.
+- `backend/app/moduli/contenuti/interventi.py`: blocco del post prima di controllare e incrementare `n_rigenerazioni_testo`.
+- `backend/alembic/versions/`: vincoli unici dove servono (per esempio una sola decisione `approvata` per campagna).
+- `docs/agenti/plan.md` §6: la funzione nuova.
+
+**Da non toccare**: transizioni, messaggi e codice congelato.
+
+**Fatto quando**: gli scenari di §7.3 verdi e ripetuti 50 volte senza fallire; ogni correzione con il suo test.
+
+**Nota**: Può cambiare `alembic/` e un `service.py` di un altro modulo: lo rivede il referente dei file comuni. Se la correzione dell'approvazione è già su `main`, qui resta solo il test di regressione.
+
+##### T4-95 · Invarianti, fuzzing, copertura e mutazioni
+
+**Chi**: Gianluca · **Stima**: 6 giorni · **Dipende da**: T4-91, T4-94 · **Copre**: PA-06, PA-15 · F1 §4.3
+
+**Leggi**: `brief-accettazione.md` §T4-95; `accettazione-post-mvp.md` §4.3 e §6.
+
+**File e modifiche**:
+- `backend/requirements-dev.in`: hypothesis (MPL-2.0) e schemathesis (MIT), pytest-cov (MIT) e mutmut (BSD-3-Clause), con nome, motivo e licenza nella PR.
+- `backend/tests/proprieta/test_macchina_campagna.py` e `test_macchina_post.py`: `RuleBasedStateMachine`, con gli invarianti come controlli.
+- `backend/tests/invarianti/`: un file per invariante di §1, con gli attacchi di §4.3.
+- `backend/tests/test_confini.py`: assegnazioni a `.stato` fuori dal modulo proprietario (§1.8).
+- `.github/workflows/notte.yml`: nuovo; schemathesis autenticato con i due ruoli e mutmut, ogni notte.
+- `backend/.coveragerc`: copertura dei rami e soglie per file (`fail_under`).
+- Analisi dei mutanti sopravvissuti su `domain.py`, `interventi.py`, `validatore.py`, `foto_pubblica.py`.
+
+**Da non toccare**: codice dell'app, salvo correzioni dei difetti trovati, ognuna in una PR sua.
+
+**Fatto quando**: nessun controesempio su 10 000 sequenze; ogni invariante con un test che prova a violarlo; zero 500 dal fuzzing; soglie di copertura di §6 in CI; mutanti sopravvissuti analizzati.
+
+**Nota**: Cambia i `requirements` di sviluppo: nome, motivo e licenza nella PR.
+
+##### T4-96 · Frontend: test, E2E, accessibilità e contratto API
+
+**Chi**: Angelo · **Stima**: 8 giorni · **Dipende da**: T4-90 · **Copre**: PA-07, PA-16 · R-08
+
+**Leggi**: `brief-accettazione.md` §T4-96; `accettazione-post-mvp.md` §6; converge §4; `brief-sistemazione.md` punto 7.
+
+**File e modifiche**:
+- `frontend/package.json`: script `test`, `test:e2e`, `tipi:api`; devDependencies vitest (MIT), @testing-library/react (MIT), @playwright/test (Apache-2.0), @axe-core/playwright (MPL-2.0), openapi-typescript (MIT).
+- `frontend/src/**/*.test.tsx`: invio, revisione, interventi, richiesta all'artigiano.
+- `frontend/e2e/percorso-demo.spec.ts`: percorso della demo a due ruoli, dallo script della PR #119.
+- `frontend/src/api/schema.d.ts`: generato dallo schema OpenAPI; i tipi di `src/api/*.ts` si confrontano con questo.
+- `.github/workflows/frontend.yml`: lavori `test` ed `e2e` (con PostgreSQL e backend) e controllo dei tipi generati.
+- `frontend/README.md`: come si lanciano.
+
+**Da non toccare**: stile e comportamento delle pagine.
+
+**Fatto quando**: E2E verde in CI da database vuoto, con il video come artefatto; nessuna violazione di accessibilità grave o critica; una differenza tra schema e tipi fa fallire la CI; build e lint puliti.
+
+**Nota**: Librerie nuove nel frontend: nome, motivo e licenza nella PR.
+
+##### T4-97 · Rilascio, staging, osservabilità e backup
+
+**Chi**: Nilton · **Stima**: 9 giorni · **Dipende da**: T4-91 · **Copre**: PA-08, PA-09, PA-12 · R-09, R-10, R-11, R-13
+
+**Leggi**: `brief-accettazione.md` §T4-97; `accettazione-post-mvp.md` §6 e §7.5; `docs/sicurezza-accesso.md`; decisione D-02.
+
+**File e modifiche**:
+- `backend/Dockerfile`: API e worker dalla stessa immagine, utente non root, solo `requirements.txt`.
+- `deploy/compose.yaml`: api, worker, PostgreSQL 16, proxy; segreti da file, mai nell'immagine.
+- `deploy/nginx.conf`: TLS, HSTS, CSP, frontend statico, `/api/` verso l'API, header inoltrati sovrascritti.
+- `deploy/backup.sh`: `pg_dump` e copia di `ARCHIVIO_FOTO_DIR`, cifrati e fuori dal server.
+- `deploy/README.md`: rilascio, rollback, rotazione dei segreti (R-13), backup e ripristino.
+- Metriche e allarmi: latenza, errori, coda di Procrastinate, ritardo di pubblicazione, costo AI al giorno, eventi di `adflow.sicurezza`.
+- `docs/sicurezza-accesso.md`: rimando a `deploy/` e prove della issue #17.
+
+**Da non toccare**: comportamento dell'app; i valori di `.env` veri non entrano nel repository.
+
+**Fatto quando**: staging installato da zero seguendo solo i documenti; issue #17 chiusa con le prove; rilascio, rollback e ripristino eseguiti e cronometrati; RPO e RTO scritti; un allarme di prova arriva alla persona giusta.
+
+**Nota**: Cambia la composizione: lo rivede il referente dei file comuni. Parte dopo la decisione D-02 sull'hosting.
+
+##### T4-98 · Minacce, carico e guasti
+
+**Chi**: Silvia · **Stima**: 9 giorni · **Dipende da**: T4-92, T4-94, T4-97 · **Copre**: PA-10, PA-11
+
+**Leggi**: `brief-accettazione.md` §T4-98; `accettazione-post-mvp.md` §5.2, §5.4 e §7; decisione D-01.
+
+**File e modifiche**:
+- `docs/sicurezza-minacce.md`: nuovo; flusso dei dati, confini di fiducia, STRIDE.
+- `backend/app/adapters/ai/finto.py` e l'adattatore social finto: modalità guasto configurabile, rifiutata in produzione.
+- `backend/tests/guasti/`: un test per ogni riga di §7.4.
+- `carico/locustfile.py` e `carico/README.md`: nuovi, fuori da `backend/`; dati dalle `fabbrica.py`, su un database dedicato.
+- `deploy/compose.yaml`: toxiproxy, solo per le prove.
+- `docs/report/`: report di carico e di guasti, con la data.
+
+**Da non toccare**: database `adflow` e `adflow_test`; la pagina Meta vera, salvo quella di prova.
+
+**Fatto quando**: ogni minaccia di §5.2 ha una difesa o un rischio accettato e firmato; ogni guasto di §7.4 ha l'esito atteso; i difetti trovati sono task nuovi; report di carico, picco e durata confrontato con gli obiettivi decisi in D-01.
+
+**Nota**: Le correzioni dei difetti trovati sono PR a parte, con il loro test.
+
+##### T4-99 · Verifica ASVS, pentest e decisione
+
+**Chi**: Giovanni · **Stima**: 6 giorni · **Dipende da**: tutti i task dello sprint · **Copre**: PA-14, PA-17
+
+**Leggi**: `brief-accettazione.md` §T4-99; `accettazione-post-mvp.md` §5.1 e §8.
+
+**File e modifiche**:
+- `docs/asvs-l2.md`: nuovo; requisito, prova, esito.
+- `docs/report/pentest-interno.md`: metodo, perimetro, risultati.
+- `docs/ADR.md`: riga 122, cifratura dei token social degli artigiani (R-14); riga 123, archivio foto su object storage (R-11); riga 124, più istanze dell'API.
+- `docs/accettazione-post-mvp.md` §8: caselle spuntate, verbale e firma.
+- `docs/ROADMAP.md`: i prerequisiti accanto alle voci che ne dipendono.
+
+**Da non toccare**: codice dell'app: i difetti trovati diventano task.
+
+**Fatto quando**: checklist ASVS 5.0 L2 compilata con una prova per requisito; ADR dei prerequisiti approvati; verbale della decisione con le eccezioni firmate; pentest interno approfondito sullo staging, risultati gravi corretti e rischio di non avere un pentest esterno accettato per iscritto.
+
+**Nota**: Senza pentest esterno questa non è una verifica indipendente: il verbale lo dice in chiaro.
+
+---
+
+##### Ordine di lavoro
+
+| Task | Chi | Dal | Al |
+|---|---|---|---|
+| T4-90 Preparazione della corsia 9 | Giovanni | 9/11 | 12/11 |
+| T4-91 Dipendenze bloccate e CI di sicurezza | Nilton | 13/11 | 24/11 |
+| T4-92 Permessi e difese HTTP | Gianluca | 13/11 | 2/12 |
+| T4-93 Dati personali e AI Act | Silvia | 13/11 | 11/12 |
+| T4-94 Concorrenza | Giovanni | 13/11 | 20/11 |
+| T4-95 Invarianti, fuzzing, copertura e mutazioni | Gianluca | 3/12 | 21/12 |
+| T4-96 Frontend: test, E2E, accessibilità e contratto API | Angelo | 13/11 | 4/12 |
+| T4-97 Rilascio, staging, osservabilità e backup | Nilton | 25/11 | 21/12 |
+| T4-98 Minacce, carico e guasti | Silvia | 22/12 | 19/1 |
+| T4-99 Verifica ASVS, pentest e decisione | Giovanni | 20/1 | 4/2 |
+
+##### Decisioni ancora aperte
+
+- **D-01** Numeri attesi a 12 mesi e obiettivi di servizio (serve a T4-98; Team con il cliente).
+- **D-02** Hosting e fornitore dello staging e della produzione (serve a T4-97, T4-98; Team).
+- **D-03** Referente per la sicurezza e referente privacy (serve a T4-93, T4-98, T4-99; Team).
+- **D-04** Budget per un pentest esterno prima della produzione con clienti veri (serve a T4-99; Team e tutor).
+- **D-07** Cosa fare se Meta va in timeout dopo aver pubblicato: riconciliare prima di riprovare? (serve a T4-98; Area Meta).
 
 ---
 
