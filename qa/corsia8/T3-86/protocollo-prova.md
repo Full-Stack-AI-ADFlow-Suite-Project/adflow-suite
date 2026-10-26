@@ -6,7 +6,7 @@ Riferimenti: [brief interfaccia, §2, §4 e T3-86](../../../docs/agenti/brief-in
 
 ## Prima di iniziare
 
-- La prova si svolge sull'app con le PR della corsia 8 **già unite a main**. Verificare l'integrazione effettiva di T3-83 (PR #142), T3-84 (PR #143) e T3-85 (branch feature/T3-85-layout-telefono; PR da identificare). Un branch stacked, una preview o i soli screenshot non soddisfano questo prerequisito. Qui non se ne certifica l'avvenuta integrazione.
+- La prova si svolge sull'app con le PR della corsia 8 **già unite a main**. Verificare l'integrazione effettiva di T3-83 (PR #142), T3-84 (PR #143) e T3-85 (PR #144, branch feature/T3-85-layout-telefono). Un branch stacked, una preview o i soli screenshot non soddisfano questo prerequisito. Qui non se ne certifica l'avvenuta integrazione.
 - Selezionare due artigiani del consorzio; in mancanza, due persone fuori dal team che usano il telefono per lavoro. Ciascuna prova dura 30 minuti sul proprio telefono. Non sostituire una delle due persone con un membro del team.
 - Predisporre per ogni sessione l'accesso artigiano e dati di prova coerenti con l'app: profilo già compilato, una campagna in corso riconoscibile, possibilità di iniziare una nuova campagna senza una bozza precedente e una campagna con richiesta aperta del consorzio. Rendere disponibili sul telefono tre foto di prova conformi ai requisiti mostrati dall'app. Non modificare regole, schermate o dati durante un compito per facilitarlo.
 - Usare dati di prova senza informazioni personali non necessarie. Non annotare nome, email, telefono, password o credenziali. Identificare le sessioni soltanto come P1 e P2; annotare del dispositivo solo ciò che serve a capire un problema di resa.
