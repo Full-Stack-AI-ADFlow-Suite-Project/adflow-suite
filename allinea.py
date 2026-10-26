@@ -374,8 +374,8 @@ def main(argomenti: list[str]) -> int:
     scelta = next((a for a in argomenti if not a.startswith("--")), "")
 
     if scelta and scelta != "tutte":
-        if scelta not in "01234567" or len(scelta) != 1:
-            print("Corsia non valida: un numero da 0 a 7, oppure `tutte`.")
+        if scelta not in "012345678" or len(scelta) != 1:
+            print("Corsia non valida: un numero da 0 a 8, oppure `tutte`.")
             return 2
         git("config", "--local", CHIAVE_CORSIA, scelta)
     elif not scelta:
