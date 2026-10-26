@@ -11,4 +11,4 @@ Le evidenze T3-83 sono allegate direttamente alla PR #142. I risultati dei contr
 
 ## Aggiornamento finale della sessione
 
-Layout pubblicato sul branch feature/T3-85-layout-telefono. [ProveT3-85](T3-85/README.md):94PNG prima/dopo con viewport375/1280 verificata e revisione. [RegistroT3-87](T3-87/README.md): stato reale di ogni passo,CI e blocchi. ProtocolloT3-86 pubblicato nel branch feature/T3-86-prova-persone. Le prove con due persone e la demo integrata non sono eseguite; nessun task viene spuntato senza evidenza.
+Layout pubblicato sul branch feature/T3-85-layout-telefono. [ProveT3-85](T3-85/README.md):68 screenshot prima/dopo con viewport375/1280 verificata e revisione. [RegistroT3-87](T3-87/README.md): stato reale di ogni passo,CI e blocchi. ProtocolloT3-86 pubblicato nel branch feature/T3-86-prova-persone. Le prove con due persone e la demo integrata non sono eseguite; nessun task viene spuntato senza evidenza.
