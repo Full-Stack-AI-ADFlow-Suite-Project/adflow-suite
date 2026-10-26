@@ -46,7 +46,7 @@
   gap: 4px;
   padding: 6px;
   border: 1px solid var(--border-hairline);
-  border-radius: 8px;
+  border-radius: var(--mantine-radius-sm);
   background: var(--bg-surface-subtle);
   font-size: 12px;
   color: var(--text-secondary);
