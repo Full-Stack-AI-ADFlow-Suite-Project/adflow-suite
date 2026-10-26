@@ -1,0 +1,269 @@
+........................................................................ [  3%]
+........................................................................ [  7%]
+........................................................................ [ 11%]
+......................................................................F. [ 15%]
+....EEEEEEEEEE.......................................................... [ 19%]
+......................FF........................EEEEEEEEEEEEE......F.... [ 23%]
+...................F.................................................... [ 27%]
+........................................................................ [ 31%]
+........................................................................ [ 34%]
+........................................................................ [ 38%]
+........................................................................ [ 42%]
+........................................................................ [ 46%]
+........................................................................ [ 50%]
+........................................................................ [ 54%]
+........................................................................ [ 58%]
+........................................................................ [ 62%]
+........................................................................ [ 66%]
+........................................................................ [ 69%]
+........................................................................ [ 73%]
+........................................................................ [ 77%]
+........................................................................ [ 81%]
+........................................................................ [ 85%]
+........................................................................ [ 89%]
+........................................................................ [ 93%]
+........................................................................ [ 97%]
+......................................................                   [100%]
+=================================== ERRORS ====================================
+_ ERROR at setup of test_login_commit_e_logout_visibili_da_altra_connessione __
+tests\moduli\accesso\test_auth_transazioni.py:30: in reale
+    assert connessione.scalar(text("select current_database()")) == "adflow_test"
+E   AssertionError: assert 'adflow_corsia8_qa_test' == 'adflow_test'
+E
+E     - adflow_test
+E     + adflow_corsia8_qa_test
+_______ ERROR at setup of test_errore_db_durante_rotazione_fa_rollback ________
+tests\moduli\accesso\test_auth_transazioni.py:30: in reale
+    assert connessione.scalar(text("select current_database()")) == "adflow_test"
+E   AssertionError: assert 'adflow_corsia8_qa_test' == 'adflow_test'
+E
+E     - adflow_test
+E     + adflow_corsia8_qa_test
+___ ERROR at setup of test_modifica_ruolo_riletta_alla_richiesta_successiva ___
+tests\moduli\accesso\test_auth_transazioni.py:30: in reale
+    assert connessione.scalar(text("select current_database()")) == "adflow_test"
+E   AssertionError: assert 'adflow_corsia8_qa_test' == 'adflow_test'
+E
+E     - adflow_test
+E     + adflow_corsia8_qa_test
+____ ERROR at setup of test_disattivazione_riletta_da_connessione_distinta ____
+tests\moduli\accesso\test_auth_transazioni.py:30: in reale
+    assert connessione.scalar(text("select current_database()")) == "adflow_test"
+E   AssertionError: assert 'adflow_corsia8_qa_test' == 'adflow_test'
+E
+E     - adflow_test
+E     + adflow_corsia8_qa_test
+__ ERROR at setup of test_token_revocato_da_altro_client_non_riutilizzabile ___
+tests\moduli\accesso\test_auth_transazioni.py:30: in reale
+    assert connessione.scalar(text("select current_database()")) == "adflow_test"
+E   AssertionError: assert 'adflow_corsia8_qa_test' == 'adflow_test'
+E
+E     - adflow_test
+E     + adflow_corsia8_qa_test
+______ ERROR at setup of test_cli_commit_osservabile_e_login_successivo _______
+tests\moduli\accesso\test_auth_transazioni.py:30: in reale
+    assert connessione.scalar(text("select current_database()")) == "adflow_test"
+E   AssertionError: assert 'adflow_corsia8_qa_test' == 'adflow_test'
+E
+E     - adflow_test
+E     + adflow_corsia8_qa_test
+______________ ERROR at setup of test_cli_errore_non_crea_record ______________
+tests\moduli\accesso\test_auth_transazioni.py:30: in reale
+    assert connessione.scalar(text("select current_database()")) == "adflow_test"
+E   AssertionError: assert 'adflow_corsia8_qa_test' == 'adflow_test'
+E
+E     - adflow_test
+E     + adflow_corsia8_qa_test
+_ ERROR at setup of test_login_paralleli_dispositivi_distinti_token_unici[2] __
+tests\moduli\accesso\test_auth_transazioni.py:30: in reale
+    assert connessione.scalar(text("select current_database()")) == "adflow_test"
+E   AssertionError: assert 'adflow_corsia8_qa_test' == 'adflow_test'
+E
+E     - adflow_test
+E     + adflow_corsia8_qa_test
+_ ERROR at setup of test_login_paralleli_dispositivi_distinti_token_unici[4] __
+tests\moduli\accesso\test_auth_transazioni.py:30: in reale
+    assert connessione.scalar(text("select current_database()")) == "adflow_test"
+E   AssertionError: assert 'adflow_corsia8_qa_test' == 'adflow_test'
+E
+E     - adflow_test
+E     + adflow_corsia8_qa_test
+_ ERROR at setup of test_login_paralleli_dispositivi_distinti_token_unici[8] __
+tests\moduli\accesso\test_auth_transazioni.py:30: in reale
+    assert connessione.scalar(text("select current_database()")) == "adflow_test"
+E   AssertionError: assert 'adflow_corsia8_qa_test' == 'adflow_test'
+E
+E     - adflow_test
+E     + adflow_corsia8_qa_test
+_ ERROR at setup of test_login_commit_e_logout_visibili_da_altra_connessione __
+tests\moduli\accesso\test_sessioni_transazioni.py:63: in reale
+    assert connessione.scalar(text("select current_database()")) == "adflow_test"
+E   AssertionError: assert 'adflow_corsia8_qa_test' == 'adflow_test'
+E
+E     - adflow_test
+E     + adflow_corsia8_qa_test
+_______ ERROR at setup of test_errore_db_durante_rotazione_fa_rollback ________
+tests\moduli\accesso\test_sessioni_transazioni.py:63: in reale
+    assert connessione.scalar(text("select current_database()")) == "adflow_test"
+E   AssertionError: assert 'adflow_corsia8_qa_test' == 'adflow_test'
+E
+E     - adflow_test
+E     + adflow_corsia8_qa_test
+___ ERROR at setup of test_modifica_ruolo_riletta_alla_richiesta_successiva ___
+tests\moduli\accesso\test_sessioni_transazioni.py:63: in reale
+    assert connessione.scalar(text("select current_database()")) == "adflow_test"
+E   AssertionError: assert 'adflow_corsia8_qa_test' == 'adflow_test'
+E
+E     - adflow_test
+E     + adflow_corsia8_qa_test
+____ ERROR at setup of test_disattivazione_riletta_da_connessione_distinta ____
+tests\moduli\accesso\test_sessioni_transazioni.py:63: in reale
+    assert connessione.scalar(text("select current_database()")) == "adflow_test"
+E   AssertionError: assert 'adflow_corsia8_qa_test' == 'adflow_test'
+E
+E     - adflow_test
+E     + adflow_corsia8_qa_test
+__ ERROR at setup of test_token_revocato_da_altro_client_non_riutilizzabile ___
+tests\moduli\accesso\test_sessioni_transazioni.py:63: in reale
+    assert connessione.scalar(text("select current_database()")) == "adflow_test"
+E   AssertionError: assert 'adflow_corsia8_qa_test' == 'adflow_test'
+E
+E     - adflow_test
+E     + adflow_corsia8_qa_test
+_ ERROR at setup of test_login_paralleli_dispositivi_distinti_token_unici[2] __
+tests\moduli\accesso\test_sessioni_transazioni.py:63: in reale
+    assert connessione.scalar(text("select current_database()")) == "adflow_test"
+E   AssertionError: assert 'adflow_corsia8_qa_test' == 'adflow_test'
+E
+E     - adflow_test
+E     + adflow_corsia8_qa_test
+_ ERROR at setup of test_login_paralleli_dispositivi_distinti_token_unici[4] __
+tests\moduli\accesso\test_sessioni_transazioni.py:63: in reale
+    assert connessione.scalar(text("select current_database()")) == "adflow_test"
+E   AssertionError: assert 'adflow_corsia8_qa_test' == 'adflow_test'
+E
+E     - adflow_test
+E     + adflow_corsia8_qa_test
+_ ERROR at setup of test_login_paralleli_dispositivi_distinti_token_unici[8] __
+tests\moduli\accesso\test_sessioni_transazioni.py:63: in reale
+    assert connessione.scalar(text("select current_database()")) == "adflow_test"
+E   AssertionError: assert 'adflow_corsia8_qa_test' == 'adflow_test'
+E
+E     - adflow_test
+E     + adflow_corsia8_qa_test
+_____ ERROR at setup of test_rinnovo_commit_visibile_da_altra_connessione _____
+tests\moduli\accesso\test_sessioni_transazioni.py:63: in reale
+    assert connessione.scalar(text("select current_database()")) == "adflow_test"
+E   AssertionError: assert 'adflow_corsia8_qa_test' == 'adflow_test'
+E
+E     - adflow_test
+E     + adflow_corsia8_qa_test
+_ ERROR at setup of test_rinnovo_condizionale_non_ripristina_sessione_invalida[revoca] _
+tests\moduli\accesso\test_sessioni_transazioni.py:63: in reale
+    assert connessione.scalar(text("select current_database()")) == "adflow_test"
+E   AssertionError: assert 'adflow_corsia8_qa_test' == 'adflow_test'
+E
+E     - adflow_test
+E     + adflow_corsia8_qa_test
+_ ERROR at setup of test_rinnovo_condizionale_non_ripristina_sessione_invalida[scadenza] _
+tests\moduli\accesso\test_sessioni_transazioni.py:63: in reale
+    assert connessione.scalar(text("select current_database()")) == "adflow_test"
+E   AssertionError: assert 'adflow_corsia8_qa_test' == 'adflow_test'
+E
+E     - adflow_test
+E     + adflow_corsia8_qa_test
+_ ERROR at setup of test_rinnovo_condizionale_non_ripristina_sessione_invalida[disattivazione] _
+tests\moduli\accesso\test_sessioni_transazioni.py:63: in reale
+    assert connessione.scalar(text("select current_database()")) == "adflow_test"
+E   AssertionError: assert 'adflow_corsia8_qa_test' == 'adflow_test'
+E
+E     - adflow_test
+E     + adflow_corsia8_qa_test
+_ ERROR at setup of test_rinnovo_condizionale_non_ripristina_sessione_invalida[ruolo] _
+tests\moduli\accesso\test_sessioni_transazioni.py:63: in reale
+    assert connessione.scalar(text("select current_database()")) == "adflow_test"
+E   AssertionError: assert 'adflow_corsia8_qa_test' == 'adflow_test'
+E
+E     - adflow_test
+E     + adflow_corsia8_qa_test
+================================== FAILURES ===================================
+__________ test_server_reale_login_rotazione_logout_e_input_invalidi __________
+tests\moduli\accesso\test_auth_http_reale.py:25: in test_server_reale_login_rotazione_logout_e_input_invalidi
+    assert (url.database, url.port) == ("adflow_test", 5432)
+E   AssertionError: assert ('adflow_cors..._test', 55438) == ('adflow_test', 5432)
+E
+E     At index 0 diff: 'adflow_corsia8_qa_test' != 'adflow_test'
+E     Use -v to get more diff
+__________ test_catena_https_e_proxy_non_fidato[127.0.0.1-True-True] __________
+tests\moduli\accesso\test_proxy_http_reale.py:39: in test_catena_https_e_proxy_non_fidato
+    assert (u.database, u.port) == ("adflow_test", 5432)
+E   AssertionError: assert ('adflow_cors..._test', 55438) == ('adflow_test', 5432)
+E
+E     At index 0 diff: 'adflow_corsia8_qa_test' != 'adflow_test'
+E     Use -v to get more diff
+_________ test_catena_https_e_proxy_non_fidato[192.0.2.1-False-False] _________
+tests\moduli\accesso\test_proxy_http_reale.py:39: in test_catena_https_e_proxy_non_fidato
+    assert (u.database, u.port) == ("adflow_test", 5432)
+E   AssertionError: assert ('adflow_cors..._test', 55438) == ('adflow_test', 5432)
+E
+E     At index 0 diff: 'adflow_corsia8_qa_test' != 'adflow_test'
+E     Use -v to get more diff
+_______________ test_limite_condiviso_tra_processi_indipendenti _______________
+tests\moduli\accesso\test_sicurezza.py:124: in test_limite_condiviso_tra_processi_indipendenti
+    risultati = list(pool.map(processo, range(6)))
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Utente\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\concurrent\futures\_base.py:619: in result_iterator
+    yield _result_or_cancel(fs.pop())
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+C:\Users\Utente\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\concurrent\futures\_base.py:317: in _result_or_cancel
+    return fut.result(timeout)
+           ^^^^^^^^^^^^^^^^^^^
+C:\Users\Utente\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\concurrent\futures\_base.py:456: in result
+    return self.__get_result()
+           ^^^^^^^^^^^^^^^^^^^
+C:\Users\Utente\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\concurrent\futures\_base.py:401: in __get_result
+    raise self._exception
+C:\Users\Utente\.cache\codex-runtimes\codex-primary-runtime\dependencies\python\Lib\concurrent\futures\thread.py:59: in run
+    result = self.fn(*self.args, **self.kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+tests\moduli\accesso\test_sicurezza.py:120: in processo
+    assert risultato.returncode in (0, 3), "Processo di verifica fallito."
+E   AssertionError: Processo di verifica fallito.
+E   assert 1 in (0, 3)
+E    +  where 1 = CompletedProcess(args=['C:\\Users\\Utente\\Desktop\\AdFlow Suite\\adflow-suite\\.venv\\Scripts\\python.exe', '-c', "\n...dout=b'', stderr=b'Traceback (most recent call last):\r\n  File "<string>", line 9, in <module>\r\nAssertionError\r\n').returncode
+_________________ test_migrazione_downgrade_upgrade_solo_test _________________
+tests\moduli\accesso\test_sicurezza.py:442: in test_migrazione_downgrade_upgrade_solo_test
+    assert cfg.attributes["url"].endswith("/adflow_test")
+E   AssertionError: assert False
+E    +  where False = <built-in method endswith of str object at 0x000001723F2A87A0>('/adflow_test')
+E    +    where <built-in method endswith of str object at 0x000001723F2A87A0> = 'postgresql+psycopg://adflowqa@127.0.0.1:55438/adflow_corsia8_qa_test'.endswith
+=========================== short test summary info ===========================
+FAILED tests/moduli/accesso/test_auth_http_reale.py::test_server_reale_login_rotazione_logout_e_input_invalidi
+FAILED tests/moduli/accesso/test_proxy_http_reale.py::test_catena_https_e_proxy_non_fidato[127.0.0.1-True-True]
+FAILED tests/moduli/accesso/test_proxy_http_reale.py::test_catena_https_e_proxy_non_fidato[192.0.2.1-False-False]
+FAILED tests/moduli/accesso/test_sicurezza.py::test_limite_condiviso_tra_processi_indipendenti
+FAILED tests/moduli/accesso/test_sicurezza.py::test_migrazione_downgrade_upgrade_solo_test
+ERROR tests/moduli/accesso/test_auth_transazioni.py::test_login_commit_e_logout_visibili_da_altra_connessione
+ERROR tests/moduli/accesso/test_auth_transazioni.py::test_errore_db_durante_rotazione_fa_rollback
+ERROR tests/moduli/accesso/test_auth_transazioni.py::test_modifica_ruolo_riletta_alla_richiesta_successiva
+ERROR tests/moduli/accesso/test_auth_transazioni.py::test_disattivazione_riletta_da_connessione_distinta
+ERROR tests/moduli/accesso/test_auth_transazioni.py::test_token_revocato_da_altro_client_non_riutilizzabile
+ERROR tests/moduli/accesso/test_auth_transazioni.py::test_cli_commit_osservabile_e_login_successivo
+ERROR tests/moduli/accesso/test_auth_transazioni.py::test_cli_errore_non_crea_record
+ERROR tests/moduli/accesso/test_auth_transazioni.py::test_login_paralleli_dispositivi_distinti_token_unici[2]
+ERROR tests/moduli/accesso/test_auth_transazioni.py::test_login_paralleli_dispositivi_distinti_token_unici[4]
+ERROR tests/moduli/accesso/test_auth_transazioni.py::test_login_paralleli_dispositivi_distinti_token_unici[8]
+ERROR tests/moduli/accesso/test_sessioni_transazioni.py::test_login_commit_e_logout_visibili_da_altra_connessione
+ERROR tests/moduli/accesso/test_sessioni_transazioni.py::test_errore_db_durante_rotazione_fa_rollback
+ERROR tests/moduli/accesso/test_sessioni_transazioni.py::test_modifica_ruolo_riletta_alla_richiesta_successiva
+ERROR tests/moduli/accesso/test_sessioni_transazioni.py::test_disattivazione_riletta_da_connessione_distinta
+ERROR tests/moduli/accesso/test_sessioni_transazioni.py::test_token_revocato_da_altro_client_non_riutilizzabile
+ERROR tests/moduli/accesso/test_sessioni_transazioni.py::test_login_paralleli_dispositivi_distinti_token_unici[2]
+ERROR tests/moduli/accesso/test_sessioni_transazioni.py::test_login_paralleli_dispositivi_distinti_token_unici[4]
+ERROR tests/moduli/accesso/test_sessioni_transazioni.py::test_login_paralleli_dispositivi_distinti_token_unici[8]
+ERROR tests/moduli/accesso/test_sessioni_transazioni.py::test_rinnovo_commit_visibile_da_altra_connessione
+ERROR tests/moduli/accesso/test_sessioni_transazioni.py::test_rinnovo_condizionale_non_ripristina_sessione_invalida[revoca]
+ERROR tests/moduli/accesso/test_sessioni_transazioni.py::test_rinnovo_condizionale_non_ripristina_sessione_invalida[scadenza]
+ERROR tests/moduli/accesso/test_sessioni_transazioni.py::test_rinnovo_condizionale_non_ripristina_sessione_invalida[disattivazione]
+ERROR tests/moduli/accesso/test_sessioni_transazioni.py::test_rinnovo_condizionale_non_ripristina_sessione_invalida[ruolo]
+5 failed, 1826 passed, 23 errors in 260.80s (0:04:20)

@@ -1,0 +1,6 @@
+PR #144 — SHA 9a7b21ba8d30e7ecf9fdb75eae889bbb74a550f4
+Backend: https://github.com/Full-Stack-AI-ADFlow-Suite-Project/adflow-suite/actions/runs/40419004746/job/121908396296
+1854 passed in 65.39s (0:01:05)
+Black: 221 files would be left unchanged.
+Frontend: https://github.com/Full-Stack-AI-ADFlow-Suite-Project/adflow-suite/actions/runs/40419004737/job/121908396241
+Conclusioni dei due check: success.
