@@ -1,3 +1,4 @@
+import layout from "../../../../components/Layout.module.css";
 /**
  * Vista per stato della campagna dopo l'invio
  * (docs/pagine/AdFlow-campagna-stati.html). L'artigiano vede
@@ -277,7 +278,11 @@ export function VistaStato({
               valore={dataOraIT(campagna.chiusa_il).split(" alle")[0]}
             />
             <Group mt="lg">
-              <Button color="verde" onClick={onNuovaCampagna}>
+              <Button
+                className={layout.principale}
+                color="verde"
+                onClick={onNuovaCampagna}
+              >
                 Crea una nuova campagna →
               </Button>
             </Group>
@@ -297,7 +302,11 @@ export function VistaStato({
               stato pubblicato. Le foto restano nel tuo archivio: le usiamo
               nella prossima campagna.
             </Alert>
-            <Button color="verde" onClick={onNuovaCampagna}>
+            <Button
+              className={layout.principale}
+              color="verde"
+              onClick={onNuovaCampagna}
+            >
               Crea una nuova campagna →
             </Button>
           </>
@@ -359,7 +368,11 @@ export function VistaStato({
               ruolo="artigiano"
             />
             <Group mt="lg">
-              <Button color="verde" onClick={onNuovaCampagna}>
+              <Button
+                className={layout.principale}
+                color="verde"
+                onClick={onNuovaCampagna}
+              >
                 Crea una nuova campagna →
               </Button>
             </Group>
@@ -380,7 +393,7 @@ export function VistaStato({
     ) : null;
 
   return (
-    <Paper withBorder radius="md" p="xl">
+    <Paper withBorder radius="md" p={{ base: "md", sm: "xl" }}>
       <Title order={2} mb="md">
         {campagna.titolo} {badge}
       </Title>

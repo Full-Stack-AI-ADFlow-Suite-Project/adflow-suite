@@ -2895,3 +2895,166 @@ textarea.form-input {
   outline: 2px solid var(--primary) !important;
   outline-offset: 2px;
 }
+
+/* T3-85 · stessa gerarchia visiva e densità dell'app, senza cambiare gli esempi. */
+@media (min-width: 861px) {
+  .riga-campagna {
+    padding: 16px;
+    gap: 12px;
+  }
+  .riga-campagna .dati,
+  .riga-campagna .citazione {
+    margin-bottom: 8px;
+  }
+  .pg-vedi-campagna .decidi {
+    padding: 16px;
+  }
+  .pg-vedi-campagna .social-preview-card {
+    width: 100%;
+    max-width: 360px;
+    min-width: 0;
+    margin-inline: auto;
+  }
+  .pg-vedi-campagna .post-meta {
+    border-top: 1px solid var(--border-hairline);
+    padding-top: 8px;
+  }
+  .pg-vedi-campagna .decidi .sub {
+    padding: 6px 10px;
+    background: var(--warning-bg);
+    border-radius: var(--radius-sm);
+  }
+  .pg-vedi-campagna .btn.danger {
+    background: var(--danger-bg);
+    color: var(--danger-text);
+    border-color: var(--danger-border);
+  }
+  .pg-vedi-campagna .btn:is([data-form="sospendi"], [data-act="sospendi"]) {
+    background: var(--warning-bg);
+    color: var(--warning-text);
+    border-color: var(--warning-border);
+  }
+}
+@media (max-width: 860px) {
+  /* I riferimenti statici espongono le voci senza aggiungere comportamento JS. */
+  .app-container {
+    flex-direction: column;
+  }
+  .app-sidebar {
+    position: static;
+    width: 100%;
+    height: auto;
+    transform: none;
+    border-right: 0;
+    border-bottom: 1px solid var(--border-hairline);
+  }
+  .sidebar-header {
+    padding: 12px 16px;
+  }
+  .sidebar-nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    padding: 8px 16px;
+    gap: 4px;
+  }
+  .nav-section-label {
+    grid-column: 1 / -1;
+  }
+  .nav-link {
+    min-width: 0;
+    min-height: 44px;
+  }
+  .sidebar-footer {
+    padding: 12px 16px;
+  }
+  .app-main {
+    margin-left: 0;
+    min-width: 0;
+  }
+  .content-wrapper {
+    padding: 20px 16px 40px;
+    overflow-wrap: anywhere;
+  }
+  .surface-card-header,
+  .surface-card-body,
+  .auth-card {
+    padding: 16px;
+    min-width: 0;
+  }
+  .auth-page-container {
+    padding: 24px 16px;
+  }
+  .form-input,
+  input:not([type="checkbox"]):not([type="radio"]),
+  select,
+  textarea {
+    font-size: 16px;
+    min-height: 44px;
+    max-width: 100%;
+  }
+  .btn,
+  .icon-btn,
+  .role-switch-btn {
+    min-height: 44px;
+    min-width: 44px;
+    max-width: 100%;
+    white-space: normal;
+  }
+  .azioni-riga,
+  .page-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .azioni-riga > .btn,
+  .page-actions > .btn,
+  .surface-card-body > .btn-primary {
+    width: 100%;
+  }
+  .auth-modi {
+    flex-wrap: wrap;
+  }
+  .auth-modi .btn {
+    white-space: normal;
+  }
+  .griglia-2,
+  .griglia-3,
+  .griglia-2.card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .passi {
+    margin: 20px 0;
+    gap: 6px;
+    flex-wrap: wrap;
+  }
+  .passo {
+    min-width: 72px;
+  }
+  .cal-giorno,
+  .cal-post {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .cal-post {
+    min-height: 44px;
+  }
+  .foto-riga {
+    flex-wrap: wrap;
+  }
+  .post-riga {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .foto-riga > *,
+  .post-riga > * {
+    min-width: 0;
+    max-width: 100%;
+  }
+  .dati-lista dd,
+  .rev-line dd {
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+  .status-pill {
+    max-width: 100%;
+    white-space: normal;
+  }
+}

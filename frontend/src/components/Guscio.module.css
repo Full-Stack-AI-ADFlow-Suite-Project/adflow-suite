@@ -177,43 +177,130 @@ a.voce.attiva:hover {
   margin: 0 auto;
 }
 
-/* Schermo stretto: la barra torna in alto, come nelle pagine statiche. */
+/* Il menu e il piede rimangono nello stesso ordine per entrambi i ruoli. */
+.menu {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.burger {
+  display: none;
+}
+.pagina {
+  overflow-wrap: anywhere;
+}
 @media (max-width: 860px) {
   .guscio {
     flex-direction: column;
   }
-
   .barra {
     position: static;
     width: auto;
     flex-direction: row;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: space-between;
     border-right: none;
     border-bottom: 1px solid var(--border-hairline);
   }
-
   .marca {
-    padding: 10px 16px;
+    padding: 12px 16px;
+    min-height: 64px;
   }
-
+  .burger {
+    display: flex;
+    width: 44px;
+    height: 44px;
+    margin-right: 16px;
+  }
+  .menu {
+    display: none;
+    flex: 0 0 100%;
+  }
+  .aperta .menu {
+    display: flex;
+  }
   .voci {
-    flex-direction: row;
-    flex-wrap: wrap;
-    padding: 6px 10px;
+    padding: 8px 16px;
     overflow: visible;
   }
-
-  .piede {
-    flex-direction: row;
-    align-items: center;
-    border-top: none;
-    background: none;
-    padding: 6px 16px;
+  .voce,
+  .esci {
+    min-height: 44px;
   }
-
+  .piede {
+    padding: 12px 16px;
+  }
   .contenuto {
     margin-left: 0;
-    padding: 16px 16px 40px;
+    padding: 20px 16px 40px;
+  }
+}
+/* I controlli restano leggibili senza zoom automatico sul telefono. */
+@media (max-width: 47.99em) {
+  .pagina :global(.mantine-Input-input) {
+    font-size: 16px;
+    min-height: 44px;
+  }
+  .pagina :global(.mantine-Button-root),
+  .pagina button:global(.mantine-Text-root),
+  .pagina :global(.mantine-UnstyledButton-root) {
+    min-height: 44px;
+    min-width: 44px;
+    max-width: 100%;
+  }
+  .pagina :global(.mantine-Button-label) {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+  .pagina :global(.mantine-Button-root) {
+    height: auto;
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+  .pagina :global(.mantine-Checkbox-body),
+  .pagina :global(.mantine-Chip-label) {
+    min-height: 44px;
+    align-items: center;
+  }
+  .pagina :global(.mantine-Checkbox-labelWrapper) {
+    min-width: 0;
+  }
+  .pagina :global(.mantine-Badge-root) {
+    max-width: 100%;
+    height: auto;
+    min-height: var(--badge-height);
+  }
+  .pagina :global(.mantine-Badge-label) {
+    white-space: normal;
+    overflow-wrap: anywhere;
+  }
+}
+
+@media (max-width: 47.99em) {
+  .pagina :global(.mantine-Checkbox-label) {
+    display: flex;
+    align-items: center;
+    min-height: 44px;
+  }
+  .pagina :global(.mantine-Pill-root) {
+    min-height: 44px;
+  }
+  .pagina :global(.mantine-Pill-remove) {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .pagina a:global(.mantine-Anchor-root) {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 47.99em) {
+  :global(.mantine-Combobox-option) {
+    min-height: 44px;
+    font-size: 16px;
   }
 }

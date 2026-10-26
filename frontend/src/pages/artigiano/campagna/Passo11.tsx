@@ -1,3 +1,4 @@
+import layout from "../../../components/Layout.module.css";
 /**
  * Passo 11 · Foto della campagna: gruppi `caricate` con descrizione e
  * data facoltativa (R-13). I gruppi `create_ai` restano nascosti
@@ -75,7 +76,7 @@ export function Passo11({
   };
 
   return (
-    <Paper withBorder radius="md" p="xl">
+    <Paper withBorder radius="md" p={{ base: "md", sm: "xl" }}>
       {onIndietro && (
         <Text
           size="sm"
@@ -83,6 +84,7 @@ export function Passo11({
           td="underline"
           mb="xs"
           component="button"
+          mih={44}
           onClick={onIndietro}
           style={{
             background: "none",
@@ -127,7 +129,7 @@ export function Passo11({
             {errore}
           </Alert>
         )}
-        <Button variant="outline" color="verde" onClick={aggiungiGruppo}>
+        <Button variant="light" color="verde" onClick={aggiungiGruppo}>
           + Aggiungi una serie di foto
         </Button>
         <Group gap="lg">
@@ -139,9 +141,9 @@ export function Passo11({
           </Text>
         </Group>
         <Divider />
-        <Group justify="space-between">
+        <Group className={layout.azioni} justify="space-between">
           {onIndietro ? (
-            <Button variant="default" onClick={onIndietro}>
+            <Button variant="light" onClick={onIndietro}>
               ← Torna a dati e canali
             </Button>
           ) : (
@@ -226,6 +228,7 @@ function GruppoEditor({
           c="dimmed"
           td="underline"
           component="button"
+          mih={44}
           onClick={() => gira(() => eliminaGruppo(campagna.id, gruppo.id))}
           style={{ background: "none", border: "none", cursor: "pointer" }}
         >
@@ -322,13 +325,13 @@ function Thumb({
           position: "absolute",
           top: 2,
           right: 2,
-          width: 20,
-          height: 20,
+          width: 44,
+          height: 44,
           borderRadius: "50%",
           border: "none",
-          background: "rgba(0,0,0,.4)",
+          background: "rgba(0,0,0,.72)",
           color: "#fff",
-          fontSize: 13,
+          fontSize: 20,
           lineHeight: 1,
           cursor: "pointer",
           padding: 0,

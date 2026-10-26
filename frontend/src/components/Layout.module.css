@@ -1,0 +1,79 @@
+/* T3-85: sole classi di presentazione condivise, senza duplicare componenti. */
+.azioni {
+  gap: var(--mantine-spacing-sm);
+}
+.richiesta {
+  border-left: 4px solid var(--mantine-color-yellow-6);
+  background: var(--mantine-color-yellow-light);
+}
+.avvisoAzione {
+  border-left: 4px solid var(--mantine-color-gray-6);
+}
+.scadenza {
+  padding: 6px 10px;
+  border-radius: var(--mantine-radius-sm);
+  background: var(--mantine-color-yellow-light);
+  color: var(--mantine-color-yellow-light-color);
+}
+.anteprima {
+  align-self: center;
+  overflow: hidden;
+}
+.tecnica {
+  border-top: 1px solid var(--mantine-color-default-border);
+  padding-top: 8px;
+}
+/* La richiesta precede visivamente Nuova campagna senza cambiarne le condizioni. */
+.ingresso:has(.richiesta) .nuova,
+.richiesta ~ .richiesta .principale {
+  --button-bg: var(--mantine-color-verde-light) !important;
+  --button-hover: var(--mantine-color-verde-light-hover) !important;
+  --button-color: var(--mantine-color-verde-light-color) !important;
+}
+@media (max-width: 47.99em) {
+  .accesso :global(.mantine-Input-input) {
+    font-size: 16px;
+    min-height: 44px;
+  }
+  .accesso button {
+    min-width: 44px;
+    min-height: 44px;
+  }
+  .azioni {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .azioni > *,
+  .principale,
+  .nuova {
+    width: 100%;
+  }
+  .rigaFoto {
+    flex-wrap: wrap;
+  }
+  .rigaFoto > :last-child {
+    flex: 1 1 220px;
+    min-width: 0;
+  }
+  .scelta {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .scelta :global(.mantine-Button-inner) {
+    flex-wrap: wrap;
+    height: auto;
+    gap: 6px;
+  }
+  .scelta :global(.mantine-Button-section) {
+    margin: 0;
+  }
+}
+
+@media (max-width: 47.99em) {
+  .accesso :global(.mantine-PasswordInput-section[data-position="right"]) {
+    width: 44px;
+  }
+  .accesso :global(.mantine-PasswordInput-innerInput) {
+    padding-inline-end: 48px;
+  }
+}

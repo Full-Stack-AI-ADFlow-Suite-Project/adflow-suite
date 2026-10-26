@@ -1,3 +1,4 @@
+import layout from "../../../../components/Layout.module.css";
 /**
  * «Il consorzio ti chiede» (R-46, R-41): nella vista «In revisione» della
  * pagina Campagna l'artigiano vede la domanda del consorzio e le sue foto da
@@ -118,9 +119,14 @@ function RigaFoto({
 
   return (
     <Paper withBorder radius="md" p="sm" data-sostituisci={daSostituire}>
-      <Group align="flex-start" wrap="nowrap" gap="md">
+      <Group
+        className={layout.rigaFoto}
+        align="flex-start"
+        wrap="nowrap"
+        gap="md"
+      >
         <Miniatura campagna={campagna} fotoId={nuovaId ?? fotoId} />
-        <Stack gap={6} style={{ flex: 1 }}>
+        <Stack gap={6} style={{ flex: 1, minWidth: 0 }}>
           <Group gap="xs">
             <Text size="sm" fw={500}>
               Foto {fotoId}
@@ -135,7 +141,7 @@ function RigaFoto({
           {nuovaId === null && (
             <Group gap="xs" align="flex-end" wrap="wrap">
               <FileInput
-                size="xs"
+                size="sm"
                 placeholder="Scegli la foto nuova"
                 accept={TIPI_ACCETTATI}
                 value={file}
@@ -143,10 +149,11 @@ function RigaFoto({
                 clearable
                 aria-label={`Foto nuova al posto della foto ${fotoId}`}
                 error={errore}
-                style={{ flex: "1 1 220px" }}
+                style={{ flex: "1 1 220px", minWidth: 0 }}
               />
               <Button
-                size="xs"
+                size="sm"
+                variant="light"
                 color="verde"
                 loading={occupato}
                 disabled={!file || errore !== null || !possoCaricare}
@@ -217,9 +224,10 @@ export function RichiestaConsorzio({
 
   return (
     <Paper
+      className={layout.richiesta}
       withBorder
       radius="md"
-      p="lg"
+      p={{ base: "md", sm: "lg" }}
       mb="md"
       aria-label="Il consorzio ti chiede"
     >
@@ -273,7 +281,7 @@ export function RichiestaConsorzio({
             {errore}
           </Alert>
         )}
-        <Group justify="flex-end">
+        <Group className={layout.azioni} justify="flex-end">
           <Button
             color="verde"
             loading={occupato}

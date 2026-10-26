@@ -1,3 +1,4 @@
+import layout from "../../../components/Layout.module.css";
 /**
  * Un post del canale dentro l'uscita: anteprima come esce sul social,
  * blocchi e avvisi del validatore, metadati della versione e storico.
@@ -37,7 +38,14 @@ function AnteprimaPost({
   const isAi =
     post.riempitivo === "immagine_ai" || post.riempitivo === "cartolina";
   return (
-    <Paper withBorder radius="md" p="sm" w={300} miw={280}>
+    <Paper
+      withBorder
+      radius="md"
+      p="sm"
+      w="100%"
+      maw={360}
+      className={layout.anteprima}
+    >
       <Group gap="xs" wrap="nowrap">
         <Avatar color="verde" radius="xl" size={30}>
           {bottega.slice(0, 1).toUpperCase()}
@@ -225,7 +233,7 @@ export function PostCard({
         ))}
 
         {v && (
-          <Text size="xs" c="dimmed">
+          <Text className={layout.tecnica} size="xs" c="dimmed">
             v{v.numero} · {v.tipo_intervento} ·{" "}
             {v.autore_id == null ? "AI" : "operatore"} · {v.testo?.length ?? 0}{" "}
             caratteri · {v.hashtag?.length ?? 0} hashtag

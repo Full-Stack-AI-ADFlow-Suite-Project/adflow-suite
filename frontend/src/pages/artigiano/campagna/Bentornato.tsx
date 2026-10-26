@@ -1,3 +1,4 @@
+import layout from "../../../components/Layout.module.css";
 import { Alert, Button, Group, Paper, Stack, Text, Title } from "@mantine/core";
 import { useNavigate } from "react-router-dom";
 
@@ -19,7 +20,7 @@ export function Bentornato({
   const navigate = useNavigate();
 
   return (
-    <Paper withBorder radius="md" p="xl">
+    <Paper withBorder radius="md" p={{ base: "md", sm: "xl" }}>
       <Title order={2}>Bentornato, {utente?.nome.split(" ")[0] ?? ""}</Title>
       <Text c="dimmed" size="sm" mt="xs" mb="lg">
         Ritrovi qui il riepilogo della pagina Profilo bottega. Controlla che sia
@@ -47,11 +48,11 @@ export function Bentornato({
           valore={profilo.canali_preferiti.join(", ")}
         />
       </Stack>
-      <Group mt="xl">
+      <Group className={layout.azioni} mt="xl">
         <Button color="verde" onClick={onAvanti}>
           Va bene così, vai alla campagna →
         </Button>
-        <Button variant="default" onClick={() => navigate("/profilo")}>
+        <Button variant="light" onClick={() => navigate("/profilo")}>
           Modifica il profilo
         </Button>
       </Group>

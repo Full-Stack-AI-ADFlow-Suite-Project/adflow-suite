@@ -69,11 +69,11 @@ function Riga({
 
   const contenuto = (
     <Group justify="space-between" wrap="wrap" gap="sm">
-      <div>
+      <div style={{ minWidth: 0 }}>
         <Group gap="sm">
           <Text fw={600}>{campagna.titolo}</Text>
           {consorzioChiede ? (
-            <Badge color="yellow" variant="light">
+            <Badge color="yellow" variant="filled">
               Il consorzio ti chiede…
             </Badge>
           ) : (

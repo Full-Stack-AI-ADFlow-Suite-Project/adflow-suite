@@ -1,3 +1,4 @@
+import layout from "../../../../components/Layout.module.css";
 /**
  * La riga di scelta in cima alla pagina Campagna, quando l'artigiano ha più
  * campagne (spec §4): una alla volta, quella che chiede qualcosa si apre da
@@ -34,14 +35,20 @@ export function SceltaCampagna({
 }) {
   const haBozza = visibili.some((c) => c.stato === "bozza");
   return (
-    <Group gap="xs" mb="lg" wrap="wrap" aria-label="Scelta della campagna">
+    <Group
+      className={layout.scelta}
+      gap="xs"
+      mb="lg"
+      wrap="wrap"
+      aria-label="Scelta della campagna"
+    >
       {visibili.map((c) => (
         <Button
           key={c.id}
           size="xs"
           radius="xl"
           color="verde"
-          variant={c.id === apertaId ? "filled" : "default"}
+          variant={c.id === apertaId ? "light" : "subtle"}
           onClick={() => onApri(c)}
           rightSection={
             c.richiesta === "aperta" ? (

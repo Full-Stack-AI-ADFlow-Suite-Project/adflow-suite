@@ -107,7 +107,7 @@ export function AzioniPost({
           {ammessi.includes("modifica") && (
             <Button
               size="xs"
-              variant="default"
+              variant="light"
               onClick={() => setFinestra("modifica")}
             >
               Modifica a mano
@@ -117,14 +117,14 @@ export function AzioniPost({
             <>
               <Button
                 size="xs"
-                variant="default"
+                variant="light"
                 onClick={() => setFinestra("rigenera_totale")}
               >
                 Rigenera da zero
               </Button>
               <Button
                 size="xs"
-                variant="default"
+                variant="light"
                 onClick={() => setFinestra("rigenera_da_proposta")}
               >
                 Rigenera da testo proposto
@@ -134,7 +134,7 @@ export function AzioniPost({
           {ammessi.includes("cambia_foto") && (
             <Button
               size="xs"
-              variant="default"
+              variant="light"
               onClick={() => setFinestra("cambia_foto")}
             >
               Cambia foto
@@ -143,7 +143,7 @@ export function AzioniPost({
           {ammessi.includes("sposta") && (
             <Button
               size="xs"
-              variant="default"
+              variant="light"
               onClick={() => setFinestra("sposta")}
             >
               Sposta
@@ -152,7 +152,7 @@ export function AzioniPost({
           {ammessi.includes("annulla") && (
             <Button
               size="xs"
-              variant="default"
+              variant="light"
               color="red"
               onClick={() => setFinestra("annulla")}
             >

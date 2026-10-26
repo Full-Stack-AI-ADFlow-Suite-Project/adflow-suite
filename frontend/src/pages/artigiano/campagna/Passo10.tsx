@@ -1,3 +1,4 @@
+import layout from "../../../components/Layout.module.css";
 /**
  * Passo 10 · Durata e canali (R-08, R-22): nome, inizio ≥ oggi+3, fine con
  * durata 7–92 giorni, canali solo tra quelli collegati, descrizione.
@@ -121,7 +122,13 @@ export function Passo10({
   };
 
   return (
-    <Paper withBorder radius="md" p="xl" component="form" onSubmit={invia}>
+    <Paper
+      withBorder
+      radius="md"
+      p={{ base: "md", sm: "xl" }}
+      component="form"
+      onSubmit={invia}
+    >
       <Text ff="monospace" size="xs" c="verde">
         10 · DURATA E CANALI
       </Text>
@@ -239,7 +246,7 @@ export function Passo10({
             {errore}
           </Alert>
         )}
-        <Group justify="flex-end">
+        <Group className={layout.azioni} justify="flex-end">
           <Button type="submit" color="verde" loading={inCorso}>
             Continua →
           </Button>

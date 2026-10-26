@@ -101,7 +101,7 @@ export function Artigiani() {
             </Text>
           </Group>
           <Box style={{ maxHeight: "60vh", overflow: "auto" }}>
-            <Table stickyHeader highlightOnHover verticalSpacing="sm">
+            <Table stickyHeader highlightOnHover verticalSpacing="xs">
               <Table.Thead>
                 <Table.Tr>
                   <Table.Th>Bottega</Table.Th>
