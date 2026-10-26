@@ -304,3 +304,30 @@ a.voce.attiva:hover {
     font-size: 16px;
   }
 }
+
+/* NumberInput: due bersagli affiancati nella sezione riservata del campo,
+   anziché due pulsanti da 44px in una colonna alta metà input. */
+@media (max-width: 47.99em) {
+  .pagina :global(.mantine-NumberInput-wrapper) {
+    --input-height: 46px !important;
+    --input-right-section-size: 90px;
+  }
+  .pagina :global(.mantine-NumberInput-controls) {
+    flex-direction: row;
+    width: 88px;
+    max-width: none;
+    height: 44px;
+    margin-inline-start: 0;
+  }
+  .pagina :global(.mantine-NumberInput-control) {
+    flex: 0 0 44px;
+    width: 44px;
+    height: 44px;
+  }
+  .pagina :global(.mantine-NumberInput-control:first-of-type) {
+    border-start-end-radius: 0;
+  }
+  .pagina :global(.mantine-NumberInput-control:last-of-type) {
+    border-start-end-radius: var(--control-radius);
+  }
+}

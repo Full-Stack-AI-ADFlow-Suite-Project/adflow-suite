@@ -181,7 +181,18 @@ export function Guscio({
 
   return (
     <div className={stile.guscio}>
-      <aside className={`${stile.barra} ${menuAperto ? stile.aperta : ""}`}>
+      <aside
+        className={`${stile.barra} ${menuAperto ? stile.aperta : ""}`}
+        onKeyDown={(evento) => {
+          if (evento.key === "Escape") {
+            chiudiMenu();
+            evento.currentTarget
+              .closest("aside")
+              ?.querySelector<HTMLButtonElement>("button")
+              ?.focus();
+          }
+        }}
+      >
         <Link className={stile.marca} to="/">
           <span className={stile.marcaIcona}>
             <svg
@@ -213,19 +224,7 @@ export function Guscio({
           aria-expanded={menuAperto}
           aria-controls="menu-navigazione"
         />
-        <div
-          id="menu-navigazione"
-          className={stile.menu}
-          onKeyDown={(evento) => {
-            if (evento.key === "Escape") {
-              chiudiMenu();
-              evento.currentTarget
-                .closest("aside")
-                ?.querySelector<HTMLButtonElement>("button")
-                ?.focus();
-            }
-          }}
-        >
+        <div id="menu-navigazione" className={stile.menu}>
           <nav
             onClick={chiudiMenu}
             className={stile.voci}
