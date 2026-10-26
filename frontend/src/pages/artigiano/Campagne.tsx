@@ -19,7 +19,7 @@ export function Campagne() {
   useEffect(() => {
     elenco()
       .then(setLista)
-      .catch(() => setErrore("Non sono riuscita a leggere le campagne."));
+      .catch(() => setErrore("Impossibile caricare le campagne. Riprova."));
   }, []);
 
   const haBozza = (lista ?? []).some((c) => c.stato === "bozza");

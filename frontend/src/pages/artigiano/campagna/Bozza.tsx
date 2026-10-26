@@ -46,7 +46,11 @@ export function Bozza({
         setPasso(11);
       }
     } catch (e) {
-      setErrore(e instanceof ApiErrore ? e.dettaglio : "Errore inatteso.");
+      setErrore(
+        e instanceof ApiErrore
+          ? e.dettaglio
+          : "Impossibile completare l’operazione. Riprova.",
+      );
     }
   };
 

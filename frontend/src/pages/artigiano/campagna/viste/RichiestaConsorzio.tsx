@@ -45,8 +45,8 @@ function dataIT(iso: string | null): string {
 /** Il controllo nel browser di tipo e peso; il server rifà quello vero (R-13). */
 function controllaFile(file: File): string | null {
   if (!TIPI_ACCETTATI.split(",").includes(file.type))
-    return "La foto deve essere JPG, PNG o WEBP.";
-  if (file.size > MAX_BYTE) return "La foto supera 10 MB.";
+    return "Scegli una foto JPG, PNG o WEBP.";
+  if (file.size > MAX_BYTE) return "Scegli una foto che non superi 10 MB.";
   return null;
 }
 
@@ -107,7 +107,9 @@ function RigaFoto({
       await rileggi();
     } catch (e) {
       setErrore(
-        e instanceof ApiErrore ? e.message : "Non sono riuscito a caricare.",
+        e instanceof ApiErrore
+          ? e.message
+          : "Impossibile caricare la foto. Riprova.",
       );
     } finally {
       setOccupato(false);
@@ -204,7 +206,9 @@ export function RichiestaConsorzio({
       onRisposta?.();
     } catch (e) {
       setErrore(
-        e instanceof ApiErrore ? e.message : "Non sono riuscito a inviare.",
+        e instanceof ApiErrore
+          ? e.message
+          : "Impossibile inviare la risposta. Riprova.",
       );
     } finally {
       setOccupato(false);
@@ -253,7 +257,7 @@ export function RichiestaConsorzio({
         )}
 
         <Textarea
-          label="Risposta per il consorzio"
+          label="Cosa vuoi rispondere al consorzio?"
           description={
             conFoto ? "Facoltativa se hai caricato le foto." : "Obbligatoria."
           }

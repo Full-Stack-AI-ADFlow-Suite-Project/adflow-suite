@@ -229,7 +229,7 @@ export function Materiali({
 
         <Card withBorder radius="lg" p="lg">
           <Title order={3} size="h4">
-            Profilo bottega · fotografia
+            Profilo bottega al momento dell’invio
           </Title>
           {snap ? (
             <>
@@ -285,7 +285,7 @@ export function Materiali({
             </>
           ) : (
             <Text size="sm" c="dimmed" mt="sm">
-              Nessuna fotografia: la campagna è ancora una bozza.
+              Profilo all’invio non disponibile: la campagna è ancora una bozza.
             </Text>
           )}
         </Card>

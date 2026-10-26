@@ -51,7 +51,9 @@ export function Artigiani() {
   useEffect(() => {
     elencoArtigiani()
       .then(setLista)
-      .catch(() => setErrore("Non sono riuscita a leggere gli artigiani."));
+      .catch(() =>
+        setErrore("Impossibile caricare l’elenco degli artigiani. Riprova."),
+      );
   }, []);
 
   const visibili = useMemo(

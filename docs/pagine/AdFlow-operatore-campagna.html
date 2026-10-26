@@ -470,7 +470,7 @@ function pannelloModifica(p){
   </div>`;
 }
 function pannelloAI(p){
-  if (p.nRig >= MAX) return `<div class="panel"><p><b>Cicli AI finiti (${MAX} di ${MAX}).</b> L'AI non può più riscrivere questo post: resta la modifica a mano.</p>
+  if (p.nRig >= MAX) return `<div class="panel"><p><b>Limite di rigenerazioni raggiunto (${MAX} di ${MAX}).</b> È disponibile la modifica a mano.</p>
     <div class="row"><button type="button" class="btn small primary" data-act="apri" data-pan="modifica" data-id="${p.id}">Modifica a mano</button>
     <button type="button" class="btn small" data-act="chiudi" data-id="${p.id}">Chiudi</button></div></div>`;
   return `<div class="panel">
@@ -487,9 +487,9 @@ function pannelloCambiaFoto(p){
   if (!poss.length) return `<div class="panel"><p>${dopo ? 'Nel gruppo non ci sono altre foto adatte.' : 'Nel gruppo non ci sono altre foto adatte: chiedile all’artigiano, oppure respingi.'}</p>
     <div class="row"><button type="button" class="btn small" data-act="chiudi" data-id="${p.id}">Chiudi</button></div></div>`;
   return `<div class="panel">
-    <p>Scegli un'altra foto del gruppo dell'uscita: idonea, oppure arrivata con una richiesta all'artigiano, e non già in un post ${NOME[p.canale]}. Nasce una versione con lo stesso testo: rileggilo.${dopo ? ' <b>La campagna è approvata:</b> la versione esce al posto di quella di prima, e la approvi tu.' : ''}</p>
+    <p>Scegli un'altra foto del gruppo dell'uscita: idonea, oppure arrivata con una richiesta all'artigiano, e non già in un post ${NOME[p.canale]}. Il testo non cambia: va ricontrollato dopo la sostituzione.${dopo ? ' <b>La campagna è approvata:</b> la versione esce al posto di quella di prima, e la approvi tu.' : ''}</p>
     <div class="choice-grid">${poss.map(k => { const f = S.foto[k];
-      return `<label class="choice"><input type="radio" name="cf-${p.id}" value="${k}">${esc(f.file)} · ${f.nuova ? 'nuova, dall’artigiano: guardala tu' : 'punteggio ' + f.punteggio + '/10'}</label>`; }).join('')}</div>
+      return `<label class="choice"><input type="radio" name="cf-${p.id}" value="${k}">${esc(f.file)} · ${f.nuova ? 'Nuova foto dell’artigiano: da controllare' : 'punteggio ' + f.punteggio + '/10'}</label>`; }).join('')}</div>
     <div class="errore" id="err-cf-${p.id}" hidden></div>
     <div class="row"><button type="button" class="btn small primary" data-act="cambia-foto" data-id="${p.id}">Usa questa foto</button>
     <button type="button" class="btn small" data-act="chiudi" data-id="${p.id}">Annulla</button></div>
@@ -506,8 +506,8 @@ function pannelloSposta(p, riprogramma){
 }
 function pannelloAnnulla(p){
   return `<div class="panel">
-    <p><b>Il post non esce più e non torna indietro.</b> La nota resta nelle decisioni della campagna; l'artigiano legge "non pubblicato".</p>
-    <div><label for="an-${p.id}">Perché non deve uscire? *</label><textarea id="an-${p.id}" placeholder="Es. I taglieri di noce sono finiti."></textarea></div>
+    <p><b>Il post non sarà pubblicato. L’annullamento è definitivo.</b> La nota resta nelle decisioni della campagna; l'artigiano legge "non pubblicato".</p>
+    <div><label for="an-${p.id}">Motivo dell’annullamento *</label><textarea id="an-${p.id}" placeholder="Es. I taglieri di noce sono finiti."></textarea></div>
     <div class="errore" id="err-an-${p.id}" hidden></div>
     <div class="row"><button type="button" class="btn small danger" data-act="annulla-post" data-id="${p.id}">Annulla il post</button>
     <button type="button" class="btn small" data-act="chiudi" data-id="${p.id}">Indietro</button></div>
@@ -554,7 +554,7 @@ function scheda(p){
     pannello = pan === 'modifica' ? pannelloModifica(p) : pan === 'ai' ? pannelloAI(p) : pan === 'foto' ? pannelloCambiaFoto(p)
       : pan === 'sposta' ? pannelloSposta(p, false) : pan === 'annulla' ? pannelloAnnulla(p) : pan === 'riprogramma' ? pannelloSposta(p, true) : '';
   } else if (dopoApprovazione() && p.stato === 'approvato'){
-    azioni = `<div class="avviso quiet">Esce tra meno di 15 minuti: non si tocca più.</div>`;
+    azioni = `<div class="avviso quiet">Pubblicazione tra meno di 15 minuti: modifiche non più disponibili.</div>`;
   }
 
   const classe = fuori ? 'tolto' : blk.length ? 'blocca' : '';
@@ -654,7 +654,7 @@ function formRespingi(){
   return `<div class="form"><h3>Respingi la campagna</h3>
     <p class="hint">Solo per ciò che non si può sistemare: foto che non sono della bottega o non pubblicabili, affermazioni non verificabili, richieste fuori contratto (spec §3). La campagna si chiude, i post vengono scartati e l'artigiano riceve un'email. Un testo che non va, invece, si sistema.</p>
     <div><label>Motivo *</label><div class="choice-grid">
-      <label class="choice"><input type="radio" name="motivo" value="foto" ${ui.motivo === 'foto' ? 'checked' : ''}>Foto scattate male</label>
+      <label class="choice"><input type="radio" name="motivo" value="foto" ${ui.motivo === 'foto' ? 'checked' : ''}>Foto insufficienti o di qualità non adatta</label>
       <label class="choice"><input type="radio" name="motivo" value="altro" ${ui.motivo === 'altro' ? 'checked' : ''}>Altro</label>
     </div></div>
     ${ui.motivo === 'foto' ? `<div><label>Foto da rifare</label><div class="choice-grid">${caricate.map(k => `<label class="choice"><input type="checkbox" data-segna="${k}" ${S.foto[k].segnata ? 'checked' : ''}>${esc(S.foto[k].file)}</label>`).join('')}</div></div>` : ''}
@@ -666,7 +666,7 @@ function formRespingi(){
 function formChiedi(){
   const caricate = Object.keys(S.foto).filter(k => !S.foto[k].creataAI && !S.foto[k].nuova);
   return `<div class="form"><h3>Chiedi all'artigiano</h3>
-    <p class="hint">Per ciò che può dare solo l'artigiano: una foto da sostituire, fino a 3, o una conferma (un prezzo, una certificazione). La campagna resta in revisione: puoi approvare o respingere quando vuoi. Avvisa tu l'artigiano, a voce o con un messaggio: il sistema non manda email. Lui risponde dalla sua pagina Campagna.</p>
+    <p class="hint">Per ciò che può dare solo l'artigiano: una foto da sostituire, fino a 3, o una conferma (un prezzo, una certificazione). La campagna resta in revisione. La richiesta non blocca l’approvazione né il rifiuto. Avvisa tu l'artigiano, a voce o con un messaggio: il sistema non manda email. Lui risponde dalla sua pagina Campagna.</p>
     ${richiestaAperta() ? `<p class="hint" style="color:var(--warning-text)">Sostituisce la richiesta aperta del ${esc(S.camp.richiesta.quando)}.</p>` : ''}
     <div><label for="domanda">Domanda per l'artigiano *</label><textarea id="domanda" data-bozza="domanda" placeholder="Es. Nella foto dei taglieri si vede un cartellino col prezzo: puoi mandarne una senza?">${esc(ui.domanda)}</textarea></div>
     <div><label>Foto da sostituire (${ui.chieste.length} di 3)</label><div class="choice-grid">${caricate.map(k => `<label class="choice"><input type="checkbox" data-chiedi="${k}" ${ui.chieste.includes(k) ? 'checked' : ''}>${esc(S.foto[k].file)}</label>`).join('')}</div></div>
@@ -876,7 +876,7 @@ function renderMateriali(){
           <div class="rev-line"><dt>Canali dichiarati</dt><dd>Facebook, Instagram</dd></div>
           <div class="rev-line"><dt>Frequenza</dt><dd>3 a settimana per canale: ${PER_CANALE} post per canale in 14 giorni</dd></div>
         </dl></div>
-      <div class="card"><div class="tab">Profilo bottega · fotografia del 03/11/2026</div><h3>Ciò che ha ricevuto l'AI</h3>
+      <div class="card"><div class="tab">Profilo bottega al momento dell’invio del 03/11/2026</div><h3>Ciò che ha ricevuto l'AI</h3>
         <dl style="margin:0">
           <div class="rev-line"><dt>Bottega</dt><dd>Falegnameria Bianchi · Mario Bianchi · Bra (CN)</dd></div>
           <div class="rev-line"><dt>Tipo di prodotto</dt><dd>Legno e mobili</dd></div>

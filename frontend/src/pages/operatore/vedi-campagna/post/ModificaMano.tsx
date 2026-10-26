@@ -51,7 +51,9 @@ export function ModificaMano({
       fatto();
     } catch (e) {
       setErrore(
-        e instanceof ApiErrore ? e.message : "Non sono riuscita a salvare.",
+        e instanceof ApiErrore
+          ? e.message
+          : "Impossibile salvare la modifica. Riprova.",
       );
     } finally {
       setOccupato(false);

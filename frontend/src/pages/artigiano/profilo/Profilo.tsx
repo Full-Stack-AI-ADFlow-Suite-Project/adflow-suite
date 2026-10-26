@@ -40,14 +40,14 @@ import {
 import { Passo7 } from "./passo7";
 
 const DESCRIZIONI_PASSI = [
-  "I dati anagrafici della bottega, per intestare correttamente profilo e campagne.",
-  "Il materiale grezzo con cui l'AI scriverà i testi: più è concreto, meno i post sembreranno generici.",
-  "Guida il tono dei testi, gli hashtag e le linee guida per le foto.",
-  "Per chi lavori e cosa vuoi ottenere attraverso i canali social.",
-  "Come devono suonare i post e come ti rivolgi ai clienti.",
-  "Preferenze per le campagne, post a settimana e social già utilizzati.",
-  "Le foto reali alimentano ogni post: quanti scatti puoi fornire e chi fotografa.",
-  "Date da tenere a mente, periodi di chiusura e orari di apertura.",
+  "Presenta la tua bottega: useremo questi dati nel profilo e nelle campagne.",
+  "Racconta il tuo lavoro con esempi concreti: aiuteranno l’AI a scrivere post che parlano di te.",
+  "Racconta cosa realizzi e cosa ti sta a cuore: guiderà i testi, gli hashtag e le foto.",
+  "Racconta a chi ti rivolgi e cosa vuoi ottenere sui social: ci aiuta a parlare ai clienti giusti.",
+  "Scegli come parlare ai tuoi clienti: i post seguiranno la voce della tua bottega.",
+  "Scegli dove pubblicare e quanti post preparare: queste preferenze guideranno le campagne.",
+  "Dicci quante foto puoi preparare e chi le scatta: ci aiuta a organizzare i post.",
+  "Segnala fiere, ricorrenze e chiusure: ci aiuta a proporre le date per i post.",
   "Controlla il profilo prima di salvarlo. Puoi tornare a ogni passo per correggerlo.",
 ];
 
@@ -70,7 +70,7 @@ export function RichiedeProfilo({ children }: { children: ReactNode }) {
         }
       })
       .catch(() => {
-        if (attivo) setErrore("Non riesco a leggere il profilo. Riprova.");
+        if (attivo) setErrore("Impossibile caricare il profilo. Riprova.");
       });
     return () => {
       attivo = false;
@@ -122,7 +122,7 @@ export function Profilo() {
         }
       })
       .catch(() => {
-        if (attivo) setErrore("Non riesco a leggere il profilo. Riprova.");
+        if (attivo) setErrore("Impossibile caricare il profilo. Riprova.");
       });
     return () => {
       attivo = false;
@@ -291,13 +291,23 @@ export function Profilo() {
                 {passo === 0 && (
                   <>
                     <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-                      {testo("nome", "Nome della bottega", false, true)}
-                      {testo("referente", "Referente", false, true)}
+                      {testo(
+                        "nome",
+                        "Come si chiama la tua bottega?",
+                        false,
+                        true,
+                      )}
+                      {testo("referente", "Come ti chiami?", false, true)}
                     </SimpleGrid>
                     <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-                      {testo("citta", "Città", false, true)}
+                      {testo(
+                        "citta",
+                        "Dove si trova la tua bottega?",
+                        false,
+                        true,
+                      )}
                       <NumberInput
-                        label="Anni di attività"
+                        label="Da quanti anni è aperta la tua bottega?"
                         min={0}
                         max={2147483647}
                         allowDecimal={false}
@@ -308,41 +318,61 @@ export function Profilo() {
                         }
                       />
                     </SimpleGrid>
-                    {testo("sito", "Sito web")}
+                    {testo("sito", "Hai un sito web?")}
                   </>
                 )}
 
                 {passo === 1 && (
                   <>
-                    {testo("storia", "Racconta la tua storia", true)}
-                    {testo("origine", "Come è nata la bottega", true)}
+                    {testo("storia", "Qual è la tua storia?", true)}
+                    {testo("origine", "Come è nata la tua bottega?", true)}
                   </>
                 )}
 
                 {passo === 2 && (
                   <>
                     <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-                      {scelta("tipo_prodotto", "Tipo di prodotto", true)}
-                      {scelta("fascia_prezzo", "Fascia di prezzo")}
+                      {scelta("tipo_prodotto", "Che cosa realizzi?", true)}
+                      {scelta(
+                        "fascia_prezzo",
+                        "In quale fascia di prezzo vendi?",
+                      )}
                     </SimpleGrid>
-                    {testo("gamma", "Prodotti e lavorazioni", true)}
+                    {testo(
+                      "gamma",
+                      "Quali prodotti e lavorazioni proponi?",
+                      true,
+                    )}
                     <MultiSelect
-                      label="Valori della bottega"
+                      label="Cosa ti sta a cuore nel tuo lavoro?"
                       data={SCELTE.valori}
                       value={dati.valori ?? []}
                       onChange={(v) => cambia("valori", v)}
                       clearable
                     />
-                    {testo("stagionalita", "Stagionalità", true)}
+                    {testo(
+                      "stagionalita",
+                      "Cosa realizzi per le stagioni e le ricorrenze?",
+                      true,
+                    )}
                   </>
                 )}
 
                 {passo === 3 && (
                   <>
-                    {testo("clienti_ideali", "Clienti ideali", true, true)}
+                    {testo(
+                      "clienti_ideali",
+                      "Chi vorresti raggiungere con i tuoi post?",
+                      true,
+                      true,
+                    )}
                     <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
-                      {scelta("obiettivo", "Obiettivo", true)}
-                      {testo("zona", "Zona dei tuoi clienti")}
+                      {scelta(
+                        "obiettivo",
+                        "Cosa vuoi ottenere sui social?",
+                        true,
+                      )}
+                      {testo("zona", "Da dove arrivano i tuoi clienti?")}
                     </SimpleGrid>
                   </>
                 )}
@@ -351,22 +381,29 @@ export function Profilo() {
                   <>
                     <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
                       <MultiSelect
-                        label="Tono della comunicazione"
+                        label="Come parli di solito ai tuoi clienti?"
                         data={SCELTE.tono}
                         value={dati.tono ?? []}
                         onChange={(v) => cambia("tono", v)}
                         clearable
                       />
-                      {scelta("cortesia", "Come rivolgersi ai clienti")}
+                      {scelta(
+                        "cortesia",
+                        "Dai del tu o del lei ai tuoi clienti?",
+                      )}
                     </SimpleGrid>
-                    {testo("vincoli", "Cose da non dire", true)}
+                    {testo(
+                      "vincoli",
+                      "Cosa vuoi evitare di dire nei post?",
+                      true,
+                    )}
                   </>
                 )}
 
                 {passo === 5 && (
                   <>
                     <Checkbox.Group
-                      label="Canali preferiti"
+                      label="Su quali social vuoi pubblicare?"
                       required
                       value={dati.canali}
                       error={errori.canali}
@@ -386,13 +423,16 @@ export function Profilo() {
                       Sono le preferenze per le campagne. Il collegamento degli
                       account è gestito dal consorzio.
                     </Text>
-                    {scelta("frequenza", "Post a settimana per ogni canale")}
+                    {scelta(
+                      "frequenza",
+                      "Quanti post vuoi a settimana su ogni social?",
+                    )}
                     <Text c="dimmed" size="xs">
                       La frequenza è un impegno: i post che le foto non coprono
                       avranno un'immagine creata con l'AI.
                     </Text>
                     <Checkbox.Group
-                      label="Social già usati"
+                      label="Quali social usi già?"
                       value={
                         Array.isArray(dati.social_esistenti?.canali)
                           ? dati.social_esistenti.canali.filter(
@@ -420,14 +460,14 @@ export function Profilo() {
                       </Group>
                     </Checkbox.Group>
                     <TextInput
-                      label="Pagine e profili social"
+                      label="Quali sono le tue pagine e i tuoi profili?"
                       value={String(dati.social_esistenti?.profili ?? "")}
                       onChange={(e) =>
                         sociale("profili", e.currentTarget.value)
                       }
                     />
                     <Textarea
-                      label="Cosa funziona già sui social"
+                      label="Cosa funziona già sui tuoi social?"
                       value={String(dati.social_esistenti?.cosa_funziona ?? "")}
                       onChange={(e) =>
                         sociale("cosa_funziona", e.currentTarget.value)
@@ -451,14 +491,14 @@ export function Profilo() {
                         <Stack gap="xs">
                           <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="md">
                             <TextInput
-                              label={`Nome evento ${i + 1}`}
+                              label={`Come si chiama l’evento ${i + 1}?`}
                               value={v.nome}
                               onChange={(e) =>
                                 evento(i, "nome", e.currentTarget.value)
                               }
                             />
                             <TextInput
-                              label={`Quando si svolge l'evento ${i + 1}`}
+                              label={`Quando si svolge l’evento ${i + 1}?`}
                               value={v.quando}
                               onChange={(e) =>
                                 evento(i, "quando", e.currentTarget.value)
@@ -466,7 +506,7 @@ export function Profilo() {
                             />
                           </SimpleGrid>
                           <Select
-                            label={`Tipo evento ${i + 1}`}
+                            label={`Di che tipo è l’evento ${i + 1}?`}
                             data={SCELTE.tipo_evento}
                             value={v.tipo || null}
                             onChange={(s) => evento(i, "tipo", s ?? "")}
@@ -502,9 +542,9 @@ export function Profilo() {
                     >
                       Aggiungi evento
                     </Button>
-                    {testo("chiusure", "Periodi di chiusura", true)}
+                    {testo("chiusure", "Quando chiude la tua bottega?", true)}
                     <Textarea
-                      label="Orari e disponibilità"
+                      label="Quali sono i tuoi orari e le tue disponibilità?"
                       value={
                         !Array.isArray(dati.orari) &&
                         typeof dati.orari?.nota === "string"

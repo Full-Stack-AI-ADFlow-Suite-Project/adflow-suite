@@ -108,7 +108,7 @@ function RiepilogoLettura({ campagna }: { campagna: CampagnaDettaglio }) {
       />
       <Riga
         nome="Foto"
-        valore={`${nFoto} foto in ${campagna.gruppi.length} gruppi`}
+        valore={`${nFoto} foto in ${campagna.gruppi.length} serie`}
       />
     </Stack>
   );

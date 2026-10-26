@@ -50,7 +50,9 @@ export function Rigenera({
       fatto();
     } catch (e) {
       setErrore(
-        e instanceof ApiErrore ? e.message : "Non sono riuscita a rigenerare.",
+        e instanceof ApiErrore
+          ? e.message
+          : "Impossibile rigenerare il testo. Riprova.",
       );
     } finally {
       setOccupato(false);

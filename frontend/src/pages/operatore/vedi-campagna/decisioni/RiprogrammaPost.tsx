@@ -40,7 +40,7 @@ export function RiprogrammaPost({
           Riprogramma
         </Button>
         <Text size="xs" c="dimmed">
-          Non è stato pubblicato: puoi darle una nuova data.
+          Pubblicazione fallita. È possibile assegnare una nuova data.
         </Text>
       </Group>
       {aperto && (

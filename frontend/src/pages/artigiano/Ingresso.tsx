@@ -127,7 +127,7 @@ function QuestaSettimana() {
       </Text>
       {errore && (
         <Alert color="red" variant="light">
-          Non sono riuscita a leggere il calendario.
+          Impossibile caricare il calendario. Riprova.
         </Alert>
       )}
       {settimana && (
@@ -149,7 +149,7 @@ export function Ingresso() {
   useEffect(() => {
     elenco()
       .then(setLista)
-      .catch(() => setErrore("Non sono riuscita a leggere le campagne."));
+      .catch(() => setErrore("Impossibile caricare le campagne. Riprova."));
   }, []);
 
   const nome = utente?.nome.split(" ")[0] ?? "";

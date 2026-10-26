@@ -107,7 +107,7 @@ export function Passo12({
   const blocchi: string[] = [];
   campagna.gruppi.forEach((g, i) => {
     if (!g.descrizione?.trim())
-      blocchi.push(`Il gruppo ${i + 1} non ha la descrizione.`);
+      blocchi.push(`Racconta cosa mostrano le foto della serie ${i + 1}.`);
   });
   (campagna.canali ?? [])
     .filter((c) => !collegati.includes(c))
@@ -122,7 +122,11 @@ export function Passo12({
       await invia(campagna.id, dichiarazione);
       await onInviata();
     } catch (e) {
-      setErrore(e instanceof ApiErrore ? e.dettaglio : "Errore inatteso.");
+      setErrore(
+        e instanceof ApiErrore
+          ? e.dettaglio
+          : "Impossibile completare l’operazione. Riprova.",
+      );
       setInCorso(false);
     }
   };
@@ -151,7 +155,7 @@ export function Passo12({
         12 · RIEPILOGO
       </Text>
       <Title order={2} mt={4} mb="lg">
-        Rivedi prima di inviare
+        Hai controllato tutto prima di inviare?
       </Title>
       <Stack gap="lg">
         <div>
@@ -171,7 +175,7 @@ export function Passo12({
         </div>
         <div>
           <Title order={4} mb={4}>
-            Logistica
+            Quanti post usciranno?
           </Title>
           <Riga
             nome="Ritmo scelto"
@@ -202,7 +206,7 @@ export function Passo12({
           </Title>
           <Riga
             nome="Foto caricate"
-            valore={`${nFoto} foto in ${gruppiFoto.length} gruppi`}
+            valore={`${nFoto} foto in ${gruppiFoto.length} serie`}
           />
         </div>
         <div>
@@ -255,7 +259,7 @@ export function Passo12({
           <Alert
             color="red"
             variant="light"
-            title="Da sistemare prima dell'invio"
+            title="Cosa manca per inviare la campagna?"
           >
             <ul style={{ margin: 0, paddingLeft: 18 }}>
               {blocchi.map((b) => (

@@ -66,7 +66,11 @@ export function Passo11({
       await creaGruppo(campagna.id, { origine: "caricate" });
       await onCambiata(campagna);
     } catch (e) {
-      setErrore(e instanceof ApiErrore ? e.dettaglio : "Errore inatteso.");
+      setErrore(
+        e instanceof ApiErrore
+          ? e.dettaglio
+          : "Impossibile completare l’operazione. Riprova.",
+      );
     }
   };
 
@@ -94,18 +98,18 @@ export function Passo11({
         11 · FOTO DELLA CAMPAGNA
       </Text>
       <Title order={2} mt={4}>
-        Le foto di questo periodo
+        Quali foto vuoi usare in questo periodo?
       </Title>
       <Text c="dimmed" size="sm" mt={4} mb="md">
         {campagna.titolo} · {campagna.inizio} → {campagna.fine} ·{" "}
         {(campagna.canali ?? []).join(", ")}
       </Text>
       <Alert color="verde" variant="light" mb="lg">
-        Le foto si caricano a gruppi: da 1 a 20 per gruppo, con una descrizione.
-        Sono facoltative: per i post che le foto non coprono creiamo un'immagine
-        con l'AI, e i post che hai scelto escono sempre tutti. Se le foto sono
-        di più, usiamo le migliori. JPG, PNG o WEBP, fino a {MAX_MB} MB, lato
-        corto di almeno {MIN_LATO} px.
+        Riunisci da 1 a 20 foto che vuoi raccontare insieme. Puoi anche
+        proseguire senza foto: per i post mancanti creiamo un’immagine con l'AI,
+        e i post che hai scelto escono sempre tutti. Se le foto sono di più,
+        usiamo le migliori. JPG, PNG o WEBP, fino a {MAX_MB} MB, lato corto di
+        almeno {MIN_LATO} px.
       </Alert>
       <Stack gap="lg">
         {campagna.gruppi.map((g, i) => (
@@ -124,11 +128,11 @@ export function Passo11({
           </Alert>
         )}
         <Button variant="outline" color="verde" onClick={aggiungiGruppo}>
-          + Aggiungi un gruppo di foto
+          + Aggiungi una serie di foto
         </Button>
         <Group gap="lg">
           <Text size="sm" c="dimmed">
-            <b>{campagna.gruppi.length}</b> gruppi
+            <b>{campagna.gruppi.length}</b> serie
           </Text>
           <Text size="sm" c="dimmed">
             <b>{nFoto}</b> foto in totale
@@ -176,7 +180,11 @@ function GruppoEditor({
       await azione();
       await onCambiata(campagna);
     } catch (e) {
-      onErrore(e instanceof ApiErrore ? e.dettaglio : "Errore inatteso.");
+      onErrore(
+        e instanceof ApiErrore
+          ? e.dettaglio
+          : "Impossibile completare l’operazione. Riprova.",
+      );
     }
   };
 
@@ -211,7 +219,7 @@ function GruppoEditor({
     <Paper withBorder radius="md" p="md" bg="var(--mantine-color-body)">
       <Group justify="space-between" mb="sm">
         <Text ff="monospace" size="xs" c="dimmed">
-          Gruppo {numero} · {gruppo.foto.length} foto
+          Serie di foto {numero} · {gruppo.foto.length} foto
         </Text>
         <Text
           size="xs"
@@ -221,7 +229,7 @@ function GruppoEditor({
           onClick={() => gira(() => eliminaGruppo(campagna.id, gruppo.id))}
           style={{ background: "none", border: "none", cursor: "pointer" }}
         >
-          Rimuovi gruppo
+          Rimuovi queste foto
         </Text>
       </Group>
       <Group gap="xs" mb="sm" align="flex-start">
@@ -253,7 +261,7 @@ function GruppoEditor({
       </Group>
       <Stack gap="sm">
         <Textarea
-          label="Descrizione o richieste per queste foto"
+          label="Cosa mostrano queste foto e cosa vuoi raccontare?"
           required
           minRows={2}
           value={descrizione}
@@ -261,12 +269,12 @@ function GruppoEditor({
           onBlur={() => salvaCampo({ descrizione })}
           error={
             !descrizione.trim() && gruppo.foto.length > 0
-              ? "La descrizione manca."
+              ? "Racconta cosa mostrano queste foto."
               : undefined
           }
         />
         <TextInput
-          label="Da usare verso il (facoltativa)"
+          label="C’è un giorno in cui vuoi che escano? (facoltativo)"
           type="date"
           min={campagna.inizio}
           max={campagna.fine}
@@ -275,7 +283,7 @@ function GruppoEditor({
             setDaUsareIl(e.currentTarget.value);
             salvaCampo({ da_usare_il: e.currentTarget.value || null });
           }}
-          description="Solo se le foto riguardano una data precisa, dentro il periodo della campagna."
+          description="Puoi indicare una data preferita nel periodo della campagna. Le date dei post le propone l’AI."
         />
       </Stack>
     </Paper>

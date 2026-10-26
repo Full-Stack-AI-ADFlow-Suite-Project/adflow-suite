@@ -39,7 +39,8 @@ export function Sposta({
     >
       <Stack gap="sm">
         <Text size="sm" c="dimmed">
-          Dentro il periodo della campagna, almeno 15 minuti da adesso.
+          La nuova data deve rientrare nella campagna ed essere tra almeno 15
+          minuti.
         </Text>
         <TextInput
           type="datetime-local"

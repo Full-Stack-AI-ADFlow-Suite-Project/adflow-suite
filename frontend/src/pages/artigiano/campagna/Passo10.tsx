@@ -90,17 +90,17 @@ export function Passo10({
 
   const valida = (): boolean => {
     const e: Record<string, string> = {};
-    if (!titolo.trim()) e.titolo = "Il nome non può essere vuoto.";
+    if (!titolo.trim()) e.titolo = "Dai un nome alla tua campagna.";
     if (giorniTra(dataISO(0), inizio) < 4)
-      e.inizio = "L'inizio deve cadere almeno 3 giorni dopo oggi.";
-    if (durata < 7) e.fine = "La campagna dura almeno 7 giorni.";
-    if (durata > 92) e.fine = "La campagna dura al massimo 3 mesi.";
+      e.inizio = "Scegli una data di inizio almeno 3 giorni dopo oggi.";
+    if (durata < 7) e.fine = "Scegli un periodo di almeno 7 giorni.";
+    if (durata > 92) e.fine = "Scegli un periodo di massimo 3 mesi.";
     const collegati = canali.filter((c) => c.collegato).map((c) => c.canale);
     if (!scelti.length) e.canali = "Scegli almeno un canale.";
     else if (!scelti.every((c) => collegati.includes(c)))
       e.canali = "Un canale scelto non è collegato: contatta il consorzio.";
     if (!descrizione.trim())
-      e.descrizione = "La descrizione non può essere vuota.";
+      e.descrizione = "Racconta cosa vuoi far conoscere con questa campagna.";
     setErrori(e);
     return Object.keys(e).length === 0;
   };
@@ -126,11 +126,11 @@ export function Passo10({
         10 · DURATA E CANALI
       </Text>
       <Title order={2} mt={4} mb="md">
-        Di che campagna si tratta
+        Cosa vuoi far conoscere con questa campagna?
       </Title>
       <Stack gap="md">
         <TextInput
-          label="Nome della campagna"
+          label="Come vuoi chiamare la campagna?"
           required
           value={titolo}
           error={errori.titolo}
@@ -139,7 +139,7 @@ export function Passo10({
         />
         <SimpleGrid cols={{ base: 1, sm: 2 }}>
           <TextInput
-            label="Inizio"
+            label="Quando vuoi iniziare?"
             type="date"
             required
             min={dataISO(3)}
@@ -148,7 +148,7 @@ export function Passo10({
             onChange={(e) => setInizio(e.currentTarget.value)}
           />
           <TextInput
-            label="Fine"
+            label="Quando vuoi concludere?"
             type="date"
             required
             min={inizio}
@@ -187,7 +187,7 @@ export function Passo10({
         </Group>
         <div>
           <Text size="sm" fw={500} mb={6}>
-            Canali di questa campagna *
+            Su quali social vuoi far uscire i post? *
           </Text>
           <Group gap="xs">
             {canali.map((c) =>
@@ -222,12 +222,12 @@ export function Passo10({
             </Text>
           )}
           <Text size="xs" c="dimmed" mt={6}>
-            La pagina propone i canali del profilo; si possono scegliere solo
-            quelli collegati. La frequenza del profilo vale per ogni canale.
+            Ritrovi i social scelti nel profilo: puoi usare quelli collegati. Il
+            numero di post a settimana vale per ciascun social.
           </Text>
         </div>
         <Textarea
-          label="Descrizione e commenti della campagna"
+          label="Cosa vuoi raccontare ai tuoi clienti in questo periodo?"
           required
           minRows={3}
           value={descrizione}

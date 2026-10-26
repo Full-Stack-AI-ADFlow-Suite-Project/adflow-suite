@@ -171,7 +171,7 @@ export function AzioniPost({
       )}
       {rigenerazioniFinite && (
         <Text size="xs" c="dimmed">
-          Le 3 rigenerazioni sono finite: resta la modifica a mano.
+          Limite di 3 rigenerazioni raggiunto. È disponibile la modifica a mano.
         </Text>
       )}
       {ammessi.length === 0 &&
@@ -179,7 +179,7 @@ export function AzioniPost({
         post.stato === "approvato" &&
         approvata && (
           <Text size="xs" c="dimmed">
-            Esce tra meno di 15 minuti: non si tocca più.
+            Pubblicazione tra meno di 15 minuti: modifiche non più disponibili.
           </Text>
         )}
 
