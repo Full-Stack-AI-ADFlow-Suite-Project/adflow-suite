@@ -1,4 +1,4 @@
-# Brief · Corsia 7 · Pagine, archivio foto e calendario (T3-71…T3-79)
+# Brief · Corsia 7 · Pagine, archivio foto e calendario (T3-71…T3-78)
 
 Per chi fa un task della corsia 7. Decisione: ADR-117. Leggi prima `constitution.md` e `perimetro-mvp.md` (blocco H), poi **solo** la sezione del tuo task qui sotto e le regole che cita. Firme, messaggi d'errore e schemi di questa pagina sono il contratto tra i task: non cambiarli senza chiedere. Dove il codice di `main` è diverso da come è descritto qui, fermati e chiedi.
 
@@ -11,7 +11,7 @@ Per chi fa un task della corsia 7. Decisione: ADR-117. Leggi prima `constitution
 - Un branch `feature/<id>-<breve>` da `main`; fai solo il tuo task; tocca i file elencati e i loro test. Se ti serve un file che non è nell'elenco, fermati e chiedi.
 - **Nessuna migrazione, nessuna libreria nuova (né nel backend né nel frontend), nessun file in `core/`.** La foto ha già `profilo_id` e `campagna_id`: l'archivio è una lettura, non una tabella nuova.
 - Il codice congelato resta congelato: `campagne/archivio.py`, le rotte `/archivio` e la sezione Archivio del passo 7 non si toccano.
-- **Nessun cambio di stile**: le pagine nuove usano il tema e i componenti di oggi (`tema.ts`, `index.css`, `Guscio`). Palette, caratteri e restyling sono il lavoro dedicato T3-79.
+- **Nessun cambio di stile**: le pagine nuove usano il tema e i componenti di oggi (`tema.ts`, `index.css`, `Guscio`). Palette, caratteri e restyling sono la corsia 8 (ADR-118, `brief-interfaccia.md`).
 - Messaggi in italiano, esattamente quelli di questa pagina; codici solo tra quelli di costituzione §4.
 - Test su PostgreSQL con le fixture di plan §7 e le fabbriche; il nome porta il CA (`test_ca92_…`). Nessuna chiamata reale ad AI, social o email.
 - Fatto quando, per ogni task di backend: `uv run alembic upgrade head`, `uv run pytest`, `uv run black --check .` verdi da `backend/`, `tests/test_confini.py` compreso. Per ogni task di frontend: `npm run lint` e `npm run build` puliti da `frontend/`, screenshot nella PR. Poi la checklist di `converge.md` §1 e la casella del task in `tasks.md`.
@@ -271,15 +271,9 @@ class CalendarioSettimana(BaseModel):
 
 ---
 
-## T3-79 · Restyling grafico (lavoro dedicato)
+## T3-79 · Restyling grafico
 
-**Leggi**: ADR-113, ADR-117.
-
-Un solo lavoro per tutto lo stile: palette, caratteri, componenti di base, barra laterale, nelle pagine dell'app (`tema.ts`, `index.css`, i `.module.css`) e nelle pagine statiche (`docs/pagine/assets/adflow.css`) insieme, così app e riferimento restano uguali. **Nessun cambio di comportamento**: rotte, testi, campi e chiamate restano quelli di prima.
-
-**Prima di partire**: il referente dei file comuni fissa palette, caratteri e pagine da toccare; il task si aggiorna qui con quelle scelte. Fino ad allora non è pronto.
-
-**Fatto quando**: tutte le pagine con lo stesso stile, app e pagine statiche; build e lint puliti; screenshot prima e dopo di ogni pagina nella PR.
+Passato alla corsia 8 (ADR-118): `brief-interfaccia.md`.
 
 ---
 
@@ -288,9 +282,8 @@ Un solo lavoro per tutto lo stile: palette, caratteri, componenti di base, barra
 1. **Backend**: T3-71, T3-72, T3-73, uno alla volta, ognuno con la sua PR.
 2. **Frontend**: T3-74 subito (non aspetta il backend); T3-75, T3-76, T3-77 con i dati di esempio finché il loro endpoint non è su `main`.
 3. **T3-78** quando tutti sono su `main`.
-4. **T3-79** dopo T3-78, con le scelte del referente.
 
-Date: lavoro dal 22 al 27/10, tutto su `main` entro il **28/10**; ciò che il 28/10 non è su `main` resta fuori dall'MVP e la sua parte di regole torna com'era (ADR-117). T3-79 entro il 30/10, blocco del codice, oppure resta fuori.
+Date: lavoro dal 22 al 27/10, tutto su `main` entro il **28/10**; ciò che il 28/10 non è su `main` resta fuori dall'MVP e la sua parte di regole torna com'era (ADR-117).
 
 ## 3. Fuori da questi task (ADR-117, `docs/ROADMAP.md`)
 

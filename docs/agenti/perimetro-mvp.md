@@ -1,6 +1,6 @@
 # Perimetro MVP
 
-Decisione ADR-114 del 13/10/2026, approvata dal team, aggiornata con ADR-116 del 16/10/2026 (interventi dopo l'approvazione e richiesta all'artigiano: righe B1, B5, B8–B10, C3 e pagine statiche) e con ADR-117 del 21/10/2026 (pagine dell'artigiano e dell'operatore, archivio foto, calendario settimanale: blocco H, riga E1 e pagine statiche). Consegna e pitch il **6 novembre 2026**; codice bloccato il **30 ottobre**.
+Decisione ADR-114 del 13/10/2026, approvata dal team, aggiornata con ADR-116 del 16/10/2026 (interventi dopo l'approvazione e richiesta all'artigiano: righe B1, B5, B8–B10, C3 e pagine statiche) e con ADR-117 del 21/10/2026 (pagine dell'artigiano e dell'operatore, archivio foto, calendario settimanale: blocco H, riga E1 e pagine statiche) e con ADR-118 del 26/10/2026 (interfaccia ed esperienza d'uso: blocco I, riga H7). Consegna e pitch il **6 novembre 2026**; codice bloccato il **30 ottobre**.
 Questa pagina dice che cosa entra nell'MVP. Dove `spec.md`, `plan.md` o `tasks.md` non tornano con questa pagina, vale questa pagina.
 
 | Decisione | Significato |
@@ -69,9 +69,23 @@ In ogni caso il piano esce completo e l'operatore approva o respinge.
 | H4 | Archivio foto (R-47) | Task MVP | Vista in sola lettura, per l'artigiano e per l'operatore, a blocchi per campagna: foto caricate e immagini AI (all'artigiano solo quelle delle campagne approvate). L'archivio come rimpiazzo nel piano (A10) e l'archivio modificabile restano congelati. Nessuna migrazione: la foto ha già profilo e campagna |
 | H5 | Calendario settimanale (R-48) | Task MVP | Vedi E1 |
 | H6 | Pagine in comune | Task MVP | Campagne, archivio foto e calendario sono lo stesso componente per i due ruoli, con pulsanti e funzioni diversi |
-| H7 | Restyling grafico | Task MVP | Un lavoro dedicato (T3-79), separato dalle pagine nuove, per l'app e le pagine statiche insieme; nessun cambio di comportamento |
+| H7 | Restyling grafico | Task MVP (ADR-118) | Passato al blocco I, corsia 8 |
 
-Blocco H: ciò che il 28/10 non è su `main` resta fuori dall'MVP e la sua parte di regole torna com'era; T3-79 entro il 30/10 o resta fuori (ADR-117).
+Blocco H: ciò che il 28/10 non è su `main` resta fuori dall'MVP e la sua parte di regole torna com'era (ADR-117).
+
+## I · Interfaccia ed esperienza d'uso (ADR-118)
+
+| ID | Tema (regole) | Decisione | Nell'MVP |
+|---|---|---|---|
+| I1 | Scelte d'uso e visive | Task MVP | Le fa chi sviluppa con la guida di `brief-interfaccia.md` (funzione, criteri, possibilità reali, la prima sempre "com'è oggi"); le approva il referente dei file comuni (T3-81, T3-82). Nessuna palette, carattere o paradigma deciso in anticipo |
+| I2 | Stile di app e pagine statiche | Task MVP | Tema, caratteri, componenti di base e icone, nell'app e in `adflow.css` insieme; cambiano i valori, non i nomi dei colori e delle variabili (T3-83). Al massimo una libreria nuova, di icone |
+| I3 | Testi | Task MVP | Testi visibili scritti nel frontend, con il tono scelto; restano i testi fissi di `brief-interfaccia.md` §1.4 (T3-84) |
+| I4 | Layout e telefono | Task MVP | Le pagine e le larghezze scelte, prima il percorso della demo dell'artigiano; solo proprietà visive e CSS (T3-85) |
+| I5 | Prova con due persone | Task MVP | Tre compiti sul telefono; correzioni solo di stile o testo (T3-86) |
+| I6 | Comportamento | Mantieni | Backend, rotte, chiamate, campi, validazioni, condizioni, stati, ordine di sezioni e passi: invariati |
+| I7 | Anteprima dei post per l'artigiano, ripensamento dei percorsi, testi fissi, tema scuro | Roadmap | — |
+
+Blocco I: ciò che il 30/10 non è su `main` resta com'è oggi (ADR-118).
 
 ## G · Deliverable della traccia
 

@@ -13,7 +13,8 @@ Lo sprint di lavoro è lo **Sprint 3 · MVP** (ADR-114, `perimetro-mvp.md`): con
 | 4 · Meta | Nilton | Pagina di prova, adattatore Meta, pubblicazione reale |
 | 5 · Frontend | Angelo | Vedi campagna e pagina Campagna ridotte all'MVP, calendario, nuovo artigiano |
 | 6 · Interventi e richiesta all'artigiano | Giovanni | ADR-116: interventi sul post dopo l'approvazione, cambia foto e sposta, sospendi e riattiva, richiesta all'artigiano (`brief-interventi.md`) |
-| 7 · Pagine, archivio foto e calendario | Giovanni | ADR-117: ingresso e campagne dell'artigiano, pagine degli artigiani per l'operatore, archivio foto in sola lettura, calendario settimanale, restyling grafico dedicato (`brief-pagine.md`) |
+| 7 · Pagine, archivio foto e calendario | Giovanni | ADR-117: ingresso e campagne dell'artigiano, pagine degli artigiani per l'operatore, archivio foto in sola lettura, calendario settimanale (`brief-pagine.md`); il restyling è passato alla corsia 8 |
+| 8 · Interfaccia ed esperienza d'uso | da assegnare | ADR-118: scelte d'uso e visive fatte da chi sviluppa con la guida di `brief-interfaccia.md`, tema, testi, layout e telefono, prova con due persone, senza cambi di comportamento |
 
 Nelle tabelle le aree si chiamano ancora "Corsia", perché `allinea.py` le legge così.
 
@@ -30,7 +31,7 @@ Nelle tabelle le aree si chiamano ancora "Corsia", perché `allinea.py` le legge
 
 **Ordine.** T3-01 apre lo sprint. Senza aspettarlo partono T3-02, T3-03, T3-11, T3-12, T3-21, T3-31, T3-41, T3-53 e T3-54; gli altri quando ciò che sta in "Dipende da" è su `main`. CA dello sprint: quelli di spec §6.
 
-**Date.** T3-31 entro il 16/10 e la prova su 10 post (T3-32) entro il 20/10. Meta (T3-41) parte il 14/10; se Instagram non pubblica entro il 23/10 resta simulato (D1). Corsia 6 (ADR-116): una persona, un task alla volta nell'ordine di `brief-interventi.md` §2; tutto su `main` entro il 24/10, prima di T3-08 parte 2, altrimenti ciò che manca resta fuori. Corsia 7 (ADR-117): una persona, un task alla volta nell'ordine di `brief-pagine.md` §2; lavoro dal 22 al 27/10, tutto su `main` entro il 28/10, altrimenti ciò che manca resta fuori; T3-79 entro il 30/10. Codice bloccato il 30/10; dal 2 al 6/11 solo correzioni, slide, video e prove.
+**Date.** T3-31 entro il 16/10 e la prova su 10 post (T3-32) entro il 20/10. Meta (T3-41) parte il 14/10; se Instagram non pubblica entro il 23/10 resta simulato (D1). Corsia 6 (ADR-116): una persona, un task alla volta nell'ordine di `brief-interventi.md` §2; tutto su `main` entro il 24/10, prima di T3-08 parte 2, altrimenti ciò che manca resta fuori. Corsia 7 (ADR-117): una persona, un task alla volta nell'ordine di `brief-pagine.md` §2; lavoro dal 22 al 27/10, tutto su `main` entro il 28/10, altrimenti ciò che manca resta fuori. Corsia 8 (ADR-118): nell'ordine di `brief-interfaccia.md` §5, dal 26 al 30/10; ciò che il 30/10 non è su `main` resta com'è oggi. Codice bloccato il 30/10; dal 2 al 6/11 solo correzioni, slide, video e prove.
 
 ### Corsia 0 · Comune e deliverable (tutto il team)
 
@@ -115,7 +116,21 @@ Ogni task ha in `brief-pagine.md` i file da toccare e da non toccare, le firme, 
 | T3-76 | **Archivio foto, frontend**: un componente per i due ruoli | `brief-pagine.md` §1 e §T3-76; `docs/pagine/AdFlow-archivio-foto.html` | T3-70 | build e lint puliti; dati di esempio finché T3-72 non è su `main`, poi API vere; screenshot nella PR | ☑ |
 | T3-77 | **Calendario settimanale, frontend**: griglia fatta a mano per i due ruoli, Questa settimana nell'Ingresso | `brief-pagine.md` §1 e §T3-77; `docs/pagine/AdFlow-calendario.html` | T3-74 | build e lint puliti; dati di esempio finché T3-73 non è su `main`, poi API vere; screenshot nella PR | ☑ |
 | T3-78 | **Prova della corsia 7**: test di percorso e percorso a mano in due finestre, operatore e artigiano | `brief-pagine.md` §T3-78; converge §4 | T3-71, T3-72, T3-73, T3-74, T3-75, T3-76, T3-77 | CA-99 verde; passi della demo di converge §4 senza errori; screenshot nella PR | ☑ |
-| T3-79 | **Restyling grafico**, lavoro dedicato: palette, caratteri e componenti dell'app e delle pagine statiche insieme, senza cambi di comportamento; parte con le scelte del referente | `brief-pagine.md` §T3-79; ADR-113, ADR-117 | T3-78 | tutte le pagine con lo stesso stile; build e lint puliti; screenshot prima e dopo nella PR | ☐ |
+
+### Corsia 8 · Interfaccia ed esperienza d'uso (da assegnare)
+
+`brief-interfaccia.md` non decide colori, caratteri né scelte d'uso: guida chi sviluppa a farle, con la funzione di ogni scelta e possibilità reali già pronte. Il suo §1 dice che cosa non si tocca e vale per ogni task; poi si legge la sezione del proprio task. Nessun cambio di comportamento: rotte, campi, chiamate, stati e messaggi del backend restano quelli di prima.
+
+| ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
+|---|---|---|---|---|---|
+| T3-80 | **Preparazione della corsia 8** (ADR-118): perimetro (riga H7 e blocco I), `brief-interfaccia.md`, i task, T3-79 tolto dalla corsia 7, `allinea.py` con la corsia 8. Il referente con Claude | ADR-118; `perimetro-mvp.md` | T3-78 | documenti coerenti tra loro; `tests/test_allinea.py` verde; `allinea.py 8` stampa T3-81 pronto | ☑ |
+| T3-81 | **Scelte d'uso**: percorso della demo a 1280 e 375 px, poi modo d'uso per ruolo, schermi, gerarchia delle azioni e tono dei testi, scelti con la guida e scritti nel §4 | `brief-interfaccia.md` §2, §3 (S1, S2, S3, S8), §T3-81 | T3-80 | righe S1, S2, S3, S8 del §4 compilate e approvate dal referente; note e screenshot di oggi nella PR | ☐ |
+| T3-82 | **Scelte visive**: stile, palette, caratteri e icone provati su due pagine statiche di prova, scelti con la guida e scritti nel §4 con i valori esatti | `brief-interfaccia.md` §2, §3 (S4–S7), §T3-82 | T3-81 | righe S4–S7 del §4 compilate e approvate; valori esatti scritti; screenshot e contrasti nella PR | ☐ |
+| T3-83 | **Tema e componenti di base**: le scelte di S4–S7 nell'app e nelle pagine statiche insieme (assorbe T3-79) | `brief-interfaccia.md` §1, §T3-83; ADR-113 | T3-82 | app e pagine statiche con lo stesso stile; controllo del §1.5 senza risultati; build e lint puliti; screenshot prima e dopo di ogni pagina della mappa | ☐ |
+| T3-84 | **Testi**: inventario e riscrittura dei testi visibili con il tono di S8, nell'app e nelle pagine statiche, senza i testi fissi | `brief-interfaccia.md` §1.4, §T3-84 | T3-81 | tabella prima → dopo nella PR; testi fissi invariati; controllo del §1.5 senza risultati; build e lint puliti | ☐ |
+| T3-85 | **Layout e telefono**: le scelte di S1, S2 e S3 sulle pagine, prima il percorso della demo dell'artigiano | `brief-interfaccia.md` §1.2, §T3-85 | T3-83, T3-84 | percorso della demo dell'artigiano senza scorrimento orizzontale alle larghezze di S2; 1280 px come dopo T3-83; controllo del §1.5 senza risultati; screenshot nella PR | ☐ |
+| T3-86 | **Prova con due persone** e correzioni piccole | `brief-interfaccia.md` §T3-86 | T3-85 | note della prova nella PR; correzioni solo di stile o testo, oppure in roadmap; controllo del §1.5 senza risultati | ☐ |
+| T3-87 | **Prova della corsia 8**: percorso della demo in due finestre, operatore a 1280 px e artigiano alle larghezze di S2, e controllo del §1.5 su tutta la corsia | `brief-interfaccia.md` §1.5, §T3-87; converge §4 | T3-83, T3-84, T3-85, T3-86 | passi 1–9 di converge §4 senza errori; testi fissi invariati; screenshot prima e dopo di ogni pagina della demo | ☐ |
 
 ## Dopo l'MVP
 

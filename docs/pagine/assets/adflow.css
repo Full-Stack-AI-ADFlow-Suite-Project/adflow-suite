@@ -2785,7 +2785,7 @@ textarea.form-input {
 }
 
 /* Corsia 7 (ADR-117): componenti nuovi, con i colori e i caratteri di oggi.
-   Il restyling è un lavoro a parte (T3-79). */
+   Il restyling è la corsia 8 (ADR-118, brief-interfaccia.md). */
 .status-pill.ig {
   background: var(--ig-pink-light);
   color: var(--ig-pink);
