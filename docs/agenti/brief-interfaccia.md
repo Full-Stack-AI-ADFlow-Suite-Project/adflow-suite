@@ -304,12 +304,85 @@ Si compila in T3-81 (S1, S2, S3, S8) e in T3-82 (S4–S7). Il referente approva 
 | S2 · Schermi e pagine | **L2 · Tutto l'artigiano a 375 px e 1280 px; operatore a 1280 px** · Copertura completa a 375 px e 1280 px per Accesso, Ingresso, Campagna (passi 10–12, viste per stato, `RichiestaConsorzio`), Profilo bottega (passi 1–9), Campagne, Archivio foto e Calendario: barra su telefono raccolta con `Burger` e `useDisclosure`; padding dei `Paper`/`Card` responsivo (`p={{ base: "md", sm: "xl" }}`); input e `Textarea` con `font-size ≥ 16 px` (niente zoom automatico su iOS); pulsanti di fine passo (`← Torna a…` e azione principale) impilati a 375 px; `RigaFoto` in `RichiestaConsorzio` che va a capo senza stringere il `FileInput` | L'artigiano può fare tutto dal telefono, dal primo accesso fino all'archivio e al calendario, senza mai dover allargare con due dita o scorrere in orizzontale. | Giovanni, 26/10/2026 |
 | S3 · Gerarchia delle azioni | **G3 · Uno pieno, gli altri leggeri, azioni distruttive in rosso** · Un solo pulsante `variant="filled"` per schermata (`Entra`, `Rispondi →` o `+ Nuova campagna`, `Continua →`, `Vai al riepilogo →`, `Invia all'operatore`, `Invia al consorzio`, `Approva N post` / `Riprova`), `fullWidth` sul telefono; azioni secondarie con `variant="light"` o `"subtle"`; azioni distruttive o di blocco (`Respingi` in `Decidi.tsx`, `Annulla il post` in `AzioniPost.tsx`, `Annulla la campagna` e `Sospendi` in `AzioniCampagna.tsx`) passate da `variant="default"` (che in Mantine ignora `color="red"`) a `color="red"` (o `"yellow"` per `Sospendi`) con `variant="light"` | Chi usa l'app riconosce subito il passo avanti e non rischia di premere per errore Respingi o Annulla, che oggi hanno lo stesso aspetto grigio dei pulsanti normali. | Giovanni, 26/10/2026 |
 | S8 · Tono dei testi | **T3 (con T1 per l'artigiano)** · Nelle pagine dell'artigiano le etichette tecniche (`Descrizione del gruppo`, `Da usare verso il`, `Descrizione e commenti della campagna`, `Logistica`, `Da sistemare prima dell'invio`) diventano domande dirette al «tu» con parole della bottega e una riga sul perché serve il dato; nelle pagine dell'operatore pulizia asciutta dei testi guida e uniformazione dei messaggi d'errore («Non sono riuscito/a…» → forma impersonale chiara). Testi fissi (§1.4) invariati | L'artigiano sente di parlare con una persona del consorzio anziché compilare un database, e l'operatore legge indicazioni brevi e uniformi. | Giovanni, 26/10/2026 |
-| S4 · Stile visivo | | | |
-| S5 · Palette | | | |
-| S6 · Caratteri | | | |
-| S7 · Icone | | | |
+| S4 · Stile visivo | **V2 + V3 · Istituzionale naturale («consorzio») a riquadri** · Fondo avorio caldo (`#F7F5EF`), card bianche (`#FFFFFF`) con bordi morbidi color pietra (`#DDD6C7`), raggi armonizzati (`sm: 6px`, `md: 10px`, `lg: 14px`) e ombre calde leggere (`rgba(31, 42, 36, 0.05)`); marchio `.marcaIcona` unificato tra artigiano e operatore col gradiente verde bosco (`blu[5] → blu[7]`) al posto del blu/smeraldo disallineati di oggi; focus ring `2px solid var(--primary)` su tutti gli elementi interattivi | Trasmette la solidità di uno strumento del consorzio nelle tabelle dell'operatore e il calore naturale della bottega sugli schermi dell'artigiano. | Giovanni, 26/10/2026 |
+| S5 · Palette | **P2 · Legno e bosco** · Primario verde bosco `#2F5D46` (`blu[6]`, con alias `verde: blu` mantenuto per compatibilità col codice), fondo avorio `#F7F5EF` (`gray[0]`), testo antracite caldo `#1F2A24` (`gray[9]`), testo secondario `#474239` (`gray[7]`) e attenuato `#635D52` (`gray[6]`, portato a contrasto `5,99:1` su avorio e `6,53:1` su bianco), accento noce `#7A5230`; il verde di stato (`green`, «In corso» / «Pubblicato») resta smeraldo brillante (`#16A34A` / `#15803D` su `#DCFCE7`) per distinguersi dal verde bosco dei pulsanti | Richiama la materia prima del lavoro artigiano e garantisce contrasti WCAG AA/AAA su ogni combinazione di testo, bordo e pulsante, anche sul telefono in bottega. | Giovanni, 26/10/2026 |
+| S6 · Caratteri | **F2 · Source Sans 3 + JetBrains Mono** · Un solo carattere umanista (`Source Sans 3`, pesi `400, 500, 600, 700`, licenza SIL OFL 1.1) per titoli e testo, più `JetBrains Mono` (`400, 500`, OFL) per numeri, date, orari e costi AI; caricato da Google Fonts in `frontend/index.html` e `adflow.css`, senza pacchetti npm | Caldo e aperto nelle domande all'artigiano ma nitidissimo a `14–16 px` nelle tabelle dense dell'operatore, con distinzione netta tra `I`, `l`, `1` e `0`, `O`. | Giovanni, 26/10/2026 |
+| S7 · Icone | **I1 · SVG inline** · Lo stesso set di icone SVG lineari (`stroke-width="2"`, `viewBox="0 0 24 24"`, `aria-hidden="true"`) già usato in `Guscio.tsx` e nelle pagine statiche, senza aggiungere dipendenze a `frontend/package.json` | Aiuta a riconoscere al volo voci e sezioni mantenendo zero dipendenze esterne e zero rischio per la build. | Giovanni, 26/10/2026 |
 
-**Valori esatti** (T3-82, dopo l'approvazione): le 10 tinte di ogni colore, i caratteri con i pesi e il `<link>`, la libreria di icone con la versione e la licenza.
+### Valori esatti (T3-82, approvati per T3-83)
+
+**1. Tuple a 10 tinte per `frontend/src/tema.ts` (i nomi `blu`, `verde` e `gray` restano invariati, §1.3):**
+
+```ts
+// Primario: verde bosco (#2f5d46 all'indice 6, primaryShade = 6)
+const blu: MantineColorsTuple = [
+  "#eef5f1", // 0 · --primary-light
+  "#d9e9df", // 1
+  "#b8d5c4", // 2 · --primary-border
+  "#8ebba2", // 3
+  "#5f9a7a", // 4
+  "#3f7a5b", // 5 · --border-focus / gradiente marchio inizio
+  "#2f5d46", // 6 · --primary
+  "#254b38", // 7 · --primary-hover / gradiente marchio fine
+  "#1d3b2c", // 8
+  "#152b20", // 9
+];
+
+// Grigi caldi: avorio, pietra e antracite bosco
+const gray: MantineColorsTuple = [
+  "#f7f5ef", // 0 · --bg-app
+  "#efeae0", // 1 · --bg-surface-subtle
+  "#e6e0d4", // 2 · --border-subtle
+  "#ddd6c7", // 3 · --border-hairline
+  "#c7bfb0", // 4 · --border-strong
+  "#8c8578", // 5 · --text-faint
+  "#635d52", // 6 · --text-muted
+  "#474239", // 7 · --text-secondary
+  "#2c352f", // 8
+  "#1f2a24", // 9 · --text-main / black
+];
+```
+
+- **Accento noce** (per bordi/dettagli caldi in `adflow.css`): `#7a5230`.
+- **Colori dei marchi social** (invariati, §1.3): `--fb-blue: #1877f2`, `--ig-pink: #e1306c`.
+- **Colori di stato** (invariati e ben distinti dal primario `#2f5d46`): successo `#16a34a` (`#15803d` su `#dcfce7`), avviso `#d97706` (`#b45309` su `#fef3c7`), errore `#dc2626` (`#b91c1c` su `#fee2e2`), info `#0284c7` (`#0369a1` su `#e0f2fe`).
+
+**2. Verifica dei contrasti (formula WCAG 2.1):**
+
+| Coppia (primo piano su sfondo) | Valori esadecimali | Contrasto | Soglia WCAG 2.1 | Esito |
+|---|---|---:|---:|---|
+| Primario `blu[6]` su fondo `gray[0]` | `#2F5D46` su `#F7F5EF` | **6,94 : 1** | 4,5 : 1 (AA) | Supera AA |
+| Bianco su primario `blu[6]` (pulsante pieno) | `#FFFFFF` su `#2F5D46` | **7,57 : 1** | 4,5 : 1 (AA) | Supera AAA |
+| Bianco su primario hover `blu[7]` | `#FFFFFF` su `#254B38` | **9,80 : 1** | 4,5 : 1 (AA) | Supera AAA |
+| `blu[7]` su `blu[0]` (voce attiva / badge light) | `#254B38` su `#EEF5F1` | **8,85 : 1** | 4,5 : 1 (AA) | Supera AAA |
+| Testo principale `gray[9]` su fondo `gray[0]` | `#1F2A24` su `#F7F5EF` | **13,61 : 1** | 4,5 : 1 (AA) | Supera AAA |
+| Testo secondario `gray[7]` su fondo `gray[0]` | `#474239` su `#F7F5EF` | **9,15 : 1** | 4,5 : 1 (AA) | Supera AAA |
+| Testo attenuato `gray[6]` su fondo `gray[0]` | `#635D52` su `#F7F5EF` | **5,99 : 1** | 4,5 : 1 (AA) | Supera AA |
+| Testo attenuato `gray[6]` su card bianca | `#635D52` su `#FFFFFF` | **6,53 : 1** | 4,5 : 1 (AA) | Supera AA |
+| Accento noce su fondo `gray[0]` | `#7A5230` su `#F7F5EF` | **6,26 : 1** | 4,5 : 1 (AA) | Supera AA |
+
+**3. Caratteri (Google Fonts, licenza SIL Open Font License 1.1, nessun pacchetto npm):**
+
+- `<link>` per `frontend/index.html`:
+  ```html
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Source+Sans+3:wght@400;500;600;700&display=swap"
+    rel="stylesheet"
+  />
+  ```
+- `@import` per `docs/pagine/assets/adflow.css`:
+  ```css
+  @import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Source+Sans+3:wght@400;500;600;700&display=swap");
+  ```
+- Catene tipografiche in `tema.ts` e `adflow.css`:
+  - `fontFamily` e `headings.fontFamily`: `"Source Sans 3", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif`
+  - `fontFamilyMonospace`: `"JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, monospace`
+
+**4. Icone (`I1 · SVG inline`):**
+- Nessuna libreria esterna in `frontend/package.json`.
+- SVG inline con `viewBox="0 0 24 24"`, `fill="none"`, `stroke="currentColor"`, `strokeWidth="2"`, `strokeLinecap="round"`, `strokeLinejoin="round"`, `aria-hidden="true"`, sempre affiancate a un testo visibile.
 
 ### Note del percorso della demo (1280 px e 375 px) e confronto (T3-81)
 
@@ -349,6 +422,20 @@ Si compila in T3-81 (S1, S2, S3, S8) e in T3-82 (S4–S7). Il referente approva 
 | **S8** · T1 Domande dirette (solo artigiano) | 3 | 3 | 3 | 3 | 3 |
 | **S8** · T2 Etichette brevi (solo artigiano) | 2 | 3 | 3 | 3 | 3 |
 | **S8** · **T3 Domande dirette per l'artigiano + pulizia operatore** | **3** | **3** | **3** | **2** | **3** |
+| **S4** · V0 SaaS essenziale (com'è oggi) | 2 | 2 | 3 | 3 | 3 |
+| **S4** · V1 + V3 Caldo editoriale («bottega») a riquadri | 3 (art.) | 3 | 2 | 2 | 3 |
+| **S4** · **V2 + V3 Istituzionale naturale («consorzio») a riquadri** | **3** | **3** | **3** | **3** | **3** |
+| **S5** · P0 Blu freddo (com'è oggi) | 1 | 2 | 3 | 3 | 3 |
+| **S5** · P1 Bottega (terracotta `#9A4422` su crema `#FBF7F2`) | 3 | 3 | 3 | 3 | 3 |
+| **S5** · **P2 Legno e bosco (verde bosco `#2F5D46` su avorio `#F7F5EF`)** | **3** | **3** | **3** | **3** | **3** |
+| **S5** · P3 Blu notte caldo (`#1F5A6B` su `#F8F6F1`) | 2 | 3 | 3 | 3 | 3 |
+| **S6** · F0 Inter + JetBrains Mono (com'è oggi) | 2 | 3 | 3 | 3 | 3 |
+| **S6** · F1 Fraunces + Source Sans 3 + JetBrains Mono | 2 | 2 | 2 | 2 | 3 |
+| **S6** · **F2 Source Sans 3 + JetBrains Mono** | **3** | **3** | **3** | **3** | **3** |
+| **S6** · F3 Nunito Sans + JetBrains Mono | 2 | 3 | 3 | 3 | 3 |
+| **S7** · I0 Nessuna icona aggiuntiva | 2 | 2 | 3 | 3 | 3 |
+| **S7** · **I1 SVG inline (`aria-hidden`, zero dipendenze)** | **3** | **3** | **3** | **3** | **3** |
+| **S7** · I2 Libreria `@tabler/icons-react` in `package.json` | 3 | 3 | 3 | 2 | 2 |
 
 ---
 
