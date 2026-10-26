@@ -299,17 +299,56 @@ Si compila in T3-81 (S1, S2, S3, S8) e in T3-82 (S4–S7). Il referente approva 
 
 | Punto | Scelta (sigla e, se serve, che cosa si cambia) | Perché, in una frase (anche per il pitch) | Approvata (referente, data) |
 |---|---|---|---|
-| S1 · Modo d'uso, artigiano | | | |
-| S1 · Modo d'uso, operatore | | | |
-| S2 · Schermi e pagine | | | |
-| S3 · Gerarchia delle azioni | | | |
-| S8 · Tono dei testi | | | |
+| S1 · Modo d'uso, artigiano | **U3 + U2 + U4** · Una sola azione principale per schermata (pulsante pieno e `fullWidth` sul telefono, bersagli di tocco `≥ 44 × 44 px`, inclusi `Rispondi →` nell'Ingresso e `×` sulle miniature foto nel passo 11); passi 1–9 e 10–12 impostati a domande guidate con titolo di passo evidente; nell'Ingresso e nelle Campagne massimo risalto visivo a «Il consorzio ti chiede…» e agli avvisi che chiedono un'azione rispetto a quelli solo informativi | L'artigiano usa l'app in bottega dal telefono: vede subito se il consorzio gli chiede qualcosa, risponde a domande semplici e ha sempre un solo pulsante chiaro da toccare. | Giovanni, 26/10/2026 |
+| S1 · Modo d'uso, operatore | **U1 + U4 + U5** · Doppia densità (spaziature compatte su PC nelle liste e nella barra decisionale per controllare più campagne senza scorrere a vuoto); urgenze, scadenza «Entro quando», blocchi `da_rivedere` e risposte dell'artigiano in evidenza immediata; `PostCard` (`AnteprimaPost`) rifinita come una vera anteprima social con larghezza flessibile (`w="100%" maw={360}` invece di `w={300} miw={280}` fisso) e fascia tecnica inferiore ben distinta | L'operatore lavora al PC su decine di post: a colpo d'occhio vede le scadenze e i blocchi e approva ogni post vedendolo già come uscirà su Facebook e Instagram. | Giovanni, 26/10/2026 |
+| S2 · Schermi e pagine | **L2 · Tutto l'artigiano a 375 px e 1280 px; operatore a 1280 px** · Copertura completa a 375 px e 1280 px per Accesso, Ingresso, Campagna (passi 10–12, viste per stato, `RichiestaConsorzio`), Profilo bottega (passi 1–9), Campagne, Archivio foto e Calendario: barra su telefono raccolta con `Burger` e `useDisclosure`; padding dei `Paper`/`Card` responsivo (`p={{ base: "md", sm: "xl" }}`); input e `Textarea` con `font-size ≥ 16 px` (niente zoom automatico su iOS); pulsanti di fine passo (`← Torna a…` e azione principale) impilati a 375 px; `RigaFoto` in `RichiestaConsorzio` che va a capo senza stringere il `FileInput` | L'artigiano può fare tutto dal telefono, dal primo accesso fino all'archivio e al calendario, senza mai dover allargare con due dita o scorrere in orizzontale. | Giovanni, 26/10/2026 |
+| S3 · Gerarchia delle azioni | **G3 · Uno pieno, gli altri leggeri, azioni distruttive in rosso** · Un solo pulsante `variant="filled"` per schermata (`Entra`, `Rispondi →` o `+ Nuova campagna`, `Continua →`, `Vai al riepilogo →`, `Invia all'operatore`, `Invia al consorzio`, `Approva N post` / `Riprova`), `fullWidth` sul telefono; azioni secondarie con `variant="light"` o `"subtle"`; azioni distruttive o di blocco (`Respingi` in `Decidi.tsx`, `Annulla il post` in `AzioniPost.tsx`, `Annulla la campagna` e `Sospendi` in `AzioniCampagna.tsx`) passate da `variant="default"` (che in Mantine ignora `color="red"`) a `color="red"` (o `"yellow"` per `Sospendi`) con `variant="light"` | Chi usa l'app riconosce subito il passo avanti e non rischia di premere per errore Respingi o Annulla, che oggi hanno lo stesso aspetto grigio dei pulsanti normali. | Giovanni, 26/10/2026 |
+| S8 · Tono dei testi | **T3 (con T1 per l'artigiano)** · Nelle pagine dell'artigiano le etichette tecniche (`Descrizione del gruppo`, `Da usare verso il`, `Descrizione e commenti della campagna`, `Logistica`, `Da sistemare prima dell'invio`) diventano domande dirette al «tu» con parole della bottega e una riga sul perché serve il dato; nelle pagine dell'operatore pulizia asciutta dei testi guida e uniformazione dei messaggi d'errore («Non sono riuscito/a…» → forma impersonale chiara). Testi fissi (§1.4) invariati | L'artigiano sente di parlare con una persona del consorzio anziché compilare un database, e l'operatore legge indicazioni brevi e uniformi. | Giovanni, 26/10/2026 |
 | S4 · Stile visivo | | | |
 | S5 · Palette | | | |
 | S6 · Caratteri | | | |
 | S7 · Icone | | | |
 
 **Valori esatti** (T3-82, dopo l'approvazione): le 10 tinte di ogni colore, i caratteri con i pesi e il `<link>`, la libreria di icone con la versione e la licenza.
+
+### Note del percorso della demo (1280 px e 375 px) e confronto (T3-81)
+
+**Osservazioni sul percorso di oggi (converge §4, passi 2 e 4):**
+1. **Cornice e navigazione (`Guscio.tsx`, `Guscio.module.css`)**: sotto gli `860 px` la barra laterale diventa una testata orizzontale con `flex-wrap: wrap` che a `375 px` impila marchio, 5 voci di navigazione, nome utente e pulsante `Esci`, occupando oltre un terzo dell'altezza dello schermo prima del titolo della pagina.
+2. **Ingresso dell'artigiano (`Ingresso.tsx`)**: il riquadro «Il consorzio ti chiede…» è in cima ma il suo pulsante `Rispondi →` ha `size="xs"` (sotto i `44 px` consigliati sul telefono) mentre `+ Nuova campagna` più in basso è di dimensione normale.
+3. **Passi della campagna (`Passo10.tsx`, `Passo11.tsx`, `Passo12.tsx`) e `Profilo.tsx`**:
+   - i contenitori `Paper` usano `p="xl"` fisso, togliendo `64 px` di larghezza utile su uno schermo da `375 px`;
+   - a fondo scheda `← Torna a…` e il pulsante di avanzamento stanno su una sola riga (`Group justify="space-between"`), stretti a `375 px`, e il pulsante principale non è `fullWidth`;
+   - in `Passo11.tsx` il pulsante `×` per togliere una foto caricata misura `20 × 20 px` (difficile da toccare sul telefono);
+   - diverse etichette parlano il linguaggio del database (`Gruppo 1`, `Descrizione del gruppo`, `Da usare verso il (facoltativa)`, `Logistica`, `Da sistemare prima dell'invio`).
+4. **Richiesta del consorzio (`RichiestaConsorzio.tsx`)**: in `RigaFoto` la miniatura `72 × 72 px` con `wrap="nowrap"` lascia poco spazio laterale a `FileInput` e al pulsante `Carica` (`size="xs"`) su schermi da `375 px`.
+5. **Vedi campagna e liste dell'operatore (`VediCampagna.tsx`, `Decidi.tsx`, `PostCard.tsx`, `AzioniPost.tsx`, `AzioniCampagna.tsx`, `DaApprovare.tsx`)**:
+   - i pulsanti distruttivi `Respingi` (`Decidi.tsx`), `Annulla il post` (`AzioniPost.tsx`) e `Annulla la campagna` (`AzioniCampagna.tsx`) hanno `variant="default" color="red"`: in Mantine `variant="default"` ignora `color="red"`, mostrando un pulsante con bordo grigio identico a `Chiedi all'artigiano`, `Modifica a mano`, `Cambia foto` e `Sposta`;
+   - in `PostCard.tsx`, `AnteprimaPost` ha larghezza fissa `w={300} miw={280}` invece di adattarsi alla colonna dell'uscita;
+   - nei messaggi di errore del frontend coesistono forme disomogenee (`«Non sono riuscita a leggere…»` in `Ingresso.tsx`/`VediCampagna.tsx`/`DaApprovare.tsx` e `«Non sono riuscito a caricare.»` in `RichiestaConsorzio.tsx`).
+
+**Tabelle di confronto (voti da 1 a 3, §2):**
+
+| Punto e possibilità | Adatta a chi la usa | Leggibile sul telefono | Coerente con Mantine | Giorni di lavoro | Rischio per il codice |
+|---|---:|---:|---:|---:|---:|
+| **S1** · U0 Com'è oggi | 1 | 1 | 3 | 3 | 3 |
+| **S1** · U1 Doppia densità | 3 (op.) | 2 | 3 | 3 | 3 |
+| **S1** · U2 Domande guidate | 3 (art.) | 3 | 3 | 3 | 3 |
+| **S1** · U3 Una sola azione principale | 3 (art.) | 3 | 3 | 3 | 3 |
+| **S1** · U4 Prima ciò che chiede un'azione | 3 | 3 | 3 | 3 | 3 |
+| **S1** · U5 Il post come apparirà | 3 (op.) | 2 | 3 | 3 | 3 |
+| **S2** · L0 Com'è oggi | 1 | 1 | 3 | 3 | 3 |
+| **S2** · L1 Solo il percorso della demo (375 e 1280 px) | 2 | 2 | 3 | 3 | 3 |
+| **S2** · **L2 Tutto l'artigiano (375 e 1280 px)** | **3** | **3** | **3** | **3** | **3** |
+| **S2** · L3 Anche l'operatore su tablet | 2 | 3 | 2 | 1 | 2 |
+| **S3** · G0 Com'è oggi | 1 | 1 | 3 | 3 | 3 |
+| **S3** · G1 Uno pieno, gli altri leggeri | 2 | 3 | 3 | 3 | 3 |
+| **S3** · G2 Uno pieno, gli altri con il bordo | 2 | 3 | 3 | 3 | 3 |
+| **S3** · **G3 Come G1, azioni distruttive in rosso** | **3** | **3** | **3** | **3** | **3** |
+| **S8** · T0 Com'è oggi | 1 | 2 | 3 | 3 | 3 |
+| **S8** · T1 Domande dirette (solo artigiano) | 3 | 3 | 3 | 3 | 3 |
+| **S8** · T2 Etichette brevi (solo artigiano) | 2 | 3 | 3 | 3 | 3 |
+| **S8** · **T3 Domande dirette per l'artigiano + pulizia operatore** | **3** | **3** | **3** | **2** | **3** |
 
 ---
 
