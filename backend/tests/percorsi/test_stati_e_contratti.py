@@ -552,7 +552,7 @@ def test_schede_canali_valori_mvp_r21():
         "limite_caratteri": 5000,
         "limite_hashtag": 30,
         "max_foto": 10,
-        "proporzioni": ("1:1", "4:5"),
+        "proporzioni": ("4:5", "1.91:1"),
         "link_cliccabili": True,
     }
     assert contenuti_domain.SCHEDE_CANALE["instagram"] == {
@@ -561,7 +561,7 @@ def test_schede_canali_valori_mvp_r21():
         "limite_caratteri": 2200,
         "limite_hashtag": 30,
         "max_foto": 10,
-        "proporzioni": ("1:1", "4:5"),
+        "proporzioni": ("4:5", "1.91:1"),
         "link_cliccabili": False,
     }
 

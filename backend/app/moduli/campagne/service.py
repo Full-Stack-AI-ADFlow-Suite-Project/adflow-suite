@@ -1393,7 +1393,7 @@ def sistema_foto(
     """Sistemazione locale di una foto (Pillow) secondo spec R-42 e CA-81.
 
     Esegue: rotazione da metadati EXIF, rimozione GPS e metadati identificativi,
-    ritaglio al centro se fuori dalle proporzioni del canale (1:1 o 4:5),
+    ritaglio al centro se fuori da 4:5 – 1,91:1 (le foto dentro non si tagliano),
     ridimensionamento con lato corto esattamente a 1080 px, autocontrasto leggero
     e salvataggio in formato JPEG. Invariante §1.3: la foto originale resta intatta.
     """

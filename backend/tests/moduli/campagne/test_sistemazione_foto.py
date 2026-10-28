@@ -135,6 +135,50 @@ class TestSistemazioneFotoCA81:
         assert min(img.width, img.height) == 1080
 
 
+class TestProporzioniVereCA81:
+    """CA-81 rivisto: l'intervallo da 4:5 a 1,91:1 non si taglia."""
+
+    @staticmethod
+    def _jpeg(larghezza: int, altezza: int) -> bytes:
+        buf = io.BytesIO()
+        Image.new("RGB", (larghezza, altezza), (90, 140, 60)).save(buf, "JPEG")
+        return buf.getvalue()
+
+    def test_ca81_tre_a_due_resta_tre_a_due_senza_taglio(self):
+        png = _crea_immagine_png_con_exif_e_gps(3000, 2000, orientamento=1)
+        out = Image.open(io.BytesIO(service.sistema_foto(png, canale="instagram")))
+        assert out.size == (1620, 1080)
+
+    def test_ca81_verticale_stretta_va_a_quattro_quinti(self):
+        out = Image.open(
+            io.BytesIO(service.sistema_foto(self._jpeg(1080, 1920), canale="instagram"))
+        )
+        assert out.size == (1080, 1350)
+
+    def test_ca81_panoramica_va_a_uno_virgola_91(self):
+        out = Image.open(
+            io.BytesIO(service.sistema_foto(self._jpeg(4000, 1000), canale="facebook"))
+        )
+        assert out.height == 1080
+        assert abs(out.width / out.height - 1.91) < 0.01
+
+    @pytest.mark.parametrize("canale", ["facebook", "instagram"])
+    @pytest.mark.parametrize(
+        ("larghezza", "altezza", "atteso"),
+        [
+            (1910, 1000, (2063, 1080)),
+            (1600, 2000, (1080, 1350)),
+            (1500, 1000, (1620, 1080)),
+        ],
+    )
+    def test_ca81_gli_estremi_e_il_dentro_non_si_tagliano(
+        self, canale, larghezza, altezza, atteso
+    ):
+        dati = self._jpeg(larghezza, altezza)
+        out = Image.open(io.BytesIO(service.sistema_foto(dati, canale=canale)))
+        assert abs(out.width - atteso[0]) <= 1 and out.height == atteso[1]
+
+
 class TestSistemazioneFotoRegole:
     """Test delle regole di business R-21 e R-42."""
 
