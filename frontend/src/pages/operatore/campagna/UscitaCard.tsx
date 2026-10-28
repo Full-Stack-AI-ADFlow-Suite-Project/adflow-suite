@@ -18,8 +18,8 @@ export function UscitaCard({
   ricarica: () => void;
 }) {
   return (
-    <Card withBorder radius="lg" p="lg">
-      <Stack gap="md">
+    <Card withBorder radius="lg" p="md">
+      <Stack gap="sm">
         <Group justify="space-between" wrap="wrap">
           <div>
             <Text size="xs" c="dimmed">

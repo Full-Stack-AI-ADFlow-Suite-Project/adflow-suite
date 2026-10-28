@@ -52,7 +52,8 @@ export function AzioniCampagna({
         {sospendibile && (
           <Button
             size="xs"
-            variant="default"
+            variant="light"
+            color="yellow"
             onClick={() => setFinestra("sospendi")}
           >
             Sospendi
@@ -61,7 +62,7 @@ export function AzioniCampagna({
         {riattivabile && (
           <Button
             size="xs"
-            variant="default"
+            variant="light"
             onClick={() => setFinestra("riattiva")}
           >
             Riattiva
@@ -69,7 +70,7 @@ export function AzioniCampagna({
         )}
         <Button
           size="xs"
-          variant="default"
+          variant="light"
           color="red"
           onClick={() => setFinestra("annulla")}
         >

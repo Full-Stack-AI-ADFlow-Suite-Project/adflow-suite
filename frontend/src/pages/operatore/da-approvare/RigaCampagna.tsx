@@ -1,3 +1,4 @@
+import layout from "../../../components/Layout.module.css";
 /**
  * Una riga di Campagne da approvare (R-38): la campagna con i conteggi dei
  * post, "entro quando" e l'ultima nota interna. Da qui si va in Vedi campagna.
@@ -24,7 +25,7 @@ export function RigaCampagna({ c }: { c: CampagnaDaApprovare }) {
     <Card
       withBorder
       radius="md"
-      p="lg"
+      p="md"
       style={
         BORDO[c.stato]
           ? { borderLeft: `4px solid ${BORDO[c.stato]}` }
@@ -54,7 +55,7 @@ export function RigaCampagna({ c }: { c: CampagnaDaApprovare }) {
               </Badge>
             )}
             {c.richiesta === "inviata" && (
-              <Badge color="verde" variant="light">
+              <Badge color="verde" variant="filled">
                 Risposta arrivata
               </Badge>
             )}
@@ -64,7 +65,7 @@ export function RigaCampagna({ c }: { c: CampagnaDaApprovare }) {
             {(c.canali ?? []).map((x) => NOME_CANALE[x] ?? x).join(", ")}
           </Text>
           {c.entro_quando && (
-            <Text size="sm" mt={6}>
+            <Text className={layout.scadenza} size="sm" mt={6}>
               <b>Entro quando:</b> {dataOra(c.entro_quando)}
             </Text>
           )}
@@ -91,7 +92,12 @@ export function RigaCampagna({ c }: { c: CampagnaDaApprovare }) {
             </Text>
           )}
         </Box>
-        <Button color="verde" component={Link} to={`/campagne/${c.id}`}>
+        <Button
+          variant="light"
+          color="verde"
+          component={Link}
+          to={`/campagne/${c.id}`}
+        >
           Vedi campagna →
         </Button>
       </Group>

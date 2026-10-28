@@ -1,3 +1,4 @@
+import layout from "../../../components/Layout.module.css";
 /**
  * La barra della decisione in cima a Vedi campagna: cosa chiede lo stato
  * corrente, Approva e Riprova (le altre decisioni sono in
@@ -224,7 +225,7 @@ export function Decidi({
         </Stack>
         <Button
           color="red"
-          variant="default"
+          variant="light"
           disabled={!campagna}
           onClick={() => setRespingiAperto(true)}
         >
@@ -241,7 +242,7 @@ export function Decidi({
               Decisione sulla campagna
             </Title>
             {primoDaApprovare(vista) && (
-              <Text size="sm">
+              <Text className={layout.scadenza} size="sm">
                 <b>
                   Entro quando: il primo post da approvare è{" "}
                   {dataOra(primoDaApprovare(vista) ?? "")}.
@@ -260,7 +261,7 @@ export function Decidi({
               Approva {daApprovare.length} post
             </Button>
             <Button
-              variant="default"
+              variant="light"
               disabled={!campagna}
               onClick={() => setChiediAperto(true)}
             >
@@ -268,7 +269,7 @@ export function Decidi({
             </Button>
             <Button
               color="red"
-              variant="default"
+              variant="light"
               disabled={!campagna}
               onClick={() => setRespingiAperto(true)}
             >
@@ -328,7 +329,7 @@ export function Decidi({
               >
                 Conferma: approva {daApprovare.length} post
               </Button>
-              <Button variant="default" onClick={() => setConferma(false)}>
+              <Button variant="light" onClick={() => setConferma(false)}>
                 Annulla
               </Button>
             </Group>
@@ -396,7 +397,7 @@ export function Decidi({
 
   return (
     <>
-      <Card withBorder radius="lg" p="lg" aria-label="Decisione sulla campagna">
+      <Card withBorder radius="lg" p="md" aria-label="Decisione sulla campagna">
         <Stack gap="sm">
           {contenuto}
           {errore && (

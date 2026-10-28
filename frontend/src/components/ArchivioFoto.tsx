@@ -130,7 +130,7 @@ export function ArchivioFoto({
             key={c?.id ?? "senza-campagna"}
             withBorder
             radius="md"
-            p="lg"
+            p={{ base: "md", sm: "lg" }}
             mb="lg"
           >
             <Group justify="space-between" mb="md" wrap="wrap" gap="xs">

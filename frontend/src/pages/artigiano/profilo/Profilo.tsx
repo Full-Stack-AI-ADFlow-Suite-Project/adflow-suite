@@ -1,3 +1,4 @@
+import layout from "../../../components/Layout.module.css";
 import { useEffect, useRef, useState } from "react";
 import type { ReactNode } from "react";
 import { Link, Navigate, useNavigate } from "react-router-dom";
@@ -532,7 +533,7 @@ export function Profilo() {
                       </Paper>
                     ))}
                     <Button
-                      variant="default"
+                      variant="light"
                       onClick={() =>
                         cambia("eventi_ricorrenti", [
                           ...(dati.eventi_ricorrenti ?? []),
@@ -610,7 +611,12 @@ export function Profilo() {
                   </Alert>
                 )}
 
-                <Group justify="space-between" mt="xl" pt="md">
+                <Group
+                  className={layout.azioni}
+                  justify="space-between"
+                  mt="xl"
+                  pt="md"
+                >
                   <Button
                     variant="default"
                     disabled={passo === 0 || salvando}

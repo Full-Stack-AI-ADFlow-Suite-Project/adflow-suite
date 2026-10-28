@@ -1,3 +1,4 @@
+import layout from "../../components/Layout.module.css";
 /**
  * L'ingresso dell'artigiano (docs/pagine/AdFlow-ingresso.html, spec R-29,
  * ADR-117, H1): ciò che gli chiede il consorzio, gli avvisi sulle sue
@@ -55,9 +56,15 @@ function Avviso({
   children: ReactNode;
 }) {
   return (
-    <Alert color={colore} variant="light">
+    <Alert className={layout.avvisoAzione} color={colore} variant="light">
       {children}{" "}
-      <Text component={Link} to={link} fw={600} c="inherit">
+      <Text
+        component={Link}
+        to={link}
+        fw={600}
+        c="inherit"
+        style={{ display: "inline-flex", alignItems: "center", minHeight: 44 }}
+      >
         {vai}
       </Text>
     </Alert>
@@ -179,13 +186,14 @@ export function Ingresso() {
         </Center>
       )}
       {lista && (
-        <Stack gap="xl">
+        <Stack className={layout.ingresso} gap="xl">
           {richieste.map((c) => (
             <Card
               key={c.id}
+              className={layout.richiesta}
               withBorder
               radius="md"
-              p="lg"
+              p={{ base: "md", sm: "lg" }}
               style={{ borderLeft: "4px solid var(--mantine-color-yellow-6)" }}
             >
               <Title order={2} size="h4">
@@ -196,7 +204,12 @@ export function Ingresso() {
                 richiesta e rispondere.
               </Text>
               <Group mt="md">
-                <Button component={Link} to={aprila(c)} size="xs">
+                <Button
+                  className={layout.principale}
+                  component={Link}
+                  to={aprila(c)}
+                  size="sm"
+                >
                   Rispondi →
                 </Button>
               </Group>
@@ -217,7 +230,7 @@ export function Ingresso() {
 
           {!haBozza && (
             <Group>
-              <Button component={Link} to="/campagna">
+              <Button className={layout.nuova} component={Link} to="/campagna">
                 + Nuova campagna
               </Button>
             </Group>

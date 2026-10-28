@@ -53,7 +53,8 @@ export function RichiestaOperatore({
       withBorder
       radius="md"
       mt="md"
-      bg="var(--mantine-color-body)"
+      bg="var(--mantine-color-yellow-light)"
+      style={{ borderLeft: "4px solid var(--mantine-color-yellow-6)" }}
       aria-label="Richiesta all'artigiano"
     >
       <Stack gap="xs">

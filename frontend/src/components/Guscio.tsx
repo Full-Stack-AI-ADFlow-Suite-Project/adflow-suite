@@ -2,7 +2,8 @@
  * Cornice delle pagine interne: barra laterale con marca, voci, utente
  * collegato ed Esci (docs/pagine, ADR-113).
  */
-import { Avatar, Title } from "@mantine/core";
+import { Avatar, Burger, Title } from "@mantine/core";
+import { useDisclosure } from "@mantine/hooks";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import type { ReactNode } from "react";
 
@@ -164,6 +165,9 @@ export function Guscio({
   children: ReactNode;
 }) {
   const { utente, esci } = useAuth();
+  // Eccezione visiva del brief interfaccia §1.2: solo apertura del menu.
+  const [menuAperto, { toggle: alternaMenu, close: chiudiMenu }] =
+    useDisclosure(false);
   const naviga = useNavigate();
   const { pathname } = useLocation();
 
@@ -177,7 +181,18 @@ export function Guscio({
 
   return (
     <div className={stile.guscio}>
-      <aside className={stile.barra}>
+      <aside
+        className={`${stile.barra} ${menuAperto ? stile.aperta : ""}`}
+        onKeyDown={(evento) => {
+          if (evento.key === "Escape") {
+            chiudiMenu();
+            evento.currentTarget
+              .closest("aside")
+              ?.querySelector<HTMLButtonElement>("button")
+              ?.focus();
+          }
+        }}
+      >
         <Link className={stile.marca} to="/">
           <span className={stile.marcaIcona}>
             <svg
@@ -201,42 +216,53 @@ export function Guscio({
             <span>Suite · {artigiano ? "Artigiano" : "Operatore"}</span>
           </span>
         </Link>
-        <nav
-          className={stile.voci}
-          aria-label={artigiano ? "Sezioni artigiano" : "Sezioni operatore"}
-        >
-          {voci.map((voce) => (
-            <Voce key={voce.label} voce={voce} />
-          ))}
-        </nav>
-        <div className={stile.piede}>
-          {utente && (
-            <div className={stile.utente}>
-              <Avatar name={utente.nome} color="blu" radius="xl" size={36} />
-              <div className={stile.utenteDati}>
-                <div className={stile.utenteNome}>{utente.nome}</div>
-                <div className={stile.utenteRuolo}>{utente.ruolo}</div>
+        <Burger
+          className={stile.burger}
+          opened={menuAperto}
+          onClick={alternaMenu}
+          aria-label="Menu di navigazione"
+          aria-expanded={menuAperto}
+          aria-controls="menu-navigazione"
+        />
+        <div id="menu-navigazione" className={stile.menu}>
+          <nav
+            onClick={chiudiMenu}
+            className={stile.voci}
+            aria-label={artigiano ? "Sezioni artigiano" : "Sezioni operatore"}
+          >
+            {voci.map((voce) => (
+              <Voce key={voce.label} voce={voce} />
+            ))}
+          </nav>
+          <div className={stile.piede}>
+            {utente && (
+              <div className={stile.utente}>
+                <Avatar name={utente.nome} color="blu" radius="xl" size={36} />
+                <div className={stile.utenteDati}>
+                  <div className={stile.utenteNome}>{utente.nome}</div>
+                  <div className={stile.utenteRuolo}>{utente.ruolo}</div>
+                </div>
               </div>
-            </div>
-          )}
-          <button type="button" className={stile.esci} onClick={esciEVai}>
-            <svg
-              width="14"
-              height="14"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
-              <polyline points="16 17 21 12 16 7" />
-              <line x1="21" y1="12" x2="9" y2="12" />
-            </svg>
-            <span>Esci</span>
-          </button>
+            )}
+            <button type="button" className={stile.esci} onClick={esciEVai}>
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" />
+                <polyline points="16 17 21 12 16 7" />
+                <line x1="21" y1="12" x2="9" y2="12" />
+              </svg>
+              <span>Esci</span>
+            </button>
+          </div>
         </div>
       </aside>
       <main className={stile.contenuto}>

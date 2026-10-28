@@ -1,3 +1,4 @@
+import layout from "../components/Layout.module.css";
 /**
  * Accesso: una sola pagina per artigiano, operatore e admin
  * (docs/pagine/AdFlow-login.html). Un solo messaggio di errore
@@ -67,8 +68,19 @@ export function Accesso() {
   };
 
   return (
-    <Container size={420} py="xl">
-      <Paper withBorder radius="md" p="xl" maw={380} mx="auto" mt="10vh">
+    <Container
+      className={layout.accesso}
+      size={420}
+      py={{ base: "md", sm: "xl" }}
+    >
+      <Paper
+        withBorder
+        radius="md"
+        p={{ base: "md", sm: "xl" }}
+        maw={380}
+        mx="auto"
+        mt={{ base: "6vh", sm: "10vh" }}
+      >
         <Stack gap="xs" align="center">
           <Title order={2}>AdFlow</Title>
           <Text size="xs" c="dimmed" ff="monospace" tt="uppercase" lts={1}>

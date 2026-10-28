@@ -97,3 +97,14 @@
     min-height: 0;
   }
 }
+
+.giorno,
+.post {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+@media (max-width: 768px) {
+  .post {
+    min-height: 44px;
+  }
+}

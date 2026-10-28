@@ -1,3 +1,4 @@
+import layout from "../../../components/Layout.module.css";
 /**
  * Passo 12 · Riepilogo e invio: riepilogo in sola lettura, la stima di ciò
  * che uscirà (foto dell'artigiano e immagini AI, R-28), gli avvisi R-25 dal
@@ -132,7 +133,7 @@ export function Passo12({
   };
 
   return (
-    <Paper withBorder radius="md" p="xl">
+    <Paper withBorder radius="md" p={{ base: "md", sm: "xl" }}>
       {onIndietro && (
         <Text
           size="sm"
@@ -140,6 +141,7 @@ export function Passo12({
           td="underline"
           mb="xs"
           component="button"
+          mih={44}
           onClick={onIndietro}
           style={{
             background: "none",
@@ -273,9 +275,9 @@ export function Passo12({
             {errore}
           </Alert>
         )}
-        <Group justify="space-between" mt="sm">
+        <Group className={layout.azioni} justify="space-between" mt="sm">
           {onIndietro ? (
-            <Button variant="default" onClick={onIndietro}>
+            <Button variant="light" onClick={onIndietro}>
               ← Torna alle foto
             </Button>
           ) : (
