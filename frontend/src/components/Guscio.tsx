@@ -5,9 +5,11 @@
 import { Avatar, Burger, Title } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 
 import type { Ruolo } from "../api/accesso";
+import { leggiProfilo } from "../api/artigiani";
 import { useAuth } from "../contesto-auth";
 import stile from "./Guscio.module.css";
 
@@ -177,6 +179,19 @@ export function Guscio({
   };
 
   const artigiano = utente?.ruolo === "artigiano";
+  const [bottega, setBottega] = useState<string | null>(null);
+  useEffect(() => {
+    if (!artigiano) return;
+    let attivo = true;
+    leggiProfilo()
+      .then((p) => {
+        if (attivo && p) setBottega(`${p.nome} · ${p.referente}`);
+      })
+      .catch(() => {});
+    return () => {
+      attivo = false;
+    };
+  }, [artigiano, utente?.id]);
   const voci = nav ?? (utente ? vociDelRuolo(utente.ruolo, pathname) : []);
 
   return (
@@ -267,6 +282,9 @@ export function Guscio({
       </aside>
       <main className={stile.contenuto}>
         <div className={stile.pagina} style={{ maxWidth: largo }}>
+          {artigiano && (
+            <div className={stile.bottega}>{bottega ?? utente?.nome}</div>
+          )}
           <Title order={1} mb="md">
             {titolo}
           </Title>
