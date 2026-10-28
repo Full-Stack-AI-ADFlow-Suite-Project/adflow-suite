@@ -7,7 +7,8 @@ import { Badge, Box, Button, Card, Group, Text } from "@mantine/core";
 import { Link } from "react-router-dom";
 
 import type { CampagnaDaApprovare } from "../../../api/decisioni";
-import { coloreCampagna, data, dataOra, NOME_CANALE } from "../campagna/util";
+import { StatoBadge } from "../../../components/StatoBadge";
+import { data, dataOra, NOME_CANALE } from "../campagna/util";
 
 const BORDO: Record<string, string | undefined> = {
   in_revisione: "var(--mantine-color-yellow-6)",
@@ -42,13 +43,7 @@ export function RigaCampagna({ c }: { c: CampagnaDaApprovare }) {
             <Text fw={600} size="lg">
               {c.titolo}
             </Text>
-            <Badge
-              color={coloreCampagna(c.stato)}
-              variant="light"
-              ff="monospace"
-            >
-              {c.stato}
-            </Badge>
+            <StatoBadge tipo="campagna" stato={c.stato} />
             {c.richiesta === "aperta" && (
               <Badge color="yellow" variant="light">
                 Richiesta aperta
