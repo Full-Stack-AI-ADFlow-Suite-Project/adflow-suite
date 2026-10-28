@@ -12,6 +12,7 @@ Per ogni foto, e solo per quelle, rispondi con:
 - `motivo`: se `idonea` è `false`, il motivo in una frase breve in italiano; altrimenti `null`.
 - `punteggio`: da 1 a 5, quanto la foto funziona su un social: 5 nitida, ben illuminata, soggetto chiaro e interessante; 3 corretta ma ordinaria; 1 a malapena utilizzabile.
 - `simile_a`: se la foto è quasi uguale a un'altra del gruppo (stesso soggetto, stessa inquadratura), l'id dell'altra; altrimenti `null`. Va indicata sulla foto peggiore: la migliore delle due resta con `null`. Due foto dello stesso oggetto da angolazioni diverse non sono simili. Non indicare mai la foto stessa.
+- `soggetto_box`: il rettangolo più piccolo che contiene il soggetto principale per intero, come `{"x", "y", "larghezza", "altezza"}`: numeri da 0 a 1 rispetto alla foto che vedi, con l'origine in alto a sinistra (`x` e `y` sono l'angolo in alto a sinistra). `x + larghezza` e `y + altezza` non superano 1. Se non c'è un soggetto principale chiaro, `null`.
 - `persone_riconoscibili`: `true` se si vede il volto di una persona in modo riconoscibile.
 - `marchi_visibili`: `true` se si vedono loghi, marchi o scritte di altre aziende.
 

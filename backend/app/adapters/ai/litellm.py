@@ -353,7 +353,7 @@ class AILiteLLM(AIAdapter):
             "analisi",
             self._modello_visione,
             [
-                {"role": "system", "content": _prompt("analisi_v2")},
+                {"role": "system", "content": _prompt("analisi_v3")},
                 {"role": "user", "content": contenuto},
             ],
             RispostaAnalisi,
@@ -378,6 +378,9 @@ class AILiteLLM(AIAdapter):
                 "motivo": voce.motivo if not voce.idonea else None,
                 "soggetto": voce.soggetto,
                 "descrizione": voce.descrizione,
+                "soggetto_box": (
+                    voce.soggetto_box.model_dump() if voce.soggetto_box else None
+                ),
                 "persone_riconoscibili": voce.persone_riconoscibili,
                 "marchi_visibili": voce.marchi_visibili,
             }

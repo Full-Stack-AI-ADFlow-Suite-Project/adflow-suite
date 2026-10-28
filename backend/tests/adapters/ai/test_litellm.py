@@ -143,6 +143,7 @@ def _voce(foto_id: int, **campi) -> dict:
         motivo=None,
         punteggio=4,
         simile_a=None,
+        soggetto_box={"x": 0.2, "y": 0.1, "larghezza": 0.6, "altezza": 0.7},
         persone_riconoscibili=False,
         marchi_visibili=False,
     )
@@ -428,6 +429,7 @@ def test_analisi_una_chiamata_per_gruppo_con_foto_ridotte_a_1024(
         "motivo": None,
         "soggetto": "Un vaso di terracotta",
         "descrizione": "Un vaso di terracotta rossa su un tavolo di legno chiaro.",
+        "soggetto_box": {"x": 0.2, "y": 0.1, "larghezza": 0.6, "altezza": 0.7},
         "persone_riconoscibili": False,
         "marchi_visibili": False,
     }
@@ -716,7 +718,7 @@ def test_i_tipi_di_foto_dello_schema_sono_quelli_di_campagne():
     assert set(TipoFoto.__args__) == set(TIPI_CONTENUTO)
 
 
-@pytest.mark.parametrize("nome", ["analisi_v2", "piano_v2", "post_v2"])
+@pytest.mark.parametrize("nome", ["analisi_v3", "piano_v2", "post_v2"])
 def test_i_prompt_esistono_e_hanno_la_versione_nel_nome(nome):
     assert modulo._prompt(nome).strip()
 
@@ -950,3 +952,33 @@ def test_un_tema_lungo_o_su_piu_righe_non_rompe_il_prompt():
     soggetto = next(r for r in prompt.splitlines() if r.startswith("Soggetto:"))
     assert len(soggetto) < 400
     assert len(prompt.splitlines()) == 7
+
+
+@pytest.mark.parametrize(
+    "riquadro",
+    [
+        {"x": 0.5, "y": 0.1, "larghezza": 0.8, "altezza": 0.5},  # esce a destra
+        {"x": -0.1, "y": 0.1, "larghezza": 0.5, "altezza": 0.5},
+        {"x": 0.1, "y": 0.1, "larghezza": 0, "altezza": 0.5},
+        {"x": 0.1, "y": 0.1, "larghezza": 1.5, "altezza": 0.5},
+        {"x": 0.1, "y": 0.1, "larghezza": 0.5},  # manca un lato
+        {"x": "a", "y": 0.1, "larghezza": 0.5, "altezza": 0.5},
+        {"x": True, "y": 0.1, "larghezza": 0.5, "altezza": 0.5},
+        [0.1, 0.1, 0.5, 0.5],
+        "centro",
+    ],
+)
+def test_ca108_un_riquadro_fuori_misura_o_malformato_vale_none(
+    ai, completion, archivio, riquadro
+):
+    gruppo = _gruppo(archivio, 1)
+    completion.metti(risposta(_analisi_di(_voce(1, soggetto_box=riquadro))))
+
+    assert ai.analizza_gruppo(gruppo)[1]["soggetto_box"] is None
+
+
+def test_ca108_senza_soggetto_chiaro_il_riquadro_e_none(ai, completion, archivio):
+    gruppo = _gruppo(archivio, 1)
+    completion.metti(risposta(_analisi_di(_voce(1, soggetto_box=None))))
+
+    assert ai.analizza_gruppo(gruppo)[1]["soggetto_box"] is None
