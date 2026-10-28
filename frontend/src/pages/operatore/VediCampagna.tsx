@@ -6,7 +6,6 @@
 import {
   Alert,
   Anchor,
-  Badge,
   Card,
   Center,
   Loader,
@@ -24,13 +23,14 @@ import { ApiErrore } from "../../api/http";
 import type { VediCampagna as Vista } from "../../api/revisione";
 import { vediCampagna } from "../../api/revisione";
 import { Guscio } from "../../components/Guscio";
+import { StatoBadge } from "../../components/StatoBadge";
 import { Decidi } from "./campagna/Decidi";
 import { Materiali } from "./campagna/Materiali";
 import { PianoCard } from "./campagna/PianoCard";
 import { UscitaCard } from "./campagna/UscitaCard";
 import { AzioniCampagna } from "./vedi-campagna/decisioni/AzioniCampagna";
 import { CalendarioCampagnaView } from "../../components/CalendarioCampagnaView";
-import { coloreCampagna, data, giorni, NOME_CANALE } from "./campagna/util";
+import { data, giorni, NOME_CANALE } from "./campagna/util";
 
 const BOTTEGA_SCONOSCIUTA = "Bottega";
 
@@ -107,14 +107,11 @@ export function VediCampagna() {
             </Text>
             <Title order={1} size="h2" mt={2}>
               {vista.campagna.titolo}{" "}
-              <Badge
-                color={coloreCampagna(vista.campagna.stato)}
-                variant="light"
-                ff="monospace"
+              <StatoBadge
+                tipo="campagna"
+                stato={vista.campagna.stato}
                 size="lg"
-              >
-                {vista.campagna.stato}
-              </Badge>
+              />
             </Title>
             <Text size="sm" c="dimmed" mt={6}>
               {bottega}

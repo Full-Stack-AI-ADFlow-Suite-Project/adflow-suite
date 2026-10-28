@@ -2,12 +2,13 @@
  * L'elenco delle campagne a sezioni, uguale per l'artigiano e per l'operatore
  * (ADR-117, H6). Riceve i dati, le sezioni e il link di una campagna; non
  * chiama le API. Nell'artigiano usa le etichette di stato della pagina
- * Campagna, nell'operatore gli stati come sono.
+ * Campagna, nell'operatore quelle di `StatoBadge`.
  */
 import { Alert, Badge, Group, Paper, Stack, Text, Title } from "@mantine/core";
 import { Link } from "react-router-dom";
 
 import type { CampagnaElencoItem } from "../../api/campagne";
+import { StatoBadge } from "../StatoBadge";
 import type { Lato, Sezione } from "./sezioni";
 
 const CANALE: Record<string, string> = {
@@ -31,19 +32,6 @@ const STATO_ARTIGIANO: Record<string, [string, string]> = {
   respinta: ["Respinta", "red"],
 };
 
-const STATO_OPERATORE: Record<string, string> = {
-  attiva: "green",
-  sospesa: "yellow",
-  in_revisione: "yellow",
-  piano_da_rivedere: "yellow",
-  generazione_fallita: "red",
-  respinta: "red",
-  scaduta: "red",
-  annullata: "red",
-  conclusa: "gray",
-  bozza: "gray",
-};
-
 /** "2026-10-01" → "01/10". */
 function giornoMese(iso: string): string {
   const [, mese, giorno] = iso.split("-");
@@ -61,10 +49,10 @@ function Riga({
 }) {
   const consorzioChiede =
     lato === "artigiano" && campagna.richiesta === "aperta";
-  const [etichetta, colore] =
-    lato === "artigiano"
-      ? STATO_ARTIGIANO[campagna.stato] ?? [campagna.stato, "gray"]
-      : [campagna.stato, STATO_OPERATORE[campagna.stato] ?? "blue"];
+  const [etichetta, colore] = STATO_ARTIGIANO[campagna.stato] ?? [
+    campagna.stato,
+    "gray",
+  ];
   const canali = (campagna.canali ?? []).map((c) => CANALE[c] ?? c).join(", ");
 
   const contenuto = (
@@ -76,12 +64,10 @@ function Riga({
             <Badge color="yellow" variant="filled">
               Il consorzio ti chiede…
             </Badge>
+          ) : lato === "operatore" ? (
+            <StatoBadge tipo="campagna" stato={campagna.stato} />
           ) : (
-            <Badge
-              color={colore}
-              variant="light"
-              ff={lato === "operatore" ? "monospace" : undefined}
-            >
+            <Badge color={colore} variant="light">
               {etichetta}
             </Badge>
           )}

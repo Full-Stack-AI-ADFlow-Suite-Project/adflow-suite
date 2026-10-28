@@ -16,6 +16,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { CampagnaDaApprovare } from "../../api/decisioni";
 import { daApprovare } from "../../api/decisioni";
 import { Guscio } from "../../components/Guscio";
+import { etichettaStato } from "../../components/stati";
 import { RigaCampagna } from "./da-approvare/RigaCampagna";
 
 const STATI_DA_APPROVARE = [
@@ -62,7 +63,7 @@ export function DaApprovare() {
       { value: "", label: `Stato: tutti (${lista?.length ?? 0})` },
       ...STATI_DA_APPROVARE.map((s) => ({
         value: s,
-        label: `${s} (${conti.get(s) ?? 0})`,
+        label: `${etichettaStato("campagna", s)} (${conti.get(s) ?? 0})`,
       })),
     ];
   }, [lista]);
@@ -81,8 +82,8 @@ export function DaApprovare() {
         {STATI_DA_APPROVARE.map((s, i) => (
           <span key={s}>
             {i > 0 && ", "}
-            <Text span ff="monospace" size="sm">
-              {s}
+            <Text span fw={600} size="sm">
+              {etichettaStato("campagna", s)}
             </Text>
           </span>
         ))}
