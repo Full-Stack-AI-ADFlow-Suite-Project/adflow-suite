@@ -1012,3 +1012,45 @@ def test_ca108_un_riquadro_fuori_da_0_1_o_malformato_vale_none_senza_errore(
         if f.origine == "caricata"
     ]
     assert all(f.analisi_ai["soggetto_box"] is None for f in caricate)
+
+
+def test_ca106_ogni_uscita_con_immagine_ai_ha_la_sua_scena(db, ai):
+    """CA-106: il piano dà una scena valida a ogni uscita con immagine AI."""
+    from app.adapters.ai.schemi import INQUADRATURE
+    from app.moduli.contenuti.immagini_ai import scena_dell_uscita
+
+    campagna = _campagna(db, n_foto=4)
+    _job(campagna.id)
+
+    contenuto = piano_corrente(db, campagna.id).contenuto
+    con_immagine = [
+        uscita
+        for uscita in contenuto["uscite"]
+        if any(post["riempitivo"] == "immagine_ai" for post in uscita["post"])
+    ]
+    assert con_immagine
+
+    inquadrature = []
+    for uscita in con_immagine:
+        scena = uscita["scena"]
+        assert isinstance(scena, dict)
+        assert scena["soggetto"].strip()
+        assert scena["inquadratura"] in INQUADRATURE
+        assert scena["luce"].strip() and scena["colori"].strip()
+        inquadrature.append(scena["inquadratura"])
+
+    # Due uscite vicine non hanno la stessa inquadratura.
+    assert all(prima != dopo for prima, dopo in zip(inquadrature, inquadrature[1:]))
+
+    # Le uscite senza immagini AI hanno `scena`: null.
+    numeri_con_immagine = {uscita["numero"] for uscita in con_immagine}
+    for uscita in contenuto["uscite"]:
+        if uscita["numero"] not in numeri_con_immagine:
+            assert uscita["scena"] is None
+
+    # `scena_dell_uscita()` la legge dal piano corrente.
+    numero = con_immagine[0]["numero"]
+    uscita = next(
+        una for una in uscite_della_campagna(db, campagna.id) if una.numero == numero
+    )
+    assert scena_dell_uscita(db, uscita) == con_immagine[0]["scena"]

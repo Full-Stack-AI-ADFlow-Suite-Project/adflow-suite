@@ -578,6 +578,7 @@ def test_il_piano_arriva_nella_forma_che_il_controllo_si_aspetta(completion, ai)
                 "numero": numero,
                 "tema": f"Tema {numero}",
                 "gruppo_id": 1,
+                "scena": None,
                 "post": [
                     {
                         "canale": "facebook",
@@ -603,7 +604,7 @@ def test_il_piano_arriva_nella_forma_che_il_controllo_si_aspetta(completion, ai)
     assert (scritto.provider, scritto.modello, scritto.versione_prompt) == (
         "litellm",
         "testo-di-prova",
-        "piano_v2",
+        "piano_v3",
     )
     assert scritto.contenuto == piano
     assert (
@@ -718,7 +719,7 @@ def test_i_tipi_di_foto_dello_schema_sono_quelli_di_campagne():
     assert set(TipoFoto.__args__) == set(TIPI_CONTENUTO)
 
 
-@pytest.mark.parametrize("nome", ["analisi_v3", "piano_v2", "post_v3"])
+@pytest.mark.parametrize("nome", ["analisi_v3", "piano_v3", "post_v3"])
 def test_i_prompt_esistono_e_hanno_la_versione_nel_nome(nome):
     assert modulo._prompt(nome).strip()
 

@@ -389,3 +389,70 @@ def test_la_rigenerazione_non_toglie_il_blocco_dell_immagine_che_manca(db, ai):
         "immagine_non_creata"
     ]
     assert DICITURA not in nuovo.versione_corrente.testo
+
+
+# --- La scena dell'uscita (T3-910, CA-106) -------------------------------------
+
+
+def _uscita_con_scena(db, scena, *, campagna=None):
+    from tests.moduli.contenuti.fabbrica import piano as fabbrica_piano
+    from tests.moduli.contenuti.fabbrica import uscita as fabbrica_uscita
+
+    campagna = campagna or campagna_inviata(db)
+    uscita = fabbrica_uscita(db, campagna)
+    fabbrica_piano(
+        db,
+        campagna,
+        contenuto={"uscite": [{"numero": uscita.numero, "scena": scena}]},
+    )
+    return uscita
+
+
+def test_ca106_scena_dell_uscita_legge_la_scena_del_piano(db):
+    from app.moduli.contenuti.immagini_ai import scena_dell_uscita
+
+    scena = {
+        "soggetto": "il banco di lavoro con gli attrezzi",
+        "inquadratura": "banco_dall_alto",
+        "luce": "luce del mattino",
+        "colori": "legno e ferro",
+    }
+    uscita = _uscita_con_scena(db, scena)
+    assert scena_dell_uscita(db, uscita) == scena
+
+
+@pytest.mark.parametrize(
+    "scena",
+    [
+        None,
+        {},
+        {"soggetto": 42, "inquadratura": "banco_dall_alto", "luce": "l", "colori": "c"},
+        {
+            "soggetto": "il banco",
+            "inquadratura": "inquadratura_che_non_esiste",
+            "luce": "l",
+            "colori": "c",
+        },
+        {
+            "soggetto": "il banco",
+            "inquadratura": "banco_dall_alto",
+            "luce": "",
+            "colori": "c",
+        },
+    ],
+)
+def test_ca106_scena_mancante_o_malformata_vale_none(db, scena):
+    """CA-106: la scena malformata non è un errore, l'immagine parte dal tema."""
+    from app.moduli.contenuti.immagini_ai import scena_dell_uscita
+
+    uscita = _uscita_con_scena(db, scena)
+    assert scena_dell_uscita(db, uscita) is None
+
+
+def test_ca106_scena_senza_piano_vale_none(db):
+    from app.moduli.contenuti.immagini_ai import scena_dell_uscita
+    from tests.moduli.contenuti.fabbrica import uscita as fabbrica_uscita
+
+    campagna = campagna_inviata(db)
+    uscita = fabbrica_uscita(db, campagna)
+    assert scena_dell_uscita(db, uscita) is None

@@ -315,7 +315,8 @@ def _pianifica(db: Session, campagna: Any, adesso: datetime) -> None:
     All'AI vanno solo le foto migliori per punteggio, fino ai post chiesti; i
     post che quelle foto non coprono hanno un'immagine AI (R-05, R-28). Un
     piano che non passa il controllo si fa riscrivere, al massimo 3 volte:
-    dopo vale come errore `risposta` (R-09).
+    dopo vale come errore `risposta` (R-09). La `scena` di ogni uscita con
+    immagine AI (T3-910) resta dentro `piano.contenuto`, com'è uscita.
     """
     gruppi = _caricate(db, campagna.id)
     limiti = limiti_per_canale(

@@ -779,3 +779,17 @@ def test_ogni_regola_ha_un_nome_e_le_violazioni_si_salvano_come_json():
     assert _regole(violazioni) == ["foto_non_disponibile", "data_fuori_periodo"]
     assert set(_regole(violazioni)) <= set(piano.REGOLE)
     assert json.loads(json.dumps(violazioni)) == violazioni
+
+
+def test_ca106_la_scena_non_e_una_regola_del_piano():
+    """CA-106: una scena mancante o malformata non è una violazione."""
+    limiti, gruppi = _limiti(5, canali=("instagram",))
+    contenuto = _piano_valido(limiti)
+    contenuto["uscite"][4] = _uscita(5, [_post("instagram", giorno=5)], gruppo_id=None)
+
+    # Senza la chiave `scena`.
+    assert _controlla(contenuto, limiti, gruppi) == []
+
+    # Con una scena malformata.
+    contenuto["uscite"][4]["scena"] = {"soggetto": 42, "inquadratura": "boh"}
+    assert _controlla(contenuto, limiti, gruppi) == []

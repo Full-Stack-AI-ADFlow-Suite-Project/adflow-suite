@@ -14,6 +14,7 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.adapters.ai import AIAdapter, ErroreAI, prompt_immagine
+from app.adapters.ai.schemi import INQUADRATURE
 from app.adapters.archivio import ottieni_archivio
 from app.core.orologio import ROMA
 from app.moduli.campagne import service as campagne
@@ -57,6 +58,35 @@ def senza_dicitura(testo: str) -> str:
     if ripulito.endswith(DICITURA_IMMAGINE_AI):
         return ripulito[: -len(DICITURA_IMMAGINE_AI)].rstrip()
     return testo
+
+
+def scena_dell_uscita(db: Session, uscita: Any) -> dict[str, Any] | None:
+    """La scena dell'uscita dal piano corrente, se c'è e è ben formata (T3-910).
+
+    La scena sta dentro ``piano.contenuto``, accanto ai post dell'uscita:
+    nessuna colonna nuova. Una scena mancante, malformata o con
+    un'inquadratura sconosciuta vale ``None``: non è una violazione del piano
+    e l'immagine parte dal tema, come oggi.
+    """
+    piano = service.piano_corrente(db, uscita.campagna_id)
+    if piano is None or not isinstance(piano.contenuto, dict):
+        return None
+    for voce in piano.contenuto.get("uscite") or []:
+        if not isinstance(voce, dict) or voce.get("numero") != uscita.numero:
+            continue
+        scena = voce.get("scena")
+        if not isinstance(scena, dict):
+            return None
+        campi = ("soggetto", "inquadratura", "luce", "colori")
+        if not all(
+            isinstance(scena.get(campo), str) and scena[campo].strip()
+            for campo in campi
+        ):
+            return None
+        if scena["inquadratura"] not in INQUADRATURE:
+            return None
+        return scena
+    return None
 
 
 def blocco_immagine_non_creata(errore: str) -> dict[str, str]:

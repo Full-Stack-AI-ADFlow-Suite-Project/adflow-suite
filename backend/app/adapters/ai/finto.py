@@ -24,10 +24,47 @@ from .base import (
     ImmagineAI,
     UsoAI,
 )
+from .schemi import INQUADRATURE
 
 PROVIDER = "finto"
 MODELLO = "finto"
 VERSIONE_PROMPT = "finto-1"
+
+# La scena di un'uscita con immagine AI (T3-910): concreta e fotografabile,
+# una per inquadratura. Il finto le gira in ordine, così due uscite vicine
+# non hanno mai la stessa inquadratura.
+SCENE_DEL_FINTO: dict[str, tuple[str, str, str]] = {
+    "dettaglio_materia": (
+        "la materia prima sul banco, vista da vicino",
+        "luce morbida del mattino",
+        "terra, ocra e grigio",
+    ),
+    "banco_dall_alto": (
+        "il banco di lavoro visto dall'alto, con gli attrezzi in ordine",
+        "luce chiara e uniforme",
+        "legno, ferro e bianco",
+    ),
+    "attrezzi_still_life": (
+        "gli attrezzi della bottega appoggiati sul tavolo",
+        "luce laterale del pomeriggio",
+        "ferro scuro e legno caldo",
+    ),
+    "bottega_campo_largo": (
+        "l'interno della bottega con il banco e le mensole",
+        "luce naturale dalle finestre",
+        "legno, terra e verde",
+    ),
+    "materie_prime": (
+        "i sacchi di materia prima accanto al piano di lavoro",
+        "luce soffusa del mattino",
+        "beige, ruggine e grigio",
+    ),
+    "atmosfera_stagione": (
+        "la luce della stagione sulla parete della bottega",
+        "luce calda che entra da una porta aperta",
+        "ambra, rame e ombre morbide",
+    ),
+}
 
 OPERAZIONI = ("analizza_gruppo", "pianifica_campagna", "genera_post", "genera_immagine")
 ORA_DI_USCITA = time(10, 0)
@@ -231,6 +268,7 @@ class AIFinto(AIAdapter):
         )
 
         uscite = []
+        n_scene = 0
         for indice in range(n_uscite):
             post = []
             gruppo = None
@@ -274,11 +312,23 @@ class AIFinto(AIAdapter):
                 tema = gruppo.descrizione or "Le creazioni della bottega"
             else:
                 tema = TEMI_DEI_RIEMPITIVI[indice % len(TEMI_DEI_RIEMPITIVI)]
+            scena = None
+            if any(uno["riempitivo"] == "immagine_ai" for uno in post):
+                inquadratura = INQUADRATURE[n_scene % len(INQUADRATURE)]
+                soggetto, luce, colori = SCENE_DEL_FINTO[inquadratura]
+                scena = {
+                    "soggetto": soggetto,
+                    "inquadratura": inquadratura,
+                    "luce": luce,
+                    "colori": colori,
+                }
+                n_scene += 1
             uscite.append(
                 {
                     "numero": indice + 1,
                     "tema": tema,
                     "gruppo_id": gruppo.id if gruppo is not None else None,
+                    "scena": scena,
                     "post": post,
                 }
             )
