@@ -16,6 +16,8 @@ from .schemas import (
     ChiamataAIDettaglio,
     NumeriAI,
     PaginaChiamateAI,
+    ValutazioneAISchema,
+    VotoAI,
 )
 
 router = APIRouter(tags=["contenuti"])
@@ -114,3 +116,14 @@ def chiamata_ai(
     """Richiesta, risposta, errore e valutazioni; 404 se la chiamata non c'è."""
     response.headers["Cache-Control"] = "no-store"
     return service.chiamata_ai(db, id)
+
+
+@router.post("/storico-ai/{id}/voto", response_model=ValutazioneAISchema)
+def vota_chiamata_ai(
+    id: int,
+    dati: VotoAI,
+    db: Annotated[Session, Depends(get_db, scope="function")],
+    utente: Annotated[Any, Depends(richiede_ruolo("operatore"))],
+) -> ValutazioneAISchema:
+    """Aggiunge un voto da 1 a 5 con una nota; i voti di prima restano."""
+    return service.vota_chiamata_ai(db, id, utente.id, dati.voto, dati.nota)

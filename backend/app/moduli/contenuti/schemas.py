@@ -2,7 +2,7 @@
 from datetime import date, datetime
 from decimal import Decimal
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ConfigDict, Field
 
 
 class FotoCalendario(BaseModel):
@@ -166,3 +166,9 @@ class NumeriAI(BaseModel):
     immagini_non_create: int  # post con il blocco immagine_non_creata
     immagini_rigenerate: int  # versioni rigenera_immagine
     per_versione: list[NumeriVersione]
+
+
+class VotoAI(BaseModel):  # POST /storico-ai/{id}/voto
+    model_config = ConfigDict(extra="forbid")
+    voto: int = Field(ge=1, le=5)
+    nota: str | None = Field(None, max_length=1000)

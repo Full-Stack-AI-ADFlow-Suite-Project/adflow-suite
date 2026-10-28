@@ -3,7 +3,9 @@
 from datetime import datetime, timezone
 from decimal import Decimal
 
-from app.moduli.contenuti.models import VersionePost
+from sqlalchemy import func, select
+
+from app.moduli.contenuti.models import ValutazioneAI, VersionePost
 from tests.moduli.campagne.fabbrica import campagna_in_revisione
 from tests.moduli.contenuti.fabbrica import (
     chiamata_ai,
@@ -260,3 +262,82 @@ def test_ca111_il_p95_e_la_media_usano_le_sole_durate_non_nulle(
     assert n["chiamate"] == 21
     assert n["durata_media_ms"] == 1050
     assert n["durata_p95_ms"] == 1900
+
+
+# --- Voto (T3-918, CA-112) ----------------------------------------------------
+
+
+def test_ca112_un_voto_con_nota_resta_con_l_operatore_e_un_secondo_non_cancella_il_primo(
+    db, client, utente_di_prova
+):
+    marta = utente_di_prova("operatore", nome="Marta Rossi")
+    chiamata = chiamata_ai(db)
+    db.commit()
+
+    primo = client.post(
+        f"/api/storico-ai/{chiamata.id}/voto", json={"voto": 4, "nota": "Buono"}
+    )
+    assert primo.status_code == 200
+    assert (primo.json()["utente_nome"], primo.json()["voto"]) == ("Marta Rossi", 4)
+    assert primo.json()["nota"] == "Buono"
+
+    luca = utente_di_prova("operatore", nome="Luca Verdi")
+    secondo = client.post(f"/api/storico-ai/{chiamata.id}/voto", json={"voto": 2})
+    assert secondo.status_code == 200 and secondo.json()["nota"] is None
+    # anche la stessa persona può votare ancora: il voto di prima resta
+    terzo = client.post(f"/api/storico-ai/{chiamata.id}/voto", json={"voto": 5})
+    assert terzo.status_code == 200
+
+    righe = db.scalars(
+        select(ValutazioneAI)
+        .where(ValutazioneAI.chiamata_ai_id == chiamata.id)
+        .order_by(ValutazioneAI.id)
+    ).all()
+    assert [(r.utente_id, r.voto) for r in righe] == [
+        (marta.id, 4),
+        (luca.id, 2),
+        (luca.id, 5),
+    ]
+
+    elenco = client.get("/api/storico-ai").json()["voci"][0]
+    assert elenco["voto_medio"] == round((4 + 2 + 5) / 3, 2)
+    dettaglio = client.get(f"/api/storico-ai/{chiamata.id}").json()
+    assert [v["voto"] for v in dettaglio["valutazioni"]] == [4, 2, 5]
+
+
+def test_ca112_voto_fuori_da_1_a_5_o_campi_in_piu_sono_422(db, client, utente_di_prova):
+    utente_di_prova("operatore")
+    chiamata = chiamata_ai(db)
+    db.commit()
+    url = f"/api/storico-ai/{chiamata.id}/voto"
+
+    for corpo in (
+        {"voto": 0},
+        {"voto": 6},
+        {"voto": "alto"},
+        {},
+        {"voto": 3, "nota": "x" * 1001},
+        {"voto": 3, "altro": 1},
+    ):
+        assert client.post(url, json=corpo).status_code == 422, corpo
+    assert db.scalar(select(func.count()).select_from(ValutazioneAI)) == 0
+
+
+def test_ca112_chiamata_che_non_c_e_404_e_artigiano_403(db, client, utente_di_prova):
+    utente_di_prova("operatore")
+    mancante = client.post("/api/storico-ai/999999/voto", json={"voto": 3})
+    assert mancante.status_code == 404
+    assert mancante.json() == {"detail": "Chiamata non trovata."}
+
+    chiamata = chiamata_ai(db)
+    db.commit()
+    utente_di_prova("artigiano")
+    assert (
+        client.post(f"/api/storico-ai/{chiamata.id}/voto", json={"voto": 3}).status_code
+        == 403
+    )
+    utente_di_prova("admin")
+    assert (
+        client.post(f"/api/storico-ai/{chiamata.id}/voto", json={"voto": 3}).status_code
+        == 200
+    )

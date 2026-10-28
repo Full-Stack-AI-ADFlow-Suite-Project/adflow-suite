@@ -40,6 +40,7 @@ from .schemas import (
     PaginaChiamateAI,
     PostSegnalato,
     RiepilogoAI,
+    ValutazioneAISchema,
 )
 
 
@@ -878,3 +879,17 @@ def chiamata_ai(db: Session, chiamata_id: int) -> ChiamataAIDettaglio:
     from . import storico_ai as storico
 
     return storico.dettaglio(db, chiamata_id)
+
+
+def vota_chiamata_ai(
+    db: Session, chiamata_id: int, utente_id: int, voto: int, nota: str | None
+) -> ValutazioneAISchema:
+    """Il voto da 1 a 5 di un operatore su una chiamata all'AI, con la nota.
+
+    Raises:
+        NonTrovato: «Chiamata non trovata.» (404).
+        DatiNonValidi: il voto è fuori da 1–5 (422).
+    """
+    from . import storico_ai as storico
+
+    return storico.vota(db, chiamata_id, utente_id, voto, nota)

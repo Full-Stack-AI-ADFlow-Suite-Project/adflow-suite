@@ -14,7 +14,7 @@ from sqlalchemy import Select, and_, case, func, select
 from sqlalchemy.orm import Session, aliased
 
 from app.adapters.ai import TIPI_USO
-from app.core.errori import NonTrovato
+from app.core.errori import DatiNonValidi, NonTrovato
 from app.core.orologio import ROMA
 from app.moduli.accesso import service as accesso
 from app.moduli.artigiani import service as artigiani
@@ -36,6 +36,7 @@ from .schemas import (
     ValutazioneAISchema,
 )
 from .immagini_ai import IMMAGINE_NON_CREATA
+from .validatore import testo_salvabile
 
 PER_PAGINA = 50
 NON_TROVATA = "Chiamata non trovata."
@@ -200,6 +201,39 @@ def chiamata(db: Session, chiamata_id: int) -> ChiamataAI:
     if record is None:
         raise NonTrovato(NON_TROVATA)
     return record
+
+
+def vota(
+    db: Session, chiamata_id: int, utente_id: int, voto: int, nota: str | None
+) -> ValutazioneAISchema:
+    """Aggiunge il voto di un operatore a una chiamata (R-50).
+
+    Una riga per voto: un voto nuovo non cancella i precedenti, nemmeno quelli
+    della stessa persona (costituzione §1.2). Senza commit.
+
+    Raises:
+        NonTrovato: «Chiamata non trovata.» (404).
+        DatiNonValidi: il voto è fuori da 1–5 (422).
+    """
+    if not 1 <= voto <= 5:
+        raise DatiNonValidi("Il voto va da 1 a 5.")
+    record = chiamata(db, chiamata_id)
+    riga = ValutazioneAI(
+        chiamata_ai_id=record.id,
+        utente_id=utente_id,
+        voto=voto,
+        nota=(testo_salvabile(nota).strip() or None) if nota else None,
+    )
+    db.add(riga)
+    db.flush()
+    db.refresh(riga)
+    return ValutazioneAISchema(
+        id=riga.id,
+        utente_nome=accesso.utente(db, utente_id).nome,
+        voto=riga.voto,
+        nota=riga.nota,
+        creata_il=riga.creata_il,
+    )
 
 
 def dettaglio(db: Session, chiamata_id: int) -> ChiamataAIDettaglio:
