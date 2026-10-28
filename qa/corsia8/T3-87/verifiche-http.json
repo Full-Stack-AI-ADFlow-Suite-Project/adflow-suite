@@ -1,0 +1,163 @@
+{
+  "commit": "9a7b21ba8d30e7ecf9fdb75eae889bbb74a550f4",
+  "environment": "PostgreSQL 18 dedicato su 55438; API 8018; AI/social finti; worker reale; email in memoria",
+  "checks": [
+    {
+      "check": "login operatore HTTP reale",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "check": "sessione operatore persistita",
+      "expected": 200,
+      "actual": 200,
+      "role": "operatore",
+      "pass": true
+    },
+    {
+      "check": "creazione nuovo artigiano",
+      "expected": 201,
+      "actual": 201,
+      "pass": true
+    },
+    {
+      "check": "email duplicata rifiutata",
+      "expected": 409,
+      "actual": 409,
+      "pass": true
+    },
+    {
+      "check": "login artigiano seed",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "check": "profilo salvato su PostgreSQL",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "check": "artigiano escluso dalla pagina operatore",
+      "expected": 403,
+      "actual": 403,
+      "pass": true
+    },
+    {
+      "check": "inizio tra1giorno",
+      "expected": 422,
+      "actual": 422,
+      "pass": true
+    },
+    {
+      "check": "durata3giorni",
+      "expected": 422,
+      "actual": 422,
+      "pass": true
+    },
+    {
+      "check": "campagna7giorni tra4giorni",
+      "expected": 201,
+      "actual": 201,
+      "pass": true
+    },
+    {
+      "check": "login nuovo account con password provvisoria",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "check": "nuovo account senza profilo deve compilarlo",
+      "expected": 404,
+      "actual": 404,
+      "pass": true
+    },
+    {
+      "check": "invio senza dichiarazione rifiutato",
+      "expected": 422,
+      "actual": 422,
+      "pass": true
+    },
+    {
+      "check": "invio QA con dichiarazione accettata",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "check": "worker PG genera e porta la campagna in revisione",
+      "expected": "in_revisione",
+      "actual": "in_revisione",
+      "pass": true
+    },
+    {
+      "check": "3post per ciascuno dei2canali",
+      "expected": 6,
+      "actual": 6,
+      "pass": true
+    },
+    {
+      "check": "dicituraAI nei6post fittizi",
+      "expected": 6,
+      "actual": 6,
+      "pass": true
+    },
+    {
+      "check": "operatore apre richiesta",
+      "expected": 201,
+      "actual": 201,
+      "pass": true
+    },
+    {
+      "check": "artigiano vede la richiesta persistita",
+      "expected": "Puoi confermare la descrizione della bottega?",
+      "actual": "Puoi confermare la descrizione della bottega?",
+      "pass": true
+    },
+    {
+      "check": "artigiano invia la risposta",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "check": "operatore approva i6post",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "check": "sospensione con nota",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "check": "stato sospeso visibile all’artigiano",
+      "expected": "sospesa",
+      "actual": "sospesa",
+      "pass": true
+    },
+    {
+      "check": "riattivazione della campagna",
+      "expected": 200,
+      "actual": 200,
+      "pass": true
+    },
+    {
+      "check": "payload di rigenerazione incompleto rifiutato",
+      "expected": 422,
+      "actual": 422,
+      "pass": true
+    },
+    {
+      "check": "rigenerazione su campagna attiva rifiutata",
+      "expected": 409,
+      "actual": 409,
+      "pass": true
+    }
+  ]
+}
