@@ -45,9 +45,11 @@ from .schemi import RispostaAnalisi, RispostaPiano, RispostaPost
 
 PROVIDER = "litellm"
 CARTELLA_PROMPT = Path(__file__).parent / "prompts"
-# Lato lungo delle foto mandate all'analisi, e qualità del JPEG.
+# Lato lungo delle foto mandate all'analisi, qualità del JPEG e dettaglio.
+# Con `low` il provider riduce la foto a 512 px: troppo poco per descriverla.
 LATO_FOTO = 1024
 QUALITA_JPEG = 85
+DETTAGLIO_FOTO = "high"
 # Il job riprova da sé (R-35): LiteLLM non deve moltiplicare i tentativi.
 TIMEOUT_SECONDI = 120
 # Le immagini AI sono sempre quadrate 1:1, di qualità media (brief-ai T3-34).
@@ -94,7 +96,7 @@ _FILTRO = ("content_policy", "moderation_blocked", "safety system")
 
 @lru_cache
 def _prompt(nome: str) -> str:
-    """Il testo di ``prompts/<nome>.md``; il nome porta la versione (``piano_v1``)."""
+    """Il testo di ``prompts/<nome>.md``; il nome porta la versione (``piano_v2``)."""
     return (CARTELLA_PROMPT / f"{nome}.md").read_text(encoding="utf-8")
 
 
@@ -175,7 +177,7 @@ def traduci_errore(errore: Exception, *, foto_id: int | None = None) -> ErroreAI
 
 
 def _foto_per_ai(foto: FotoAI) -> dict[str, Any]:
-    """La foto come ``image_url``: JPEG di al massimo 1024 px, in base64, dettaglio basso."""
+    """La foto come ``image_url``: JPEG di al massimo 1024 px, in base64, dettaglio alto."""
     try:
         originale = ottieni_archivio().leggi(foto.file)
     except FileNotFoundError:
@@ -195,7 +197,10 @@ def _foto_per_ai(foto: FotoAI) -> dict[str, Any]:
     dati = base64.b64encode(uscita.getvalue()).decode("ascii")
     return {
         "type": "image_url",
-        "image_url": {"url": f"data:image/jpeg;base64,{dati}", "detail": "low"},
+        "image_url": {
+            "url": f"data:image/jpeg;base64,{dati}",
+            "detail": DETTAGLIO_FOTO,
+        },
     }
 
 
@@ -341,7 +346,7 @@ class AILiteLLM(AIAdapter):
             "analisi",
             self._modello_visione,
             [
-                {"role": "system", "content": _prompt("analisi_v1")},
+                {"role": "system", "content": _prompt("analisi_v2")},
                 {"role": "user", "content": contenuto},
             ],
             RispostaAnalisi,
@@ -365,6 +370,7 @@ class AILiteLLM(AIAdapter):
                 "punteggio": voce.punteggio,
                 "motivo": voce.motivo if not voce.idonea else None,
                 "soggetto": voce.soggetto,
+                "descrizione": voce.descrizione,
                 "persone_riconoscibili": voce.persone_riconoscibili,
                 "marchi_visibili": voce.marchi_visibili,
             }
@@ -431,7 +437,7 @@ class AILiteLLM(AIAdapter):
             "piano",
             self._modello_testo,
             [
-                {"role": "system", "content": _prompt("piano_v1")},
+                {"role": "system", "content": _prompt("piano_v2")},
                 {"role": "user", "content": _json(richiesta)},
             ],
             RispostaPiano,
@@ -440,7 +446,7 @@ class AILiteLLM(AIAdapter):
             contenuto=risposta.model_dump(),
             provider=PROVIDER,
             modello=self._modello_testo,
-            versione_prompt="piano_v1",
+            versione_prompt="piano_v2",
         )
 
     def genera_post(
@@ -476,6 +482,8 @@ class AILiteLLM(AIAdapter):
             },
             "scheda_del_canale": dict(scheda),
         }
+        if post.immagine_ai:
+            richiesta["post"]["immagine_ai"] = post.immagine_ai
         if testo_precedente is not None:
             richiesta["testo_precedente"] = testo_precedente
             richiesta["violazioni"] = [v["messaggio"] for v in violazioni or []]
@@ -489,7 +497,7 @@ class AILiteLLM(AIAdapter):
             "testo",
             self._modello_testo,
             [
-                {"role": "system", "content": _prompt("post_v1")},
+                {"role": "system", "content": _prompt("post_v2")},
                 {"role": "user", "content": _json(richiesta)},
             ],
             RispostaPost,
@@ -500,7 +508,7 @@ class AILiteLLM(AIAdapter):
             hashtag=[uno for uno in hashtag if uno],
             provider=PROVIDER,
             modello=self._modello_testo,
-            versione_prompt="post_v1",
+            versione_prompt="post_v2",
         )
 
     def genera_immagine(self, prompt: str) -> ImmagineAI:
@@ -572,6 +580,6 @@ def _valutazione(foto: FotoAI) -> dict[str, Any]:
     analisi = foto.analisi or {}
     return {
         campo: analisi.get(campo)
-        for campo in ("soggetto", "tipo", "punteggio", "motivo")
+        for campo in ("soggetto", "descrizione", "tipo", "punteggio", "motivo")
         if analisi.get(campo) is not None
     }

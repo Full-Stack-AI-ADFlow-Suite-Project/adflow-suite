@@ -430,40 +430,45 @@ def test_regola_post_per_canale_con_un_canale_che_la_campagna_non_ha():
     assert violazioni[0]["canale"] == "facebook"
 
 
-def test_regola_riempitivi_piu_di_quelli_che_mancano():
-    """5 foto e 6 post: 4 foto e 2 immagini AI non vanno, ne manca una sola."""
+def test_nessun_tetto_alle_immagini_ai_piu_di_quelle_che_mancano():
+    """R-28: 5 foto e 6 post, una foto non usata e 2 immagini AI: il piano è valido."""
     limiti, gruppi = _limiti(5, canali=("instagram",))
     contenuto = _piano_valido(limiti)
     contenuto["uscite"][4] = _uscita(5, [_post("instagram", giorno=5)], gruppo_id=None)
 
-    violazioni = _controlla(contenuto, limiti, gruppi)
-
-    assert _regole(violazioni) == ["riempitivi"]
-    assert violazioni[0]["canale"] == "instagram"
-    assert "devono essere 1" in violazioni[0]["messaggio"]
+    assert _controlla(contenuto, limiti, gruppi) == []
 
 
-def test_regola_riempitivi_dove_le_foto_bastano():
+def test_nessun_tetto_alle_immagini_ai_dove_le_foto_bastano():
     limiti, gruppi = _limiti(6, canali=("instagram",))
     contenuto = _piano_valido(limiti)
     contenuto["uscite"][5] = _uscita(6, [_post("instagram", giorno=6)], gruppo_id=None)
 
-    violazioni = _controlla(contenuto, limiti, gruppi)
-
-    assert _regole(violazioni) == ["riempitivi"]
-    assert "devono essere 0" in violazioni[0]["messaggio"]
+    assert _controlla(contenuto, limiti, gruppi) == []
 
 
-def test_regola_riempitivi_si_conta_canale_per_canale():
+def test_un_piano_tutto_con_immagini_ai_e_valido():
     limiti, gruppi = _limiti(6)
+    contenuto = _piano(
+        *(
+            _uscita(
+                numero,
+                [_post(c, giorno=numero) for c in ("facebook", "instagram")],
+                gruppo_id=None,
+            )
+            for numero in range(1, 7)
+        )
+    )
+
+    assert _controlla(contenuto, limiti, gruppi) == []
+
+
+def test_un_post_senza_foto_e_senza_immagine_ai_resta_non_valido():
+    limiti, gruppi = _limiti(5, canali=("instagram",))
     contenuto = _piano_valido(limiti)
-    contenuto["uscite"][5]["post"][1] = _post("instagram", giorno=6)
+    contenuto["uscite"][5]["post"][0]["riempitivo"] = None
 
-    violazioni = _controlla(contenuto, limiti, gruppi)
-
-    assert [(v["regola"], v["canale"]) for v in violazioni] == [
-        ("riempitivi", "instagram")
-    ]
+    assert _regole(_controlla(contenuto, limiti, gruppi)) == ["piano_malformato"]
 
 
 def test_regola_nessun_carosello_su_un_canale_con_riempitivi():

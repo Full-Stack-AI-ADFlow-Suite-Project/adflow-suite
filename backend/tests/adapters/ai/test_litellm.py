@@ -137,6 +137,7 @@ def _voce(foto_id: int, **campi) -> dict:
     dati = dict(
         foto_id=foto_id,
         soggetto="Un vaso di terracotta",
+        descrizione="Un vaso di terracotta rossa su un tavolo di legno chiaro.",
         tipo="pezzo_finito",
         idonea=True,
         motivo=None,
@@ -311,7 +312,7 @@ def test_ultimo_uso_ha_modello_token_e_costo_di_litellm(completion, ai):
     assert (scritto.provider, scritto.modello, scritto.versione_prompt) == (
         "litellm",
         "testo-di-prova",
-        "post_v1",
+        "post_v2",
     )
 
 
@@ -363,6 +364,16 @@ def test_la_chiamata_usa_schema_chiave_e_nessun_tentativo_di_litellm(completion,
         "vincoli": "Non parlare di sconti.",
     }  # senza il referente
     assert dati["post"]["foto"] == [{"soggetto": "Un vaso", "punteggio": 4}]
+    assert "immagine_ai" not in dati["post"]
+
+
+def test_il_post_con_immagine_ai_manda_cio_che_l_immagine_mostra(completion, ai):
+    completion.metti(risposta({"testo": "Il banco.", "hashtag": []}))
+    post = _post(foto=[], riempitivo="immagine_ai", immagine_ai="Il banco di lavoro")
+    ai.genera_post(SNAPSHOT, CAMPAGNA, post, domain.SCHEDE_CANALE["instagram"])
+    dati = json.loads(completion.chiamate[0]["messages"][1]["content"])
+    assert dati["post"]["immagine_ai"] == "Il banco di lavoro"
+    assert dati["post"]["immagine_creata_con_ai"] is True
 
 
 def test_le_rigenerazioni_mandano_versioni_scartate_proposta_e_nota(completion, ai):
@@ -403,7 +414,7 @@ def test_analisi_una_chiamata_per_gruppo_con_foto_ridotte_a_1024(
     immagini = [p["image_url"] for p in parti if p["type"] == "image_url"]
     assert len(immagini) == 2
     for immagine in immagini:
-        assert immagine["detail"] == "low"
+        assert immagine["detail"] == "high"
         assert immagine["url"].startswith("data:image/jpeg;base64,")
     testi = [p["text"] for p in parti if p["type"] == "text"]
     assert "Foto 1:" in testi and "Foto 2:" in testi
@@ -416,6 +427,7 @@ def test_analisi_una_chiamata_per_gruppo_con_foto_ridotte_a_1024(
         "punteggio": 4,
         "motivo": None,
         "soggetto": "Un vaso di terracotta",
+        "descrizione": "Un vaso di terracotta rossa su un tavolo di legno chiaro.",
         "persone_riconoscibili": False,
         "marchi_visibili": False,
     }
@@ -440,6 +452,13 @@ def test_il_soggetto_ha_al_massimo_15_parole(completion, ai, archivio):
     lungo = " ".join(f"parola{n}" for n in range(30))
     completion.metti(risposta(_analisi_di(_voce(1, soggetto=lungo))))
     assert len(ai.analizza_gruppo(gruppo)[1]["soggetto"].split()) == 15
+
+
+def test_la_descrizione_ha_al_massimo_60_parole(completion, ai, archivio):
+    gruppo = _gruppo(archivio, 1)
+    lunga = " ".join(f"parola{n}" for n in range(100))
+    completion.metti(risposta(_analisi_di(_voce(1, descrizione=lunga))))
+    assert len(ai.analizza_gruppo(gruppo)[1]["descrizione"].split()) == 60
 
 
 def test_due_foto_che_si_dicono_doppioni_a_vicenda_ne_lasciano_una_libera(
@@ -582,7 +601,7 @@ def test_il_piano_arriva_nella_forma_che_il_controllo_si_aspetta(completion, ai)
     assert (scritto.provider, scritto.modello, scritto.versione_prompt) == (
         "litellm",
         "testo-di-prova",
-        "piano_v1",
+        "piano_v2",
     )
     assert scritto.contenuto == piano
     assert (
@@ -697,7 +716,7 @@ def test_i_tipi_di_foto_dello_schema_sono_quelli_di_campagne():
     assert set(TipoFoto.__args__) == set(TIPI_CONTENUTO)
 
 
-@pytest.mark.parametrize("nome", ["analisi_v1", "piano_v1", "post_v1"])
+@pytest.mark.parametrize("nome", ["analisi_v2", "piano_v2", "post_v2"])
 def test_i_prompt_esistono_e_hanno_la_versione_nel_nome(nome):
     assert modulo._prompt(nome).strip()
 
@@ -748,7 +767,7 @@ def test_l_immagine_si_chiede_quadrata_di_qualita_media_senza_tentativi_di_litel
         "litellm",
         "immagini-di-prova",
     )
-    assert immagine.versione_prompt == "immagine_v1"
+    assert immagine.versione_prompt == "immagine_v2"
     with Image.open(BytesIO(immagine.contenuto)) as aperta:
         assert aperta.size == (1024, 1024)
 
@@ -860,7 +879,7 @@ def test_senza_il_modello_delle_immagini_la_chiamata_e_di_configurazione(
 
 
 def test_il_prompt_dell_immagine_esiste_con_la_versione_nel_nome():
-    assert modulo._prompt("immagine_v1").strip()
+    assert modulo._prompt("immagine_v2").strip()
 
 
 # --- Prompt dell'immagine (R-43) -----------------------------------------------------
@@ -880,9 +899,12 @@ def test_il_prompt_dell_immagine_e_quello_del_brief():
         "Fotografia realistica, quadrata, per una bottega di ceramica e vetro a Deruta.\n"
         "Soggetto: Il tornio al lavoro, mostrato attraverso ambiente, materiali o "
         "attrezzi della lavorazione.\n"
+        "Inquadratura: un solo soggetto chiaro, ripreso da vicino o a mezza distanza, "
+        "sfondo semplice e leggermente sfocato, come una foto scattata in bottega con "
+        "una buona fotocamera.\n"
         "Stagione: inverno.\n"
         "Tono: caldo, professionale.\n"
-        "Luce naturale.\n"
+        "Luce naturale, morbida, colori fedeli e caldi, senza effetti artificiali.\n"
         "Vincoli: nessun prodotto finito riconoscibile, nessuna persona riconoscibile, "
         "nessun testo, logo o marchio."
     )
@@ -906,7 +928,7 @@ def test_il_prompt_semplice_non_ha_ne_tono_ne_stagione_ma_tiene_i_vincoli():
 
     assert "Stagione" not in prompt and "Tono" not in prompt
     assert "Soggetto: Tema," in prompt
-    assert "Luce naturale." in prompt
+    assert "Luce naturale," in prompt
     assert "Vincoli: nessun prodotto finito riconoscibile" in prompt
 
 
@@ -927,4 +949,4 @@ def test_un_tema_lungo_o_su_piu_righe_non_rompe_il_prompt():
 
     soggetto = next(r for r in prompt.splitlines() if r.startswith("Soggetto:"))
     assert len(soggetto) < 400
-    assert len(prompt.splitlines()) == 6
+    assert len(prompt.splitlines()) == 7

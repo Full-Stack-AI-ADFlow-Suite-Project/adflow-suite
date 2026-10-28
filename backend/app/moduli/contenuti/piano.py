@@ -36,7 +36,6 @@ RIEMPITIVI_DEL_PIANO = ("immagine_ai",)
 
 PIANO_MALFORMATO = "piano_malformato"
 POST_PER_CANALE = "post_per_canale"
-RIEMPITIVI = "riempitivi"
 CAROSELLO_CON_RIEMPITIVI = "carosello_con_riempitivi"
 FOTO_RIPETUTA = "foto_ripetuta"
 FOTO_NON_DISPONIBILE = "foto_non_disponibile"
@@ -46,7 +45,6 @@ TROPPE_FOTO = "troppe_foto"
 REGOLE = (
     PIANO_MALFORMATO,
     POST_PER_CANALE,
-    RIEMPITIVI,
     CAROSELLO_CON_RIEMPITIVI,
     FOTO_RIPETUTA,
     FOTO_NON_DISPONIBILE,
@@ -334,18 +332,15 @@ def controlla_piano(
             )
             violazioni.append(_violazione(POST_PER_CANALE, canale, messaggio))
 
-    con_riempitivi = set()
-    for canale, limite in limiti.items():
-        presenti = sum(1 for _, p in del_canale[canale] if p["riempitivo"] is not None)
-        if presenti or limite["riempitivi"]:
-            con_riempitivi.add(canale)
-        if presenti != limite["riempitivi"]:
-            messaggio = (
-                f"Su {canale} i riempitivi `immagine_ai` devono essere "
-                f"{limite['riempitivi']}, cioè i post chiesti che le foto "
-                f"disponibili non coprono: sono {presenti}."
-            )
-            violazioni.append(_violazione(RIEMPITIVI, canale, messaggio))
+    # R-28: nessun tetto alle immagini AI. Quante siano non è una regola: un
+    # post senza foto è `immagine_ai`, uno con foto la prende tra quelle
+    # disponibili (regole sotto), e può non usarle tutte.
+    con_riempitivi = {
+        canale
+        for canale, limite in limiti.items()
+        if limite["riempitivi"]
+        or any(p["riempitivo"] is not None for _, p in del_canale[canale])
+    }
 
     for canale in limiti:
         if canale not in con_riempitivi:

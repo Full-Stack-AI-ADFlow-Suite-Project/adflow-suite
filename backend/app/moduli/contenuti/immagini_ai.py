@@ -77,6 +77,16 @@ def _gia_deciso(db: Session, post: Post) -> EsitoImmagine | None:
     return None
 
 
+def descrizione_immagine(campagna: Any, post: Post, tema: str) -> str:
+    """Che cosa mostra l'immagine AI del post: il prompt con cui è stata chiesta.
+
+    Va a chi scrive il testo, che non vede l'immagine ma deve richiamarla.
+    """
+    snapshot = campagna.profilo_snapshot
+    snapshot = snapshot if isinstance(snapshot, dict) else {}
+    return prompt_immagine(snapshot, tema, post.data_ora.astimezone(ROMA).date())
+
+
 def immagine_del_post(
     db: Session, campagna: Any, ai: AIAdapter, post: Post, tema: str
 ) -> EsitoImmagine:

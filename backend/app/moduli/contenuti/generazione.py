@@ -44,7 +44,12 @@ from app.moduli.notifiche import service as notifiche
 
 from . import service
 from .domain import DA_APPROVARE, IMMAGINE_AI, SCHEDE_CANALE
-from .immagini_ai import blocco_immagine_non_creata, con_dicitura, immagine_del_post
+from .immagini_ai import (
+    blocco_immagine_non_creata,
+    con_dicitura,
+    descrizione_immagine,
+    immagine_del_post,
+)
 from .models import (
     ErroreGenerazione,
     Piano,
@@ -78,6 +83,7 @@ _CAMPI_ANALISI = (
     "punteggio",
     "motivo",
     "soggetto",
+    "descrizione",
     "persone_riconoscibili",
     "marchi_visibili",
 )
@@ -451,8 +457,13 @@ def _scrivi(db: Session, campagna: Any, post: Post) -> None:
         data_ora=post.data_ora,
         riempitivo=post.riempitivo,
         descrizione_gruppo=gruppo.descrizione if gruppo is not None else None,
-        # All'AI il testo di un'immagine AI si chiede dal tema, non da ciò che l'immagine mostra.
+        # Un'immagine AI non è analizzata: all'AI va che cosa le è stato chiesto di mostrare.
         foto=[] if post.riempitivo == IMMAGINE_AI else [_foto_ai(una) for una in foto],
+        immagine_ai=(
+            descrizione_immagine(campagna, post, uscita.tema)
+            if post.riempitivo == IMMAGINE_AI and foto
+            else None
+        ),
     )
 
     with _nella_tappa(TESTI, post.canale):

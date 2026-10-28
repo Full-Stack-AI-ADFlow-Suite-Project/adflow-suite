@@ -168,6 +168,18 @@ def test_il_prompt_parte_dal_profilo_dal_tema_e_dalla_stagione_del_post(db, ai):
         assert "nessuna persona riconoscibile" in prompt
 
 
+def test_il_testo_di_un_rimpiazzo_riceve_cio_che_l_immagine_mostra(db, ai):
+    """Il testo deve richiamare l'immagine AI: all'AI va il prompt che l'ha creata."""
+    campagna = _campagna(db)
+
+    _job(campagna.id)
+
+    prompt = {c["prompt"] for c in _chiamate(ai, "genera_immagine")}
+    testi = [c for c in _chiamate(ai, "genera_post") if c.get("immagine_ai")]
+    assert testi
+    assert all(c["immagine_ai"] in prompt for c in testi)
+
+
 def test_il_prompt_usa_la_fotografia_del_profilo_non_il_profilo_corrente(db, ai):
     campagna = _campagna(db)
     artigiani.profilo(db, campagna.profilo_id).citta = "Altrove"

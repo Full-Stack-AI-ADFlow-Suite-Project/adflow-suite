@@ -183,6 +183,7 @@ class AIFinto(AIAdapter):
                 "punteggio": 0.8,
                 "motivo": None,
                 "soggetto": gruppo.descrizione or "Foto della bottega",
+                "descrizione": gruppo.descrizione or "Foto della bottega",
             }
             analisi.update(self._analisi.get(foto.id, {}))
             risultato[foto.id] = analisi
@@ -311,6 +312,8 @@ class AIFinto(AIAdapter):
             "tema": post.tema,
             "riscrittura": testo_precedente is not None,
         }
+        if post.immagine_ai:
+            chiamata["immagine_ai"] = post.immagine_ai
         # Nelle rigenerazioni si vede che cosa è arrivato all'AI (R-04).
         if versioni_rifiutate:
             chiamata["rifiutate"] = list(versioni_rifiutate)
