@@ -7,6 +7,7 @@ Da ``backend/``::
     python -m app.cli cambia-password --email E
     python -m app.cli prova-ai --campagna ID
     python -m app.cli demo --foto CARTELLA [--quante N]
+    python -m app.cli pubblica-ora
 
 La password si chiede a terminale: non passa dagli argomenti né finisce in git.
 
@@ -18,6 +19,11 @@ fatto e speso l'AI: è la prova su 10 post di T3-32, da ripetere per ogni modell
 seed, la bottega della demo con il profilo e una campagna in bozza pronta da
 inviare, con le foto vere prese dalla cartella. Profilo e testi si cambiano con
 un ``demo.json`` nella stessa cartella. Le foto non entrano in git.
+
+``pubblica-ora`` è per le prove a mano: pubblica subito tutti i post approvati
+delle campagne attive, senza aspettare la loro data, con il provider social di
+``backend/.env`` (``SOCIAL_PROVIDER=meta`` per la pagina vera). Non prende il
+lock del tick: va lanciato a worker fermo.
 """
 
 import argparse
@@ -51,7 +57,8 @@ from app.moduli.campagne.domain import INVIATA, IN_GENERAZIONE
 from app.moduli.campagne.schemas import CampagnaCrea, GruppoCrea
 from app.moduli.contenuti import generazione
 from app.moduli.contenuti.schemas import RiepilogoAI
-from app.moduli.contenuti.service import riepilogo_ai_della_campagna
+from app.moduli.contenuti.service import post_dovuti, riepilogo_ai_della_campagna
+from app.moduli.pubblicazione.service import pubblica_dovuti
 
 UTENTI_SEED = (
     ("artigiano@example.com", "Marta Bianchi", "artigiano"),
@@ -160,8 +167,6 @@ CAMPAGNA_DEMO = dict(
     canali=["facebook", "instagram"],
 )
 GRUPPO_DEMO = "Lavori della bottega fotografati dall'artigiano"
-# Immagini AI che la demo deve mostrare (converge §4: meno foto dei post chiesti).
-IMMAGINI_AI_DEMO = 2
 
 
 @dataclass
@@ -198,8 +203,8 @@ def esegui_demo(
 
     Le foto passano per ``campagne.carica_foto()``, con i suoi controlli: quelle
     che non li superano (formato, lato corto sotto i 1080 px, troppi pixel) si
-    scartano con il motivo. ``quante`` = None carica i post per canale meno
-    ``IMMAGINI_AI_DEMO`` (almeno una foto); 0 carica tutte quelle valide.
+    scartano con il motivo. ``quante`` = None o 0 carica tutte quelle valide: i
+    post che le foto non coprono hanno un'immagine AI, quanti che siano.
     La demo si prepara una volta sola, da database vuoto.
     """
     if not cartella.is_dir():
@@ -236,8 +241,6 @@ def esegui_demo(
     post_per_canale = campagne.post_chiesti(
         post_a_settimana(profilo.frequenza), inizio, fine
     )
-    if quante is None:
-        quante = max(1, post_per_canale - IMMAGINI_AI_DEMO)
     esito = EsitoDemo(
         creati=creati,
         campagna_id=campagna.id,
@@ -445,10 +448,11 @@ def _parser() -> argparse.ArgumentParser:
         "--quante",
         type=int,
         default=None,
-        help=(
-            f"foto da caricare (default: post per canale meno {IMMAGINI_AI_DEMO}, "
-            "per vedere le immagini AI; 0 = tutte)"
-        ),
+        help="foto da caricare (default e 0: tutte quelle valide della cartella)",
+    )
+    comandi.add_parser(
+        "pubblica-ora",
+        help="pubblica subito i post approvati delle campagne attive (prove a mano)",
     )
     return parser
 
@@ -475,6 +479,14 @@ def main(argv: Sequence[str] | None = None) -> int:
             esito = esegui_prova_ai(argomenti.campagna)
             print(rapporto_prova_ai(esito))
             return 0 if esito.errore is None else 1
+        elif argomenti.comando == "pubblica-ora":
+            ora = adesso() + timedelta(days=366)
+            with transazione() as db:
+                dovuti = post_dovuti(db, ora)
+                pubblica_dovuti(db, ora)
+                pubblicati = sum(1 for post in dovuti if post.stato == "pubblicato")
+            print(f"Pubblicati {pubblicati} post su {len(dovuti)}.")
+            return 0 if pubblicati == len(dovuti) else 1
         elif argomenti.comando == "cambia-password":
             password = _chiedi_password("Nuova password")
             with transazione() as db:

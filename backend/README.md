@@ -36,8 +36,8 @@ Il tick di pubblicazione è registrato nel worker: non serve nessun cron esterno
 Da database vuoto (dopo `alembic upgrade head`) un solo comando prepara la demo di `docs/agenti/converge.md` §4: gli utenti del seed, la bottega della demo (`demo@example.com`, profilo completo) e una campagna in bozza su Facebook e Instagram che inizia tra 4 giorni e dura 7, con le foto vere prese da una cartella qualsiasi. La password, la stessa per tutti gli utenti, si chiede a terminale; le foto restano fuori da git.
 
 ```bash
-uv run python -m app.cli demo --foto CARTELLA              # foto = post per canale meno 2: si vedono 2 immagini AI
-uv run python -m app.cli demo --foto CARTELLA --quante 0   # tutte le foto valide
+uv run python -m app.cli demo --foto CARTELLA              # tutte le foto valide della cartella
+uv run python -m app.cli demo --foto CARTELLA --quante 3   # solo le prime 3: le altre posizioni sono immagini AI
 ```
 
 Senza altro, la bottega ha il profilo del seed e testi generici. Per provare la propria bottega si mette nella cartella delle foto un `demo.json` con i campi da cambiare (quelli del profilo sono i campi di plan §2):
