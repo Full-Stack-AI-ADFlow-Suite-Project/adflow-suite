@@ -2,6 +2,7 @@
 
 from dataclasses import replace
 from datetime import datetime, timedelta
+from typing import Any, NamedTuple
 
 from sqlalchemy import select
 from sqlalchemy.orm import Session
@@ -38,6 +39,7 @@ from .immagini_ai import (
     con_dicitura,
     descrizione_immagine,
     immagine_rigenerata,
+    senza_dicitura,
 )
 from .models import Post, Uscita, VersionePost, VersionePostFoto
 from .service import (
@@ -70,8 +72,6 @@ def interventi_ammessi(post: Post, stato_campagna: str, adesso: datetime) -> lis
         return []
     if post.versione_corrente is None:
         ammessi -= {MODIFICA, RIGENERA, RIGENERA_IMMAGINE, CAMBIA_FOTO}
-    if post.riempitivo is not None:
-        ammessi -= {CAMBIA_FOTO}
     if post.n_rigenerazioni_testo >= MAX_RIGENERAZIONI:
         ammessi -= {RIGENERA}
     if _rigenerazioni_immagine(post) >= MAX_RIGENERAZIONI_IMMAGINE:
@@ -105,8 +105,6 @@ def verifica_intervento(
             raise StatoNonValido(
                 f"Il post esce tra meno di {margine} minuti: non si tocca più."
             )
-        if intervento == CAMBIA_FOTO and post.riempitivo is not None:
-            raise StatoNonValido("Un post con un'immagine AI non cambia foto.")
         if intervento == RIGENERA and post.n_rigenerazioni_testo >= MAX_RIGENERAZIONI:
             raise StatoNonValido(
                 "Le 3 rigenerazioni del testo sono finite: resta la modifica a mano."
@@ -362,25 +360,20 @@ def rigenera_immagine(
     return versioni
 
 
-def foto_possibili(db: Session, post_id: int, adesso: datetime) -> list:
-    """Le foto con cui si può cambiare quella del post, la migliore in cima (R-36).
+class FotoPerPost(NamedTuple):
+    """Una foto proponibile per Cambia immagine, con da dove viene (R-36)."""
 
-    Sono le foto ``caricata`` del gruppo dell'uscita, idonee per l'analisi
-    oppure senza analisi perché arrivate con una richiesta all'artigiano (R-46),
-    che non sono nella versione corrente del post né in quella di un altro post
-    della campagna sullo stesso canale ancora vivo (costituzione §1.9). Prima
-    quelle senza analisi, poi per punteggio decrescente, poi per id.
+    foto: Any
+    provenienza: str  # "gruppo" | "campagna" | "archivio"
 
-    Raises:
-        NonTrovato: il post non esiste.
-        StatoNonValido: ``cambia_foto`` non è ammesso sul post, o il post non ha
-            un gruppo di foto perché ha un'immagine AI (409).
+
+def _foto_libere(db: Session, campagna: Any, record: Post) -> set[int]:
+    """Le foto già nella versione corrente del post o di un altro post vivo.
+
+    Vale la costituzione §1.9: una foto non esce due volte sullo stesso canale
+    nella stessa campagna. Contano i post ancora ``da_approvare``, ``approvato``,
+    ``pubblicato`` o ``fallito``.
     """
-    record = _post(db, post_id)
-    campagna = verifica_intervento(db, record, CAMBIA_FOTO, adesso)
-    uscita = db.get(Uscita, record.uscita_id)
-    if uscita is None or uscita.gruppo_id is None:
-        raise StatoNonValido("Un post con un'immagine AI non cambia foto.")
     occupate = _foto_della_versione(record)
     altri = db.scalars(
         select(Post).where(
@@ -392,63 +385,152 @@ def foto_possibili(db: Session, post_id: int, adesso: datetime) -> list:
     )
     for altro in altri:
         occupate |= _foto_della_versione(altro)
-    gruppo = next(
-        (
-            g
-            for g in campagne.gruppi_della_campagna(db, campagna.id)
-            if g.id == uscita.gruppo_id
-        ),
-        None,
-    )
-    candidate = [
-        una
-        for una in (gruppo.foto if gruppo is not None else [])
-        if una.origine == "caricata"
-        and una.id not in occupate
-        and (not una.analisi_ai or una.analisi_ai.get("idonea") is True)
-    ]
+    return occupate
 
-    def punteggio(una) -> float:
-        return float((una.analisi_ai or {}).get("punteggio") or 0)
 
-    return sorted(
-        candidate,
-        key=lambda una: (bool(una.analisi_ai), -punteggio(una), una.id),
+def _proponibile(foto: Any, occupate: set[int]) -> bool:
+    """Una foto ``caricata`` idonea (o senza analisi, arrivata con una richiesta)."""
+    return (
+        foto.origine == "caricata"
+        and foto.id not in occupate
+        and (not foto.analisi_ai or foto.analisi_ai.get("idonea") is True)
     )
 
 
-def cambia_foto(
-    db: Session, post_id: int, foto_id: int, utente_id: int, adesso: datetime
-) -> VersionePost:
-    """Una versione ``cambio_foto``: stesso testo, un'altra foto (R-36, CA-71).
+def _ordine(foto: Any) -> tuple[bool, float, int]:
+    """L'ordine di oggi: prima senza analisi, poi per punteggio, poi per id."""
+    punteggio = float((foto.analisi_ai or {}).get("punteggio") or 0)
+    return (bool(foto.analisi_ai), -punteggio, foto.id)
 
-    La foto scelta prende il posto di quella nella posizione più bassa; le altre
-    posizioni (caroselli, congelati) si copiano. Testo, hashtag ed errori del
-    validatore restano quelli della versione corrente; la spunta cade, non
-    nascono cicli (R-03) e ``da_rivedere`` non cambia.
+
+def foto_possibili(db: Session, post_id: int, adesso: datetime) -> list[FotoPerPost]:
+    """Le foto con cui si può cambiare quella del post, la migliore in cima (R-36).
+
+    In quest'ordine: (1) le foto del gruppo dell'uscita, (2) le altre foto
+    ``caricata`` della campagna, (3) le foto dell'archivio della bottega
+    (``campagne.foto_di_archivio()``, R-27). Dentro ogni fonte l'ordine di
+    oggi: prima quelle senza analisi (arrivate con una richiesta, R-46), poi
+    per punteggio decrescente, poi per id. Restano fuori le foto non idonee e
+    quelle già nella versione corrente di un post vivo della campagna sullo
+    stesso canale (costituzione §1.9); un id compare una volta sola. Ammessa
+    anche sui post con un'immagine AI: in quel caso la prima fonte è vuota.
 
     Raises:
         NonTrovato: il post non esiste.
         StatoNonValido: ``cambia_foto`` non è ammesso sul post (409).
-        DatiNonValidi: la foto non è tra ``foto_possibili()`` (422).
     """
     record = _post(db, post_id)
+    campagna = verifica_intervento(db, record, CAMBIA_FOTO, adesso)
+    occupate = _foto_libere(db, campagna, record)
+    uscita = db.get(Uscita, record.uscita_id)
+    gruppi = campagne.gruppi_della_campagna(db, campagna.id)
+
+    viste: set[int] = set()
+    risultato: list[FotoPerPost] = []
+
+    # (1) il gruppo dell'uscita.
+    gruppo = None
+    if uscita is not None and uscita.gruppo_id is not None:
+        gruppo = next((g for g in gruppi if g.id == uscita.gruppo_id), None)
+    candidate = [
+        una
+        for una in (gruppo.foto if gruppo is not None else [])
+        if _proponibile(una, occupate)
+    ]
+    for una in sorted(candidate, key=_ordine):
+        risultato.append(FotoPerPost(una, "gruppo"))
+        viste.add(una.id)
+
+    # (2) le altre foto della campagna, in qualunque suo gruppo.
+    altre = [
+        una
+        for un_gruppo in gruppi
+        for una in un_gruppo.foto
+        if una.id not in viste and _proponibile(una, occupate)
+    ]
+    for una in sorted(altre, key=_ordine):
+        if una.id in viste:
+            continue
+        risultato.append(FotoPerPost(una, "campagna"))
+        viste.add(una.id)
+
+    # (3) l'archivio della bottega, così com'è (le non idonee sono già fuori).
+    for voce in campagne.foto_di_archivio(
+        db, campagna.profilo_id, record.canale, adesso
+    ):
+        if voce.foto.id in viste or voce.foto.id in occupate:
+            continue
+        risultato.append(FotoPerPost(voce.foto, "archivio"))
+        viste.add(voce.foto.id)
+
+    return risultato
+
+
+def cambia_foto(
+    db: Session,
+    post_id: int,
+    foto_id: int,
+    utente_id: int,
+    adesso: datetime,
+    riscrivi_testo: bool = False,
+) -> VersionePost:
+    """Una versione ``cambio_foto``: stesso testo, un'altra foto (R-36, R-49).
+
+    La foto scelta prende il posto di quella nella posizione più bassa; le altre
+    posizioni (caroselli, congelati) si copiano. Testo e hashtag restano quelli
+    della versione corrente, salvo la dicitura: da un'immagine AI a una foto
+    vera il testo perde «Immagine creata con AI» e il post non è più
+    ``immagine_ai``. Gli errori del validatore si ricalcolano. La spunta cade,
+    non nascono cicli (R-03) e non si tocca l'autore delle versioni vecchie.
+
+    Con ``riscrivi_testo`` (solo in ``in_revisione``) accende l'intervento
+    ``rigenera_totale``: il testo lo riscrive il job ``rigenera_post``, con un
+    ciclo di R-03. Dopo l'approvazione il testo non si riscrive con l'AI (422).
+
+    Raises:
+        NonTrovato: il post non esiste.
+        StatoNonValido: ``cambia_foto`` non è ammesso sul post (409), oppure
+            ``riscrivi_testo`` senza rigenerazioni del testo rimaste.
+        DatiNonValidi: la foto non è tra ``foto_possibili()`` (422), oppure
+            ``riscrivi_testo`` dopo l'approvazione.
+    """
+    record = _post(db, post_id)
+    campagna = campagne.campagna(db, record.campagna_id)
+    if riscrivi_testo:
+        if campagna.stato != "in_revisione":
+            raise DatiNonValidi(
+                "Dopo l'approvazione il testo non si riscrive con l'AI: "
+                "modificalo a mano."
+            )
+        if record.n_rigenerazioni_testo >= MAX_RIGENERAZIONI:
+            raise StatoNonValido(
+                "Il testo di questo post non si può più rigenerare: modificalo a mano."
+            )
     possibili = foto_possibili(db, post_id, adesso)
-    scelta = next((una for una in possibili if una.id == foto_id), None)
+    scelta = next((una.foto for una in possibili if una.foto.id == foto_id), None)
     if scelta is None:
         raise DatiNonValidi(
             "Questa foto non si può usare per il post: deve essere del gruppo "
-            "dell'uscita, idonea o arrivata con una richiesta, e non già su questo canale."
+            "dell'uscita, della campagna o dell'archivio, e non già su questo canale."
         )
     corrente = record.versione_corrente
+    testo = corrente.testo
+    if record.riempitivo == IMMAGINE_AI and scelta.origine != "creata_ai":
+        testo = senza_dicitura(testo)
+    errori = [
+        dict(errore)
+        for errore in valida_testo(
+            testo, list(corrente.hashtag), record.canale, _snapshot(campagna)
+        )
+    ]
     nuova = VersionePost(
         post_id=record.id,
         numero=corrente.numero + 1,
-        testo=corrente.testo,
+        testo=testo,
         hashtag=list(corrente.hashtag),
         autore_id=utente_id,
         tipo_intervento="cambio_foto",
-        errori_validazione=[dict(e) for e in corrente.errori_validazione or []],
+        errori_validazione=errori,
     )
     db.add(nuova)
     db.flush()
@@ -462,6 +544,12 @@ def cambia_foto(
             )
         )
     campagne.aggiorna_foto(db, scelta.id, scelta.analisi_ai, scelta.n_utilizzi + 1)
+    if record.riempitivo == IMMAGINE_AI:
+        record.riempitivo = None
+    record.da_rivedere = any(errore["livello"] == BLOCCO for errore in errori)
+    if riscrivi_testo:
+        record.intervento_in_corso = "rigenera_totale"
+        record.intervento_dal = adesso
     _azzera_spunta(record)
     db.flush()
     db.expire(record, ["versioni"])

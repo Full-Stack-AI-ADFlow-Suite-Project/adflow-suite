@@ -70,11 +70,18 @@ class PostAnnulla(BaseModel):
 
 
 class PostCambiaFoto(BaseModel):
-    """Corpo di ``POST /post/{id}/cambia-foto`` (R-36): la foto scelta."""
+    """Corpo di ``POST /post/{id}/cambia-foto`` (R-36, ADR-119).
+
+    ``riscrivi_testo`` è «Riscrivi anche il testo»: solo in revisione, fa
+    seguire una rigenerazione del testo con un ciclo di R-03; ``nota`` è
+    l'indicazione per quella rigenerazione.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
     foto_id: int
+    riscrivi_testo: bool = False
+    nota: str | None = Field(None, max_length=500)
 
 
 class FotoPossibile(BaseModel):
@@ -84,6 +91,8 @@ class FotoPossibile(BaseModel):
     punteggio: float | None
     # Falso: arrivata con una richiesta all'artigiano, senza analisi (R-46).
     analizzata: bool
+    provenienza: Literal["gruppo", "campagna", "archivio"]
+    soggetto: str | None
 
 
 class CampagnaSchema(BaseModel):

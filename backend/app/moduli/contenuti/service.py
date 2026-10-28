@@ -636,15 +636,15 @@ def foto_possibili(db: Session, post_id: int, adesso: datetime) -> list:
     """Le foto con cui si può cambiare quella del post, la migliore in cima (R-36).
 
     Usata da ``revisione`` per ``GET /post/{id}/foto-possibili`` (plan §6).
-    Restituisce le ``Foto`` caricate del gruppo dell'uscita, idonee o senza
-    analisi perché arrivate con una richiesta (R-46), non già su un altro post
-    vivo dello stesso canale (§1.9). Prima quelle senza analisi, poi per
-    punteggio decrescente.
+    Restituisce coppie ``FotoPerPost(foto, provenienza)``: prima il gruppo
+    dell'uscita, poi le altre foto della campagna, poi l'archivio della bottega
+    (R-27). Restano fuori le non idonee e quelle già su un altro post vivo
+    dello stesso canale (§1.9). Dentro ogni fonte: prima quelle senza analisi,
+    poi per punteggio decrescente. Ammessa anche sui post con un'immagine AI.
 
     Raises:
         NonTrovato: se non esiste nessun post con quell'id.
-        StatoNonValido: ``cambia_foto`` non è ammesso sul post o il post ha
-            un'immagine AI (409).
+        StatoNonValido: ``cambia_foto`` non è ammesso sul post (409).
     """
     from .interventi import foto_possibili as _foto_possibili  # importa questo modulo
 
@@ -652,22 +652,32 @@ def foto_possibili(db: Session, post_id: int, adesso: datetime) -> list:
 
 
 def cambia_foto(
-    db: Session, post_id: int, foto_id: int, utente_id: int, adesso: datetime
+    db: Session,
+    post_id: int,
+    foto_id: int,
+    utente_id: int,
+    adesso: datetime,
+    riscrivi_testo: bool = False,
 ) -> VersionePost:
     """Cambia la foto di un post con una nuova versione ``cambio_foto`` (R-36, CA-71).
 
     Usata da ``revisione`` per ``POST /post/{id}/cambia-foto`` (plan §6). Stesso
-    testo e hashtag della versione corrente, ``utente_id`` come autore, la foto
-    scelta al posto della prima; la spunta cade. Non conta cicli (R-03).
+    testo e hashtag della versione corrente (senza la dicitura se da
+    un'immagine AI si passa a una foto vera), ``utente_id`` come autore, la
+    foto scelta al posto della prima; la spunta cade. Non conta cicli (R-03).
+    Con ``riscrivi_testo``, in revisione, accende ``rigenera_totale``: il testo
+    lo riscrive il job ``rigenera_post`` (CA-105).
 
     Raises:
         NonTrovato: se non esiste nessun post con quell'id.
-        StatoNonValido: ``cambia_foto`` non è ammesso sul post (409).
-        DatiNonValidi: ``foto_id`` non è tra ``foto_possibili()`` (422).
+        StatoNonValido: ``cambia_foto`` non è ammesso sul post (409), oppure
+            ``riscrivi_testo`` senza rigenerazioni del testo rimaste.
+        DatiNonValidi: ``foto_id`` non è tra ``foto_possibili()`` (422), oppure
+            ``riscrivi_testo`` dopo l'approvazione.
     """
     from .interventi import cambia_foto as _cambia_foto  # importa questo modulo
 
-    return _cambia_foto(db, post_id, foto_id, utente_id, adesso)
+    return _cambia_foto(db, post_id, foto_id, utente_id, adesso, riscrivi_testo)
 
 
 def puo_rigenerare(db: Session, post_id: int, adesso: datetime) -> bool:
