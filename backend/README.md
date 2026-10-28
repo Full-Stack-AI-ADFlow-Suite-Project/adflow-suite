@@ -72,6 +72,17 @@ Di default l'adattatore social è finto (`SOCIAL_PROVIDER=finto`): nessuna chiam
 
 Il token della Pagina è un segreto: solo in `backend/.env`, mai in git e mai nei log.
 
+### Prova della pubblicazione dal tick (T3-43)
+
+La pubblicazione reale la fa il worker: `pubblica-ora` serve alle prove a mano e pubblica subito tutti i post approvati, sulla Pagina vera sono troppi.
+
+1. Campagna della demo approvata (Dati della demo, poi invio e approvazione).
+2. In `backend/.env` `OROLOGIO_GIORNI_AVANTI` con i giorni che bastano a superare la data del primo post ma non quella del secondo (con la demo che inizia tra 4 giorni, di solito `4`).
+3. Worker acceso (`uv run python -m procrastinate -a app.worker.app worker --concurrency 1`): al minuto dopo il tick pubblica. Nella tabella `pubblicazione` c'è la riga `ok` con `id_esterno` e il post è `pubblicato`; per Facebook `id_esterno` è `{pagina}_{post}` e il post si apre da `https://www.facebook.com/{post}`.
+4. Worker fermo e `OROLOGIO_GIORNI_AVANTI=0`.
+
+Con `META_INSTAGRAM_ID` vuoto il post Instagram esce dal finto (`id_esterno` `finto-N`) e il tunnel non serve.
+
 ## Struttura
 
 ```
