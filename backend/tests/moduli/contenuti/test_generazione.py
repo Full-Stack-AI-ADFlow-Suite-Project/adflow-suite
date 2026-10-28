@@ -934,3 +934,22 @@ def test_ca55_un_errore_che_passa_non_manda_notifiche(db, ai):
 
     assert campagna.stato == "in_revisione"
     assert _notifiche(db, campagna, "generazione_fallita") == []
+
+
+def test_il_carattere_nullo_dell_ai_non_ferma_la_tappa_testi(db, ai):
+    """R-35, T3-906: un NUL nella risposta dell'AI non fa fallire la generazione.
+
+    PostgreSQL non salva un carattere 0x00 in una colonna `text`: senza pulire
+    il testo la tappa `testi` si annulla con un `DataError`, l'esecuzione si
+    ripete e in `errore_generazione` resta un errore.
+    """
+    campagna = _campagna(db)
+    ai.comanda_testo("Un testo con un carattere nullo\x00 dentro.", volte=1)
+
+    assert _job(campagna.id) == 1
+    assert campagna.stato == "in_revisione"
+    assert _errori(db, campagna) == []
+    testi = [
+        uno.versione_corrente.testo for uno in post_della_campagna(db, campagna.id)
+    ]
+    assert all("\x00" not in testo for testo in testi)

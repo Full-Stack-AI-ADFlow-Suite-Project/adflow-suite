@@ -59,7 +59,7 @@ from .models import (
     VersionePostFoto,
 )
 from .piano import controlla_piano, limiti_per_canale
-from .validatore import BLOCCO, TESTO_VUOTO, valida_testo
+from .validatore import BLOCCO, TESTO_VUOTO, testo_salvabile, valida_testo
 
 # plan §4: il job gira al massimo 3 volte, a 30 secondi una dall'altra.
 ESECUZIONI = 3
@@ -541,6 +541,13 @@ def _testo_validato(
             SCHEDE_CANALE[post.canale],
             testo_precedente=precedente,
             violazioni=errori,
+        )
+        # Un carattere nullo nella risposta dell'AI non si salva: si toglie
+        # prima del validatore e della versione (T3-906).
+        scritto = replace(
+            scritto,
+            testo=testo_salvabile(scritto.testo),
+            hashtag=[testo_salvabile(uno) for uno in scritto.hashtag],
         )
         service.registra_chiamata_ai(db, campagna.id, ai.ultimo_uso, post_id=post_id)
         scritto_dall_ai = scritto.testo

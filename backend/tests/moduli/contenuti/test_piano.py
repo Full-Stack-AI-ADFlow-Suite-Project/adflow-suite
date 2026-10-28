@@ -430,8 +430,8 @@ def test_regola_post_per_canale_con_un_canale_che_la_campagna_non_ha():
     assert violazioni[0]["canale"] == "facebook"
 
 
-def test_nessun_tetto_alle_immagini_ai_piu_di_quelle_che_mancano():
-    """R-28: 5 foto e 6 post, una foto non usata e 2 immagini AI: il piano è valido."""
+def test_ca101_nessun_tetto_alle_immagini_ai_piu_di_quelle_che_mancano():
+    """CA-101, R-28: 5 foto e 6 post, una foto non usata e 2 immagini AI: il piano è valido."""
     limiti, gruppi = _limiti(5, canali=("instagram",))
     contenuto = _piano_valido(limiti)
     contenuto["uscite"][4] = _uscita(5, [_post("instagram", giorno=5)], gruppo_id=None)
