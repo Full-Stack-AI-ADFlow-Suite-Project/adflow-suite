@@ -94,7 +94,8 @@ INTERVENTI_AMMESSI: dict[tuple[str, str], frozenset[str]] = {
 # Stati dei post che tengono occupata una foto sul loro canale (costituzione §1.9).
 STATI_CHE_USANO_LA_FOTO = (DA_APPROVARE, APPROVATO, PUBBLICATO, FALLITO)
 
-# Schede MVP (R-21): proporzioni come stringhe "larghezza:altezza".
+# Schede MVP (R-21): proporzioni come stringhe "larghezza:altezza", gli estremi
+# dell'intervallo ammesso (4:5 – 1,91:1).
 # Sono scelte del progetto, non tutti i formati supportati dalle piattaforme.
 SCHEDE_CANALE = {
     "facebook": {
@@ -103,7 +104,7 @@ SCHEDE_CANALE = {
         "limite_caratteri": 5000,
         "limite_hashtag": 30,
         "max_foto": 10,
-        "proporzioni": ("1:1", "4:5"),
+        "proporzioni": ("4:5", "1.91:1"),
         "link_cliccabili": True,
     },
     "instagram": {
@@ -112,7 +113,7 @@ SCHEDE_CANALE = {
         "limite_caratteri": 2200,
         "limite_hashtag": 30,
         "max_foto": 10,
-        "proporzioni": ("1:1", "4:5"),
+        "proporzioni": ("4:5", "1.91:1"),
         "link_cliccabili": False,
     },
 }
