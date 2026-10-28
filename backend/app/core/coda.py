@@ -1,12 +1,53 @@
 """Nomi dei job e funzione di accodamento (plan §4)."""
 
+import contextlib
+import re
+from collections.abc import Generator
 from threading import Lock
 from typing import Any
 
 import procrastinate
+import procrastinate.sync_psycopg_connector
+import psycopg
+from procrastinate import exceptions, manager
 from sqlalchemy import make_url
 
 from app.core.config import leggi_impostazioni
+
+
+def _applica_patch_multilingua_procrastinate() -> None:
+    """Compatibilità con PostgreSQL non in lingua inglese (es. Windows in italiano).
+
+    Procrastinate cerca 'Key ((.*?))=((.*?))' nei dettagli di un UniqueViolation.
+    In italiano PostgreSQL stampa 'La chiave ((.*?))=((.*?))', causando un AssertionError.
+    """
+
+    @contextlib.contextmanager
+    def _wrap_exceptions() -> Generator[None, None, None]:
+        try:
+            yield
+        except psycopg.errors.UniqueViolation as exc:
+            constraint_name = exc.diag.constraint_name
+            queueing_lock = None
+            if constraint_name == manager.QUEUEING_LOCK_CONSTRAINT:
+                detail = exc.diag.message_detail or ""
+                match = re.search(
+                    r"\((queueing_lock)\)=\((.*?)\)", detail
+                ) or re.search(r"Key \((.*?)\)=\((.*?)\)", detail)
+                if match:
+                    _, queueing_lock = match.groups()
+                else:
+                    queueing_lock = "unknown"
+            raise exceptions.UniqueViolation(
+                constraint_name=constraint_name, queueing_lock=queueing_lock
+            )
+        except psycopg.Error as exc:
+            raise exceptions.ConnectorException from exc
+
+    procrastinate.sync_psycopg_connector.wrap_exceptions = _wrap_exceptions
+
+
+_applica_patch_multilingua_procrastinate()
 
 
 def indirizzo_psycopg(url: str) -> str:
