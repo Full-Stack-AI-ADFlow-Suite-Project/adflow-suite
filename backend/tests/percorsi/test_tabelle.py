@@ -26,7 +26,12 @@ from tests.moduli.campagne.fabbrica import (
     campagna_attiva,
     foto,
 )
-from tests.moduli.contenuti.fabbrica import post_da_approvare, post_approvato
+from tests.moduli.contenuti.fabbrica import (
+    chiamata_ai,
+    post_da_approvare,
+    post_approvato,
+    valutazione_ai,
+)
 
 TABELLE = {
     "limite_login",
@@ -48,6 +53,7 @@ TABELLE = {
     "approvazione",
     "pubblicazione",
     "chiamata_ai",
+    "valutazione_ai",
 }
 TABELLE_NUOVE_008 = {
     "account_social",
@@ -81,6 +87,13 @@ def test_upgrade_downgrade_completo_e_ultimo_passaggio(motore_test):
     command.upgrade(config, "head")
     command.downgrade(config, "-1")
     with motore_test.connect() as conn:
+        assert "valutazione_ai" not in inspect(conn).get_table_names()
+        assert "chiamata_ai" in inspect(conn).get_table_names()
+        assert "versione_prompt" not in {
+            c["name"] for c in inspect(conn).get_columns("chiamata_ai")
+        }
+    command.downgrade(config, "-1")
+    with motore_test.connect() as conn:
         assert "chiamata_ai" not in inspect(conn).get_table_names()
         assert "notifica" in inspect(conn).get_table_names()
     command.downgrade(config, "-1")
@@ -111,7 +124,7 @@ def test_upgrade_downgrade_completo_e_ultimo_passaggio(motore_test):
             set(inspect(conn).get_table_names()) - {"alembic_version"}
             == TABELLE | TABELLE_CODA
         )
-        assert conn.scalar(text("select version_num from alembic_version")) == "012"
+        assert conn.scalar(text("select version_num from alembic_version")) == "013"
         contesto = MigrationContext.configure(conn, opts={"include_name": del_modello})
         assert compare_metadata(contesto, metadata) == []
 
@@ -336,3 +349,40 @@ def test_fabbriche_non_fanno_commit(motore_test):
             )
             == 0
         )
+
+
+def test_chiamata_ai_esito_ok_di_default(db):
+    """013: una riga vecchia senza esito vale «ok» (R-50)."""
+    record = chiamata_ai(db)
+    db.expire(record)
+    assert record.esito == "ok"
+    assert (record.versione_prompt, record.richiesta, record.risposta) == (
+        "test-1",
+        None,
+        None,
+    )
+
+
+@pytest.mark.parametrize("voto", [0, 6])
+def test_valutazione_ai_voto_fuori_da_1_5_rifiutato(db, voto):
+    """013: il database rifiuta un voto fuori da 1–5 (R-50, CA-112)."""
+    operatore = utente(db, "operatore")
+    record = chiamata_ai(db)
+    with pytest.raises(IntegrityError), db.begin_nested():
+        valutazione_ai(db, record, operatore, voto=voto)
+
+
+def test_valutazione_ai_accetta_1_e_5(db):
+    """013: gli estremi dell'intervallo sono ammessi."""
+    operatore = utente(db, "operatore")
+    record = chiamata_ai(db)
+    assert valutazione_ai(db, record, operatore, voto=1).voto == 1
+    assert valutazione_ai(db, record, operatore, voto=5).voto == 5
+
+
+def test_valutazione_ai_su_una_chiamata_inesistente_rifiutata(db):
+    """013: la chiave esterna della valutazione è obbligatoria."""
+    operatore = utente(db, "operatore")
+    record = chiamata_ai(db)
+    with pytest.raises(IntegrityError), db.begin_nested():
+        valutazione_ai(db, record, operatore, chiamata_ai_id=-1)

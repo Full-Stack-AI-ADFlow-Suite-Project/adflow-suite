@@ -1,14 +1,17 @@
 """Piani, uscite e post di prova con versione e foto, senza commit."""
 from datetime import datetime, timezone
+from decimal import Decimal
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.moduli.campagne import service as campagne
 from app.moduli.contenuti.models import (
+    ChiamataAI,
     Piano,
     Post,
     Uscita,
+    ValutazioneAI,
     VersionePost,
     VersionePostFoto,
 )
@@ -122,3 +125,36 @@ def post_fallito(db: Session, *, campagna_id: int | None = None, **campi) -> Pos
     dati = dict(stato="fallito")
     dati.update(campi)
     return post_approvato(db, campagna_id=campagna_id, **dati)
+
+
+def chiamata_ai(
+    db: Session, campagna=None, *, tipo: str = "testo", **campi
+) -> ChiamataAI:
+    """Una chiamata all'AI di prova, riuscita se non si dice altro (R-44, R-50)."""
+    if campagna is None:
+        campagna = campagna_in_revisione(db)
+    dati = dict(
+        campagna_id=campagna.id,
+        tipo=tipo,
+        provider_ai="finto",
+        modello_ai="finto",
+        versione_prompt="test-1",
+        costo_usd=Decimal("0"),
+    )
+    dati.update(campi)
+    record = ChiamataAI(**dati)
+    db.add(record)
+    db.flush()
+    return record
+
+
+def valutazione_ai(
+    db: Session, chiamata: ChiamataAI, utente, voto: int = 4, **campi
+) -> ValutazioneAI:
+    """Un voto di prova su una chiamata all'AI, con chi l'ha dato (R-50)."""
+    dati = dict(chiamata_ai_id=chiamata.id, utente_id=utente.id, voto=voto)
+    dati.update(campi)
+    record = ValutazioneAI(**dati)
+    db.add(record)
+    db.flush()
+    return record

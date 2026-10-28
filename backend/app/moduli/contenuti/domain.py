@@ -47,6 +47,8 @@ TIPI_ERRORE_GENERAZIONE = (
     "richiesta",
     "rifiuto",
 )
+# Gli esiti di una chiamata all'AI: riuscita, oppure il tipo dell'errore (R-35, R-50).
+ESITI_CHIAMATA_AI = ("ok",) + TIPI_ERRORE_GENERAZIONE
 TIPI_INTERVENTO_IN_CORSO = ("rigenera_totale", "rigenera_da_proposta", "ritocco_foto")
 STATI_CHIUSI = (PUBBLICATO, FALLITO, ANNULLATO, SCARTATO, SCADUTO)
 
