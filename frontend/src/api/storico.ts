@@ -1,13 +1,12 @@
 /**
  * Storico delle chiamate all'AI (brief-richieste §1.3, spec R-50).
- * I tipi rispecchiano backend/app/moduli/contenuti/schemas.py. Finché
- * `GET /storico-ai` (T3-917) non è su `main` la pagina legge i dati di esempio:
- * quando arriva basta portare `ENDPOINT_PRONTO` a `true`.
+ * I tipi rispecchiano backend/app/moduli/contenuti/schemas.py. Con
+ * `ENDPOINT_PRONTO` a `false` la pagina legge i dati di esempio.
  */
 import { richiesta } from "./http";
 import { esempiStorico } from "./esempi/storico";
 
-const ENDPOINT_PRONTO = false;
+const ENDPOINT_PRONTO = true;
 
 export type TipoChiamata = "analisi" | "piano" | "testo" | "immagine";
 
@@ -55,6 +54,42 @@ export interface PaginaChiamateAI {
   per_pagina: number;
 }
 
+export interface NumeriVersione {
+  tipo: TipoChiamata;
+  versione_prompt: string | null;
+  chiamate: number;
+  /** 0–1. */
+  tasso_errore: number;
+  durata_media_ms: number | null;
+  /** Decimal: arriva come stringa. */
+  costo_usd: string;
+  voto_medio: number | null;
+}
+
+export interface NumeriAI {
+  chiamate: number;
+  costo_usd: string;
+  durata_media_ms: number | null;
+  durata_p95_ms: number | null;
+  /** 0–1. */
+  tasso_errore: number;
+  voto_medio: number | null;
+  testi_approvati: number;
+  testi_approvati_come_ai: number;
+  modifiche_a_mano: number;
+  rigenerazioni_testo: number;
+  immagini_create: number;
+  immagini_non_create: number;
+  immagini_rigenerate: number;
+  per_versione: NumeriVersione[];
+}
+
+export interface VotoAI {
+  /** Da 1 a 5. */
+  voto: number;
+  nota?: string | null;
+}
+
 export interface FiltriStorico {
   campagna_id?: number;
   tipo?: string;
@@ -81,6 +116,18 @@ export function elencoChiamate(
 ): Promise<PaginaChiamateAI> {
   if (!ENDPOINT_PRONTO) return esempiStorico.elenco(filtri, pagina);
   return richiesta("GET", `/storico-ai${querystring(filtri, pagina)}`);
+}
+
+/** I numeri con gli stessi filtri dell'elenco, senza la pagina. */
+export function numeriChiamate(filtri: FiltriStorico): Promise<NumeriAI> {
+  if (!ENDPOINT_PRONTO) return esempiStorico.numeri(filtri);
+  return richiesta("GET", `/storico-ai/numeri${querystring(filtri)}`);
+}
+
+/** Aggiunge un voto: quelli di prima restano. */
+export function votaChiamata(id: number, voto: VotoAI): Promise<ValutazioneAI> {
+  if (!ENDPOINT_PRONTO) return esempiStorico.vota(id, voto);
+  return richiesta("POST", `/storico-ai/${id}/voto`, voto);
 }
 
 export function dettaglioChiamata(id: number): Promise<ChiamataAIDettaglio> {

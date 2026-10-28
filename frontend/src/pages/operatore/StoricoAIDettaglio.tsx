@@ -30,6 +30,7 @@ import {
 import { Guscio } from "../../components/Guscio";
 import { dataOra } from "./campagna/util";
 import { costo, durata } from "./storico-ai/formati";
+import { VotoChiamata } from "./storico-ai/VotoChiamata";
 
 function Dato({ nome, valore }: { nome: string; valore: string }) {
   return (
@@ -160,6 +161,24 @@ export function StoricoAIDettaglio() {
             </Text>
             <Code block>{c.risposta ?? "Nessuna risposta."}</Code>
           </div>
+
+          <VotoChiamata
+            id={c.id}
+            valutazioni={c.valutazioni}
+            onVotato={(nuova) =>
+              setC((prima) => {
+                if (!prima) return prima;
+                const valutazioni = [...prima.valutazioni, nuova];
+                return {
+                  ...prima,
+                  valutazioni,
+                  voto_medio:
+                    valutazioni.reduce((s, v) => s + v.voto, 0) /
+                    valutazioni.length,
+                };
+              })
+            }
+          />
         </Stack>
       )}
     </Guscio>

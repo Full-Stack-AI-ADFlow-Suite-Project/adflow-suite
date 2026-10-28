@@ -32,6 +32,7 @@ import {
 import { Guscio } from "../../components/Guscio";
 import { dataOra } from "./campagna/util";
 import { costo, durata } from "./storico-ai/formati";
+import { NumeriStorico } from "./storico-ai/NumeriStorico";
 
 export function StoricoAI() {
   const [filtri, setFiltri] = useState<FiltriStorico>({});
@@ -168,6 +169,8 @@ export function StoricoAI() {
           Azzera i filtri
         </Button>
       )}
+
+      <NumeriStorico filtri={filtri} />
 
       {errore && (
         <Alert color="red" variant="light" mb="md">
