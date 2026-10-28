@@ -228,3 +228,8 @@ Thumbs.db
 .kilo/
 .vscode/*
 !.vscode/tasks.json
+
+# Change Log e log di runtime privati (non visibili al pubblico)
+CHANGELOG*.md
+*_LOCALE.md
+*_LOCALE.log
