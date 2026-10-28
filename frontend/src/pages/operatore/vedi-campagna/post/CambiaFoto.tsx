@@ -1,25 +1,33 @@
 /**
- * Cambia immagine (R-36, ADR-119): la finestra mostra le foto con cui si può sostituire quella
+ * Cambia immagine (R-36, R-49, ADR-119): la finestra mostra le foto con cui si può sostituire quella
  * del post, divise in tre sezioni: «Dello stesso gruppo», «Della campagna», «Dall'archivio della bottega»,
- * con il soggetto sotto la miniatura. Una sezione vuota non si mostra.
- * Nasce una nuova versione con lo stesso testo; dopo l'approvazione la approva chi la scrive.
+ * con il soggetto sotto la miniatura.
+ * In revisione offre una quarta scelta «Crea una nuova immagine AI» con «Indicazioni per l'immagine» e la spunta
+ * «Riscrivi anche il testo per la nuova immagine» (accesa di base, con «Indicazioni per il testo»): è «Rifai il post».
+ * Dopo l'approvazione né la quarta scelta né la spunta.
  */
 import {
   Alert,
   Badge,
   Button,
   Center,
+  Checkbox,
   Group,
   Loader,
   Modal,
   SimpleGrid,
   Stack,
   Text,
+  Textarea,
 } from "@mantine/core";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { ApiErrore } from "../../../../api/http";
-import { cambiaFoto, fotoPossibili } from "../../../../api/interventi";
+import {
+  cambiaFoto,
+  fotoPossibili,
+  rigeneraImmagine,
+} from "../../../../api/interventi";
 import type { FotoPossibile, PostVista } from "../../../../api/revisione";
 import { NOME_CANALE } from "../../campagna/util";
 import { AVVISO_CAMPAGNA_APPROVATA } from "./regole";
@@ -27,18 +35,28 @@ import { AVVISO_CAMPAGNA_APPROVATA } from "./regole";
 export function CambiaFoto({
   post,
   approvata,
+  apriSuAI = false,
   chiudi,
   fatto,
 }: {
   post: PostVista;
   /** Campagna attiva o sospesa: la versione nuova la approva l'operatore. */
   approvata: boolean;
+  /** Se vero, la finestra si apre posizionata sulla quarta scelta. */
+  apriSuAI?: boolean;
   chiudi: () => void;
   fatto: () => void;
 }) {
   const [foto, setFoto] = useState<FotoPossibile[] | null>(null);
   const [occupata, setOccupata] = useState<number | null>(null);
   const [errore, setErrore] = useState<string | null>(null);
+
+  // Quarta scelta: Crea una nuova immagine AI e Rifai il post (R-49, ADR-119)
+  const [notaImmagine, setNotaImmagine] = useState("");
+  const [riscriviTesto, setRiscriviTesto] = useState(true);
+  const [notaTesto, setNotaTesto] = useState("");
+  const [invioAI, setInvioAI] = useState(false);
+  const aiRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     let attivo = true;
@@ -59,11 +77,24 @@ export function CambiaFoto({
     };
   }, [post.post_id]);
 
+  useEffect(() => {
+    if (apriSuAI && aiRef.current) {
+      aiRef.current.scrollIntoView({ behavior: "smooth" });
+    }
+  }, [apriSuAI, foto]);
+
   const usa = async (fotoId: number) => {
     setOccupata(fotoId);
     setErrore(null);
     try {
-      await cambiaFoto(post.post_id, fotoId);
+      await cambiaFoto(
+        post.post_id,
+        fotoId,
+        !approvata && riscriviTesto,
+        !approvata && riscriviTesto && notaTesto.trim()
+          ? notaTesto.trim()
+          : null,
+      );
       fatto();
     } catch (e) {
       setErrore(
@@ -73,6 +104,28 @@ export function CambiaFoto({
       );
     } finally {
       setOccupata(null);
+    }
+  };
+
+  const creaAI = async () => {
+    setInvioAI(true);
+    setErrore(null);
+    try {
+      await rigeneraImmagine(
+        post.post_id,
+        notaImmagine.trim() || null,
+        riscriviTesto,
+        notaTesto.trim() || null,
+      );
+      fatto();
+    } catch (e) {
+      setErrore(
+        e instanceof ApiErrore
+          ? e.message
+          : "Impossibile creare la nuova immagine AI. Riprova.",
+      );
+    } finally {
+      setInvioAI(false);
     }
   };
 
@@ -173,7 +226,7 @@ export function CambiaFoto({
                       size="xs"
                       color="verde"
                       loading={occupata === f.foto_id}
-                      disabled={occupata !== null}
+                      disabled={occupata !== null || invioAI}
                       onClick={() => void usa(f.foto_id)}
                     >
                       Usa questa foto
@@ -184,6 +237,62 @@ export function CambiaFoto({
             </SimpleGrid>
           </Stack>
         ))}
+
+        {!approvata && (
+          <Stack
+            ref={aiRef}
+            gap="xs"
+            p="md"
+            style={{
+              border: apriSuAI
+                ? "2px solid var(--mantine-color-verde-6)"
+                : "1px solid var(--mantine-color-default-border)",
+              borderRadius: 8,
+              backgroundColor: "var(--mantine-color-default-hover)",
+            }}
+          >
+            <Text fw={600} size="sm">
+              Crea una nuova immagine AI
+            </Text>
+            <Textarea
+              label="Indicazioni per l'immagine"
+              placeholder="Es. Piatti decorati con motivi invernali su fondo chiaro..."
+              value={notaImmagine}
+              onChange={(e) => setNotaImmagine(e.currentTarget.value)}
+              maxLength={500}
+              autosize
+              minRows={2}
+            />
+            <Checkbox
+              label="Riscrivi anche il testo per la nuova immagine"
+              checked={riscriviTesto}
+              onChange={(e) => setRiscriviTesto(e.currentTarget.checked)}
+            />
+            {riscriviTesto && (
+              <Textarea
+                label="Indicazioni per il testo"
+                placeholder="Es. Sottolinea l'artigianalità del processo e le novità..."
+                value={notaTesto}
+                onChange={(e) => setNotaTesto(e.currentTarget.value)}
+                maxLength={500}
+                autosize
+                minRows={2}
+              />
+            )}
+            <Group justify="flex-end" mt="xs">
+              <Button
+                size="xs"
+                color="verde"
+                loading={invioAI}
+                disabled={occupata !== null}
+                onClick={() => void creaAI()}
+              >
+                Crea una nuova immagine AI
+              </Button>
+            </Group>
+          </Stack>
+        )}
+
         {errore && (
           <Alert color="red" variant="light" py="xs">
             {errore}

@@ -494,6 +494,83 @@ export const esempiInterventi = {
     setTimeout(() => completaRigenerazione(postId), ATTESA_RIGENERAZIONE_MS);
   },
 
+  /** R-49, ADR-119: rigenera l'immagine AI del post (3 per post, solo in revisione). */
+  async rigeneraImmagine(
+    postId: number,
+    nota: string | null = null,
+    riscriviTesto: boolean = false,
+    notaTesto: string | null = null,
+  ): Promise<void> {
+    operatore();
+    const dati = leggi();
+    const { post } = ammesso(dati, postId, "rigenera_immagine");
+    const rigenerazioniImg = post.versioni.filter(
+      (v) => v.tipo_intervento === "rigenera_immagine",
+    ).length;
+    if (rigenerazioniImg >= 3)
+      throw new ApiErrore(
+        409,
+        "Questa immagine è già stata rigenerata 3 volte: scegli una foto con Cambia immagine.",
+      );
+    if (riscriviTesto && rigenerazioniFatte(post) >= MAX_RIGENERAZIONI)
+      throw new ApiErrore(
+        409,
+        "Il testo di questo post non si può più rigenerare: modificalo a mano.",
+      );
+
+    post.intervento_in_corso = "rigenera_immagine";
+    post.intervento_dal = new Date().toISOString();
+    scrivi(dati);
+
+    setTimeout(() => {
+      const d = leggi();
+      let p: PostVista;
+      try {
+        p = trova(d, postId).post;
+      } catch {
+        return;
+      }
+      if (p.intervento_in_corso !== "rigenera_immagine") return;
+      const corrente = p.versione_corrente;
+      if (!corrente) return;
+      const nuovaFotoId = 200000 + (Date.now() % 100000);
+      let testo = corrente.testo;
+      if (!testo.includes("Immagine creata con AI")) {
+        testo = `${testo.trim()}\n\nImmagine creata con AI`;
+      }
+      p.riempitivo = "immagine_ai";
+      // Rimuove eventuale blocco immagine_non_creata
+      const errori = (
+        Array.isArray(corrente.errori_validazione)
+          ? (corrente.errori_validazione as ErroreValidazione[])
+          : []
+      ).filter(
+        (e) => (e as { regola?: string }).regola !== "immagine_non_creata",
+      );
+      nuovaVersione(p, {
+        testo,
+        hashtag: corrente.hashtag,
+        autore_id: null,
+        tipo_intervento: "rigenera_immagine",
+        nota: nota?.trim() || null,
+        errori,
+      });
+      const nuova = p.versione_corrente;
+      if (nuova) {
+        nuova.foto = [{ foto_id: nuovaFotoId, posizione: 0 }];
+      }
+      p.intervento_in_corso = null;
+      p.intervento_dal = null;
+      scrivi(d);
+
+      if (riscriviTesto) {
+        esempiInterventi
+          .rigenera(postId, "totale", null, notaTesto)
+          .catch(() => {});
+      }
+    }, ATTESA_RIGENERAZIONE_MS);
+  },
+
   /** CA-71: le foto con cui cambiare quella del post da gruppo, campagna e archivio. */
   async fotoPossibili(postId: number): Promise<FotoPossibile[]> {
     operatore();
