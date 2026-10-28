@@ -17,11 +17,14 @@ TipoFoto = Literal[
     "pezzo_finito", "dettaglio", "lavorazione", "persona", "ambientato", "evento"
 ]
 PAROLE_SOGGETTO = 15
+# La descrizione è per chi scrive i testi: due o tre frasi, non un tema.
+PAROLE_DESCRIZIONE = 60
 
 
 class AnalisiFoto(BaseModel):
     foto_id: int
     soggetto: str
+    descrizione: str
     tipo: TipoFoto
     idonea: bool
     motivo: str | None
@@ -41,6 +44,11 @@ class AnalisiFoto(BaseModel):
     @classmethod
     def _breve(cls, valore: str) -> str:
         return " ".join(valore.split()[:PAROLE_SOGGETTO])
+
+    @field_validator("descrizione")
+    @classmethod
+    def _non_troppo_lunga(cls, valore: str) -> str:
+        return " ".join(valore.split()[:PAROLE_DESCRIZIONE])
 
 
 class RispostaAnalisi(BaseModel):

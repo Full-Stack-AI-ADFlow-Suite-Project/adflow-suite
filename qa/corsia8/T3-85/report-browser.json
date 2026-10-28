@@ -1,0 +1,4542 @@
+{
+  "mode": "VITE_USA_ESEMPI=1",
+  "before": "54958e9538a05155623c3df4ac8c451cb067c713",
+  "after": "9a7b21ba8d30e7ecf9fdb75eae889bbb74a550f4",
+  "evidence": [
+    {
+      "label": "profilo2-1280",
+      "inputs": [
+        {
+          "font": "14px",
+          "h": 56,
+          "type": "textarea",
+          "w": 654.4000244140625
+        },
+        {
+          "font": "14px",
+          "h": 56,
+          "type": "textarea",
+          "w": 654.4000244140625
+        }
+      ],
+      "scrollWidth": 1280,
+      "smallTargets": [
+        {
+          "class": "_voce_v2ds0_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_v2ds0_68",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_v2ds0_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_v2ds0_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_v2ds0_68 _attiva_v2ds0_86",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_esci_v2ds0_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 217.1999969482422
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Indietro",
+          "w": 85.73750305175781
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Continua",
+          "w": 92.76250457763672
+        }
+      ],
+      "title": "Profilo bottega",
+      "url": "/profilo",
+      "width": 1280
+    },
+    {
+      "label": "profilo2-375",
+      "inputs": [
+        {
+          "font": "16px",
+          "h": 62.20000076293945,
+          "type": "textarea",
+          "w": 309.6000061035156
+        },
+        {
+          "font": "16px",
+          "h": 62.20000076293945,
+          "type": "textarea",
+          "w": 309.6000061035156
+        }
+      ],
+      "scrollWidth": 375,
+      "smallTargets": [],
+      "title": "Profilo bottega",
+      "url": "/profilo",
+      "width": 375
+    },
+    {
+      "label": "profilo3-1280",
+      "inputs": [
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 319.20001220703125
+        },
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 319.20001220703125
+        },
+        {
+          "font": "14px",
+          "h": 56,
+          "type": "textarea",
+          "w": 654.4000244140625
+        },
+        {
+          "font": "14px",
+          "h": 1,
+          "type": "text",
+          "w": 100
+        },
+        {
+          "font": "14px",
+          "h": 56,
+          "type": "textarea",
+          "w": 654.4000244140625
+        }
+      ],
+      "scrollWidth": 1280,
+      "smallTargets": [
+        {
+          "class": "_voce_v2ds0_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_v2ds0_68",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_v2ds0_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_v2ds0_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_v2ds0_68 _attiva_v2ds0_86",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_esci_v2ds0_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 217.1999969482422
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_86a44da5 mantine-InputClearButton-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 22,
+          "text": "",
+          "w": 22
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_ae386778 mantine-Pill-remove m_86a44da5 mantine-CloseButton-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 22,
+          "text": "",
+          "w": 24
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_ae386778 mantine-Pill-remove m_86a44da5 mantine-CloseButton-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 22,
+          "text": "",
+          "w": 24
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_86a44da5 mantine-InputClearButton-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 22,
+          "text": "",
+          "w": 22
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Indietro",
+          "w": 85.73750305175781
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Continua",
+          "w": 92.76250457763672
+        }
+      ],
+      "title": "Profilo bottega",
+      "url": "/profilo",
+      "width": 1280
+    },
+    {
+      "label": "profilo3-375",
+      "inputs": [
+        {
+          "font": "16px",
+          "h": 44,
+          "type": "text",
+          "w": 294.3999938964844
+        },
+        {
+          "font": "16px",
+          "h": 44,
+          "type": "text",
+          "w": 294.3999938964844
+        },
+        {
+          "font": "16px",
+          "h": 62.20000076293945,
+          "type": "textarea",
+          "w": 294.3999938964844
+        },
+        {
+          "font": "16px",
+          "h": 1,
+          "type": "text",
+          "w": 100
+        },
+        {
+          "font": "16px",
+          "h": 62.20000076293945,
+          "type": "textarea",
+          "w": 294.3999938964844
+        }
+      ],
+      "scrollWidth": 360,
+      "smallTargets": [],
+      "title": "Profilo bottega",
+      "url": "/profilo",
+      "width": 375
+    },
+    {
+      "label": "profilo4-1280",
+      "inputs": [
+        {
+          "font": "14px",
+          "h": 56,
+          "type": "textarea",
+          "w": 654.4000244140625
+        },
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 319.20001220703125
+        },
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 319.20001220703125
+        }
+      ],
+      "scrollWidth": 1280,
+      "smallTargets": [
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68 _attiva_196ux_86",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_esci_196ux_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 217.1999969482422
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Indietro",
+          "w": 85.73750305175781
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Continua",
+          "w": 92.76250457763672
+        }
+      ],
+      "title": "Profilo bottega",
+      "url": "/profilo",
+      "width": 1280
+    },
+    {
+      "label": "profilo4-375",
+      "inputs": [
+        {
+          "font": "16px",
+          "h": 62.20000076293945,
+          "type": "textarea",
+          "w": 309.6000061035156
+        },
+        {
+          "font": "16px",
+          "h": 44,
+          "type": "text",
+          "w": 309.6000061035156
+        },
+        {
+          "font": "16px",
+          "h": 44,
+          "type": "text",
+          "w": 309.6000061035156
+        }
+      ],
+      "scrollWidth": 375,
+      "smallTargets": [],
+      "title": "Profilo bottega",
+      "url": "/profilo",
+      "width": 375
+    },
+    {
+      "label": "profilo5-1280",
+      "inputs": [
+        {
+          "font": "14px",
+          "h": 1,
+          "type": "text",
+          "w": 100
+        },
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 319.20001220703125
+        },
+        {
+          "font": "14px",
+          "h": 56,
+          "type": "textarea",
+          "w": 654.4000244140625
+        }
+      ],
+      "scrollWidth": 1280,
+      "smallTargets": [
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68 _attiva_196ux_86",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_esci_196ux_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 217.1999969482422
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_ae386778 mantine-Pill-remove m_86a44da5 mantine-CloseButton-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 22,
+          "text": "",
+          "w": 24
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_86a44da5 mantine-InputClearButton-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 22,
+          "text": "",
+          "w": 22
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_86a44da5 mantine-InputClearButton-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 22,
+          "text": "",
+          "w": 22
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Indietro",
+          "w": 85.73750305175781
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Continua",
+          "w": 92.76250457763672
+        }
+      ],
+      "title": "Profilo bottega",
+      "url": "/profilo",
+      "width": 1280
+    },
+    {
+      "label": "profilo5-375",
+      "inputs": [
+        {
+          "font": "16px",
+          "h": 1,
+          "type": "text",
+          "w": 100
+        },
+        {
+          "font": "16px",
+          "h": 44,
+          "type": "text",
+          "w": 309.6000061035156
+        },
+        {
+          "font": "16px",
+          "h": 62.20000076293945,
+          "type": "textarea",
+          "w": 309.6000061035156
+        }
+      ],
+      "scrollWidth": 375,
+      "smallTargets": [],
+      "title": "Profilo bottega",
+      "url": "/profilo",
+      "width": 375
+    },
+    {
+      "label": "profilo6-1280",
+      "inputs": [
+        {
+          "font": "16px",
+          "h": 20,
+          "type": "checkbox",
+          "w": 20
+        },
+        {
+          "font": "16px",
+          "h": 20,
+          "type": "checkbox",
+          "w": 20
+        },
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 654.4000244140625
+        },
+        {
+          "font": "16px",
+          "h": 20,
+          "type": "checkbox",
+          "w": 20
+        },
+        {
+          "font": "16px",
+          "h": 20,
+          "type": "checkbox",
+          "w": 20
+        },
+        {
+          "font": "16px",
+          "h": 20,
+          "type": "checkbox",
+          "w": 20
+        },
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 654.4000244140625
+        },
+        {
+          "font": "14px",
+          "h": 56,
+          "type": "textarea",
+          "w": 654.4000244140625
+        }
+      ],
+      "scrollWidth": 1265,
+      "smallTargets": [
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68 _attiva_196ux_86",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_esci_196ux_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 217.1999969482422
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_86a44da5 mantine-InputClearButton-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 22,
+          "text": "",
+          "w": 22
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Indietro",
+          "w": 85.73750305175781
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Continua",
+          "w": 92.76250457763672
+        }
+      ],
+      "title": "Profilo bottega",
+      "url": "/profilo",
+      "width": 1280
+    },
+    {
+      "label": "profilo6-375",
+      "inputs": [
+        {
+          "font": "16px",
+          "h": 20,
+          "type": "checkbox",
+          "w": 20
+        },
+        {
+          "font": "16px",
+          "h": 20,
+          "type": "checkbox",
+          "w": 20
+        },
+        {
+          "font": "16px",
+          "h": 44,
+          "type": "text",
+          "w": 294.3999938964844
+        },
+        {
+          "font": "16px",
+          "h": 20,
+          "type": "checkbox",
+          "w": 20
+        },
+        {
+          "font": "16px",
+          "h": 20,
+          "type": "checkbox",
+          "w": 20
+        },
+        {
+          "font": "16px",
+          "h": 20,
+          "type": "checkbox",
+          "w": 20
+        },
+        {
+          "font": "16px",
+          "h": 44,
+          "type": "text",
+          "w": 294.3999938964844
+        },
+        {
+          "font": "16px",
+          "h": 62.20000076293945,
+          "type": "textarea",
+          "w": 294.3999938964844
+        }
+      ],
+      "scrollWidth": 360,
+      "smallTargets": [],
+      "title": "Profilo bottega",
+      "url": "/profilo",
+      "width": 375
+    },
+    {
+      "label": "profilo7-1280",
+      "inputs": [
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 207.46250915527344
+        },
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 207.46250915527344
+        },
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 207.4750061035156
+        }
+      ],
+      "scrollWidth": 1280,
+      "smallTargets": [
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68 _attiva_196ux_86",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_esci_196ux_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 217.1999969482422
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_86a44da5 mantine-InputClearButton-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 22,
+          "text": "",
+          "w": 22
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Indietro",
+          "w": 85.73750305175781
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Continua",
+          "w": 92.76250457763672
+        }
+      ],
+      "title": "Profilo bottega",
+      "url": "/profilo",
+      "width": 1280
+    },
+    {
+      "label": "profilo7-375",
+      "inputs": [
+        {
+          "font": "16px",
+          "h": 44,
+          "type": "text",
+          "w": 294.3999938964844
+        },
+        {
+          "font": "16px",
+          "h": 44,
+          "type": "text",
+          "w": 294.3999938964844
+        },
+        {
+          "font": "16px",
+          "h": 44,
+          "type": "text",
+          "w": 294.3999938964844
+        }
+      ],
+      "scrollWidth": 360,
+      "smallTargets": [],
+      "title": "Profilo bottega",
+      "url": "/profilo",
+      "width": 375
+    },
+    {
+      "label": "profilo8-1280",
+      "inputs": [
+        {
+          "font": "14px",
+          "h": 56,
+          "type": "textarea",
+          "w": 654.4000244140625
+        },
+        {
+          "font": "14px",
+          "h": 56,
+          "type": "textarea",
+          "w": 654.4000244140625
+        }
+      ],
+      "scrollWidth": 1280,
+      "smallTargets": [
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68 _attiva_196ux_86",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_esci_196ux_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 217.1999969482422
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Aggiungi evento",
+          "w": 654.4000244140625
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Indietro",
+          "w": 85.73750305175781
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Continua",
+          "w": 92.76250457763672
+        }
+      ],
+      "title": "Profilo bottega",
+      "url": "/profilo",
+      "width": 1280
+    },
+    {
+      "label": "profilo8-375",
+      "inputs": [
+        {
+          "font": "16px",
+          "h": 62.20000076293945,
+          "type": "textarea",
+          "w": 294.3999938964844
+        },
+        {
+          "font": "16px",
+          "h": 62.20000076293945,
+          "type": "textarea",
+          "w": 294.3999938964844
+        }
+      ],
+      "scrollWidth": 360,
+      "smallTargets": [],
+      "title": "Profilo bottega",
+      "url": "/profilo",
+      "width": 375
+    },
+    {
+      "label": "profilo9-1280",
+      "inputs": [],
+      "scrollWidth": 1265,
+      "smallTargets": [
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68 _attiva_196ux_86",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_esci_196ux_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 217.1999969482422
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Modifica la bottega",
+          "w": 127.3625030517578
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Modifica la tua storia",
+          "w": 136.9250030517578
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Modifica prodotti e valori",
+          "w": 158.625
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Modifica clienti e obiettivo",
+          "w": 165.60000610351562
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Modifica come parlare",
+          "w": 143.625
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Modifica canali e frequenza",
+          "w": 169.6125030517578
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Modifica le fotografie",
+          "w": 138.1125030517578
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Modifica eventi e chiusure",
+          "w": 163.47500610351562
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Indietro",
+          "w": 85.73750305175781
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Salva e vai alla campagna",
+          "w": 190.65000915527344
+        }
+      ],
+      "title": "Profilo bottega",
+      "url": "/profilo",
+      "width": 1280
+    },
+    {
+      "label": "profilo9-375",
+      "inputs": [],
+      "scrollWidth": 360,
+      "smallTargets": [],
+      "title": "Profilo bottega",
+      "url": "/profilo",
+      "width": 375
+    },
+    {
+      "label": "profilo1-fix-1280",
+      "inputs": [
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 319.20001220703125
+        },
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 319.20001220703125
+        },
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 319.20001220703125
+        },
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 319.20001220703125
+        },
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 654.4000244140625
+        }
+      ],
+      "scrollWidth": 1280,
+      "smallTargets": [
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68 _attiva_196ux_86",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_esci_196ux_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 217.1999969482422
+        },
+        {
+          "class": "mantine-focus-auto m_80b4b171 mantine-NumberInput-control m_87cf2631 mantine-UnstyledButton-root",
+          "h": 17,
+          "text": "",
+          "w": 23.80000114440918
+        },
+        {
+          "class": "mantine-focus-auto m_80b4b171 mantine-NumberInput-control m_87cf2631 mantine-UnstyledButton-root",
+          "h": 17,
+          "text": "",
+          "w": 23.80000114440918
+        },
+        {
+          "class": "mantine-focus-auto m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Indietro",
+          "w": 85.73750305175781
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Continua",
+          "w": 92.76250457763672
+        }
+      ],
+      "title": "Profilo bottega",
+      "url": "/profilo",
+      "width": 1280
+    },
+    {
+      "label": "profilo1-fix-375",
+      "inputs": [
+        {
+          "font": "16px",
+          "h": 44,
+          "type": "text",
+          "w": 294.3999938964844
+        },
+        {
+          "font": "16px",
+          "h": 44,
+          "type": "text",
+          "w": 294.3999938964844
+        },
+        {
+          "font": "16px",
+          "h": 44,
+          "type": "text",
+          "w": 294.3999938964844
+        },
+        {
+          "font": "16px",
+          "h": 46,
+          "type": "text",
+          "w": 294.3999938964844
+        },
+        {
+          "font": "16px",
+          "h": 44,
+          "type": "text",
+          "w": 294.3999938964844
+        }
+      ],
+      "scrollWidth": 360,
+      "smallTargets": [],
+      "title": "Profilo bottega",
+      "url": "/profilo",
+      "width": 375
+    },
+    {
+      "label": "campagne-1280",
+      "inputs": [],
+      "scrollWidth": 1280,
+      "smallTargets": [
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68 _attiva_196ux_86",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_esci_196ux_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 217.1999969482422
+        }
+      ],
+      "title": "Le tue campagne",
+      "url": "/campagne",
+      "width": 1280
+    },
+    {
+      "label": "campagne-375",
+      "inputs": [],
+      "scrollWidth": 360,
+      "smallTargets": [],
+      "title": "Le tue campagne",
+      "url": "/campagne",
+      "width": 375
+    },
+    {
+      "label": "campagna-attiva-1280",
+      "inputs": [],
+      "scrollWidth": 1265,
+      "smallTargets": [
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68 _attiva_196ux_86",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_esci_196ux_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 217.1999969482422
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Natale in falegnameria · in revisioneIl consorzio ti chiede qualcosa",
+          "w": 382.1750183105469
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Autunno in bottega · in corso",
+          "w": 176.5
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "+ Nuova campagna",
+          "w": 127.2249984741211
+        }
+      ],
+      "title": "Campagna",
+      "url": "/campagna?id=18",
+      "width": 1280
+    },
+    {
+      "label": "campagna-attiva-375",
+      "inputs": [],
+      "scrollWidth": 360,
+      "smallTargets": [],
+      "title": "Campagna",
+      "url": "/campagna?id=18",
+      "width": 375
+    },
+    {
+      "label": "calendario-1280",
+      "inputs": [],
+      "scrollWidth": 1280,
+      "smallTargets": [
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68 _attiva_196ux_86",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_esci_196ux_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 217.1999969482422
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "← Settimana prima",
+          "w": 128.75
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Oggi",
+          "w": 53.3125
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Settimana dopo →",
+          "w": 124.76250457763672
+        }
+      ],
+      "title": "Calendario",
+      "url": "/calendario",
+      "width": 1280
+    },
+    {
+      "label": "calendario-375",
+      "inputs": [],
+      "scrollWidth": 360,
+      "smallTargets": [],
+      "title": "Calendario",
+      "url": "/calendario",
+      "width": 375
+    },
+    {
+      "label": "archivio-1280",
+      "inputs": [],
+      "scrollWidth": 1265,
+      "smallTargets": [
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68 _attiva_196ux_86",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_esci_196ux_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 217.1999969482422
+        }
+      ],
+      "title": "Archivio foto",
+      "url": "/archivio",
+      "width": 1280
+    },
+    {
+      "label": "archivio-375",
+      "inputs": [],
+      "scrollWidth": 360,
+      "smallTargets": [],
+      "title": "Archivio foto",
+      "url": "/archivio",
+      "width": 375
+    },
+    {
+      "label": "ingresso-1280",
+      "inputs": [],
+      "scrollWidth": 1280,
+      "smallTargets": [
+        {
+          "class": "_voce_196ux_68 _attiva_196ux_86",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_esci_196ux_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 217.1999969482422
+        }
+      ],
+      "title": "Buongiorno, Mario",
+      "url": "/ingresso",
+      "width": 1280
+    },
+    {
+      "label": "ingresso-375",
+      "inputs": [],
+      "scrollWidth": 360,
+      "smallTargets": [],
+      "title": "Buongiorno, Mario",
+      "url": "/ingresso",
+      "width": 375
+    },
+    {
+      "label": "richiesta-consorzio-1280",
+      "inputs": [
+        {
+          "font": "16px",
+          "h": 20,
+          "type": "checkbox",
+          "w": 20
+        },
+        {
+          "font": "14px",
+          "h": 78.5999984741211,
+          "type": "textarea",
+          "w": 609.6000366210938
+        }
+      ],
+      "scrollWidth": 1265,
+      "smallTargets": [
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68 _attiva_196ux_86",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_esci_196ux_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 217.1999969482422
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Natale in falegnameria · in revisioneIl consorzio ti chiede qualcosa",
+          "w": 382.1750183105469
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Autunno in bottega · in corso",
+          "w": 176.5
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "+ Nuova campagna",
+          "w": 127.2249984741211
+        },
+        {
+          "class": "m_8fb7ebe7 mantine-Input-input mantine-FileInput-input",
+          "h": 36,
+          "text": "Scegli la foto nuova",
+          "w": 410.6625061035156
+        },
+        {
+          "class": "mantine-focus-auto m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Carica",
+          "w": 75.3375015258789
+        },
+        {
+          "class": "m_8fb7ebe7 mantine-Input-input mantine-FileInput-input",
+          "h": 36,
+          "text": "Scegli la foto nuova",
+          "w": 410.6625061035156
+        },
+        {
+          "class": "mantine-focus-auto m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Carica",
+          "w": 75.3375015258789
+        },
+        {
+          "class": "mantine-focus-auto m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Invia al consorzio",
+          "w": 141.90000915527344
+        }
+      ],
+      "title": "Campagna",
+      "url": "/campagna?id=19",
+      "width": 1280
+    },
+    {
+      "label": "richiesta-consorzio-375",
+      "inputs": [
+        {
+          "font": "16px",
+          "h": 20,
+          "type": "checkbox",
+          "w": 20
+        },
+        {
+          "font": "16px",
+          "h": 87.5999984741211,
+          "type": "textarea",
+          "w": 257.6000061035156
+        }
+      ],
+      "scrollWidth": 360,
+      "smallTargets": [],
+      "title": "Campagna",
+      "url": "/campagna?id=19",
+      "width": 375
+    },
+    {
+      "label": "bentornato-1280",
+      "inputs": [],
+      "scrollWidth": 1280,
+      "smallTargets": [
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68 _attiva_196ux_86",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_esci_196ux_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 217.1999969482422
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Natale in falegnameria · in revisioneIl consorzio ti chiede qualcosa",
+          "w": 382.1750183105469
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Autunno in bottega · in corso",
+          "w": 176.5
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "+ Nuova campagna",
+          "w": 127.2249984741211
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Va bene così, vai alla campagna →",
+          "w": 240.2624969482422
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Modifica il profilo",
+          "w": 142.1999969482422
+        }
+      ],
+      "title": "Campagna",
+      "url": "/campagna?id=19",
+      "width": 1280
+    },
+    {
+      "label": "bentornato-375",
+      "inputs": [],
+      "scrollWidth": 360,
+      "smallTargets": [],
+      "title": "Campagna",
+      "url": "/campagna?id=19",
+      "width": 375
+    },
+    {
+      "label": "campagna10-1280",
+      "inputs": [
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 654.4000244140625
+        },
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "date",
+          "w": 319.20001220703125
+        },
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "date",
+          "w": 319.20001220703125
+        },
+        {
+          "font": "16px",
+          "h": 20,
+          "type": "checkbox",
+          "w": 20
+        },
+        {
+          "font": "16px",
+          "h": 20,
+          "type": "checkbox",
+          "w": 20
+        },
+        {
+          "font": "14px",
+          "h": 56,
+          "type": "textarea",
+          "w": 654.4000244140625
+        }
+      ],
+      "scrollWidth": 1280,
+      "smallTargets": [
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68 _attiva_196ux_86",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_esci_196ux_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 217.1999969482422
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Natale in falegnameria · in revisioneIl consorzio ti chiede qualcosa",
+          "w": 382.1750183105469
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Autunno in bottega · in corso",
+          "w": 176.5
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "+ Nuova campagna",
+          "w": 127.2249984741211
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Continua →",
+          "w": 107.6500015258789
+        }
+      ],
+      "title": "Campagna",
+      "url": "/campagna?id=19",
+      "width": 1280
+    },
+    {
+      "label": "campagna10-375",
+      "inputs": [
+        {
+          "font": "16px",
+          "h": 44,
+          "type": "text",
+          "w": 294.3999938964844
+        },
+        {
+          "font": "16px",
+          "h": 44,
+          "type": "date",
+          "w": 294.3999938964844
+        },
+        {
+          "font": "16px",
+          "h": 44,
+          "type": "date",
+          "w": 294.3999938964844
+        },
+        {
+          "font": "16px",
+          "h": 20,
+          "type": "checkbox",
+          "w": 20
+        },
+        {
+          "font": "16px",
+          "h": 20,
+          "type": "checkbox",
+          "w": 20
+        },
+        {
+          "font": "16px",
+          "h": 62.20000076293945,
+          "type": "textarea",
+          "w": 294.3999938964844
+        }
+      ],
+      "scrollWidth": 360,
+      "smallTargets": [],
+      "title": "Campagna",
+      "url": "/campagna?id=19",
+      "width": 375
+    },
+    {
+      "label": "campagna11-vuota-1280",
+      "inputs": [],
+      "scrollWidth": 1280,
+      "smallTargets": [
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68 _attiva_196ux_86",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_esci_196ux_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 217.1999969482422
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Natale in falegnameria · in revisioneIl consorzio ti chiede qualcosa",
+          "w": 382.1750183105469
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Prova UX Corsia 8 · bozza",
+          "w": 157.28750610351562
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Autunno in bottega · in corso",
+          "w": 176.5
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "+ Aggiungi una serie di foto",
+          "w": 654.4000244140625
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "← Torna a dati e canali",
+          "w": 172.3249969482422
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Vai al riepilogo →",
+          "w": 140.875
+        }
+      ],
+      "title": "Campagna",
+      "url": "/campagna?id=19",
+      "width": 1280
+    },
+    {
+      "label": "campagna11-vuota-375",
+      "inputs": [],
+      "scrollWidth": 360,
+      "smallTargets": [],
+      "title": "Campagna",
+      "url": "/campagna?id=19",
+      "width": 375
+    },
+    {
+      "label": "campagna11-serie-1280",
+      "inputs": [
+        {
+          "font": "14px",
+          "h": 56,
+          "type": "textarea",
+          "w": 620.7999877929688
+        },
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "date",
+          "w": 620.7999877929688
+        }
+      ],
+      "scrollWidth": 1265,
+      "smallTargets": [
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68 _attiva_196ux_86",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_esci_196ux_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 217.1999969482422
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Natale in falegnameria · in revisioneIl consorzio ti chiede qualcosa",
+          "w": 382.1750183105469
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Prova UX Corsia 8 · bozza",
+          "w": 157.28750610351562
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Autunno in bottega · in corso",
+          "w": 176.5
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "+ Aggiungi una serie di foto",
+          "w": 654.4000244140625
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "← Torna a dati e canali",
+          "w": 172.3249969482422
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Vai al riepilogo →",
+          "w": 140.875
+        }
+      ],
+      "title": "Campagna",
+      "url": "/campagna?id=19",
+      "width": 1280
+    },
+    {
+      "label": "campagna11-serie-375",
+      "inputs": [
+        {
+          "font": "16px",
+          "h": 62.20000076293945,
+          "type": "textarea",
+          "w": 260.8000183105469
+        },
+        {
+          "font": "16px",
+          "h": 44,
+          "type": "date",
+          "w": 260.8000183105469
+        }
+      ],
+      "scrollWidth": 360,
+      "smallTargets": [],
+      "title": "Campagna",
+      "url": "/campagna?id=19",
+      "width": 375
+    },
+    {
+      "label": "campagna12-1280",
+      "inputs": [
+        {
+          "font": "16px",
+          "h": 20,
+          "type": "checkbox",
+          "w": 20
+        }
+      ],
+      "scrollWidth": 1265,
+      "smallTargets": [
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68 _attiva_196ux_86",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_esci_196ux_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 217.1999969482422
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Natale in falegnameria · in revisioneIl consorzio ti chiede qualcosa",
+          "w": 382.1750183105469
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Prova UX Corsia 8 · bozza",
+          "w": 157.28750610351562
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Autunno in bottega · in corso",
+          "w": 176.5
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "← Torna alle foto",
+          "w": 138.8125
+        }
+      ],
+      "title": "Campagna",
+      "url": "/campagna?id=19",
+      "width": 1280
+    },
+    {
+      "label": "campagna12-375",
+      "inputs": [
+        {
+          "font": "16px",
+          "h": 20,
+          "type": "checkbox",
+          "w": 20
+        }
+      ],
+      "scrollWidth": 360,
+      "smallTargets": [],
+      "title": "Campagna",
+      "url": "/campagna?id=19",
+      "width": 375
+    },
+    {
+      "label": "accesso-1280",
+      "inputs": [],
+      "scrollWidth": 1280,
+      "smallTargets": [],
+      "url": "/accesso",
+      "width": 1280
+    },
+    {
+      "label": "accesso-375",
+      "inputs": [],
+      "scrollWidth": 375,
+      "smallTargets": [],
+      "url": "/accesso",
+      "width": 375
+    },
+    {
+      "label": "operatore-da-approvare-1280",
+      "inputs": [
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 280
+        }
+      ],
+      "scrollWidth": 1265,
+      "smallTargets": [
+        {
+          "class": "_voce_196ux_68 _attiva_196ux_86",
+          "h": 38.25,
+          "text": "Da approvare",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Artigiani",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Nuovo artigiano",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_esci_196ux_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 217.1999969482422
+        }
+      ],
+      "title": "Campagne da approvare",
+      "url": "/da-approvare",
+      "width": 1280
+    },
+    {
+      "label": "operatore-vedi-campagna-1280",
+      "inputs": [],
+      "scrollWidth": 1265,
+      "smallTargets": [
+        {
+          "class": "_voce_196ux_68 _attiva_196ux_86",
+          "h": 38.25,
+          "text": "Da approvare",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Artigiani",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Nuovo artigiano",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_esci_196ux_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 217.1999969482422
+        },
+        {
+          "class": "mantine-focus-auto m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Approva 12 post",
+          "w": 134.08750915527344
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Chiedi all'artigiano",
+          "w": 152.1374969482422
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Respingi",
+          "w": 89.23750305175781
+        },
+        {
+          "class": "mantine-focus-auto m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30.80000114440918,
+          "text": "Il piano− chiudi",
+          "w": 909.2000122070312
+        },
+        {
+          "class": "mantine-focus-auto m_539e827b m_4ec4dce6 mantine-Tabs-tab m_87cf2631 mantine-UnstyledButton-root",
+          "h": 35.60000228881836,
+          "text": "Uscite (6)",
+          "w": 86.4375
+        },
+        {
+          "class": "mantine-focus-auto m_539e827b m_4ec4dce6 mantine-Tabs-tab m_87cf2631 mantine-UnstyledButton-root",
+          "h": 35.60000228881836,
+          "text": "Calendario",
+          "w": 95.9625015258789
+        },
+        {
+          "class": "mantine-focus-auto m_539e827b m_4ec4dce6 mantine-Tabs-tab m_87cf2631 mantine-UnstyledButton-root",
+          "h": 35.60000228881836,
+          "text": "Foto e profilo",
+          "w": 109.5
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Modifica a mano",
+          "w": 114.2125015258789
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Rigenera da zero",
+          "w": 115.125
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Rigenera da testo proposto",
+          "w": 167.875
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Cambia foto",
+          "w": 92.0500030517578
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Sposta",
+          "w": 64.6624984741211
+        },
+        {
+          "class": "mantine-focus-auto m_87cf2631 mantine-UnstyledButton-root",
+          "h": 20.30000114440918,
+          "text": "Storico (1)",
+          "w": 417
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Modifica a mano",
+          "w": 114.2125015258789
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Rigenera da zero",
+          "w": 115.125
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Rigenera da testo proposto",
+          "w": 167.875
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Cambia foto",
+          "w": 92.0500030517578
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Sposta",
+          "w": 64.6624984741211
+        },
+        {
+          "class": "mantine-focus-auto m_87cf2631 mantine-UnstyledButton-root",
+          "h": 20.30000114440918,
+          "text": "Storico (1)",
+          "w": 417
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Modifica a mano",
+          "w": 114.2125015258789
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Rigenera da zero",
+          "w": 115.125
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Rigenera da testo proposto",
+          "w": 167.875
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Cambia foto",
+          "w": 92.0500030517578
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Sposta",
+          "w": 64.6624984741211
+        },
+        {
+          "class": "mantine-focus-auto m_87cf2631 mantine-UnstyledButton-root",
+          "h": 20.30000114440918,
+          "text": "Storico (1)",
+          "w": 417
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Modifica a mano",
+          "w": 114.2125015258789
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Rigenera da zero",
+          "w": 115.125
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Rigenera da testo proposto",
+          "w": 167.875
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Cambia foto",
+          "w": 92.0500030517578
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Sposta",
+          "w": 64.6624984741211
+        },
+        {
+          "class": "mantine-focus-auto m_87cf2631 mantine-UnstyledButton-root",
+          "h": 20.30000114440918,
+          "text": "Storico (1)",
+          "w": 417
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Modifica a mano",
+          "w": 114.2125015258789
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Rigenera da zero",
+          "w": 115.125
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Rigenera da testo proposto",
+          "w": 167.875
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Cambia foto",
+          "w": 92.0500030517578
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Sposta",
+          "w": 64.6624984741211
+        },
+        {
+          "class": "mantine-focus-auto m_87cf2631 mantine-UnstyledButton-root",
+          "h": 20.30000114440918,
+          "text": "Storico (1)",
+          "w": 417
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Modifica a mano",
+          "w": 114.2125015258789
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Rigenera da zero",
+          "w": 115.125
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Rigenera da testo proposto",
+          "w": 167.875
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Cambia foto",
+          "w": 92.0500030517578
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Sposta",
+          "w": 64.6624984741211
+        },
+        {
+          "class": "mantine-focus-auto m_87cf2631 mantine-UnstyledButton-root",
+          "h": 20.30000114440918,
+          "text": "Storico (1)",
+          "w": 417
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Modifica a mano",
+          "w": 114.2125015258789
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Rigenera da zero",
+          "w": 115.125
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Rigenera da testo proposto",
+          "w": 167.875
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Cambia foto",
+          "w": 92.0500030517578
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Sposta",
+          "w": 64.6624984741211
+        },
+        {
+          "class": "mantine-focus-auto m_87cf2631 mantine-UnstyledButton-root",
+          "h": 20.30000114440918,
+          "text": "Storico (1)",
+          "w": 417
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Modifica a mano",
+          "w": 114.2125015258789
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Rigenera da zero",
+          "w": 115.125
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Rigenera da testo proposto",
+          "w": 167.875
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Cambia foto",
+          "w": 92.0500030517578
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Sposta",
+          "w": 64.6624984741211
+        },
+        {
+          "class": "mantine-focus-auto m_87cf2631 mantine-UnstyledButton-root",
+          "h": 20.30000114440918,
+          "text": "Storico (1)",
+          "w": 417
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Modifica a mano",
+          "w": 114.2125015258789
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Rigenera da zero",
+          "w": 115.125
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Rigenera da testo proposto",
+          "w": 167.875
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Cambia foto",
+          "w": 92.0500030517578
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Sposta",
+          "w": 64.6624984741211
+        },
+        {
+          "class": "mantine-focus-auto m_87cf2631 mantine-UnstyledButton-root",
+          "h": 20.30000114440918,
+          "text": "Storico (1)",
+          "w": 417
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Modifica a mano",
+          "w": 114.2125015258789
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Rigenera da zero",
+          "w": 115.125
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Rigenera da testo proposto",
+          "w": 167.875
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Cambia foto",
+          "w": 92.0500030517578
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Sposta",
+          "w": 64.6624984741211
+        },
+        {
+          "class": "mantine-focus-auto m_87cf2631 mantine-UnstyledButton-root",
+          "h": 20.30000114440918,
+          "text": "Storico (1)",
+          "w": 417
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Modifica a mano",
+          "w": 114.2125015258789
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Rigenera da zero",
+          "w": 115.125
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Rigenera da testo proposto",
+          "w": 167.875
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Sposta",
+          "w": 64.6624984741211
+        },
+        {
+          "class": "mantine-focus-auto m_87cf2631 mantine-UnstyledButton-root",
+          "h": 20.30000114440918,
+          "text": "Storico (1)",
+          "w": 417
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Modifica a mano",
+          "w": 114.2125015258789
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Rigenera da zero",
+          "w": 115.125
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Rigenera da testo proposto",
+          "w": 167.875
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Sposta",
+          "w": 64.6624984741211
+        },
+        {
+          "class": "mantine-focus-auto m_87cf2631 mantine-UnstyledButton-root",
+          "h": 20.30000114440918,
+          "text": "Storico (1)",
+          "w": 417
+        }
+      ],
+      "title": "Vedi campagna",
+      "url": "/campagne/10",
+      "width": 1280
+    },
+    {
+      "label": "operatore-nuovo-artigiano-1280",
+      "inputs": [
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "email",
+          "w": 638.4000244140625
+        },
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 638.4000244140625
+        }
+      ],
+      "scrollWidth": 1280,
+      "smallTargets": [
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Da approvare",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Artigiani",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68 _attiva_196ux_86",
+          "h": 38.25,
+          "text": "Nuovo artigiano",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_esci_196ux_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 217.1999969482422
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Crea artigiano",
+          "w": 122.5625
+        }
+      ],
+      "title": "Nuovo artigiano",
+      "url": "/nuovo-artigiano",
+      "width": 1280
+    },
+    {
+      "label": "operatore-artigiani-1280",
+      "inputs": [
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "search",
+          "w": 420
+        }
+      ],
+      "scrollWidth": 1280,
+      "smallTargets": [
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Da approvare",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68 _attiva_196ux_86",
+          "h": 38.25,
+          "text": "Artigiani",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Nuovo artigiano",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_esci_196ux_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 217.1999969482422
+        }
+      ],
+      "title": "Artigiani",
+      "url": "/artigiani",
+      "width": 1280
+    },
+    {
+      "label": "operatore-calendario-1280",
+      "inputs": [
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 240
+        }
+      ],
+      "scrollWidth": 1280,
+      "smallTargets": [
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Da approvare",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Artigiani",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68 _attiva_196ux_86",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_voce_196ux_68",
+          "h": 38.25,
+          "text": "Nuovo artigiano",
+          "w": 221.1999969482422
+        },
+        {
+          "class": "_esci_196ux_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 217.1999969482422
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "← Settimana prima",
+          "w": 128.75
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Oggi",
+          "w": 53.3125
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Settimana dopo →",
+          "w": 124.76250457763672
+        }
+      ],
+      "title": "Calendario",
+      "url": "/calendario",
+      "width": 1280
+    },
+    {
+      "label": "prima-accesso-375",
+      "inputs": [],
+      "scrollWidth": 375,
+      "smallTargets": [],
+      "url": "/accesso",
+      "width": 375
+    },
+    {
+      "label": "prima-ingresso-375",
+      "inputs": [],
+      "scrollWidth": 360,
+      "smallTargets": [
+        {
+          "class": "_voce_1rfm4_68 _attiva_1rfm4_86",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 104.1750030517578
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 116.2874984741211
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 117.4749984741211
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 127.1750030517578
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 139.75
+        },
+        {
+          "class": "_esci_1rfm4_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 61.650001525878906
+        }
+      ],
+      "title": "Buongiorno, Mario",
+      "url": "/ingresso",
+      "width": 375
+    },
+    {
+      "label": "prima-richiesta-consorzio-375",
+      "inputs": [
+        {
+          "font": "16px",
+          "h": 20,
+          "type": "checkbox",
+          "w": 20
+        },
+        {
+          "font": "14px",
+          "h": 78.5999984741211,
+          "type": "textarea",
+          "w": 220.8000030517578
+        }
+      ],
+      "scrollWidth": 360,
+      "smallTargets": [
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 103.38750457763672
+        },
+        {
+          "class": "_voce_1rfm4_68 _attiva_1rfm4_86",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 116.95000457763672
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 117.4749984741211
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 127.1750030517578
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 139.75
+        },
+        {
+          "class": "_esci_1rfm4_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 61.650001525878906
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Natale in falegnameria · in revisioneIl consorzio ti chiede qualcosa",
+          "w": 328
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Prova UX Corsia 8 · bozza",
+          "w": 157.28750610351562
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Autunno in bottega · in corso",
+          "w": 176.5
+        },
+        {
+          "class": "m_8fb7ebe7 mantine-Input-input mantine-FileInput-input",
+          "h": 38.79999923706055,
+          "text": "Scegli la foto nuova",
+          "w": 107.20000457763672
+        },
+        {
+          "class": "mantine-focus-auto m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Carica",
+          "w": 61.95000076293945
+        },
+        {
+          "class": "m_8fb7ebe7 mantine-Input-input mantine-FileInput-input",
+          "h": 38.79999923706055,
+          "text": "Scegli la foto nuova",
+          "w": 107.20000457763672
+        },
+        {
+          "class": "mantine-focus-auto m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Carica",
+          "w": 61.95000076293945
+        },
+        {
+          "class": "mantine-focus-auto m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Invia al consorzio",
+          "w": 141.90000915527344
+        }
+      ],
+      "title": "Campagna",
+      "url": "/campagna?id=19",
+      "width": 375
+    },
+    {
+      "label": "prima-profilo1-375",
+      "inputs": [
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 294.3999938964844
+        },
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 294.3999938964844
+        },
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 294.3999938964844
+        },
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 294.3999938964844
+        },
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 294.3999938964844
+        }
+      ],
+      "scrollWidth": 360,
+      "smallTargets": [
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 103.38750457763672
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 116.2874984741211
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 117.4749984741211
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 127.1750030517578
+        },
+        {
+          "class": "_voce_1rfm4_68 _attiva_1rfm4_86",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 141.125
+        },
+        {
+          "class": "_esci_1rfm4_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 61.650001525878906
+        },
+        {
+          "class": "mantine-focus-auto m_80b4b171 mantine-NumberInput-control m_87cf2631 mantine-UnstyledButton-root",
+          "h": 17,
+          "text": "",
+          "w": 23.80000114440918
+        },
+        {
+          "class": "mantine-focus-auto m_80b4b171 mantine-NumberInput-control m_87cf2631 mantine-UnstyledButton-root",
+          "h": 17,
+          "text": "",
+          "w": 23.80000114440918
+        },
+        {
+          "class": "mantine-focus-auto m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Indietro",
+          "w": 85.73750305175781
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Continua",
+          "w": 92.76250457763672
+        }
+      ],
+      "title": "Profilo bottega",
+      "url": "/profilo",
+      "width": 375
+    },
+    {
+      "label": "prima-profilo2-375",
+      "inputs": [
+        {
+          "font": "14px",
+          "h": 56,
+          "type": "textarea",
+          "w": 294.3999938964844
+        },
+        {
+          "font": "14px",
+          "h": 56,
+          "type": "textarea",
+          "w": 294.3999938964844
+        }
+      ],
+      "scrollWidth": 360,
+      "smallTargets": [
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 103.38750457763672
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 116.2874984741211
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 117.4749984741211
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 127.1750030517578
+        },
+        {
+          "class": "_voce_1rfm4_68 _attiva_1rfm4_86",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 141.125
+        },
+        {
+          "class": "_esci_1rfm4_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 61.650001525878906
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Indietro",
+          "w": 85.73750305175781
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Continua",
+          "w": 92.76250457763672
+        }
+      ],
+      "title": "Profilo bottega",
+      "url": "/profilo",
+      "width": 375
+    },
+    {
+      "label": "prima-profilo3-375",
+      "inputs": [
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 294.3999938964844
+        },
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 294.3999938964844
+        },
+        {
+          "font": "14px",
+          "h": 56,
+          "type": "textarea",
+          "w": 294.3999938964844
+        },
+        {
+          "font": "14px",
+          "h": 1,
+          "type": "text",
+          "w": 100
+        },
+        {
+          "font": "14px",
+          "h": 56,
+          "type": "textarea",
+          "w": 294.3999938964844
+        }
+      ],
+      "scrollWidth": 360,
+      "smallTargets": [
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 103.38750457763672
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 116.2874984741211
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 117.4749984741211
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 127.1750030517578
+        },
+        {
+          "class": "_voce_1rfm4_68 _attiva_1rfm4_86",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 141.125
+        },
+        {
+          "class": "_esci_1rfm4_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 61.650001525878906
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_86a44da5 mantine-InputClearButton-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 22,
+          "text": "",
+          "w": 22
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_ae386778 mantine-Pill-remove m_86a44da5 mantine-CloseButton-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 22,
+          "text": "",
+          "w": 24
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_ae386778 mantine-Pill-remove m_86a44da5 mantine-CloseButton-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 22,
+          "text": "",
+          "w": 24
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_86a44da5 mantine-InputClearButton-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 22,
+          "text": "",
+          "w": 22
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Indietro",
+          "w": 85.73750305175781
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Continua",
+          "w": 92.76250457763672
+        }
+      ],
+      "title": "Profilo bottega",
+      "url": "/profilo",
+      "width": 375
+    },
+    {
+      "label": "prima-profilo4-375",
+      "inputs": [
+        {
+          "font": "14px",
+          "h": 56,
+          "type": "textarea",
+          "w": 294.3999938964844
+        },
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 294.3999938964844
+        },
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 294.3999938964844
+        }
+      ],
+      "scrollWidth": 360,
+      "smallTargets": [
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 103.38750457763672
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 116.2874984741211
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 117.4749984741211
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 127.1750030517578
+        },
+        {
+          "class": "_voce_1rfm4_68 _attiva_1rfm4_86",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 141.125
+        },
+        {
+          "class": "_esci_1rfm4_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 61.650001525878906
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Indietro",
+          "w": 85.73750305175781
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Continua",
+          "w": 92.76250457763672
+        }
+      ],
+      "title": "Profilo bottega",
+      "url": "/profilo",
+      "width": 375
+    },
+    {
+      "label": "prima-profilo5-375",
+      "inputs": [
+        {
+          "font": "14px",
+          "h": 1,
+          "type": "text",
+          "w": 100
+        },
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 294.3999938964844
+        },
+        {
+          "font": "14px",
+          "h": 56,
+          "type": "textarea",
+          "w": 294.3999938964844
+        }
+      ],
+      "scrollWidth": 360,
+      "smallTargets": [
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 103.38750457763672
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 116.2874984741211
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 117.4749984741211
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 127.1750030517578
+        },
+        {
+          "class": "_voce_1rfm4_68 _attiva_1rfm4_86",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 141.125
+        },
+        {
+          "class": "_esci_1rfm4_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 61.650001525878906
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_ae386778 mantine-Pill-remove m_86a44da5 mantine-CloseButton-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 22,
+          "text": "",
+          "w": 24
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_86a44da5 mantine-InputClearButton-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 22,
+          "text": "",
+          "w": 22
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_86a44da5 mantine-InputClearButton-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 22,
+          "text": "",
+          "w": 22
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Indietro",
+          "w": 85.73750305175781
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Continua",
+          "w": 92.76250457763672
+        }
+      ],
+      "title": "Profilo bottega",
+      "url": "/profilo",
+      "width": 375
+    },
+    {
+      "label": "prima-profilo6-375",
+      "inputs": [
+        {
+          "font": "16px",
+          "h": 20,
+          "type": "checkbox",
+          "w": 20
+        },
+        {
+          "font": "16px",
+          "h": 20,
+          "type": "checkbox",
+          "w": 20
+        },
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 294.3999938964844
+        },
+        {
+          "font": "16px",
+          "h": 20,
+          "type": "checkbox",
+          "w": 20
+        },
+        {
+          "font": "16px",
+          "h": 20,
+          "type": "checkbox",
+          "w": 20
+        },
+        {
+          "font": "16px",
+          "h": 20,
+          "type": "checkbox",
+          "w": 20
+        },
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 294.3999938964844
+        },
+        {
+          "font": "14px",
+          "h": 56,
+          "type": "textarea",
+          "w": 294.3999938964844
+        }
+      ],
+      "scrollWidth": 360,
+      "smallTargets": [
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 103.38750457763672
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 116.2874984741211
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 117.4749984741211
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 127.1750030517578
+        },
+        {
+          "class": "_voce_1rfm4_68 _attiva_1rfm4_86",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 141.125
+        },
+        {
+          "class": "_esci_1rfm4_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 61.650001525878906
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_86a44da5 mantine-InputClearButton-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 22,
+          "text": "",
+          "w": 22
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Indietro",
+          "w": 85.73750305175781
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Continua",
+          "w": 92.76250457763672
+        }
+      ],
+      "title": "Profilo bottega",
+      "url": "/profilo",
+      "width": 375
+    },
+    {
+      "label": "prima-profilo7-375",
+      "inputs": [
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 294.3999938964844
+        },
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 294.3999938964844
+        },
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 294.3999938964844
+        }
+      ],
+      "scrollWidth": 360,
+      "smallTargets": [
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 103.38750457763672
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 116.2874984741211
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 117.4749984741211
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 127.1750030517578
+        },
+        {
+          "class": "_voce_1rfm4_68 _attiva_1rfm4_86",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 141.125
+        },
+        {
+          "class": "_esci_1rfm4_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 61.650001525878906
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_86a44da5 mantine-InputClearButton-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 22,
+          "text": "",
+          "w": 22
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Indietro",
+          "w": 85.73750305175781
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Continua",
+          "w": 92.76250457763672
+        }
+      ],
+      "title": "Profilo bottega",
+      "url": "/profilo",
+      "width": 375
+    },
+    {
+      "label": "prima-profilo8-375",
+      "inputs": [
+        {
+          "font": "14px",
+          "h": 56,
+          "type": "textarea",
+          "w": 294.3999938964844
+        },
+        {
+          "font": "14px",
+          "h": 56,
+          "type": "textarea",
+          "w": 294.3999938964844
+        }
+      ],
+      "scrollWidth": 360,
+      "smallTargets": [
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 103.38750457763672
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 116.2874984741211
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 117.4749984741211
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 127.1750030517578
+        },
+        {
+          "class": "_voce_1rfm4_68 _attiva_1rfm4_86",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 141.125
+        },
+        {
+          "class": "_esci_1rfm4_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 61.650001525878906
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Aggiungi evento",
+          "w": 294.3999938964844
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Indietro",
+          "w": 85.73750305175781
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Continua",
+          "w": 92.76250457763672
+        }
+      ],
+      "title": "Profilo bottega",
+      "url": "/profilo",
+      "width": 375
+    },
+    {
+      "label": "prima-profilo9-375",
+      "inputs": [],
+      "scrollWidth": 360,
+      "smallTargets": [
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 103.38750457763672
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 116.2874984741211
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 117.4749984741211
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 127.1750030517578
+        },
+        {
+          "class": "_voce_1rfm4_68 _attiva_1rfm4_86",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 141.125
+        },
+        {
+          "class": "_esci_1rfm4_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 61.650001525878906
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Modifica la bottega",
+          "w": 127.3625030517578
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Modifica la tua storia",
+          "w": 136.9250030517578
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Modifica prodotti e valori",
+          "w": 158.625
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Modifica clienti e obiettivo",
+          "w": 165.60000610351562
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Modifica come parlare",
+          "w": 143.625
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Modifica canali e frequenza",
+          "w": 169.6125030517578
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Modifica le fotografie",
+          "w": 138.1125030517578
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Modifica eventi e chiusure",
+          "w": 163.47500610351562
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Indietro",
+          "w": 85.73750305175781
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Salva e vai alla campagna",
+          "w": 190.65000915527344
+        }
+      ],
+      "title": "Profilo bottega",
+      "url": "/profilo",
+      "width": 375
+    },
+    {
+      "label": "prima-campagne-375",
+      "inputs": [],
+      "scrollWidth": 360,
+      "smallTargets": [
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 103.38750457763672
+        },
+        {
+          "class": "_voce_1rfm4_68 _attiva_1rfm4_86",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 116.95000457763672
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 117.4749984741211
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 127.1750030517578
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 139.75
+        },
+        {
+          "class": "_esci_1rfm4_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 61.650001525878906
+        }
+      ],
+      "title": "Le tue campagne",
+      "url": "/campagne",
+      "width": 375
+    },
+    {
+      "label": "prima-campagna-attiva-375",
+      "inputs": [],
+      "scrollWidth": 360,
+      "smallTargets": [
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 103.38750457763672
+        },
+        {
+          "class": "_voce_1rfm4_68 _attiva_1rfm4_86",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 116.95000457763672
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 117.4749984741211
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 127.1750030517578
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 139.75
+        },
+        {
+          "class": "_esci_1rfm4_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 61.650001525878906
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Natale in falegnameria · in revisioneIl consorzio ti chiede qualcosa",
+          "w": 328
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Prova UX Corsia 8 · bozza",
+          "w": 157.28750610351562
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Autunno in bottega · in corso",
+          "w": 176.5
+        }
+      ],
+      "title": "Campagna",
+      "url": "/campagna?id=18",
+      "width": 375
+    },
+    {
+      "label": "prima-calendario-375",
+      "inputs": [],
+      "scrollWidth": 360,
+      "smallTargets": [
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 103.38750457763672
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 116.2874984741211
+        },
+        {
+          "class": "_voce_1rfm4_68 _attiva_1rfm4_86",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 118.3625030517578
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 127.1750030517578
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 139.75
+        },
+        {
+          "class": "_esci_1rfm4_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 61.650001525878906
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "← Settimana prima",
+          "w": 128.75
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Oggi",
+          "w": 53.3125
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Settimana dopo →",
+          "w": 124.76250457763672
+        }
+      ],
+      "title": "Calendario",
+      "url": "/calendario",
+      "width": 375
+    },
+    {
+      "label": "prima-archivio-375",
+      "inputs": [],
+      "scrollWidth": 360,
+      "smallTargets": [
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 103.38750457763672
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 116.2874984741211
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 117.4749984741211
+        },
+        {
+          "class": "_voce_1rfm4_68 _attiva_1rfm4_86",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 128.3874969482422
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 139.75
+        },
+        {
+          "class": "_esci_1rfm4_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 61.650001525878906
+        }
+      ],
+      "title": "Archivio foto",
+      "url": "/archivio",
+      "width": 375
+    },
+    {
+      "label": "prima-bentornato-375",
+      "inputs": [],
+      "scrollWidth": 360,
+      "smallTargets": [
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 103.38750457763672
+        },
+        {
+          "class": "_voce_1rfm4_68 _attiva_1rfm4_86",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 116.95000457763672
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 117.4749984741211
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 127.1750030517578
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 139.75
+        },
+        {
+          "class": "_esci_1rfm4_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 61.650001525878906
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Natale in falegnameria · in revisioneIl consorzio ti chiede qualcosa",
+          "w": 328
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Autunno in bottega · in corso",
+          "w": 176.5
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "+ Nuova campagna",
+          "w": 127.2249984741211
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Va bene così, vai alla campagna →",
+          "w": 240.2624969482422
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Modifica il profilo",
+          "w": 142.1999969482422
+        }
+      ],
+      "title": "Campagna",
+      "url": "/campagna",
+      "width": 375
+    },
+    {
+      "label": "prima-campagna10-375",
+      "inputs": [
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "text",
+          "w": 262.3999938964844
+        },
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "date",
+          "w": 262.3999938964844
+        },
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "date",
+          "w": 262.3999938964844
+        },
+        {
+          "font": "16px",
+          "h": 20,
+          "type": "checkbox",
+          "w": 20
+        },
+        {
+          "font": "16px",
+          "h": 20,
+          "type": "checkbox",
+          "w": 20
+        },
+        {
+          "font": "14px",
+          "h": 56,
+          "type": "textarea",
+          "w": 262.3999938964844
+        }
+      ],
+      "scrollWidth": 360,
+      "smallTargets": [
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 103.38750457763672
+        },
+        {
+          "class": "_voce_1rfm4_68 _attiva_1rfm4_86",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 116.95000457763672
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 117.4749984741211
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 127.1750030517578
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 139.75
+        },
+        {
+          "class": "_esci_1rfm4_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 61.650001525878906
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Natale in falegnameria · in revisioneIl consorzio ti chiede qualcosa",
+          "w": 328
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Autunno in bottega · in corso",
+          "w": 176.5
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "+ Nuova campagna",
+          "w": 127.2249984741211
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Continua →",
+          "w": 107.6500015258789
+        }
+      ],
+      "title": "Campagna",
+      "url": "/campagna",
+      "width": 375
+    },
+    {
+      "label": "prima-campagna11-vuota-375",
+      "inputs": [],
+      "scrollWidth": 360,
+      "smallTargets": [
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 103.38750457763672
+        },
+        {
+          "class": "_voce_1rfm4_68 _attiva_1rfm4_86",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 116.95000457763672
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 117.4749984741211
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 127.1750030517578
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 139.75
+        },
+        {
+          "class": "_esci_1rfm4_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 61.650001525878906
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Natale in falegnameria · in revisioneIl consorzio ti chiede qualcosa",
+          "w": 328
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Prova UX Corsia 8 · bozza",
+          "w": 157.28750610351562
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Autunno in bottega · in corso",
+          "w": 176.5
+        },
+        {
+          "class": "mantine-focus-auto m_b6d8b162 mantine-Text-root",
+          "h": 20.30000114440918,
+          "text": "← Modifica dati campagna",
+          "w": 154.46250915527344
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "+ Aggiungi una serie di foto",
+          "w": 262.3999938964844
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "← Torna a dati e canali",
+          "w": 172.3249969482422
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Vai al riepilogo →",
+          "w": 140.875
+        }
+      ],
+      "title": "Campagna",
+      "url": "/campagna",
+      "width": 375
+    },
+    {
+      "label": "prima-campagna11-serie-375",
+      "inputs": [
+        {
+          "font": "14px",
+          "h": 56,
+          "type": "textarea",
+          "w": 228.8000030517578
+        },
+        {
+          "font": "14px",
+          "h": 36,
+          "type": "date",
+          "w": 228.8000030517578
+        }
+      ],
+      "scrollWidth": 360,
+      "smallTargets": [
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 103.38750457763672
+        },
+        {
+          "class": "_voce_1rfm4_68 _attiva_1rfm4_86",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 116.95000457763672
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 117.4749984741211
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 127.1750030517578
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 139.75
+        },
+        {
+          "class": "_esci_1rfm4_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 61.650001525878906
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Natale in falegnameria · in revisioneIl consorzio ti chiede qualcosa",
+          "w": 328
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Prova UX Corsia 8 · bozza",
+          "w": 157.28750610351562
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Autunno in bottega · in corso",
+          "w": 176.5
+        },
+        {
+          "class": "mantine-focus-auto m_b6d8b162 mantine-Text-root",
+          "h": 20.30000114440918,
+          "text": "← Modifica dati campagna",
+          "w": 154.46250915527344
+        },
+        {
+          "class": "mantine-focus-auto m_b6d8b162 mantine-Text-root",
+          "h": 16.80000114440918,
+          "text": "Rimuovi queste foto",
+          "w": 99.95000457763672
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "+ Aggiungi una serie di foto",
+          "w": 262.3999938964844
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "← Torna a dati e canali",
+          "w": 172.3249969482422
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "Vai al riepilogo →",
+          "w": 140.875
+        }
+      ],
+      "title": "Campagna",
+      "url": "/campagna",
+      "width": 375
+    },
+    {
+      "label": "prima-campagna12-375",
+      "inputs": [
+        {
+          "font": "16px",
+          "h": 20,
+          "type": "checkbox",
+          "w": 20
+        }
+      ],
+      "scrollWidth": 360,
+      "smallTargets": [
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Ingresso",
+          "w": 103.38750457763672
+        },
+        {
+          "class": "_voce_1rfm4_68 _attiva_1rfm4_86",
+          "h": 38.25,
+          "text": "Campagne",
+          "w": 116.95000457763672
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Calendario",
+          "w": 117.4749984741211
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Archivio foto",
+          "w": 127.1750030517578
+        },
+        {
+          "class": "_voce_1rfm4_68",
+          "h": 38.25,
+          "text": "Profilo bottega",
+          "w": 139.75
+        },
+        {
+          "class": "_esci_1rfm4_139",
+          "h": 32.20000076293945,
+          "text": "Esci",
+          "w": 61.650001525878906
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Natale in falegnameria · in revisioneIl consorzio ti chiede qualcosa",
+          "w": 328
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Prova UX Corsia 8 · bozza",
+          "w": 157.28750610351562
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 30,
+          "text": "Autunno in bottega · in corso",
+          "w": 176.5
+        },
+        {
+          "class": "mantine-focus-auto m_b6d8b162 mantine-Text-root",
+          "h": 20.30000114440918,
+          "text": "← Torna alle foto",
+          "w": 98.7874984741211
+        },
+        {
+          "class": "mantine-focus-auto mantine-active m_77c9d27d mantine-Button-root m_87cf2631 mantine-UnstyledButton-root",
+          "h": 36,
+          "text": "← Torna alle foto",
+          "w": 138.8125
+        }
+      ],
+      "title": "Campagna",
+      "url": "/campagna",
+      "width": 375
+    }
+  ],
+  "excludedScreenshots": {
+    "reason": "26scatti prima1280 duplicavano il Calendario operatore della scheda attiva; il DOM apparteneva alla scheda bersaglio ma la cattura no. Esclusi dopo confronto hash e ispezione visuale. Prima desktop da rifare.",
+    "files": [
+      "prima-accesso-1280.png",
+      "prima-archivio-1280.png",
+      "prima-bentornato-1280.png",
+      "prima-calendario-1280.png",
+      "prima-campagna-attiva-1280.png",
+      "prima-campagna10-1280.png",
+      "prima-campagna11-serie-1280.png",
+      "prima-campagna11-vuota-1280.png",
+      "prima-campagna12-1280.png",
+      "prima-campagne-1280.png",
+      "prima-ingresso-1280.png",
+      "prima-operatore-artigiani-1280.png",
+      "prima-operatore-calendario-1280.png",
+      "prima-operatore-da-approvare-1280.png",
+      "prima-operatore-nuovo-artigiano-1280.png",
+      "prima-operatore-vedi-campagna-1280.png",
+      "prima-profilo1-1280.png",
+      "prima-profilo2-1280.png",
+      "prima-profilo3-1280.png",
+      "prima-profilo4-1280.png",
+      "prima-profilo5-1280.png",
+      "prima-profilo6-1280.png",
+      "prima-profilo7-1280.png",
+      "prima-profilo8-1280.png",
+      "prima-profilo9-1280.png",
+      "prima-richiesta-consorzio-1280.png"
+    ]
+  }
+}

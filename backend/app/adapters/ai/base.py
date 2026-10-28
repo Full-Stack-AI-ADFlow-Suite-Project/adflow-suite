@@ -89,6 +89,8 @@ class PostAI:
     riempitivo: str | None = None
     descrizione_gruppo: str | None = None
     foto: list[FotoAI] = field(default_factory=list)
+    # Per un post `immagine_ai`: che cosa mostra l'immagine, dal suo prompt.
+    immagine_ai: str | None = None
 
 
 @dataclass
@@ -159,7 +161,8 @@ class AIAdapter(ABC):
 
         Returns:
             Per ogni id di foto il JSON di ``foto.analisi_ai``: ``idonea``,
-            ``simile_a``, ``tipo``, ``punteggio``, ``motivo``, ``soggetto``.
+            ``simile_a``, ``tipo``, ``punteggio``, ``motivo``, ``soggetto``,
+            ``descrizione`` (che cosa si vede, per chi scrive il testo).
 
         Raises:
             ErroreAI: con ``foto_id`` se l'errore riguarda una sola foto.

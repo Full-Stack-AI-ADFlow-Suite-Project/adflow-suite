@@ -1,7 +1,7 @@
 """Il prompt delle immagini AI di rimpiazzo (spec R-43, brief-ai T3-34).
 
 Lo scrive il codice, non l'AI: parte dalla fotografia del profilo, dal tema
-dell'uscita e dalla data del post. Il file ``prompts/immagine_v1.md`` ha il
+dell'uscita e dalla data del post. Il file ``prompts/immagine_v2.md`` ha il
 testo; la riga di stagione e quella di tono si tolgono nella versione
 semplice, per la seconda prova dopo un rifiuto (R-35).
 """
@@ -12,7 +12,7 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-VERSIONE_PROMPT = "immagine_v1"
+VERSIONE_PROMPT = "immagine_v2"
 _FILE = Path(__file__).parent / "prompts" / f"{VERSIONE_PROMPT}.md"
 # Righe del prompt che la versione semplice non ha.
 _RIGHE_FACOLTATIVE = ("{stagione}", "{tono}")

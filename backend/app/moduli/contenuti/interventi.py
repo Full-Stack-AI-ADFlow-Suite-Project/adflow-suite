@@ -31,7 +31,7 @@ from .generazione import (
     _gruppo_dell_uscita,
     _snapshot,
 )
-from .immagini_ai import IMMAGINE_NON_CREATA, con_dicitura
+from .immagini_ai import IMMAGINE_NON_CREATA, con_dicitura, descrizione_immagine
 from .models import Post, Uscita, VersionePost, VersionePostFoto
 from .service import (
     _azzera_spunta,
@@ -391,6 +391,11 @@ def rigenera(
         foto=[]
         if record.riempitivo == IMMAGINE_AI
         else [_foto_ai(una) for una in foto],
+        immagine_ai=(
+            descrizione_immagine(campagna, record, uscita.tema)
+            if record.riempitivo == IMMAGINE_AI and foto
+            else None
+        ),
     )
     dicitura = record.riempitivo == IMMAGINE_AI and bool(foto)
     rifiutate = [v.testo for v in record.versioni if v.testo.strip()]

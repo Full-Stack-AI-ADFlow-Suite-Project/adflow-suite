@@ -223,14 +223,15 @@ def test_demo_con_zero_carica_tutte_le_foto_valide(
     assert all(motivo for _, motivo in esito.scartate)
 
 
-def test_demo_di_default_lascia_due_post_alle_immagini_ai(
+def test_demo_di_default_carica_tutte_le_foto_valide_senza_tetto(
     db: Session, cartella_demo: Path
 ) -> None:
     esito = cli.esegui_demo(db, PASSWORD, cartella_demo, None, ORA_DEMO)
 
-    # Seed: 3 post a settimana, 7 giorni → 3 post per canale, 1 foto.
+    # Seed: 3 post a settimana, 7 giorni → 3 post per canale: le foto non
+    # sono ridotte per far vedere le immagini AI (R-28, nessun tetto).
     assert esito.post_per_canale == 3
-    assert esito.caricate == ["a.jpg"]
+    assert esito.caricate == ["a.jpg", "c.jpg", "e.jpg"]
 
 
 def test_demo_json_sostituisce_profilo_campagna_e_gruppo(

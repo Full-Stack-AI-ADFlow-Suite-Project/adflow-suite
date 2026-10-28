@@ -302,6 +302,7 @@ def test_analisi_ogni_foto_idonea_con_i_campi_del_piano():
             "punteggio",
             "motivo",
             "soggetto",
+            "descrizione",
         }
         assert una["idonea"] is True
         assert una["simile_a"] is None

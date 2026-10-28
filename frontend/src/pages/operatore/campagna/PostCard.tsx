@@ -60,18 +60,29 @@ function AnteprimaPost({
         </Stack>
       </Group>
       <Text size="xs" mt="xs" style={{ whiteSpace: "pre-line" }}>
-        {v?.testo
-          ? v.testo.length > 300
-            ? v.testo.slice(0, 300) + "…"
-            : v.testo
-          : null}
+        {v?.testo ?? null}
       </Text>
       {!!v?.hashtag?.length && (
         <Text size="xs" c="verde" mt={4}>
           {conCancelletto(v.hashtag)}
         </Text>
       )}
-      {isAi ? (
+      {foto ? (
+        // L'immagine intera, come esce: anche quella creata con AI (R-28).
+        <Box mt="xs">
+          <img
+            src={`/api/foto/${foto.foto_id}/file`}
+            alt={isAi ? "Immagine creata con AI" : `Foto ${foto.foto_id}`}
+            style={{
+              width: "100%",
+              height: "auto",
+              borderRadius: 8,
+              display: "block",
+            }}
+          />
+        </Box>
+      ) : isAi ? (
+        // Immagine AI non ancora creata, o non riuscita (c'è un blocco).
         <Box
           mt="xs"
           p="md"
@@ -90,20 +101,6 @@ function AnteprimaPost({
           <Text size="xs" c="grape.7" mt={6} ff="monospace">
             {bottega}
           </Text>
-        </Box>
-      ) : foto ? (
-        <Box mt="xs">
-          <img
-            src={`/api/foto/${foto.foto_id}/file`}
-            alt={`Foto ${foto.foto_id}`}
-            style={{
-              width: "100%",
-              height: 200,
-              objectFit: "cover",
-              borderRadius: 8,
-              display: "block",
-            }}
-          />
         </Box>
       ) : null}
       {post.canale === "facebook" && (
