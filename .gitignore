@@ -230,6 +230,6 @@ Thumbs.db
 !.vscode/tasks.json
 
 # Change Log e log di runtime privati (non visibili al pubblico)
-CHANGELOG*.md
+CHANGELOG_LOCALE.md
 *_LOCALE.md
 *_LOCALE.log

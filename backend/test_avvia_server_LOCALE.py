@@ -1,124 +1,171 @@
-"""Test dinamico dei bug B3, B4, B5 corretti in avvia_server_LOCALE.py.
+# pylint: disable=invalid-name,wrong-import-position
+"""Verifiche dinamiche di affidabilità per avvia_server_LOCALE.py.
 
-Nota: i moduli uvicorn e avvia_server_LOCALE vengono importati dopo
-sys.path.insert() perché il file si trova nella stessa cartella del launcher
-e non nella struttura di package standard. Questo pattern e' intenzionale
-per un file di test locale non inserito in pytest.
+Questo modulo collauda:
+- B3: deepcopy del dict uvicorn.config.LOGGING_CONFIG (nessuna contaminazione globale).
+- B4: assenza di duplicazione log per uvicorn.error (scrittura singola garantita).
+- B5: singola chiamata a registra_arresto_nel_changelog in main().
+- Creazione automatica di CHANGELOG_LOCALE.md se non esiste (clone fresco).
+- Aggiornamento atomico di avvio e arresto nella tabella del Change Log.
 """
-
-# pylint: disable=C0103,C0413,C0411,wrong-import-position
 
 from __future__ import annotations
 
 import inspect
+import logging
+import logging.config
 import sys
 from pathlib import Path
 
-sys.path.insert(0, str(Path(__file__).resolve().parent))
+# Configurazione del percorso locale
+CARTELLA_LOCALE = Path(__file__).resolve().parent
+if str(CARTELLA_LOCALE) not in sys.path:
+    sys.path.insert(0, str(CARTELLA_LOCALE))
 
 import uvicorn  # noqa: E402
 import avvia_server_LOCALE as launcher  # noqa: E402
 
-FILE_TEST = Path("test_runtime_LOCALE.log")
-errori: list[str] = []
 
-# ---------------------------------------------------------------------------
-# TEST B3: deepcopy non contamina il dict globale di uvicorn
-# ---------------------------------------------------------------------------
-cfg = launcher.configura_logging(FILE_TEST)
-contaminato = "file" in uvicorn.config.LOGGING_CONFIG.get("handlers", {})
-if contaminato:
-    errori.append(
-        "B3 FAIL: il dict globale uvicorn.config.LOGGING_CONFIG e' stato "
-        "contaminato (shallow copy ancora presente)"
-    )
-else:
-    print("B3 [deepcopy OK]: il dict globale uvicorn NON e' contaminato")
+def test_deepcopy_non_contamina_dict_globale() -> None:
+    """Verifica che configura_logging non modifichi uvicorn.config.LOGGING_CONFIG."""
+    file_dummy = CARTELLA_LOCALE / "dummy_test_b3.log"
+    try:
+        launcher.configura_logging(file_dummy)
+        contaminato = "file" in uvicorn.config.LOGGING_CONFIG.get("handlers", {})
+        assert (
+            not contaminato
+        ), "Il dict globale uvicorn.config.LOGGING_CONFIG è stato contaminato!"
+    finally:
+        if file_dummy.exists():
+            file_dummy.unlink()
 
-# ---------------------------------------------------------------------------
-# TEST B4: uvicorn.error ottiene 'handlers' senza KeyError
-# ---------------------------------------------------------------------------
-uvicorn_error_cfg = cfg["loggers"].get("uvicorn.error", {})
-ha_handlers = "handlers" in uvicorn_error_cfg
-ha_file = "file" in uvicorn_error_cfg.get("handlers", [])
-if not ha_handlers or not ha_file:
-    errori.append(
-        f"B4 FAIL: uvicorn.error handlers={uvicorn_error_cfg.get('handlers', 'MANCANTE')}"
-    )
-else:
-    print(f"B4 [uvicorn.error handlers OK]: {uvicorn_error_cfg['handlers']}")
 
-# ---------------------------------------------------------------------------
-# TEST B5: registra_arresto_nel_changelog e' chiamata una sola volta in main()
-# ---------------------------------------------------------------------------
-sorgente_main = inspect.getsource(launcher.main)
-ha_flag = "errore_critico: Exception | None = None" in sorgente_main
-# Conta solo le chiamate effettive escludendo le righe di commento
-chiamate_reali = [
-    riga
-    for riga in sorgente_main.splitlines()
-    if "registra_arresto_nel_changelog(" in riga and not riga.lstrip().startswith("#")
-]
-ha_finally_unico = len(chiamate_reali) == 1
+def test_uvicorn_error_non_duplica_righe_log() -> None:
+    """Verifica che i messaggi di uvicorn.error non vengano duplicati nel file di log."""
+    file_log = CARTELLA_LOCALE / "dummy_test_b4_dedup.log"
+    if file_log.exists():
+        file_log.unlink()
 
-if not ha_flag:
-    errori.append("B5 FAIL: variabile errore_critico non inizializzata prima del try")
-elif not ha_finally_unico:
-    errori.append(
-        f"B5 FAIL: registra_arresto_nel_changelog ha {len(chiamate_reali)} chiamate "
-        f"reali (attesa 1): {chiamate_reali}"
-    )
-else:
-    print("B5 [single-write OK]: registra_arresto_nel_changelog chiamata 1 sola volta")
+    try:
+        cfg = launcher.configura_logging(file_log)
+        # uvicorn.error non deve avere handlers propri assegnati per non duplicare
+        uvicorn_error_cfg = cfg["loggers"].get("uvicorn.error", {})
+        assert (
+            "handlers" not in uvicorn_error_cfg
+        ), "uvicorn.error non deve definire handlers propri (deve propagare a uvicorn)"
 
-# ---------------------------------------------------------------------------
-# TEST CHANGELOG: verifica inserimento riga di avvio e stato di arresto
-# ---------------------------------------------------------------------------
-changelog_test = Path("test_changelog_LOCALE.md")
-contenuto_iniziale = (
-    "# Test\n\n"
-    "| Data e Ora | Componente | Comando | Esito | Note |\n"
-    "|---|---|---|---|---|\n"
-    "| voce esistente |\n"
-)
-changelog_test.write_text(contenuto_iniziale, encoding="utf-8")
+        # Prova empirica di logging
+        logging.config.dictConfig(cfg)
+        test_msg = "MESSAGGIO-VERIFICA-UNICO-UV-ERROR"
+        logging.getLogger("uvicorn.error").info(test_msg)
+        logging.shutdown()
 
-# Monkey-patch: usa il file di test invece del CHANGELOG reale
-changelog_originale = launcher.FILE_CHANGELOG
-launcher.FILE_CHANGELOG = changelog_test
+        assert file_log.exists(), "Il file di log non è stato creato durante il test"
+        righe = [
+            riga
+            for riga in file_log.read_text(encoding="utf-8").splitlines()
+            if test_msg in riga
+        ]
+        assert (
+            len(righe) == 1
+        ), f"Attesa esattamente 1 riga per uvicorn.error, trovate {len(righe)}: {righe}"
+    finally:
+        if file_log.exists():
+            try:
+                file_log.unlink()
+            except OSError:
+                pass
 
-try:
-    launcher.registra_avvio_nel_changelog(porta=9999, reload=True, pid=12345)
-    risultato = changelog_test.read_text(encoding="utf-8")
-    if "9999" in risultato and "12345" in risultato:
-        print("CHANGELOG [registra_avvio OK]: riga inserita correttamente")
-    else:
-        errori.append("CHANGELOG FAIL: riga di avvio non inserita nel file")
 
-    launcher.registra_arresto_nel_changelog(motivo="Test-Arresto")
-    risultato2 = changelog_test.read_text(encoding="utf-8")
-    if "Test-Arresto" in risultato2 and "Attivo" not in risultato2:
-        print("CHANGELOG [registra_arresto OK]: stato aggiornato correttamente")
-    else:
-        errori.append("CHANGELOG FAIL: stato di arresto non aggiornato")
-finally:
-    launcher.FILE_CHANGELOG = changelog_originale
+def test_registra_arresto_chiamata_singola_in_main() -> None:
+    """Verifica che registra_arresto_nel_changelog sia invocata solo nel blocco finally."""
+    sorgente = inspect.getsource(launcher.main)
+    assert (
+        "errore_critico: Exception | None = None" in sorgente
+    ), "Flag errore_critico assente prima del blocco try"
+
+    chiamate_reali = [
+        riga
+        for riga in sorgente.splitlines()
+        if "registra_arresto_nel_changelog(" in riga
+        and not riga.lstrip().startswith("#")
+    ]
+    assert (
+        len(chiamate_reali) == 1
+    ), f"registra_arresto_nel_changelog chiamata {len(chiamate_reali)} volte (attesa 1)"
+
+
+def test_changelog_creazione_automatica_se_assente() -> None:
+    """Verifica che su clone fresco CHANGELOG_LOCALE.md venga creato se assente."""
+    changelog_test = CARTELLA_LOCALE / "temp_changelog_nuovo_LOCALE.md"
     if changelog_test.exists():
         changelog_test.unlink()
 
-# Pulizia file di log di test
-if FILE_TEST.exists():
-    FILE_TEST.unlink()
+    changelog_originale = launcher.FILE_CHANGELOG
+    launcher.FILE_CHANGELOG = changelog_test
 
-# ---------------------------------------------------------------------------
-# Risultato finale
-# ---------------------------------------------------------------------------
-print()
-if errori:
-    print("=== CICLO 3: BUG TROVATI ===")
-    for voce in errori:
-        print(f"  [FAIL] {voce}")
-    sys.exit(1)
-else:
-    print("=== CICLO 3: TUTTI I TEST SUPERATI - ZERO BUG ===")
-    sys.exit(0)
+    try:
+        launcher.registra_avvio_nel_changelog(porta=8888, reload=False, pid=54321)
+        assert (
+            changelog_test.exists()
+        ), "CHANGELOG_LOCALE.md non è stato creato automaticamente"
+        contenuto = changelog_test.read_text(encoding="utf-8")
+        assert (
+            "|---|---|---|---|---|" in contenuto
+        ), "Intestazione tabella assente nel changelog creato"
+        assert "8888" in contenuto, "Dati porta avvio assenti nel changelog"
+        assert "54321" in contenuto, "PID avvio assente nel changelog"
+        assert "🟢 Attivo" in contenuto, "Stato iniziale attivo assente nel changelog"
+
+        # Verifica aggiornamento arresto
+        launcher.registra_arresto_nel_changelog(motivo="Chiusura-Collaudo")
+        contenuto_aggiornato = changelog_test.read_text(encoding="utf-8")
+        assert "Chiusura-Collaudo" in contenuto_aggiornato
+        assert "🟢 Attivo" not in contenuto_aggiornato
+    finally:
+        launcher.FILE_CHANGELOG = changelog_originale
+        if changelog_test.exists():
+            changelog_test.unlink()
+
+
+def esegui_tutti_i_test() -> int:
+    """Esegue tutte le asserzioni di collaudo e stampa l'esito."""
+    test_suite = [
+        ("B3: deepcopy LOGGING_CONFIG", test_deepcopy_non_contamina_dict_globale),
+        (
+            "B4: no duplicati log uvicorn.error",
+            test_uvicorn_error_non_duplica_righe_log,
+        ),
+        (
+            "B5: singola scrittura arresto in main",
+            test_registra_arresto_chiamata_singola_in_main,
+        ),
+        (
+            "Changelog: creazione automatica e aggiornamento",
+            test_changelog_creazione_automatica_se_assente,
+        ),
+    ]
+
+    falliti = 0
+    print("=== AVVIO VERIFICHE DI AFFIDABILITÀ LAUNCHER ===")
+    for nome, test_fn in test_suite:
+        try:
+            test_fn()
+            print(f"  [OK] {nome}")
+        except AssertionError as exc:
+            print(f"  [FAIL] {nome}: {exc}")
+            falliti += 1
+        except Exception as exc:  # pylint: disable=broad-except
+            print(f"  [ERRORE] {nome}: {exc}")
+            falliti += 1
+
+    if falliti == 0:
+        print("=== TUTTE LE VERIFICHE SUPERATE: ZERO BUG ===")
+        return 0
+
+    print(f"=== VERIFICHE TERMINATE CON {falliti} ERRORI ===")
+    return 1
+
+
+if __name__ == "__main__":
+    sys.exit(esegui_tutti_i_test())

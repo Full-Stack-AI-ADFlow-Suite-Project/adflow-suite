@@ -8,18 +8,15 @@ backend/app_runtime_LOCALE.log, consentendo l'analisi dinamica in tempo reale.
 Uso da terminale (dalla cartella backend/):
     uv run python avvia_server_LOCALE.py
     uv run python avvia_server_LOCALE.py --port 8000
+    uv run python avvia_server_LOCALE.py --host 127.0.0.1 --port 8000
     uv run python avvia_server_LOCALE.py --no-reload
 
-Bug corretti in questa versione (2026-10-28):
-    - B1: rimosso 'import logging' inutilizzato (pylint W0611)
-    - B2: aggiunta docstring a main() (pylint C0116)
-    - B3: sostituito .copy() shallow con copy.deepcopy() per evitare
-          la contaminazione del dict globale uvicorn.config.LOGGING_CONFIG
-    - B4: aggiunto controllo 'handlers' in logger_cfg prima dell'accesso
-          per evitare KeyError su uvicorn.error (che non ha la chiave)
-    - B5: rimossa la chiamata duplicata a registra_arresto_nel_changelog()
-          nel blocco 'except Exception', lasciandola solo nel 'finally'
-          per evitare la doppia scrittura nel Change Log
+Caratteristiche di affidabilità:
+    - B3: deepcopy per evitare la contaminazione del dict globale uvicorn
+    - B4: gestione sicura dei logger senza handlers (uvicorn.error propaga
+          a uvicorn senza duplicare i messaggi nel log file)
+    - B5: singola registrazione dell'arresto garantita nel blocco finally
+    - Inizializzazione automatica di CHANGELOG_LOCALE.md se assente
 """
 
 from __future__ import annotations
@@ -38,16 +35,35 @@ RADICE_PROGETTO = CARTELLA_BACKEND.parent
 FILE_CHANGELOG = RADICE_PROGETTO / "CHANGELOG_LOCALE.md"
 FILE_LOG_RUNTIME = CARTELLA_BACKEND / "app_runtime_LOCALE.log"
 
+INTESTAZIONE_CHANGELOG = (
+    "# Change Log & Registro Attività Software (Silvia · Corsia 2)\n\n"
+    "> **USO LOCALE**: Questo file è privato e protetto da `.gitignore` (`*_LOCALE.md`).\n"
+    "> Traccia in tempo reale gli avvii e gli arresti del server Uvicorn/FastAPI.\n\n"
+    "---\n\n"
+    "## 🚀 1. Registro degli Avvii del Software (Analisi Dinamica)\n\n"
+    "| Data e Ora | Componente / Processo | Comando / Modalità | "
+    "Esito Iniziale | Errori / Note di Runtime |\n"
+    "|---|---|---|---|---|\n"
+)
+
 
 def ora_corrente() -> str:
     """Restituisce la data e ora locale formattata come stringa."""
     return datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
 
+def assicura_changelog_esistente() -> None:
+    """Crea CHANGELOG_LOCALE.md con intestazione e tabella se non esiste."""
+    if not FILE_CHANGELOG.exists():
+        try:
+            FILE_CHANGELOG.write_text(INTESTAZIONE_CHANGELOG, encoding="utf-8")
+        except Exception as errore:  # pylint: disable=broad-except
+            print(f"[AVVISO] Impossibile creare CHANGELOG_LOCALE.md: {errore}")
+
+
 def registra_avvio_nel_changelog(porta: int, reload: bool, pid: int) -> None:
     """Accoda l'evento di avvio nella tabella del file CHANGELOG_LOCALE.md."""
-    if not FILE_CHANGELOG.exists():
-        return
+    assicura_changelog_esistente()
 
     timestamp = ora_corrente()
     modalita = f"Porta {porta}, reload={'Sì' if reload else 'No'}"
@@ -62,12 +78,18 @@ def registra_avvio_nel_changelog(porta: int, reload: bool, pid: int) -> None:
         if marcatore in contenuto:
             parti = contenuto.split(marcatore, 1)
             nuovo_contenuto = parti[0] + marcatore + riga + parti[1]
-            FILE_CHANGELOG.write_text(nuovo_contenuto, encoding="utf-8")
+        else:
+            nuovo_contenuto = (
+                contenuto + ("\n" if not contenuto.endswith("\n") else "") + riga
+            )
+        FILE_CHANGELOG.write_text(nuovo_contenuto, encoding="utf-8")
     except Exception as errore:  # pylint: disable=broad-except
         print(f"[AVVISO] Impossibile aggiornare CHANGELOG_LOCALE.md: {errore}")
 
 
-def registra_arresto_nel_changelog(motivo: str = "Arrestato regolarmente") -> None:
+def registra_arresto_nel_changelog(
+    motivo: str = "Arrestato regolarmente",
+) -> None:
     """Aggiorna l'ultimo record di avvio attivo annotando la data e ora di arresto."""
     if not FILE_CHANGELOG.exists():
         return
@@ -103,21 +125,21 @@ def configura_logging(file_log: Path) -> dict:
         "formatter": "default",
     }
 
-    # FIX B4: controlla che il logger abbia la chiave 'handlers' prima di accedervi.
-    # uvicorn.error non ha 'handlers' nella config originale -> senza questo controllo
-    # list(log_config["loggers"]["uvicorn.error"]["handlers"]) causerebbe KeyError.
+    # FIX B4: i logger con 'handlers' espliciti ricevono l'handler 'file'.
+    # I logger privi di 'handlers' (come uvicorn.error) hanno propagate=True
+    # di default verso il logger padre 'uvicorn' (che possiede già 'file' e console).
+    # Se assegnassimo un handler 'file' dedicato a uvicorn.error, i messaggi
+    # verrebbero scritti due volte nel file di log.
     for logger_name in ("uvicorn", "uvicorn.error", "uvicorn.access"):
         if logger_name not in log_config["loggers"]:
             continue
         logger_cfg = log_config["loggers"][logger_name]
         if "handlers" not in logger_cfg:
-            # Crea la chiave 'handlers' con il file handler come unico handler
-            logger_cfg["handlers"] = ["file"]
-        else:
-            handlers = list(logger_cfg["handlers"])
-            if "file" not in handlers:
-                handlers.append("file")
-            logger_cfg["handlers"] = handlers
+            continue
+        handlers = list(logger_cfg["handlers"])
+        if "file" not in handlers:
+            handlers.append("file")
+        logger_cfg["handlers"] = handlers
 
     return log_config
 
