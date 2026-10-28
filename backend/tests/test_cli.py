@@ -2,8 +2,9 @@
 import json
 from collections.abc import Iterator
 from contextlib import contextmanager
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
+from types import SimpleNamespace
 
 import pytest
 from PIL import Image
@@ -295,3 +296,34 @@ def test_comando_demo(
     assert f"utente creato: {cli.DEMO_EMAIL}" in uscita
     assert "caricata  a.jpg" in uscita
     assert PASSWORD not in uscita
+
+
+@pytest.mark.parametrize(
+    ("esiti", "codice"), [(["pubblicato"] * 2, 0), (["pubblicato", "fallito"], 1)]
+)
+def test_comando_pubblica_ora(
+    cli_sul_db_di_test: None,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+    esiti: list[str],
+    codice: int,
+) -> None:
+    ora = datetime(2026, 10, 28, 12, tzinfo=timezone.utc)
+    posts = [SimpleNamespace(stato="approvato") for _ in esiti]
+    chiamate: list[datetime] = []
+
+    def pubblica(_db: Session, adesso: datetime) -> None:
+        chiamate.append(adesso)
+        for post, esito in zip(posts, esiti):
+            post.stato = esito
+
+    monkeypatch.setattr(cli, "adesso", lambda: ora)
+    monkeypatch.setattr(cli, "post_dovuti", lambda _db, _ora: posts)
+    monkeypatch.setattr(cli, "pubblica_dovuti", pubblica)
+
+    assert cli.main(["pubblica-ora"]) == codice
+
+    # Tutti i post approvati, anche quelli con la data lontana.
+    assert chiamate[0] - ora > timedelta(days=365)
+    pubblicati = esiti.count("pubblicato")
+    assert f"Pubblicati {pubblicati} post su 2." in capsys.readouterr().out

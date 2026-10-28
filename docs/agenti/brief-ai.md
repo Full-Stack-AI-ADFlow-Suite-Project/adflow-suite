@@ -20,7 +20,7 @@ Per l'agente che lavora sull'area AI. Leggi prima `constitution.md`, `perimetro-
    | Richiesta troppo grande, immagine non leggibile | `richiesta` (con `foto_id` se riguarda una foto) |
    | Filtro dei contenuti del provider | `rifiuto` |
 
-6. **Prompt** in `adapters/ai/prompts/`, un file per prompt con la versione nel nome (`analisi_v1.md`, `piano_v1.md`, `post_v1.md`, `immagine_v1.md`). La versione va in `versione_prompt`, come oggi.
+6. **Prompt** in `adapters/ai/prompts/`, un file per prompt con la versione nel nome (`analisi_v2.md`, `piano_v2.md`, `post_v2.md`, `immagine_v2.md`; la v2 aggiunge la `descrizione` delle foto e dice al testo che cosa mostra l'immagine AI). La versione va in `versione_prompt`, come oggi.
    - Analisi: soggetto (al massimo 15 parole), tipo, idonea e motivo, punteggio da 1 a 5, `simile_a`, persone riconoscibili e marchi visibili. "Giudica solo ciò che vedi; non inventare dettagli sul prodotto."
    - Piano: da social media manager. Riceve i limiti per canale e le sole foto preselezionate (T3-33). Restituisce uscite con tema, post con data e ora, `riempitivo: "immagine_ai"` dove non c'è foto. Mai un numero di post diverso da `post_chiesti`.
    - Post: italiano, limiti della scheda del canale, niente prezzi, sconti o premi che non sono nei dati della bottega, le "cose da non dire" del profilo; nelle rigenerazioni le versioni scartate e la nota dell'operatore.
@@ -43,7 +43,7 @@ Un comando `uv run python -m app.cli prova-ai --campagna <id>`: genera la campag
 
 1. **Interfaccia**: `genera_immagine(prompt) → ImmagineAI` (byte PNG o JPEG, mime, provider, modello, versione del prompt). Sempre quadrata 1:1, 1024 × 1024, qualità media. Il finto restituisce un'immagine fissa piccola, generata con Pillow.
 2. **LiteLLM**: `litellm.image_generation()` con `AI_MODELLO_IMMAGINI`; errori tradotti come in T3-31.
-3. **Prompt** (`immagine_v1.md`), da fotografia del profilo, campagna e uscita: "Fotografia realistica, quadrata, per una bottega di {tipo_prodotto} a {città}. Soggetto: {tema}, mostrato attraverso ambiente, materiali o attrezzi della lavorazione. Stagione: {stagione}. Tono: {tono}. Luce naturale. Vincoli: nessun prodotto finito riconoscibile, nessuna persona riconoscibile, nessun testo, logo o marchio." (R-43)
+3. **Prompt** (`immagine_v2.md`), da fotografia del profilo, campagna e uscita: tipo di prodotto e luogo, soggetto dal tema mostrato attraverso ambiente, materiali o attrezzi, inquadratura, stagione, tono, luce naturale; vincoli: nessun prodotto finito riconoscibile, nessuna persona riconoscibile, nessun testo, logo o marchio. Il testo esatto è nel file. (R-43)
 4. **Dove**: in `_scrivi()` di `generazione.py`, al posto del ramo `cartolina`. Per un post `immagine_ai` si cerca prima l'immagine già creata per un altro post della stessa uscita (la foto `creata_ai` della sua versione); se non c'è, si crea, si salva con l'adattatore archivio e si registra con `campagne.service.aggiungi_foto()` (origine `creata_ai`, senza gruppo). Così i due canali hanno la stessa immagine e una nuova esecuzione non la ricrea (R-24).
 5. **Dicitura**: il codice, non l'AI, aggiunge in fondo al testo "Immagine creata con AI"; il validatore la conta nei caratteri.
 6. **Errori**: `richiesta` o `rifiuto` sull'immagine → una seconda prova con il prompt senza tono né stagione; se fallisce ancora, il post resta senza foto con un blocco "Immagine non creata" e la generazione continua. L'operatore respinge la campagna o la riprova.
