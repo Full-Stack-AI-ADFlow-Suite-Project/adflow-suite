@@ -59,8 +59,8 @@ export function ChiediArtigiano({
     <Modal opened onClose={chiudi} title="Chiedi all'artigiano" size="lg">
       <Stack gap="sm">
         <Text size="sm" c="dimmed">
-          La campagna resta in revisione: puoi approvare o respingere quando
-          vuoi. Avvisa tu l'artigiano: il sistema non manda email.
+          La campagna resta in revisione. La richiesta non blocca l’approvazione
+          né il rifiuto. Avvisa tu l'artigiano: il sistema non manda email.
         </Text>
         {aperta && (
           <Alert color="yellow" variant="light" py="xs">

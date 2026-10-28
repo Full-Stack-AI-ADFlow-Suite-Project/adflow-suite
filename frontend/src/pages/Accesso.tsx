@@ -55,7 +55,11 @@ export function Accesso() {
     try {
       await entra(email, password);
     } catch (e) {
-      setErrore(e instanceof ApiErrore ? e.dettaglio : "Errore inatteso.");
+      setErrore(
+        e instanceof ApiErrore
+          ? e.dettaglio
+          : "Impossibile completare l’operazione. Riprova.",
+      );
       setPassword("");
     } finally {
       setInCorso(false);

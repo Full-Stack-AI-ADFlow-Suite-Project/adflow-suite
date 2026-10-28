@@ -50,7 +50,7 @@ export function CambiaFoto({
           setErrore(
             e instanceof ApiErrore
               ? e.message
-              : "Non sono riuscita a leggere le foto.",
+              : "Impossibile caricare le foto. Riprova.",
           );
       });
     return () => {
@@ -66,7 +66,9 @@ export function CambiaFoto({
       fatto();
     } catch (e) {
       setErrore(
-        e instanceof ApiErrore ? e.message : "Non sono riuscita a cambiare.",
+        e instanceof ApiErrore
+          ? e.message
+          : "Impossibile cambiare la foto. Riprova.",
       );
     } finally {
       setOccupata(null);
@@ -87,8 +89,8 @@ export function CambiaFoto({
           </Alert>
         )}
         <Text size="sm" c="dimmed">
-          Il testo resta quello di adesso: dopo il cambio rileggilo. Le foto già
-          usate da un altro post dello stesso canale non compaiono.
+          Il testo non cambia: va ricontrollato dopo la sostituzione. Sono
+          escluse le foto già usate da un altro post dello stesso canale.
         </Text>
         {!foto && !errore && (
           <Center py="md">
@@ -135,7 +137,7 @@ export function CambiaFoto({
                     </Badge>
                   ) : (
                     <Badge variant="light" color="yellow" size="sm">
-                      Nuova, dall'artigiano: guardala tu
+                      Nuova foto dell’artigiano: da controllare
                     </Badge>
                   )}
                   <Button

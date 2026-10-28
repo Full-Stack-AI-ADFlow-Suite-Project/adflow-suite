@@ -48,17 +48,17 @@ export function Passo7({
   return (
     <Stack gap="lg">
       <SimpleGrid cols={{ base: 1, sm: 3 }} spacing="md">
-        {policy("quantita_mese", "Quante fotografie puoi fornire al mese?")}
-        {policy("chi_scatta", "Chi scatta le fotografie?")}
-        {policy("persone", "Persone riconoscibili nelle foto")}
+        {policy("quantita_mese", "Quante foto puoi preparare al mese?")}
+        {policy("chi_scatta", "Chi scatta le tue foto?")}
+        {policy("persone", "Nelle tue foto ci sono persone riconoscibili?")}
       </SimpleGrid>
 
       <Alert color="verde" variant="light">
-        Le foto si caricano in ogni campagna, a gruppi. Se in una campagna le
-        foto non bastano per i post a settimana che hai scelto, per quelli che
-        mancano creiamo un'immagine con l'AI: ambienti, materiali, attrezzi e
-        atmosfere, mai un prodotto che non è tuo. Se hai un logo, caricalo come
-        una foto qualsiasi.
+        In ogni campagna puoi caricare le tue foto, raccolte in serie. Se in una
+        campagna le foto non bastano per i post a settimana che hai scelto, per
+        quelli che mancano creiamo un'immagine con l'AI: ambienti, materiali,
+        attrezzi e atmosfere, mai un prodotto che non è tuo. Se hai un logo,
+        caricalo come una foto qualsiasi.
       </Alert>
     </Stack>
   );

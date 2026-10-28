@@ -35,7 +35,7 @@ export function Calendario() {
         setErrore(null);
       })
       .catch(() => {
-        if (attuale) setErrore("Non sono riuscita a leggere il calendario.");
+        if (attuale) setErrore("Impossibile caricare il calendario. Riprova.");
       });
     return () => {
       attuale = false;

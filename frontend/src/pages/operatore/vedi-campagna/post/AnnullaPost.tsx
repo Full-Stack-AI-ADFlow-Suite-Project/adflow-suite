@@ -30,10 +30,10 @@ export function AnnullaPost({
     >
       <Stack gap="sm">
         <Alert color="red" variant="light" py="xs">
-          Il post non esce più e non torna indietro.
+          Il post non sarà pubblicato. L’annullamento è definitivo.
         </Alert>
         <Textarea
-          label="Perché non deve uscire?"
+          label="Motivo dell’annullamento"
           value={nota}
           onChange={(e) => setNota(e.currentTarget.value)}
           autosize

@@ -51,7 +51,7 @@ export function DaApprovare() {
           ),
         ),
       )
-      .catch(() => setErrore("Non sono riuscita a leggere le campagne."));
+      .catch(() => setErrore("Impossibile caricare le campagne. Riprova."));
   }, []);
 
   const filtri = useMemo(() => {

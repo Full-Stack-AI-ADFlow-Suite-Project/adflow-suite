@@ -31,7 +31,7 @@ export function CampagneArtigiano() {
         setErrore(
           e instanceof ApiErrore && e.stato === 404
             ? "Artigiano non trovato."
-            : "Non sono riuscita a leggere le campagne.",
+            : "Impossibile caricare le campagne. Riprova.",
         ),
       );
   }, [id]);

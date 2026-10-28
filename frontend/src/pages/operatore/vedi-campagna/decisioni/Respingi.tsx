@@ -57,14 +57,14 @@ export function Respingi({
           <Stack gap={6} mt={6}>
             <Radio
               value="foto"
-              label="Foto: quelle buone sono poche o scattate male"
+              label="Foto insufficienti o di qualità non adatta"
             />
             <Radio value="altro" label="Altro" />
           </Stack>
         </Radio.Group>
         <Textarea
           label="Nota per l'artigiano"
-          description="Cosa deve rifare o correggere."
+          description="Indicare cosa rifare o correggere."
           value={nota}
           onChange={(e) => setNota(e.currentTarget.value)}
           autosize

@@ -22,12 +22,12 @@ export function Bentornato({
     <Paper withBorder radius="md" p="xl">
       <Title order={2}>Bentornato, {utente?.nome.split(" ")[0] ?? ""}</Title>
       <Text c="dimmed" size="sm" mt="xs" mb="lg">
-        Il riepilogo del profilo già salvato. Chi non ha un profilo viene
-        portato prima alla pagina Profilo bottega.
+        Ritrovi qui il riepilogo della pagina Profilo bottega. Controlla che sia
+        aggiornato prima di preparare la campagna.
       </Text>
       {respinta?.esito_respinta && (
         <Alert color="orange" variant="light" mb="md">
-          <b>Solo se l'ultima campagna è stata respinta.</b> Il consorzio non ha
+          <b>L’ultima campagna è stata respinta.</b> Il consorzio non ha
           approvato "{respinta.titolo}".{" "}
           <b>Motivo: {respinta.esito_respinta.motivo}.</b>
           {respinta.esito_respinta.nota && (

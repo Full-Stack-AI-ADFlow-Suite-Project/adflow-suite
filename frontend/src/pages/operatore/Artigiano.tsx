@@ -37,7 +37,7 @@ export function Artigiano() {
         setErrore(
           e instanceof ApiErrore && e.stato === 404
             ? "Artigiano non trovato."
-            : "Non sono riuscita a leggere l'artigiano.",
+            : "Impossibile caricare la scheda dell’artigiano. Riprova.",
         ),
       );
   }, [id]);

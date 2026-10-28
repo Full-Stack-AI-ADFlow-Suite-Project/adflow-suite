@@ -30,7 +30,7 @@ export function ArchivioArtigiano() {
         setErrore(
           e instanceof ApiErrore && e.stato === 404
             ? "Artigiano non trovato."
-            : "Non sono riuscita a leggere l'archivio foto.",
+            : "Impossibile caricare l’archivio foto. Riprova.",
         ),
       );
   }, [id]);

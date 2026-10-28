@@ -255,7 +255,7 @@ export function PostCard({
           post.stato === "scartato" ||
           post.stato === "annullato") && (
           <Text size="xs" c="dimmed">
-            Il post è chiuso: non torna indietro.
+            Post chiuso: non sono disponibili altre modifiche.
           </Text>
         )}
         {post.stato === "pubblicato" && (

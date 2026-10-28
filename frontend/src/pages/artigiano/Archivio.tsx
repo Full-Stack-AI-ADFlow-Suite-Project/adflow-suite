@@ -17,7 +17,7 @@ export function Archivio() {
   useEffect(() => {
     archivioFoto()
       .then(setBlocchi)
-      .catch(() => setErrore("Non sono riuscita a leggere l'archivio foto."));
+      .catch(() => setErrore("Impossibile caricare l’archivio foto. Riprova."));
   }, []);
 
   return (

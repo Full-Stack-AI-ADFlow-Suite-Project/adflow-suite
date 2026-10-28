@@ -58,7 +58,7 @@ export function VediCampagna() {
             ? "Campagna non trovata."
             : e instanceof ApiErrore
             ? e.message
-            : "Non sono riuscita a leggere la campagna.",
+            : "Impossibile caricare la campagna. Riprova.",
         );
       });
     // eslint-disable-next-line react-hooks/exhaustive-deps
