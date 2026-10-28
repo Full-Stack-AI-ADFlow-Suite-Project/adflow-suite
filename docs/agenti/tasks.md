@@ -160,7 +160,7 @@ Ogni task ha in `brief-richieste.md` i file da toccare, le firme, i messaggi d'e
 | T3-918 | **Voto sulle risposte dell'AI**, backend | `brief-richieste.md` §1.3, §T3-918; spec R-50 | T3-907 | CA-112 verde; comandi del backend verdi | ☐ |
 | T3-919 | **Cambia immagine, frontend**: le foto del gruppo, della campagna e dell'archivio | `brief-richieste.md` §1.2, §1.7, §T3-919 | T3-904 | build e lint puliti; dati di esempio finché T3-909 non è su `main`, poi API vere; screenshot | ☑ |
 | T3-920 | **Prompt delle immagini v3**: scena, bottega, campagna e stile delle foto vere | `brief-richieste.md` §1.4, §T3-920; spec R-43 | T3-908, T3-910 | CA-113 verde; tre prompt d'esempio nella PR; comandi del backend verdi | ☐ |
-| T3-921 | **Ritaglio sul soggetto e bordi sfocati** | `brief-richieste.md` §1.5, §T3-921; spec R-42 | T3-912 | CA-114 verde; CA-81 ancora verde; prima e dopo nella PR; comandi del backend verdi | ☐ |
+| T3-921 | **Ritaglio sul soggetto e bordi sfocati** | `brief-richieste.md` §1.5, §T3-921; spec R-42 | T3-912 | CA-114 verde; CA-81 ancora verde; prima e dopo nella PR; comandi del backend verdi | ☑ |
 | T3-922 | **Orari occupati nel piano**: i post delle altre campagne della bottega | `brief-richieste.md` §1.4, §1.6, §T3-922 | T3-905, T3-910 | CA-115 verde; comandi del backend verdi | ☐ |
 | T3-923 | **Rifai il post e Rigenera immagine, frontend** | `brief-richieste.md` §1.2, §1.7, §T3-923 | T3-919 | build e lint puliti; dati di esempio finché T3-908 e T3-909 non sono su `main`, poi API vere; screenshot | ☑ |
 | T3-924 | **Storico AI, numeri e voto** nella pagina | `brief-richieste.md` §1.3, §T3-924 | T3-914 | build e lint puliti; dati di esempio finché T3-917 e T3-918 non sono su `main`, poi API vere; screenshot | ☐ |

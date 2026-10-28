@@ -1394,15 +1394,19 @@ def sistema_foto(
     dati: bytes,
     canale: str = "instagram",
     proporzione: str | None = None,
+    soggetto_box: dict[str, float] | None = None,
 ) -> bytes:
-    """Sistemazione locale di una foto (Pillow) secondo spec R-42 e CA-81.
+    """Sistemazione locale di una foto (Pillow) secondo spec R-42, CA-81 e CA-114.
 
     Esegue: rotazione da metadati EXIF, rimozione GPS e metadati identificativi,
-    ritaglio al centro se fuori da 4:5 – 1,91:1 (le foto dentro non si tagliano),
-    ridimensionamento con lato corto esattamente a 1080 px, autocontrasto leggero
-    e salvataggio in formato JPEG. Invariante §1.3: la foto originale resta intatta.
+    adattamento proporzioni da 4:5 a 1,91:1 con ritaglio sul soggetto, al centro
+    o bordi sfocati, ridimensionamento con lato corto esattamente a 1080 px,
+    autocontrasto leggero e salvataggio in formato JPEG. Invariante §1.3: la foto
+    originale resta intatta.
     """
-    return sistema_foto_buffer(dati, canale=canale, proporzione=proporzione)
+    return sistema_foto_buffer(
+        dati, canale=canale, proporzione=proporzione, soggetto_box=soggetto_box
+    )
 
 
 def foto_sistemata(
@@ -1424,7 +1428,17 @@ def foto_sistemata(
     except FileNotFoundError:
         raise NonTrovato("File immagine non trovato nell'archivio.")
 
-    elaborata = sistema_foto_buffer(originale, canale=canale, proporzione=proporzione)
+    soggetto_box = (
+        foto.analisi_ai.get("soggetto_box")
+        if isinstance(foto.analisi_ai, dict)
+        else None
+    )
+    elaborata = sistema_foto_buffer(
+        originale,
+        canale=canale,
+        proporzione=proporzione,
+        soggetto_box=soggetto_box,
+    )
     return elaborata, "image/jpeg"
 
 
