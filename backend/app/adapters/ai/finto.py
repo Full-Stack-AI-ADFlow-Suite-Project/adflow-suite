@@ -304,6 +304,7 @@ class AIFinto(AIAdapter):
         versioni_rifiutate: Sequence[str] | None = None,
         testo_proposto: str | None = None,
         nota: str | None = None,
+        altri_post: Sequence[str] | None = None,
     ) -> PostScritto:
         self.ultimo_uso = None
         chiamata = {
@@ -321,6 +322,8 @@ class AIFinto(AIAdapter):
             chiamata["testo_proposto"] = testo_proposto
         if nota:
             chiamata["nota"] = nota
+        if altri_post:
+            chiamata["altri_post"] = list(altri_post)
         self.chiamate.append(chiamata)
         self._solleva(
             "genera_post", foto=[foto.id for foto in post.foto], canale=post.canale

@@ -953,3 +953,20 @@ def test_il_carattere_nullo_dell_ai_non_ferma_la_tappa_testi(db, ai):
         uno.versione_corrente.testo for uno in post_della_campagna(db, campagna.id)
     ]
     assert all("\x00" not in testo for testo in testi)
+
+
+def test_ca107_altri_post_porta_le_prime_frasi_dei_testi_gia_scritti(db, ai):
+    campagna = _campagna(db, canali=["facebook"])
+    lunga = "Un vaso dipinto a mano " * 8 + "finisce qui. Il resto non conta."
+    ai.comanda_testo(lunga, ["ceramica"], volte=None)
+
+    _job(campagna.id)
+
+    chiamate = [c for c in _chiamate(ai, "genera_post") if not c["riscrittura"]]
+    assert [len(c.get("altri_post", [])) for c in chiamate] == list(
+        range(len(chiamate))
+    )
+    ultimo = chiamate[-1]["altri_post"]
+    assert len(ultimo) == len(chiamate) - 1
+    assert all(len(frase) <= 120 for frase in ultimo)
+    assert all("Il resto non conta" not in frase for frase in ultimo)
