@@ -5,11 +5,13 @@ from typing import Any
 
 from sqlalchemy import (
     Boolean,
+    CheckConstraint,
     DateTime,
     ForeignKey,
     Index,
     Integer,
     Numeric,
+    SmallInteger,
     Text,
     UniqueConstraint,
     text,
@@ -187,7 +189,7 @@ class ErroreGenerazione(Base):
 
 
 class ChiamataAI(Base):
-    """Costo di una chiamata all'AI: analisi, piano, testo o immagine (plan §2, R-44)."""
+    """Una chiamata all'AI, riuscita o fallita (plan §2, R-44, R-50)."""
 
     __tablename__ = "chiamata_ai"
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
@@ -197,13 +199,47 @@ class ChiamataAI(Base):
     post_id: Mapped[int | None] = mapped_column(
         Integer, ForeignKey("post.id"), nullable=True
     )
+    foto_id: Mapped[int | None] = mapped_column(
+        Integer, ForeignKey("foto.id"), nullable=True
+    )
     tipo: Mapped[str] = mapped_column(Text, nullable=False)
     provider_ai: Mapped[str] = mapped_column(Text, nullable=False)
     modello_ai: Mapped[str] = mapped_column(Text, nullable=False)
+    versione_prompt: Mapped[str | None] = mapped_column(Text, nullable=True)
+    richiesta: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    risposta: Mapped[str | None] = mapped_column(Text, nullable=True)
+    esito: Mapped[str] = mapped_column(Text, nullable=False, server_default="ok")
+    errore: Mapped[str | None] = mapped_column(Text, nullable=True)
+    durata_ms: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    tentativo: Mapped[int | None] = mapped_column(Integer, nullable=True)
     token_ingresso: Mapped[int | None] = mapped_column(Integer, nullable=True)
     token_uscita: Mapped[int | None] = mapped_column(Integer, nullable=True)
     n_immagini: Mapped[int | None] = mapped_column(Integer, nullable=True)
     costo_usd: Mapped[Decimal] = mapped_column(Numeric(12, 6), nullable=False)
+    creata_il: Mapped[datetime] = mapped_column(
+        DateTime(timezone=True),
+        nullable=False,
+        server_default=text("CURRENT_TIMESTAMP"),
+        index=True,
+    )
+
+
+class ValutazioneAI(Base):
+    """Il voto da 1 a 5 di un operatore su una risposta dell'AI (R-50)."""
+
+    __tablename__ = "valutazione_ai"
+    __table_args__ = (
+        CheckConstraint("voto >= 1 AND voto <= 5", name="ck_valutazione_ai_voto"),
+    )
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    chiamata_ai_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("chiamata_ai.id"), nullable=False, index=True
+    )
+    utente_id: Mapped[int] = mapped_column(
+        Integer, ForeignKey("utente.id"), nullable=False
+    )
+    voto: Mapped[int] = mapped_column(SmallInteger, nullable=False)
+    nota: Mapped[str | None] = mapped_column(Text, nullable=True)
     creata_il: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         nullable=False,
