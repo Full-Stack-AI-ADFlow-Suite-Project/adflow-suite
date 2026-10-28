@@ -69,6 +69,11 @@ function vociDelRuolo(ruolo: Ruolo, percorso: string): VoceNav[] {
       attivo: percorso === "/calendario",
     },
     {
+      label: "Storico AI",
+      to: "/storico-ai",
+      attivo: percorso === "/storico-ai" || percorso.startsWith("/storico-ai/"),
+    },
+    {
       label: "Nuovo artigiano",
       to: "/nuovo-artigiano",
       attivo: percorso === "/nuovo-artigiano",
@@ -110,6 +115,12 @@ const ICONE: Record<string, ReactNode> = {
     <>
       <circle cx="9" cy="7" r="4" />
       <path d="M3 21v-2a6 6 0 0 1 12 0v2M19 8v6M16 11h6" />
+    </>
+  ),
+  "Storico AI": (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <polyline points="12 7 12 12 15 14" />
     </>
   ),
   Ingresso: (

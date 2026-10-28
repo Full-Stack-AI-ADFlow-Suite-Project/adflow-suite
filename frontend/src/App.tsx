@@ -16,6 +16,8 @@ import { Artigiano } from "./pages/operatore/Artigiano";
 import { CampagneArtigiano } from "./pages/operatore/CampagneArtigiano";
 import { DaApprovare } from "./pages/operatore/DaApprovare";
 import { NuovoArtigiano } from "./pages/operatore/NuovoArtigiano";
+import { StoricoAI } from "./pages/operatore/StoricoAI";
+import { StoricoAIDettaglio } from "./pages/operatore/StoricoAIDettaglio";
 import { VediCampagna } from "./pages/operatore/VediCampagna";
 
 /** Porta alla pagina di partenza del ruolo (spec R-29). */
@@ -142,6 +144,22 @@ export default function App() {
         element={
           <RichiedeRuolo ruoli={["operatore", "admin"]}>
             <ArchivioArtigiano />
+          </RichiedeRuolo>
+        }
+      />
+      <Route
+        path="/storico-ai"
+        element={
+          <RichiedeRuolo ruoli={["operatore", "admin"]}>
+            <StoricoAI />
+          </RichiedeRuolo>
+        }
+      />
+      <Route
+        path="/storico-ai/:id"
+        element={
+          <RichiedeRuolo ruoli={["operatore", "admin"]}>
+            <StoricoAIDettaglio />
           </RichiedeRuolo>
         }
       />
