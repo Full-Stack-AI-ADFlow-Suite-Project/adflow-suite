@@ -28,6 +28,7 @@ const ATTESA_AGGIORNAMENTO_MS = 2000;
 type Finestra =
   | "modifica"
   | "cambia_foto"
+  | "rigenera_immagine"
   | "sposta"
   | "annulla"
   | "rigenera"
@@ -48,6 +49,23 @@ export function AzioniPost({
   const scaduto = !!post.intervento_in_corso && !inCorso;
   const approvata = ["attiva", "sospesa"].includes(statoCampagna);
   const ammessi = post.interventi ?? [];
+
+  const haImmagineAi =
+    post.riempitivo === "immagine_ai" ||
+    (post.versione_corrente?.foto ?? []).some(
+      (f) =>
+        (f as { origine?: string }).origine === "creata_ai" ||
+        (f as { origine?: string }).origine === "ai",
+    );
+  const haBloccoImmagineNonCreata =
+    Array.isArray(post.versione_corrente?.errori_validazione) &&
+    post.versione_corrente.errori_validazione.some(
+      (e: unknown) =>
+        (e as { regola?: string }).regola === "immagine_non_creata",
+    );
+  const puoRigenerareImmagine =
+    ammessi.includes("rigenera_immagine") &&
+    (haImmagineAi || haBloccoImmagineNonCreata);
 
   // Finché l'AI lavora si rilegge la pagina: la nuova versione compare da sola.
   useEffect(() => {
@@ -77,7 +95,9 @@ export function AzioniPost({
           <Group gap="xs" wrap="nowrap">
             <Loader size="xs" color="yellow" />
             <Text size="sm">
-              Rigenerazione del testo in corso
+              {post.intervento_in_corso === "rigenera_immagine"
+                ? "Rigenerazione dell'immagine in corso"
+                : "Rigenerazione del testo in corso"}
               {post.intervento_dal
                 ? ` dalle ${dataOra(post.intervento_dal)}`
                 : ""}
@@ -116,13 +136,22 @@ export function AzioniPost({
               Rigenera testo
             </Button>
           )}
+          {puoRigenerareImmagine && (
+            <Button
+              size="xs"
+              variant="light"
+              onClick={() => setFinestra("rigenera_immagine")}
+            >
+              Rigenera immagine
+            </Button>
+          )}
           {ammessi.includes("cambia_foto") && (
             <Button
               size="xs"
               variant="light"
               onClick={() => setFinestra("cambia_foto")}
             >
-              Cambia foto
+              Cambia immagine
             </Button>
           )}
           {ammessi.includes("sposta") && (
@@ -180,10 +209,11 @@ export function AzioniPost({
       {finestra === "rigenera" && (
         <Rigenera post={post} chiudi={chiudi} fatto={dopoIntervento} />
       )}
-      {finestra === "cambia_foto" && (
+      {(finestra === "cambia_foto" || finestra === "rigenera_immagine") && (
         <CambiaFoto
           post={post}
           approvata={approvata}
+          apriSuAI={finestra === "rigenera_immagine"}
           chiudi={chiudi}
           fatto={dopoIntervento}
         />

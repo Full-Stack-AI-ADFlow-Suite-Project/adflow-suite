@@ -6,6 +6,7 @@
 import {
   Alert,
   Anchor,
+  Box,
   Card,
   Center,
   Loader,
@@ -24,6 +25,7 @@ import type { VediCampagna as Vista } from "../../api/revisione";
 import { vediCampagna } from "../../api/revisione";
 import { Guscio } from "../../components/Guscio";
 import { StatoBadge } from "../../components/StatoBadge";
+import { AvanzamentoCampagna } from "../../components/AvanzamentoCampagna";
 import { Decidi } from "./campagna/Decidi";
 import { Materiali } from "./campagna/Materiali";
 import { PianoCard } from "./campagna/PianoCard";
@@ -113,6 +115,9 @@ export function VediCampagna() {
                 size="lg"
               />
             </Title>
+            <Box mt="xs">
+              <AvanzamentoCampagna stato={vista.campagna.stato} />
+            </Box>
             <Text size="sm" c="dimmed" mt={6}>
               {bottega}
               {citta ? ` · ${citta}` : ""} · {data(vista.campagna.inizio)} →{" "}

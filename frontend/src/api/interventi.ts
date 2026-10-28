@@ -51,6 +51,27 @@ export async function rigeneraPost(
   });
 }
 
+/** POST /post/{id}/rigenera-immagine: accende l'intervento e accoda il job (R-49). */
+export async function rigeneraImmagine(
+  postId: number,
+  nota: string | null = null,
+  riscriviTesto: boolean = false,
+  notaTesto: string | null = null,
+): Promise<void> {
+  if (USA_ESEMPI)
+    return esempiInterventi.rigeneraImmagine(
+      postId,
+      nota,
+      riscriviTesto,
+      notaTesto,
+    );
+  await richiesta<unknown>("POST", `/post/${postId}/rigenera-immagine`, {
+    nota,
+    riscrivi_testo: riscriviTesto,
+    nota_testo: notaTesto,
+  });
+}
+
 /** GET /post/{id}/foto-possibili: le foto con cui cambiare quella del post, la migliore in cima (R-36). */
 export function fotoPossibili(postId: number): Promise<FotoPossibile[]> {
   if (USA_ESEMPI) return esempiInterventi.fotoPossibili(postId);
@@ -61,10 +82,15 @@ export function fotoPossibili(postId: number): Promise<FotoPossibile[]> {
 export async function cambiaFoto(
   postId: number,
   fotoId: number,
+  riscriviTesto: boolean = false,
+  nota: string | null = null,
 ): Promise<void> {
-  if (USA_ESEMPI) return esempiInterventi.cambiaFoto(postId, fotoId);
+  if (USA_ESEMPI)
+    return esempiInterventi.cambiaFoto(postId, fotoId, riscriviTesto, nota);
   await richiesta<unknown>("POST", `/post/${postId}/cambia-foto`, {
     foto_id: fotoId,
+    riscrivi_testo: riscriviTesto,
+    nota,
   });
 }
 
