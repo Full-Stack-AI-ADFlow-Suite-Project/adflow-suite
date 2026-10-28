@@ -593,6 +593,7 @@ def test_il_piano_arriva_nella_forma_che_il_controllo_si_aspetta(completion, ai)
         ],
     }
     completion.metti(risposta(piano))
+    occupati = [{"canale": "facebook", "data_ora": "2030-01-08T10:00:00+01:00"}]
     scritto = ai.pianifica_campagna(
         SNAPSHOT,
         CAMPAGNA,
@@ -600,6 +601,7 @@ def test_il_piano_arriva_nella_forma_che_il_controllo_si_aspetta(completion, ai)
         limiti,
         domain.SCHEDE_CANALE,
         non_prima_di=ADESSO,
+        orari_occupati=occupati,
     )
     assert (scritto.provider, scritto.modello, scritto.versione_prompt) == (
         "litellm",
@@ -626,6 +628,7 @@ def test_il_piano_arriva_nella_forma_che_il_controllo_si_aspetta(completion, ai)
     assert dati["canali"]["facebook"]["foto_disponibili"] == [1, 2, 3]
     assert "foto_riempitivo" not in dati["canali"]["facebook"]
     assert dati["non_prima_di"] == ADESSO.isoformat()
+    assert dati["orari_occupati"] == occupati
     assert "piano_precedente" not in dati
 
 

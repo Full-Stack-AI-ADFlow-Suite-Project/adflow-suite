@@ -398,6 +398,7 @@ class AILiteLLM(AIAdapter):
         schede: Mapping[str, Mapping[str, Any]],
         *,
         non_prima_di: datetime,
+        orari_occupati: Sequence[Mapping[str, Any]] = (),
         piano_precedente: Mapping[str, Any] | None = None,
         violazioni: Sequence[Mapping[str, Any]] | None = None,
     ) -> PianoAI:
@@ -416,6 +417,7 @@ class AILiteLLM(AIAdapter):
                 "obiettivo": campagna.obiettivo,
             },
             "non_prima_di": non_prima_di,
+            "orari_occupati": [dict(uno) for uno in orari_occupati],
             "canali": {
                 canale: {
                     "post_chiesti": limite["post_chiesti"],

@@ -106,6 +106,22 @@ class _Testo:
     canale: str | None
 
 
+def _slot(quando: Any) -> tuple[date, int] | None:
+    """Giorno e ora (a Roma) di un ``data_ora`` ISO o datetime; ``None`` se non si legge."""
+    if isinstance(quando, datetime):
+        momento = quando
+    elif isinstance(quando, str):
+        try:
+            momento = datetime.fromisoformat(quando)
+        except ValueError:
+            return None
+    else:
+        return None
+    if momento.tzinfo is not None:
+        momento = momento.astimezone(ROMA)
+    return momento.date(), momento.hour
+
+
 class AIFinto(AIAdapter):
     """Provider simulato: lo stesso risultato a parità di dati.
 
@@ -243,6 +259,7 @@ class AIFinto(AIAdapter):
         schede: Mapping[str, Mapping[str, Any]],
         *,
         non_prima_di: datetime,
+        orari_occupati: Sequence[Mapping[str, Any]] = (),
         piano_precedente: Mapping[str, Any] | None = None,
         violazioni: Sequence[Mapping[str, Any]] | None = None,
     ) -> PianoAI:
@@ -251,6 +268,7 @@ class AIFinto(AIAdapter):
             {
                 "operazione": "pianifica_campagna",
                 "riscrittura": piano_precedente is not None,
+                "orari_occupati": [dict(uno) for uno in orari_occupati],
             }
         )
         self._solleva("pianifica_campagna")
@@ -266,6 +284,12 @@ class AIFinto(AIAdapter):
         n_uscite = max(
             (limite["post_chiesti"] for limite in limiti.values()), default=0
         )
+        occupati = {
+            (voce["canale"], slot)
+            for voce in orari_occupati
+            if isinstance(voce.get("canale"), str)
+            and (slot := _slot(voce.get("data_ora"))) is not None
+        }
 
         uscite = []
         n_scene = 0
@@ -294,9 +318,17 @@ class AIFinto(AIAdapter):
                 if foto and gruppo is None:
                     gruppo = gruppo_della_foto.get(foto[0])
                 sfasamento = 1 if canale == "instagram" and "facebook" in limiti else 0
-                giorno = giorni[
-                    min(indice * len(giorni) // n_uscite + sfasamento, len(giorni) - 1)
-                ]
+                base = min(
+                    indice * len(giorni) // n_uscite + sfasamento, len(giorni) - 1
+                )
+                giorno = giorni[base]
+                # R-12, T3-922: niente stessa ora dello stesso canale di un
+                # post già in programma; si sposta al primo giorno libero.
+                for scatto in range(len(giorni)):
+                    candidato = giorni[(base + scatto) % len(giorni)]
+                    if (canale, (candidato, ORA_DI_USCITA.hour)) not in occupati:
+                        giorno = candidato
+                        break
                 post.append(
                     {
                         "canale": canale,
