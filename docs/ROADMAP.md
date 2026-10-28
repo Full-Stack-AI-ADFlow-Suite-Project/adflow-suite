@@ -11,9 +11,11 @@ Ciò che non entra nell'MVP del 6 novembre 2026 (ADR-114, `docs/agenti/perimetro
 | Foto d'archivio della bottega come rimpiazzo, prima dell'immagine AI | Da riattivare | A10; R-27 |
 | Ritocco delle foto con l'AI, versioni delle foto, "ritocca di nuovo" e scelta della versione | Da costruire | C4; R-03, R-17 |
 | Analisi AI della foto che l'artigiano carica con una richiesta del consorzio (oggi la giudica l'operatore) | Da costruire | ADR-116; R-46 |
-| Immagine AI chiesta dall'operatore sul singolo post, al posto di una foto | Da costruire | ADR-116 |
 | Immagini AI chieste dall'artigiano con un gruppo `create_ai` | Da costruire | A4; R-19 |
 | Immagini AI che partono da una foto vera (prodotto ambientato, sfondo nuovo) | Da costruire | proposta del team del 12/10 |
+| Espansione della foto con l'AI per le proporzioni dei canali (outpainting) | Da costruire | ADR-119 |
+| Anteprima della foto sistemata con la scelta «taglia o bordi» per post | Da costruire | ADR-119 |
+| Esportazione dello storico dell'AI | Da costruire | ADR-119 |
 | Varianti dei post per test A/B sull'engagement | Da costruire | proposta del team del 12/10 |
 | Crediti immagine per fascia e pacchetti extra | Da costruire | A12; proposta del team del 12/10 |
 

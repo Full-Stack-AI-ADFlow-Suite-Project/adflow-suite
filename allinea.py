@@ -36,7 +36,8 @@ CHIAVE_CORSIA = "adflow.corsia"
 
 FATTO, DA_FARE = "☑", "☐"
 # T1-23, T2a-11, T2b-41, T3-07: sprint (con la lettera, se c'è), corsia, numero.
-ID_TASK = r"T\d[ab]?-\d\d"
+# La corsia 9 (ADR-119) ha più di nove task: T3-901…T3-927.
+ID_TASK = r"T\d[ab]?-\d\d\d?"
 
 
 # --- lettura di tasks.md -----------------------------------------------------
@@ -374,8 +375,8 @@ def main(argomenti: list[str]) -> int:
     scelta = next((a for a in argomenti if not a.startswith("--")), "")
 
     if scelta and scelta != "tutte":
-        if scelta not in "012345678" or len(scelta) != 1:
-            print("Corsia non valida: un numero da 0 a 8, oppure `tutte`.")
+        if scelta not in "0123456789" or len(scelta) != 1:
+            print("Corsia non valida: un numero da 0 a 9, oppure `tutte`.")
             return 2
         git("config", "--local", CHIAVE_CORSIA, scelta)
     elif not scelta:

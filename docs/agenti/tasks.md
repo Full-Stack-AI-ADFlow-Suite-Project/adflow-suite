@@ -15,6 +15,7 @@ Lo sprint di lavoro è lo **Sprint 3 · MVP** (ADR-114, `perimetro-mvp.md`): con
 | 6 · Interventi e richiesta all'artigiano | Giovanni | ADR-116: interventi sul post dopo l'approvazione, cambia foto e sposta, sospendi e riattiva, richiesta all'artigiano (`brief-interventi.md`) |
 | 7 · Pagine, archivio foto e calendario | Giovanni | ADR-117: ingresso e campagne dell'artigiano, pagine degli artigiani per l'operatore, archivio foto in sola lettura, calendario settimanale (`brief-pagine.md`); il restyling è passato alla corsia 8 |
 | 8 · Interfaccia ed esperienza d'uso | da assegnare | ADR-118: scelte d'uso e visive fatte da chi sviluppa con la guida di `brief-interfaccia.md`, tema, testi, layout e telefono, prova con due persone, senza cambi di comportamento |
+| 9 · Richieste dopo la prova | Giovanni | ADR-119: stati leggibili, nome della bottega, durata rapida, campagne sovrapposte, Rigenera testo unica, Cambia immagine e Rifai il post, Rigenera immagine, prompt v3, foto nelle proporzioni dei canali, storico dell'AI con numeri e voto (`brief-richieste.md`) |
 
 Nelle tabelle le aree si chiamano ancora "Corsia", perché `allinea.py` le legge così.
 
@@ -31,7 +32,7 @@ Nelle tabelle le aree si chiamano ancora "Corsia", perché `allinea.py` le legge
 
 **Ordine.** T3-01 apre lo sprint. Senza aspettarlo partono T3-02, T3-03, T3-11, T3-12, T3-21, T3-31, T3-41, T3-53 e T3-54; gli altri quando ciò che sta in "Dipende da" è su `main`. CA dello sprint: quelli di spec §6.
 
-**Date.** T3-31 entro il 16/10 e la prova su 10 post (T3-32) entro il 20/10. Meta (T3-41) parte il 14/10; se Instagram non pubblica entro il 23/10 resta simulato (D1). Corsia 6 (ADR-116): una persona, un task alla volta nell'ordine di `brief-interventi.md` §2; tutto su `main` entro il 24/10, prima di T3-08 parte 2, altrimenti ciò che manca resta fuori. Corsia 7 (ADR-117): una persona, un task alla volta nell'ordine di `brief-pagine.md` §2; lavoro dal 22 al 27/10, tutto su `main` entro il 28/10, altrimenti ciò che manca resta fuori. Corsia 8 (ADR-118): nell'ordine di `brief-interfaccia.md` §5, dal 26 al 30/10; ciò che il 30/10 non è su `main` resta com'è oggi. Codice bloccato il 30/10; dal 2 al 6/11 solo correzioni, slide, video e prove.
+**Date.** T3-31 entro il 16/10 e la prova su 10 post (T3-32) entro il 20/10. Meta (T3-41) parte il 14/10; se Instagram non pubblica entro il 23/10 resta simulato (D1). Corsia 6 (ADR-116): una persona, un task alla volta nell'ordine di `brief-interventi.md` §2; tutto su `main` entro il 24/10, prima di T3-08 parte 2, altrimenti ciò che manca resta fuori. Corsia 7 (ADR-117): una persona, un task alla volta nell'ordine di `brief-pagine.md` §2; lavoro dal 22 al 27/10, tutto su `main` entro il 28/10, altrimenti ciò che manca resta fuori. Corsia 8 (ADR-118): nell'ordine di `brief-interfaccia.md` §5, dal 26 al 30/10; ciò che il 30/10 non è su `main` resta com'è oggi. Corsia 9 (ADR-119): a ondate, con i task di un'ondata in parallelo (`brief-richieste.md` §2), dal 28/10; per la sola corsia 9 il codice si blocca il 1/11: ciò che il 1/11 non è su `main` resta fuori e la sua parte di regole torna com'era. Codice bloccato il 30/10 (il 1/11 per la corsia 9); dal 2 al 6/11 solo correzioni, slide, video e prove.
 
 ### Corsia 0 · Comune e deliverable (tutto il team)
 
@@ -131,6 +132,41 @@ Ogni task ha in `brief-pagine.md` i file da toccare e da non toccare, le firme, 
 | T3-85 | **Layout e telefono**: le scelte di S1, S2 e S3 sulle pagine, prima il percorso della demo dell'artigiano | `brief-interfaccia.md` §1.2, §T3-85 | T3-83, T3-84 | percorso della demo dell'artigiano senza scorrimento orizzontale alle larghezze di S2; 1280 px come dopo T3-83; controllo del §1.5 senza risultati; screenshot nella PR | ☑ |
 | T3-86 | **Prova con due persone** e correzioni piccole | `brief-interfaccia.md` §T3-86 | T3-85 | note della prova nella PR; correzioni solo di stile o testo, oppure in roadmap; controllo del §1.5 senza risultati | ☑ |
 | T3-87 | **Prova della corsia 8**: percorso della demo in due finestre, operatore a 1280 px e artigiano alle larghezze di S2, e controllo del §1.5 su tutta la corsia | `brief-interfaccia.md` §1.5, §T3-87; converge §4 | T3-83, T3-84, T3-85, T3-86 | passi 1–9 di converge §4 senza errori; testi fissi invariati; screenshot prima e dopo di ogni pagina della demo | ☑ |
+
+### Corsia 9 · Richieste dopo la prova (Giovanni)
+
+Ogni task ha in `brief-richieste.md` i file da toccare, le firme, i messaggi d'errore, gli schemi e i test: si legge il §1 e la sezione del proprio task. I task di un'ondata (`brief-richieste.md` §2) partono insieme; prima della PR rebase su `origin/main`, perché più task toccano gli stessi file (§1.8).
+
+| ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
+|---|---|---|---|---|---|
+| T3-900 | **Preparazione della corsia 9** (ADR-119): perimetro (blocco J), spec, plan, `brief-richieste.md`, i task, `allinea.py` con la corsia 9. Giovanni con Claude | ADR-119; `perimetro-mvp.md` | — | documenti coerenti tra loro; `tests/test_allinea.py` verde; `allinea.py 9` stampa i task dell'ondata 1 | ☑ |
+| T3-901 | **Stati leggibili**: `stati.ts` e `StatoBadge`, etichette e spiegazioni al posto dei valori del database nelle pagine dell'operatore e nei calendari | `brief-richieste.md` §1.1, §T3-901; spec §4 | T3-900 | nessun valore con il trattino basso nelle pagine dell'operatore; build e lint puliti; screenshot | ☐ |
+| T3-902 | **Nome della bottega** su ogni pagina dell'artigiano, anche dal telefono | `brief-richieste.md` §1.7, §T3-902 | T3-900 | riga visibile a 375 e 1280 px con il menu chiuso; build e lint puliti; screenshot | ☐ |
+| T3-903 | **Durata rapida** al passo 10: 1 settimana, 2 settimane, 1 mese | `brief-richieste.md` §1.7, §T3-903; spec R-08 | T3-900 | «1 settimana» dà 7 giorni accettati dal server; build e lint puliti; screenshot | ☐ |
+| T3-904 | **Una sola Rigenera testo**: un pulsante e una finestra, con il testo di partenza facoltativo | `brief-richieste.md` §1.2, §T3-904; spec R-03 | T3-900 | le due modalità partono dalla stessa finestra; build e lint puliti; screenshot | ☐ |
+| T3-905 | **Campagne sovrapposte**: via il controllo di R-12, avviso `campagne_sovrapposte` e il suo testo al passo 12 | `brief-richieste.md` §1.6, §T3-905; spec R-12, R-25 | T3-900 | CA-12, CA-100 verdi; CA-11 ancora verde; comandi del backend verdi | ☐ |
+| T3-906 | **Immagini AI senza tetto**: prova del piano e del percorso con molte immagini AI, `DataError` della tappa testi | `brief-richieste.md` §T3-906; spec R-28, R-35 | T3-900 | CA-101 verde; esito sul `DataError` nella PR; comandi del backend verdi | ☐ |
+| T3-907 | **Migrazione 013**: `chiamata_ai` estesa e `valutazione_ai`, modelli e fabbriche | `brief-richieste.md` §1.3, §T3-907; plan §2 | T3-900 | upgrade e downgrade provati; comandi del backend verdi | ☐ |
+| T3-908 | **Rigenera immagine, backend**: intervento, rotta e job; anche sui post con l'immagine non creata | `brief-richieste.md` §1.2, §T3-908; spec R-16, R-31, R-43, R-49 | T3-900 | CA-102, CA-103 verdi; CA-71 ancora verde; comandi del backend verdi | ☐ |
+| T3-909 | **Cambia foto da gruppo, campagna e archivio, backend**: anche sui post con immagine AI, dicitura, riscrivi il testo | `brief-richieste.md` §1.2, §T3-909; spec R-27, R-36 | T3-900 | CA-71, CA-104, CA-105 verdi; comandi del backend verdi | ☐ |
+| T3-910 | **Prompt del piano v3**: la scena delle immagini AI, nessun numero di immagini AI imposto | `brief-richieste.md` §1.4, §T3-910; spec R-28, R-43 | T3-900 | CA-106 verde; comandi del backend verdi | ☐ |
+| T3-911 | **Prompt dei testi v3**: gli attacchi degli altri post, per non ripetersi | `brief-richieste.md` §1.4, §T3-911 | T3-900 | CA-107 verde; comandi del backend verdi | ☐ |
+| T3-912 | **Proporzioni vere**: da 4:5 a 1,91:1 senza taglio | `brief-richieste.md` §1.5, §T3-912; spec R-21, R-42 | T3-900 | CA-81 verde; comandi del backend verdi | ☐ |
+| T3-913 | **Analisi v3**: il riquadro del soggetto di ogni foto | `brief-richieste.md` §1.4, §T3-913; spec R-42 | T3-900 | CA-108 verde; comandi del backend verdi | ☐ |
+| T3-914 | **Storico AI, la pagina**: elenco con i filtri e dettaglio di ogni chiamata, voce nella barra dell'operatore | `brief-richieste.md` §1.3, §1.7, §T3-914; spec R-50 | T3-900 | build e lint puliti; dati di esempio finché T3-917 non è su `main`, poi API vere; screenshot | ☐ |
+| T3-915 | **Barra di avanzamento** della campagna in Vedi campagna | `brief-richieste.md` §1.1, §T3-915 | T3-901 | build e lint puliti; screenshot per stato | ☐ |
+| T3-916 | **Storico AI, registrazione**: ogni chiamata all'AI, riuscita o fallita, con prompt, risposta, esito e durata | `brief-richieste.md` §1.3, §T3-916; spec R-44, R-50 | T3-907 | CA-109 verde; CA-82 ancora verde; comandi del backend verdi | ☐ |
+| T3-917 | **Storico AI, letture**: elenco, dettaglio e numeri | `brief-richieste.md` §1.3, §T3-917; spec R-50 | T3-907 | CA-110, CA-111 verdi; comandi del backend verdi | ☐ |
+| T3-918 | **Voto sulle risposte dell'AI**, backend | `brief-richieste.md` §1.3, §T3-918; spec R-50 | T3-907 | CA-112 verde; comandi del backend verdi | ☐ |
+| T3-919 | **Cambia immagine, frontend**: le foto del gruppo, della campagna e dell'archivio | `brief-richieste.md` §1.2, §1.7, §T3-919 | T3-904 | build e lint puliti; dati di esempio finché T3-909 non è su `main`, poi API vere; screenshot | ☐ |
+| T3-920 | **Prompt delle immagini v3**: scena, bottega, campagna e stile delle foto vere | `brief-richieste.md` §1.4, §T3-920; spec R-43 | T3-908, T3-910 | CA-113 verde; tre prompt d'esempio nella PR; comandi del backend verdi | ☐ |
+| T3-921 | **Ritaglio sul soggetto e bordi sfocati** | `brief-richieste.md` §1.5, §T3-921; spec R-42 | T3-912 | CA-114 verde; CA-81 ancora verde; prima e dopo nella PR; comandi del backend verdi | ☐ |
+| T3-922 | **Orari occupati nel piano**: i post delle altre campagne della bottega | `brief-richieste.md` §1.4, §1.6, §T3-922 | T3-905, T3-910 | CA-115 verde; comandi del backend verdi | ☐ |
+| T3-923 | **Rifai il post e Rigenera immagine, frontend** | `brief-richieste.md` §1.2, §1.7, §T3-923 | T3-919 | build e lint puliti; dati di esempio finché T3-908 e T3-909 non sono su `main`, poi API vere; screenshot | ☐ |
+| T3-924 | **Storico AI, numeri e voto** nella pagina | `brief-richieste.md` §1.3, §T3-924 | T3-914 | build e lint puliti; dati di esempio finché T3-917 e T3-918 non sono su `main`, poi API vere; screenshot | ☐ |
+| T3-925 | **Prova dei prompt v3** su una campagna del seed, confronto con v2 e voto | `brief-richieste.md` §T3-925 | T3-910, T3-911, T3-916, T3-920 | tabella e immagini a confronto nella PR | ☐ |
+| T3-926 | **Pagine statiche della corsia 9** | `brief-richieste.md` §T3-926 | T3-901, T3-902, T3-903, T3-915, T3-923, T3-924 | pagine riviste da un collega; mappa aggiornata | ☐ |
+| T3-927 | **Prova della corsia 9**: test di percorso e percorso a mano in due finestre | `brief-richieste.md` §T3-927; converge §4 | T3-901, T3-902, T3-903, T3-904, T3-905, T3-906, T3-907, T3-908, T3-909, T3-910, T3-911, T3-912, T3-913, T3-914, T3-915, T3-916, T3-917, T3-918, T3-919, T3-920, T3-921, T3-922, T3-923, T3-924, T3-925, T3-926 | CA-116 verde; passi della demo di converge §4 senza errori; screenshot nella PR | ☐ |
 
 ## Dopo l'MVP
 
