@@ -26,6 +26,7 @@ from .domain import (
 )
 from .generazione import (
     RISCRITTURE,
+    attacchi_degli_altri_post,
     _campagna_ai,
     _foto_ai,
     _gruppo_dell_uscita,
@@ -402,6 +403,7 @@ def rigenera(
     snapshot = _snapshot(campagna)
     ai = ottieni_ai()
     precedente, errori = None, None
+    altri = attacchi_degli_altri_post(db, campagna.id, record.canale, record.id)
     for _ in range(1 + RISCRITTURE):
         scritto = ai.genera_post(
             snapshot,
@@ -413,6 +415,7 @@ def rigenera(
             versioni_rifiutate=rifiutate,
             testo_proposto=proposto,
             nota=nota,
+            altri_post=altri,
         )
         registra_chiamata_ai(db, campagna.id, ai.ultimo_uso, post_id=record.id)
         scritto_dall_ai = scritto.testo

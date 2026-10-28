@@ -216,6 +216,7 @@ class AIAdapter(ABC):
         versioni_rifiutate: Sequence[str] | None = None,
         testo_proposto: str | None = None,
         nota: str | None = None,
+        altri_post: Sequence[str] | None = None,
     ) -> PostScritto:
         """Scrive testo e hashtag di un post per il suo canale.
 
@@ -228,6 +229,9 @@ class AIAdapter(ABC):
             testo_proposto: nella rigenerazione da testo proposto, il testo
                 dell'operatore da cui partire.
             nota: la nota facoltativa dell'operatore per la rigenerazione.
+            altri_post: la prima frase dei testi già scritti degli altri post
+                della campagna sullo stesso canale (al massimo 10, 120
+                caratteri ciascuna): il testo non comincia come loro.
         """
         raise NotImplementedError
 

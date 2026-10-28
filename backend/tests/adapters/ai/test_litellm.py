@@ -312,7 +312,7 @@ def test_ultimo_uso_ha_modello_token_e_costo_di_litellm(completion, ai):
     assert (scritto.provider, scritto.modello, scritto.versione_prompt) == (
         "litellm",
         "testo-di-prova",
-        "post_v2",
+        "post_v3",
     )
 
 
@@ -716,7 +716,7 @@ def test_i_tipi_di_foto_dello_schema_sono_quelli_di_campagne():
     assert set(TipoFoto.__args__) == set(TIPI_CONTENUTO)
 
 
-@pytest.mark.parametrize("nome", ["analisi_v2", "piano_v2", "post_v2"])
+@pytest.mark.parametrize("nome", ["analisi_v2", "piano_v2", "post_v3"])
 def test_i_prompt_esistono_e_hanno_la_versione_nel_nome(nome):
     assert modulo._prompt(nome).strip()
 

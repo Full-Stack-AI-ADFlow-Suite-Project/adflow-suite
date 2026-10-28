@@ -468,6 +468,7 @@ class AILiteLLM(AIAdapter):
         versioni_rifiutate: Sequence[str] | None = None,
         testo_proposto: str | None = None,
         nota: str | None = None,
+        altri_post: Sequence[str] | None = None,
     ) -> PostScritto:
         self.ultimo_uso = None
         richiesta: dict[str, Any] = {
@@ -500,11 +501,13 @@ class AILiteLLM(AIAdapter):
             richiesta["testo_proposto"] = testo_proposto
         if nota:
             richiesta["nota"] = nota
+        if altri_post:
+            richiesta["altri_post"] = list(altri_post)
         risposta = self._chiama(
             "testo",
             self._modello_testo,
             [
-                {"role": "system", "content": _prompt("post_v2")},
+                {"role": "system", "content": _prompt("post_v3")},
                 {"role": "user", "content": _json(richiesta)},
             ],
             RispostaPost,
@@ -515,7 +518,7 @@ class AILiteLLM(AIAdapter):
             hashtag=[uno for uno in hashtag if uno],
             provider=PROVIDER,
             modello=self._modello_testo,
-            versione_prompt="post_v2",
+            versione_prompt="post_v3",
         )
 
     def genera_immagine(self, prompt: str) -> ImmagineAI:

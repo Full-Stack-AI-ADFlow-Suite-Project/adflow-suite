@@ -18,6 +18,7 @@ annulla e ``registra_errore()`` decide che cosa succede alla campagna (R-35).
 Si usa sempre la fotografia del profilo, mai il profilo corrente (R-11).
 """
 
+import re
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import replace
@@ -66,6 +67,9 @@ ESECUZIONI = 3
 ATTESA_SECONDI = 30
 # R-09: piano e testo si riscrivono al massimo 3 volte.
 RISCRITTURE = 3
+# Gli attacchi degli altri post che l'AI riceve (post v3).
+ATTACCHI_MAX = 10
+ATTACCO_LUNGHEZZA = 120
 # Un passo è un gruppo, il piano o un post: molti più passi sono un errore.
 MAX_PASSI = 1000
 
@@ -517,6 +521,36 @@ def _scrivi(db: Session, campagna: Any, post: Post) -> None:
     db.flush()
 
 
+def attacchi_degli_altri_post(
+    db: Session, campagna_id: int, canale: str, post_id: int
+) -> list[str]:
+    """La prima frase dei testi già scritti degli altri post dello stesso canale.
+
+    Al massimo ``ATTACCHI_MAX`` frasi di ``ATTACCO_LUNGHEZZA`` caratteri, nell'ordine
+    delle uscite: l'AI non comincia il nuovo testo come loro (post v3).
+    """
+    altri = db.scalars(
+        select(Post)
+        .where(
+            Post.campagna_id == campagna_id,
+            Post.canale == canale,
+            Post.id != post_id,
+        )
+        .order_by(Post.data_ora, Post.id)
+    ).all()
+    attacchi: list[str] = []
+    for altro in altri:
+        corrente = altro.versione_corrente
+        testo = corrente.testo.strip() if corrente is not None else ""
+        if not testo:
+            continue
+        frase = re.split(r"(?<=[.!?])\s|\n", testo, maxsplit=1)[0].strip()
+        attacchi.append(frase[:ATTACCO_LUNGHEZZA])
+        if len(attacchi) == ATTACCHI_MAX:
+            break
+    return attacchi
+
+
 def _testo_validato(
     db: Session,
     ai: AIAdapter,
@@ -533,6 +567,7 @@ def _testo_validato(
     validatore la conta nei caratteri (R-43).
     """
     precedente, errori = None, None
+    altri = attacchi_degli_altri_post(db, campagna.id, post.canale, post_id)
     for _ in range(1 + RISCRITTURE):
         scritto = ai.genera_post(
             snapshot,
@@ -541,6 +576,7 @@ def _testo_validato(
             SCHEDE_CANALE[post.canale],
             testo_precedente=precedente,
             violazioni=errori,
+            altri_post=altri,
         )
         service.registra_chiamata_ai(db, campagna.id, ai.ultimo_uso, post_id=post_id)
         scritto_dall_ai = scritto.testo
