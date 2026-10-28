@@ -1,7 +1,8 @@
 /**
- * Cambia foto (R-36): la finestra mostra le foto con cui si può sostituire quella
- * del post, la migliore in cima. Nasce una nuova versione con lo stesso testo; dopo
- * l'approvazione la approva chi la scrive.
+ * Cambia immagine (R-36, ADR-119): la finestra mostra le foto con cui si può sostituire quella
+ * del post, divise in tre sezioni: «Dello stesso gruppo», «Della campagna», «Dall'archivio della bottega»,
+ * con il soggetto sotto la miniatura. Una sezione vuota non si mostra.
+ * Nasce una nuova versione con lo stesso testo; dopo l'approvazione la approva chi la scrive.
  */
 import {
   Alert,
@@ -75,11 +76,30 @@ export function CambiaFoto({
     }
   };
 
+  const sezioni = [
+    {
+      chiave: "gruppo",
+      titolo: "Dello stesso gruppo",
+      voci:
+        foto?.filter((f) => !f.provenienza || f.provenienza === "gruppo") ?? [],
+    },
+    {
+      chiave: "campagna",
+      titolo: "Della campagna",
+      voci: foto?.filter((f) => f.provenienza === "campagna") ?? [],
+    },
+    {
+      chiave: "archivio",
+      titolo: "Dall'archivio della bottega",
+      voci: foto?.filter((f) => f.provenienza === "archivio") ?? [],
+    },
+  ].filter((s) => s.voci.length > 0);
+
   return (
     <Modal
       opened
       onClose={chiudi}
-      title={`Cambia foto · ${NOME_CANALE[post.canale] ?? post.canale}`}
+      title={`Cambia immagine · ${NOME_CANALE[post.canale] ?? post.canale}`}
       size="lg"
     >
       <Stack gap="sm">
@@ -104,56 +124,66 @@ export function CambiaFoto({
               : "Nel gruppo non ci sono altre foto adatte: chiedile all'artigiano, oppure respingi."}
           </Text>
         )}
-        {foto && foto.length > 0 && (
-          <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
-            {foto.map((f) => (
-              <Stack
-                key={f.foto_id}
-                gap={6}
-                p="xs"
-                style={{
-                  border: "1px solid var(--mantine-color-default-border)",
-                  borderRadius: 8,
-                }}
-              >
-                <img
-                  src={`/api/foto/${f.foto_id}/file`}
-                  alt={`Foto ${f.foto_id}`}
+        {sezioni.map((sezione) => (
+          <Stack key={sezione.chiave} gap="xs">
+            <Text fw={600} size="sm">
+              {sezione.titolo}
+            </Text>
+            <SimpleGrid cols={{ base: 1, sm: 2 }} spacing="sm">
+              {sezione.voci.map((f) => (
+                <Stack
+                  key={f.foto_id}
+                  gap={6}
+                  p="xs"
                   style={{
-                    width: "100%",
-                    height: 160,
-                    objectFit: "cover",
-                    borderRadius: 6,
-                    display: "block",
+                    border: "1px solid var(--mantine-color-default-border)",
+                    borderRadius: 8,
                   }}
-                />
-                <Group justify="space-between" wrap="nowrap" gap="xs">
-                  {f.analizzata ? (
-                    <Badge variant="light" size="sm">
-                      Punteggio{" "}
-                      {f.punteggio != null
-                        ? String(f.punteggio).replace(".", ",")
-                        : "—"}
-                    </Badge>
-                  ) : (
-                    <Badge variant="light" color="yellow" size="sm">
-                      Nuova foto dell’artigiano: da controllare
-                    </Badge>
+                >
+                  <img
+                    src={`/api/foto/${f.foto_id}/file`}
+                    alt={f.soggetto ?? `Foto ${f.foto_id}`}
+                    style={{
+                      width: "100%",
+                      height: 160,
+                      objectFit: "cover",
+                      borderRadius: 6,
+                      display: "block",
+                    }}
+                  />
+                  {f.soggetto && (
+                    <Text size="xs" c="dimmed" lineClamp={2}>
+                      {f.soggetto}
+                    </Text>
                   )}
-                  <Button
-                    size="xs"
-                    color="verde"
-                    loading={occupata === f.foto_id}
-                    disabled={occupata !== null}
-                    onClick={() => void usa(f.foto_id)}
-                  >
-                    Usa questa foto
-                  </Button>
-                </Group>
-              </Stack>
-            ))}
-          </SimpleGrid>
-        )}
+                  <Group justify="space-between" wrap="nowrap" gap="xs">
+                    {f.analizzata ? (
+                      <Badge variant="light" size="sm">
+                        Punteggio{" "}
+                        {f.punteggio != null
+                          ? String(f.punteggio).replace(".", ",")
+                          : "—"}
+                      </Badge>
+                    ) : (
+                      <Badge variant="light" color="yellow" size="sm">
+                        Nuova foto dell’artigiano: da controllare
+                      </Badge>
+                    )}
+                    <Button
+                      size="xs"
+                      color="verde"
+                      loading={occupata === f.foto_id}
+                      disabled={occupata !== null}
+                      onClick={() => void usa(f.foto_id)}
+                    >
+                      Usa questa foto
+                    </Button>
+                  </Group>
+                </Stack>
+              ))}
+            </SimpleGrid>
+          </Stack>
+        ))}
         {errore && (
           <Alert color="red" variant="light" py="xs">
             {errore}

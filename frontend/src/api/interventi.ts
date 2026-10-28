@@ -61,10 +61,15 @@ export function fotoPossibili(postId: number): Promise<FotoPossibile[]> {
 export async function cambiaFoto(
   postId: number,
   fotoId: number,
+  riscriviTesto: boolean = false,
+  nota: string | null = null,
 ): Promise<void> {
-  if (USA_ESEMPI) return esempiInterventi.cambiaFoto(postId, fotoId);
+  if (USA_ESEMPI)
+    return esempiInterventi.cambiaFoto(postId, fotoId, riscriviTesto, nota);
   await richiesta<unknown>("POST", `/post/${postId}/cambia-foto`, {
     foto_id: fotoId,
+    riscrivi_testo: riscriviTesto,
+    nota,
   });
 }
 

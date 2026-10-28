@@ -1422,6 +1422,10 @@ export function leggiCampagna(id: number): CampagnaDettaglio {
   return trova(carica(), id);
 }
 
+export function caricaCampagne(): CampagnaDettaglio[] {
+  return carica();
+}
+
 export function salvaCampagna(campagna: CampagnaDettaglio): void {
   const campagne = carica();
   const i = campagne.findIndex((c) => c.id === campagna.id);

@@ -122,7 +122,7 @@ export function AzioniPost({
               variant="light"
               onClick={() => setFinestra("cambia_foto")}
             >
-              Cambia foto
+              Cambia immagine
             </Button>
           )}
           {ammessi.includes("sposta") && (
