@@ -85,6 +85,7 @@
         <span class="breadcrumb-sep">/</span>
         <span class="breadcrumb-current">Campagna (sezioni 10–12)</span>
       </nav>
+      <div class="riga-bottega">Falegnameria Bianchi · Mario Bianchi</div>
 
       <div class="page-header">
         <div class="page-title-group">
@@ -156,10 +157,11 @@
           <div class="form-group">
             <div class="form-hint" style="margin: 0 0 8px;">L'inizio deve cadere almeno 3 giorni dopo oggi: il consorzio deve avere il tempo di approvare i post prima che partano. La campagna dura almeno 7 giorni e al massimo 3 mesi.</div>
             <div class="scelte">
+              <span class="scelta">1 settimana</span>
               <span class="scelta">2 settimane</span>
-              <span class="scelta attiva">1 mese</span>
-              <span class="scelta">2 mesi</span>
+              <span class="scelta">1 mese</span>
             </div>
+            <div class="form-hint">Durata rapida: «1 settimana» porta la data di fine a 6 giorni dopo l'inizio (7 giorni di durata), «2 settimane» a 13 giorni dopo (14), «1 mese» a 29 giorni dopo (30). Cambia solo la data di fine, e il pulsante che corrisponde alla durata scelta si accende; qui nessuno è acceso, perché dal 1° al 31 sono 31 giorni.</div>
           </div>
 
           <div class="form-group">
@@ -367,6 +369,7 @@
       <div class="note-pagina">
         <p><strong>Schema statico, non interattivo</strong> (v6, ADR-47, ADR-57…70, ADR-81, ADR-82, ADR-114): mostra in sequenza tutte le schermate della pagina con dati di esempio. Non salva né valida nulla — è lo scheletro da cui costruire la pagina reale nel software.</p>
         <p><strong>Cosa cambia con l'MVP (ADR-114).</strong> Tolti: la stella sulle foto (A11), il minimo di 4 foto all'invio (A5), i gruppi di immagini da creare con l'AI (A4, in roadmap), le foto d'archivio e le cartoline nella stima (A10 congelato, A6 tolto). Nuovi: le foto sono facoltative e i post che mancano hanno un'immagine creata dall'AI (spec R-28, R-43), l'avviso <code>foto_poche</code> dice quanti (R-25), la dichiarazione obbligatoria al passo 12 (R-41, salvata nella fotografia del profilo). Task: T3-22 (invio) e T3-52 (pagina); CA-14, CA-54.</p>
+        <p><strong>Durata rapida e nome della bottega (ADR-119, T3-903, T3-902).</strong> Al passo 10, accanto alla data di fine, i tre pulsanti «1 settimana», «2 settimane», «1 mese» (R-08): mettono la fine a inizio + 6, + 13 e + 29 giorni, cioè 7, 14 e 30 giorni di durata. I controlli di prima restano: inizio almeno 3 giorni dopo oggi, durata da 7 a 92 giorni. Sopra il titolo di ogni pagina dell'artigiano, anche dal telefono con il menu chiuso, la riga «bottega · referente».</p>
       </div>
 
     </main>
