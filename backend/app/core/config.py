@@ -3,6 +3,7 @@
 from decimal import Decimal
 from functools import lru_cache
 from typing import Literal
+from urllib.parse import urlsplit
 
 from pydantic import Field, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -38,6 +39,29 @@ class Impostazioni(BaseSettings):
                 )
             if self.orologio_giorni_avanti:
                 raise ValueError("In produzione l'orologio non si sposta.")
+            if self.social_provider == "meta" and self.meta_instagram_id.strip():
+                if not self.foto_url_pubblico.strip():
+                    raise ValueError(
+                        "Instagram in produzione richiede FOTO_URL_PUBBLICO HTTPS."
+                    )
+            if self.foto_url_pubblico.strip():
+                try:
+                    foto_url = urlsplit(self.foto_url_pubblico.strip())
+                    foto_url.port
+                except ValueError:
+                    raise ValueError("FOTO_URL_PUBBLICO non è un URL valido.") from None
+                if (
+                    foto_url.scheme.lower() != "https"
+                    or not foto_url.hostname
+                    or foto_url.username is not None
+                    or foto_url.password is not None
+                    or foto_url.query
+                    or foto_url.fragment
+                ):
+                    raise ValueError(
+                        "In produzione FOTO_URL_PUBBLICO deve essere un URL HTTPS "
+                        "valido, senza credenziali, query o fragment."
+                    )
         return self
 
     archivio_foto_dir: str = "./archivio_foto"
@@ -78,6 +102,8 @@ class Impostazioni(BaseSettings):
 
     smtp_host: str = "localhost"
     smtp_port: int = 1025
+    # Solo per la valutazione locale: log JSONL con dati di richiesta redatti.
+    registro_richieste_file: str = ""
 
 
 @lru_cache

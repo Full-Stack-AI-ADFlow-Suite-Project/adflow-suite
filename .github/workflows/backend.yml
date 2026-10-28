@@ -50,6 +50,10 @@ jobs:
         working-directory: backend
         run: uv run alembic upgrade head
 
+      - name: Probe di sicurezza (SAST/DAST locali)
+        working-directory: backend
+        run: uv run python scripts/esegui_valutazione_sicurezza.py --security-only
+
       - name: Test
         working-directory: backend
         run: uv run pytest

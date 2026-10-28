@@ -21,7 +21,8 @@ Monolite a moduli + worker: stesso codice Python, un database, una catena di mig
 ```
 backend/app/  main.py · worker.py · cli.py · tabelle.py            (composizione)
 backend/app/core/  config.py · db.py · coda.py · security.py · transizioni.py · errori.py · orologio.py
-                   eventi_sicurezza.py · limite_login.py · limite_richiesta.py
+                   eventi_sicurezza.py · limite_login.py · limite_richiesta.py · log_jsonl.py
+                   protezione_csrf.py · tracciamento_richieste.py
 backend/app/adapters/  ai/ · social/ · email/ · archivio/
 backend/app/moduli/<modulo>/  router.py · service.py · models.py · schemas.py · domain.py · jobs.py   (solo quelli che servono)
 backend/alembic/
