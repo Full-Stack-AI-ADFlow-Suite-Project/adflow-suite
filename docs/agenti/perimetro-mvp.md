@@ -1,6 +1,6 @@
 # Perimetro MVP
 
-Decisione ADR-114 del 13/10/2026, approvata dal team, aggiornata con ADR-116 del 16/10/2026 (interventi dopo l'approvazione e richiesta all'artigiano: righe B1, B5, B8–B10, C3 e pagine statiche) e con ADR-117 del 21/10/2026 (pagine dell'artigiano e dell'operatore, archivio foto, calendario settimanale: blocco H, riga E1 e pagine statiche) e con ADR-118 del 26/10/2026 (interfaccia ed esperienza d'uso: blocco I, riga H7). Consegna e pitch il **6 novembre 2026**; codice bloccato il **30 ottobre**.
+Decisione ADR-114 del 13/10/2026, approvata dal team, aggiornata con ADR-116 del 16/10/2026 (interventi dopo l'approvazione e richiesta all'artigiano: righe B1, B5, B8–B10, C3 e pagine statiche) e con ADR-117 del 21/10/2026 (pagine dell'artigiano e dell'operatore, archivio foto, calendario settimanale: blocco H, riga E1 e pagine statiche) e con ADR-118 del 26/10/2026 (interfaccia ed esperienza d'uso: blocco I, riga H7) e con ADR-119 del 28/10/2026 (richieste dopo la prova: blocco J, righe A10, B1, B8, C1). Consegna e pitch il **6 novembre 2026**; codice bloccato il **30 ottobre**, il **1° novembre** per la corsia 9.
 Questa pagina dice che cosa entra nell'MVP. Dove `spec.md`, `plan.md` o `tasks.md` non tornano con questa pagina, vale questa pagina.
 
 | Decisione | Significato |
@@ -32,7 +32,7 @@ Questa pagina dice che cosa entra nell'MVP. Dove `spec.md`, `plan.md` o `tasks.m
 | A7 | Logo (R-40) | Togli | Il logo è una foto come le altre |
 | A8 | Caroselli (R-21, R-28) | Congela | Un post = una foto |
 | A9 | Date e ore dei post (R-08) | Mantieni | Le decide l'AI nel piano; il controllo R-08 resta |
-| A10 | Archivio della bottega come rimpiazzo (R-27) | Congela | Ogni foto mancante diventa un'immagine AI. La vista dell'archivio in sola lettura è H4 |
+| A10 | Archivio della bottega come rimpiazzo (R-27) | Congela | Ogni foto mancante diventa un'immagine AI. La vista dell'archivio in sola lettura è H4. Le foto dell'archivio si propongono in Cambia immagine (J5) |
 | A11 | Foto con la stella (R-23) | Togli | Le foto le sceglie la valutazione dell'AI; la colonna `da_usare` resta |
 | A12 | Spesa per le immagini AI | Task MVP | Nessun tetto; costo di ogni chiamata AI registrato e mostrato in Vedi campagna |
 
@@ -87,6 +87,22 @@ Blocco H: ciò che il 28/10 non è su `main` resta fuori dall'MVP e la sua parte
 
 Blocco I: ciò che il 30/10 non è su `main` resta com'è oggi (ADR-118).
 
+## J · Richieste dopo la prova (ADR-119)
+
+| ID | Tema (regole) | Decisione | Nell'MVP |
+|---|---|---|---|
+| J1 | Stati leggibili (spec §4) | Task MVP | Nelle pagine dell'operatore e nei calendari etichette e spiegazioni al posto dei valori del database; barra di avanzamento in Vedi campagna. I valori del backend non cambiano |
+| J2 | Nome della bottega (spec §4) | Task MVP | Su ogni pagina dell'artigiano, anche dal telefono con il menu chiuso |
+| J3 | Durata rapida, campagne sovrapposte (R-08, R-12, R-25) | Task MVP | Al passo 10 «1 settimana», «2 settimane», «1 mese»; le campagne della stessa bottega possono sovrapporsi, con un avviso e il piano che evita gli orari già occupati; resta una sola bozza |
+| J4 | Rigenera testo (R-03) | Task MVP | Una sola azione, con un'indicazione e un testo di partenza facoltativo; il backend e i 3 cicli restano |
+| J5 | Cambia immagine (R-27, R-36) | Task MVP | Foto del gruppo, della campagna e dell'archivio della bottega, anche sui post con un'immagine AI; la dicitura segue l'immagine |
+| J6 | Rigenera immagine e Rifai il post (R-49) | Task MVP | In revisione: nuova immagine AI con un'indicazione, 3 per post, anche al posto di una foto vera e sui post con l'immagine non creata; «Rifai il post» = nuova immagine (foto o AI) e testo riscritto in un solo passaggio. Un post non si toglie (costituzione §1.10–1.11); dopo l'approvazione nessuna AI |
+| J7 | Prompt v3 (R-28, R-43) | Task MVP | Il piano scrive la scena di ogni immagine AI, con inquadrature diverse e senza un numero di immagini AI imposto; il prompt dell'immagine usa scena, bottega, campagna e stile delle foto vere; i testi non cominciano tutti allo stesso modo; prova a confronto con v2 |
+| J8 | Foto nelle proporzioni dei canali (R-21, R-42) | Task MVP | Da 4:5 a 1,91:1 senza taglio; fuori, ritaglio attorno al soggetto (riquadro dall'analisi) o bordi fatti con la foto sfocata; mai deformata; espansione con l'AI in roadmap |
+| J9 | Storico dell'AI (R-44, R-50) | Task MVP | Ogni chiamata, riuscita o fallita, con prompt, risposta, esito e durata (migrazione 013); pagina Storico AI per l'operatore con filtri, dettaglio, numeri per versione del prompt e voto da 1 a 5 |
+
+Blocco J: corsia 9 (T3-900…T3-927), lavoro dal 28/10; ciò che il 1/11 non è su `main` resta fuori e la sua parte di regole torna com'era (ADR-119).
+
 ## G · Deliverable della traccia
 
 | ID | Deliverable | Decisione | Fonte |
@@ -98,14 +114,14 @@ Blocco I: ciò che il 30/10 non è su `main` resta com'è oggi (ADR-118).
 
 | ID | Tema (regole) | Decisione | Nell'MVP |
 |---|---|---|---|
-| B1 | Approva, respingi, riprova, modifica a mano, rigenera testo (R-14, R-18, R-30, R-35) | Mantieni | In revisione insieme a cambia foto, sposta (B8) e chiedi all'artigiano (B10) |
+| B1 | Approva, respingi, riprova, modifica a mano, rigenera testo (R-14, R-18, R-30, R-35) | Mantieni | In revisione insieme a cambia foto, sposta (B8) e chiedi all'artigiano (B10); Rigenera testo è una sola azione (J4) e si aggiungono Rigenera immagine e Rifai il post (J5, J6) |
 | B2 | Rigenerazioni del testo (R-03, R-04) | Mantieni | 3 per post; mai dopo l'approvazione |
 | B3 | Respinta (R-18) | Mantieni | Motivo `foto` / `altro` e nota; i tre casi di respinta sono linee guida (spec §3) |
 | B4 | Spunta, nota interna, togli canale (R-30, R-32) | Congela | Nascosti |
 | B5 | Sospendi, riattiva, annulla, riprogramma (R-16, R-33, R-34) | Task MVP (ADR-116) | Visibili in Vedi campagna; sospendi con una nota facoltativa, interna; la vista dell'artigiano "Pubblicazioni ferme" resta senza motivo |
 | B6 | Scadenze automatiche (R-06) | Mantieni | Nessun lavoro |
 | B7 | Promemoria 48 h (R-06) | Roadmap | — |
-| B8 | Cambia foto e sposta (R-36) | Task MVP (ADR-116) | In revisione e dopo l'approvazione. Cambia foto con un'altra foto del gruppo dell'uscita, idonea o arrivata con una richiesta (B10); mai sui post con un'immagine AI. Nessuna delle due fa partire l'AI |
+| B8 | Cambia foto e sposta (R-36) | Task MVP (ADR-116, ADR-119) | In revisione e dopo l'approvazione. Cambia foto (nell'interfaccia «Cambia immagine») con un'altra foto del gruppo dell'uscita, della campagna o dell'archivio, idonea o arrivata con una richiesta (B10), anche sui post con un'immagine AI (J5). Nessuna delle due fa partire l'AI, se non con «Riscrivi anche il testo» in revisione (J6) |
 | B9 | Interventi sul post dopo l'approvazione (R-16) | Task MVP (ADR-116) | Su un post approvato che esce tra almeno 15 minuti, in campagna attiva o sospesa: modifica a mano (la versione nasce approvata), cambia foto, sposta, annulla con la nota. Senza sospendere |
 | B10 | Richiesta all'artigiano (R-46) | Task MVP (ADR-116) | In revisione: una domanda e fino a 3 foto da sostituire; l'artigiano risponde dalla pagina Campagna con il suo accesso. Non blocca Approva né Respingi; nessuna email: l'operatore avvisa l'artigiano a voce o con un messaggio; la foto nuova la giudica l'operatore |
 
@@ -115,7 +131,7 @@ Righe B5 e B8–B10: ciò che il 24/10 non è su `main` resta fuori dall'MVP e t
 
 | ID | Tema (regole) | Decisione | Nell'MVP |
 |---|---|---|---|
-| C1 | Sistemazione delle foto (R-17, R-36) | Task MVP | Locale e automatica con Pillow: rotazione, GPS tolto, ritaglio 1:1 o 4:5, 1080 px, autocontrasto leggero, JPEG; una funzione per anteprima e pubblicazione |
+| C1 | Sistemazione delle foto (R-17, R-36) | Task MVP | Locale e automatica con Pillow: rotazione, GPS tolto, proporzioni da 4:5 a 1,91:1 con ritaglio sul soggetto o bordi sfocati (J8), 1080 px, autocontrasto leggero, JPEG; una funzione per anteprima e pubblicazione |
 | C2 | Controlli sulle foto (R-13) | Mantieni | Formato, peso, 1080 px; qualità e doppioni dall'analisi dell'AI |
 | C3 | Dichiarazione dell'artigiano | Task MVP | Spunta obbligatoria all'invio: "Le foto mostrano prodotti della mia bottega; le persone riconoscibili hanno dato il consenso"; la stessa per ogni foto caricata con una richiesta (B10, R-41) |
 | C4 | Ritocco AI, versioni delle foto, cicli di ritocco (R-03, R-17) | Roadmap | La migrazione 012 di `versione_foto` non si fa |
@@ -151,6 +167,7 @@ Si aggiornano all'MVP (T3-03) e tornano il riferimento per l'interfaccia.
 | Elenco artigiani, pagina artigiano, campagne dell'artigiano | Nell'MVP (ADR-117, H3): elenco scorrevole; pagina con il profilo in sola lettura, senza anagrafica completa né account da collegare; campagne con in cima quelle in corso e da approvare |
 | Ingresso dell'operatore | Roadmap: resta, segnata così nella mappa |
 | Metriche | Roadmap: anteprima nel pitch |
+| Storico AI | Nuova (ADR-119, J9) |
 
 ## F · Processo
 

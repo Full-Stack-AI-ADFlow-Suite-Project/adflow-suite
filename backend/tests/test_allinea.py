@@ -159,7 +159,8 @@ def test_la_pagina_vera_si_legge_per_intero():
     for uno in sprint:
         # la corsia 6 è nata con ADR-116 (interventi e richiesta all'artigiano),
         # la 7 con ADR-117 (pagine, archivio foto e calendario),
-        # la 8 con ADR-118 (interfaccia ed esperienza d'uso)
+        # la 8 con ADR-118 (interfaccia ed esperienza d'uso),
+        # la 9 con ADR-119 (richieste dopo la prova)
         assert [c.numero for c in corsie if c.sprint == uno] == [
             0,
             1,
@@ -170,9 +171,10 @@ def test_la_pagina_vera_si_legge_per_intero():
             6,
             7,
             8,
+            9,
         ]
     letti = [t.id for c in corsie for t in c.task]
-    scritti = re.findall(r"^\| (T\d[ab]?-\d\d) \|", testo, flags=re.MULTILINE)
+    scritti = re.findall(r"^\| (T\d[ab]?-\d\d\d?) \|", testo, flags=re.MULTILINE)
     assert letti == scritti
     assert len(letti) == len(set(letti))
     for corsia in corsie:
