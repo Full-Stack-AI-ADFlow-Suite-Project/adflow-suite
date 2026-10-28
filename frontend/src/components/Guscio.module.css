@@ -28,7 +28,7 @@
 .marcaIcona {
   width: 36px;
   height: 36px;
-  border-radius: 9px;
+  border-radius: var(--mantine-radius-md);
   flex: none;
   background: linear-gradient(
     135deg,
@@ -39,7 +39,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 2px 4px rgba(47, 93, 70, 0.22);
 }
 
 .marcaTesto b {

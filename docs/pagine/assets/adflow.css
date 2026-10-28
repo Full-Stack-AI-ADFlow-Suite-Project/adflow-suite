@@ -3,31 +3,32 @@
    Ref: Gemini_Generated_Image_ddli1nddli1nddli.jpg & jwtz4ejwtz4ejwtz.jpg
    ========================================================================== */
 
-@import url("https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&family=Source+Sans+3:wght@400;500;600;700&display=swap");
 
 :root {
   /* Color Palette */
-  --bg-app: #f8fafc;
+  --bg-app: #f7f5ef;
   --bg-surface: #ffffff;
-  --bg-surface-subtle: #f1f5f9;
-  --bg-surface-hover: #f8fafc;
+  --bg-surface-subtle: #efeae0;
+  --bg-surface-hover: #f7f5ef;
 
-  --border-hairline: #e2e8f0;
-  --border-focus: #3b82f6;
-  --border-subtle: #edf2f7;
+  --border-hairline: #ddd6c7;
+  --border-focus: #3f7a5b;
+  --border-subtle: #e6e0d4;
 
   /* Typography Colors */
-  --text-main: #0f172a;
-  --text-secondary: #475569;
-  --text-muted: #64748b;
-  --text-faint: #94a3b8;
+  --text-main: #1f2a24;
+  --text-secondary: #474239;
+  --text-muted: #635d52;
+  --text-faint: #8c8578;
   --text-inverse: #ffffff;
 
   /* Brand / Primary */
-  --primary: #2563eb;
-  --primary-hover: #1d4ed8;
-  --primary-light: #eff6ff;
-  --primary-border: #bfdbfe;
+  --primary: #2f5d46;
+  --primary-hover: #254b38;
+  --primary-light: #eef5f1;
+  --primary-border: #b8d5c4;
+  --accent-walnut: #7a5230;
 
   /* Status Colors */
   --success: #16a34a;
@@ -57,12 +58,10 @@
   --ig-pink-light: #fdf2f8;
 
   /* Elevation Shadows */
-  --shadow-xs: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-sm: 0 1px 3px 0 rgba(0, 0, 0, 0.06), 0 1px 2px 0 rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07),
-    0 2px 4px -1px rgba(0, 0, 0, 0.04);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08),
-    0 4px 6px -2px rgba(0, 0, 0, 0.03);
+  --shadow-xs: 0 1px 2px 0 rgba(31, 42, 36, 0.05);
+  --shadow-sm: 0 1px 3px 0 rgba(31, 42, 36, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(31, 42, 36, 0.05);
+  --shadow-lg: 0 10px 15px -3px rgba(31, 42, 36, 0.05);
 
   /* Layout Constants */
   --sidebar-width: 250px;
@@ -85,7 +84,7 @@
 
 body {
   font-family:
-    "Inter",
+    "Source Sans 3",
     -apple-system,
     BlinkMacSystemFont,
     "Segoe UI",
@@ -144,14 +143,14 @@ code,
 .brand-icon-wrapper {
   width: 36px;
   height: 36px;
-  border-radius: 9px;
-  background: linear-gradient(135deg, #3b82f6 0%, #1d4ed8 100%);
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, #3f7a5b 0%, #254b38 100%) !important;
   display: flex;
   align-items: center;
   justify-content: center;
   color: #fff;
   flex-shrink: 0;
-  box-shadow: 0 2px 4px rgba(37, 99, 235, 0.25);
+  box-shadow: 0 2px 4px rgba(47, 93, 70, 0.22);
 }
 
 .brand-text h1 {
@@ -229,7 +228,7 @@ code,
 }
 
 .nav-link.active .nav-badge {
-  background: #dbeafe;
+  background: #d9e9df;
   color: var(--primary);
 }
 
@@ -260,7 +259,7 @@ code,
 }
 
 .user-avatar.placeholder {
-  background: #e2e8f0;
+  background: #ddd6c7;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -308,7 +307,7 @@ code,
 
 .role-switch-btn:hover {
   background: var(--bg-surface-subtle);
-  border-color: #cbd5e1;
+  border-color: #c7bfb0;
   color: var(--text-main);
   text-decoration: none;
 }
@@ -358,7 +357,7 @@ code,
 }
 
 .artisan-selector-dropdown:hover {
-  border-color: #cbd5e1;
+  border-color: #c7bfb0;
 }
 
 .artisan-selector-dropdown .label {
@@ -489,7 +488,7 @@ code,
   background: var(--primary);
   color: #ffffff;
   border-color: var(--primary);
-  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 1px 2px rgba(47, 93, 70, 0.2);
 }
 .btn-primary:hover {
   background: var(--primary-hover);
@@ -504,16 +503,16 @@ code,
 }
 .btn-secondary:hover {
   background: var(--bg-surface-subtle);
-  border-color: #cbd5e1;
+  border-color: #c7bfb0;
 }
 
 .btn-soft {
   background: var(--primary-light);
   color: var(--primary);
-  border-color: #dbeafe;
+  border-color: #d9e9df;
 }
 .btn-soft:hover {
-  background: #dbeafe;
+  background: #d9e9df;
 }
 
 .btn-danger {
@@ -577,7 +576,7 @@ code,
 .status-pill.fb {
   background: var(--fb-blue-light);
   color: var(--fb-blue);
-  border: 1px solid #dbeafe;
+  border: 1px solid #d9e9df;
 }
 
 .status-pill.ig {
@@ -723,7 +722,7 @@ code,
   height: 40px;
   border-radius: var(--radius-full);
   object-fit: cover;
-  border: 1px solid #e2e8f0;
+  border: 1px solid #ddd6c7;
 }
 
 .fb-author-name {
@@ -1004,7 +1003,7 @@ code,
 .comment-textarea:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.15);
+  box-shadow: 0 0 0 3px rgba(47, 93, 70, 0.15);
 }
 
 /* Tab Navigation */
@@ -1054,7 +1053,7 @@ code,
 }
 
 .adflow-table th {
-  background: #f8fafc;
+  background: #f7f5ef;
   padding: 12px 18px;
   font-weight: 600;
   color: var(--text-secondary);
@@ -1074,7 +1073,7 @@ code,
 }
 
 .adflow-table tr:hover td {
-  background: #f8fafc;
+  background: #f7f5ef;
 }
 
 /* Metric Stats Cards */
@@ -1150,7 +1149,7 @@ code,
 .form-select:focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  box-shadow: 0 0 0 3px rgba(47, 93, 70, 0.12);
 }
 
 .form-hint {
@@ -1164,7 +1163,7 @@ code,
   position: fixed;
   bottom: 24px;
   right: 24px;
-  background: #1e293b;
+  background: #2c352f;
   color: #ffffff;
   padding: 12px 20px;
   border-radius: var(--radius-md);
@@ -1618,12 +1617,12 @@ textarea.form-input {
   position: absolute;
   top: 4px;
   right: 4px;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(31, 42, 36, 0.6);
   color: #fbbf24;
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 12px;
-  font-family: "Inter", sans-serif;
+  font-family: "Source Sans 3", sans-serif;
 }
 .foto .stella.spenta {
   color: #fff;
@@ -1633,7 +1632,7 @@ textarea.form-input {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.55);
+  background: rgba(31, 42, 36, 0.55);
   color: #fff;
   padding: 2px 4px;
   font-size: 10px;
@@ -1652,7 +1651,7 @@ textarea.form-input {
   border-style: dashed;
   background: none;
   font-size: 22px;
-  font-family: "Inter", sans-serif;
+  font-family: "Source Sans 3", sans-serif;
 }
 .archivio-griglia {
   display: grid;
@@ -1683,7 +1682,7 @@ textarea.form-input {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background: #e2e8f0;
+  background: #ddd6c7;
   color: var(--text-muted);
   display: flex;
   align-items: center;
@@ -1850,7 +1849,7 @@ textarea.form-input {
   align-items: center;
   justify-content: center;
   padding: 32px 16px;
-  background: linear-gradient(180deg, #f8fafc 0%, #eef2f6 100%);
+  background: linear-gradient(180deg, #f7f5ef 0%, #eef2f6 100%);
 }
 .auth-card {
   width: 100%;
@@ -1958,7 +1957,7 @@ textarea.form-input {
 .pg-vedi-campagna :is(textarea, input, select):focus {
   outline: none;
   border-color: var(--primary);
-  box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.12);
+  box-shadow: 0 0 0 3px rgba(47, 93, 70, 0.12);
 }
 
 /* Etichette e pulsanti scritti dallo script */
@@ -1994,7 +1993,7 @@ textarea.form-input {
 .pg-vedi-campagna .badge.fb {
   background: var(--fb-blue-light);
   color: var(--fb-blue);
-  border-color: #dbeafe;
+  border-color: #d9e9df;
 }
 .pg-vedi-campagna .badge.ig {
   background: #fff7ed;
@@ -2010,13 +2009,13 @@ textarea.form-input {
 }
 .pg-vedi-campagna .btn:not([class*="btn-"]):hover:not(:disabled) {
   background: var(--bg-surface-subtle);
-  border-color: #cbd5e1;
+  border-color: #c7bfb0;
 }
 .pg-vedi-campagna .btn.primary {
   background: var(--primary);
   color: #fff;
   border-color: var(--primary);
-  box-shadow: 0 1px 2px rgba(37, 99, 235, 0.2);
+  box-shadow: 0 1px 2px rgba(47, 93, 70, 0.2);
 }
 .pg-vedi-campagna .btn.primary:hover:not(:disabled) {
   background: var(--primary-hover);
@@ -2039,7 +2038,7 @@ textarea.form-input {
 }
 .pg-vedi-campagna .btn.on {
   background: var(--primary-light);
-  border-color: #dbeafe;
+  border-color: #d9e9df;
   color: var(--primary);
 }
 .pg-vedi-campagna .btn:disabled {
@@ -2297,7 +2296,7 @@ textarea.form-input {
   gap: 16px;
 }
 .pg-vedi-campagna .legenda {
-  border: 1px dashed #cbd5e1;
+  border: 1px dashed #c7bfb0;
   border-radius: var(--radius-lg);
   padding: 12px 14px;
   font-size: 13px;
@@ -2376,13 +2375,13 @@ textarea.form-input {
 }
 .pg-vedi-campagna .post.tolto {
   border-style: dashed;
-  border-color: #cbd5e1;
+  border-color: #c7bfb0;
 }
 .pg-vedi-campagna .post.tolto .social-preview-card {
   opacity: 0.45;
 }
 .pg-vedi-campagna .post.flash {
-  box-shadow: 0 0 0 3px #dbeafe;
+  box-shadow: 0 0 0 3px #d9e9df;
 }
 .pg-vedi-campagna .post-head {
   display: flex;
@@ -2422,7 +2421,7 @@ textarea.form-input {
 }
 .pg-vedi-campagna .avviso.quiet {
   background: var(--bg-surface-subtle);
-  border: 1px dashed #cbd5e1;
+  border: 1px dashed #c7bfb0;
   color: var(--text-secondary);
 }
 .pg-vedi-campagna .avviso ul {
@@ -2538,7 +2537,7 @@ textarea.form-input {
   font-family: "JetBrains Mono", ui-monospace, monospace;
   font-size: 11.5px;
   color: #65676b;
-  border: 1.5px dashed #94a3b8;
+  border: 1.5px dashed #8c8578;
   border-radius: 8px;
   margin: 14px;
   max-width: 260px;
@@ -2635,7 +2634,7 @@ textarea.form-input {
   color: var(--text-main);
 }
 .pg-vedi-campagna .cal .slot.fb {
-  border-color: #dbeafe;
+  border-color: #d9e9df;
   background: var(--fb-blue-light);
   color: var(--fb-blue);
 }
@@ -2671,7 +2670,7 @@ textarea.form-input {
   height: 84px;
   border-radius: 8px;
   overflow: hidden;
-  border: 1px dashed #cbd5e1;
+  border: 1px dashed #c7bfb0;
   background: var(--bg-surface-subtle);
   display: flex;
   align-items: center;
@@ -2828,7 +2827,7 @@ textarea.form-input {
   gap: 4px;
   padding: 6px;
   border: 1px solid var(--border-subtle);
-  border-radius: 8px;
+  border-radius: var(--radius-sm);
   background: var(--bg-surface-subtle);
   font-size: 12px;
   color: var(--text-secondary);
@@ -2883,10 +2882,16 @@ textarea.form-input {
   position: absolute;
   top: 4px;
   left: 4px;
-  background: rgba(0, 0, 0, 0.6);
+  background: rgba(31, 42, 36, 0.6);
   color: #fff;
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 10.5px;
-  font-family: "Inter", sans-serif;
+  font-family: "Source Sans 3", sans-serif;
+}
+
+/* Stesso indicatore di tastiera dell’app (S4). */
+:where(a, button, input, select, textarea, [tabindex]):focus-visible {
+  outline: 2px solid var(--primary) !important;
+  outline-offset: 2px;
 }
