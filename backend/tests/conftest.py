@@ -18,6 +18,7 @@ from sqlalchemy import Engine, make_url, text
 from sqlalchemy.orm import Session
 
 from app.core import coda as modulo_coda
+from app.core import limite_login
 from app.core.config import leggi_impostazioni
 from app.core.db import crea_motore, get_db
 from app.main import app
@@ -74,12 +75,19 @@ def coda(monkeypatch) -> Iterator[InMemoryConnector]:
 
 
 @pytest.fixture
-def client(db: Session) -> Iterator[TestClient]:
-    """Client dell'API che usa la stessa sessione del test."""
+def client(db: Session, motore_test: Engine, monkeypatch) -> Iterator[TestClient]:
+    """Client dell'API che usa la stessa sessione del test.
+
+    Il limite dei tentativi di login scrive con un suo motore, fuori dalla
+    transazione del test: va su adflow_test e si svuota a fine test.
+    """
+    monkeypatch.setattr(limite_login, "motore", lambda: motore_test)
     app.dependency_overrides[get_db] = lambda: db
     with TestClient(app) as client:
         yield client
     app.dependency_overrides.clear()
+    with motore_test.begin() as connessione:
+        connessione.execute(text("DELETE FROM limite_login"))
 
 
 @pytest.fixture
