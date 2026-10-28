@@ -4,6 +4,7 @@ from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 from decimal import Decimal
+from typing import Any
 
 from sqlalchemy import select, or_, and_, func
 from sqlalchemy.orm import Session, selectinload
@@ -33,7 +34,10 @@ from .models import ChiamataAI, Post, VersionePost, Piano, Uscita, ErroreGeneraz
 from .validatore import BLOCCO, testo_salvabile
 from .schemas import (
     CalendarioCampagna,
+    ChiamataAIDettaglio,
     ChiamateAIDiUnTipo,
+    NumeriAI,
+    PaginaChiamateAI,
     PostSegnalato,
     RiepilogoAI,
 )
@@ -846,3 +850,31 @@ def calendario_campagna(
     from .calendario import leggi
 
     return leggi(db, campagna_id, utente_id, ruolo)
+
+
+# --- Storico dell'AI (R-50): le letture stanno in storico_ai.py ----------------
+
+
+def storico_ai(db: Session, **filtri: Any) -> PaginaChiamateAI:
+    """Una pagina di chiamate all'AI, con i filtri di ``storico_ai.elenco()``."""
+    from . import storico_ai as storico
+
+    return storico.elenco(db, **filtri)
+
+
+def numeri_ai(db: Session, **filtri: Any) -> NumeriAI:
+    """I numeri delle chiamate all'AI, con i filtri di ``storico_ai.numeri()``."""
+    from . import storico_ai as storico
+
+    return storico.numeri(db, **filtri)
+
+
+def chiamata_ai(db: Session, chiamata_id: int) -> ChiamataAIDettaglio:
+    """Il dettaglio di una chiamata all'AI.
+
+    Raises:
+        NonTrovato: «Chiamata non trovata.» (404).
+    """
+    from . import storico_ai as storico
+
+    return storico.dettaglio(db, chiamata_id)

@@ -156,7 +156,7 @@ Ogni task ha in `brief-richieste.md` i file da toccare, le firme, i messaggi d'e
 | T3-914 | **Storico AI, la pagina**: elenco con i filtri e dettaglio di ogni chiamata, voce nella barra dell'operatore | `brief-richieste.md` §1.3, §1.7, §T3-914; spec R-50 | T3-900 | build e lint puliti; dati di esempio finché T3-917 non è su `main`, poi API vere; screenshot | ☐ |
 | T3-915 | **Barra di avanzamento** della campagna in Vedi campagna | `brief-richieste.md` §1.1, §T3-915 | T3-901 | build e lint puliti; screenshot per stato | ☐ |
 | T3-916 | **Storico AI, registrazione**: ogni chiamata all'AI, riuscita o fallita, con prompt, risposta, esito e durata | `brief-richieste.md` §1.3, §T3-916; spec R-44, R-50 | T3-907 | CA-109 verde; CA-82 ancora verde; comandi del backend verdi | ☑ |
-| T3-917 | **Storico AI, letture**: elenco, dettaglio e numeri | `brief-richieste.md` §1.3, §T3-917; spec R-50 | T3-907 | CA-110, CA-111 verdi; comandi del backend verdi | ☐ |
+| T3-917 | **Storico AI, letture**: elenco, dettaglio e numeri | `brief-richieste.md` §1.3, §T3-917; spec R-50 | T3-907 | CA-110, CA-111 verdi; comandi del backend verdi | ☑ |
 | T3-918 | **Voto sulle risposte dell'AI**, backend | `brief-richieste.md` §1.3, §T3-918; spec R-50 | T3-907 | CA-112 verde; comandi del backend verdi | ☐ |
 | T3-919 | **Cambia immagine, frontend**: le foto del gruppo, della campagna e dell'archivio | `brief-richieste.md` §1.2, §1.7, §T3-919 | T3-904 | build e lint puliti; dati di esempio finché T3-909 non è su `main`, poi API vere; screenshot | ☐ |
 | T3-920 | **Prompt delle immagini v3**: scena, bottega, campagna e stile delle foto vere | `brief-richieste.md` §1.4, §T3-920; spec R-43 | T3-908, T3-910 | CA-113 verde; tre prompt d'esempio nella PR; comandi del backend verdi | ☐ |
