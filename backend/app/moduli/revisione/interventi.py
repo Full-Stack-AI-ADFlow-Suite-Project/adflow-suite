@@ -11,7 +11,7 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from app.core.coda import RIGENERA_POST, accoda
+from app.core.coda import RIGENERA_IMMAGINE, RIGENERA_POST, accoda
 from app.core.errori import DatiNonValidi
 from app.core.orologio import ROMA
 from app.moduli.accesso import service as accesso
@@ -190,6 +190,33 @@ def rigenera(
         post_id=post_id,
         testo_proposto=proposto,
         nota=(nota or "").strip() or None,
+    )
+
+
+def rigenera_immagine(
+    db: Session,
+    post_id: int,
+    nota: str | None,
+    riscrivi_testo: bool,
+    nota_testo: str | None,
+    adesso: datetime,
+) -> None:
+    """Accende ``rigenera_immagine`` e accoda il job omonimo (R-49, R-31).
+
+    ``contenuti.accendi_rigenerazione_immagine()`` fa i controlli (R-16, R-31,
+    R-49 e, con ``riscrivi_testo``, R-03) prima di cambiare qualcosa: un 409
+    lascia i post com'è. Nota e nota del testo viaggiano negli argomenti del
+    job.
+    """
+    contenuti.accendi_rigenerazione_immagine(
+        db, post_id, riscrivi_testo, nota_testo, adesso
+    )
+    accoda(
+        RIGENERA_IMMAGINE,
+        post_id=post_id,
+        nota=(nota or "").strip() or None,
+        riscrivi_testo=riscrivi_testo,
+        nota_testo=(nota_testo or "").strip() or None,
     )
 
 

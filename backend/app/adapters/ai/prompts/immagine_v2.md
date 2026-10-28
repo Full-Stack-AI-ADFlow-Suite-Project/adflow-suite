@@ -5,3 +5,5 @@ Stagione: {stagione}.
 Tono: {tono}.
 Luce naturale, morbida, colori fedeli e caldi, senza effetti artificiali.
 Vincoli: nessun prodotto finito riconoscibile, nessuna persona riconoscibile, nessun testo, logo o marchio.
+Indicazione dell'operatore: {nota}.
+Non ripetere queste immagini già usate per la stessa uscita: {da_evitare}.

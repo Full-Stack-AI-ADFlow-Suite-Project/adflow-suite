@@ -25,6 +25,7 @@ from .schemas import (
     PostControllato,
     PostModifica,
     PostRigenera,
+    PostRigeneraImmagine,
     PostRiprogramma,
     PostSposta,
     VediCampagnaSchema,
@@ -197,6 +198,21 @@ def rigenera_post(
     """Accende l'intervento e accoda il job `rigenera_post` (R-03, R-31)."""
     interventi.rigenera(
         db, post_id, corpo.modalita, corpo.testo_proposto, corpo.nota, ora
+    )
+    return {"stato": "in_corso"}
+
+
+@router.post("/post/{post_id}/rigenera-immagine")
+def rigenera_immagine_post(
+    post_id: int,
+    corpo: PostRigeneraImmagine,
+    db: Annotated[Session, Depends(get_db)],
+    utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
+    ora: Annotated[datetime, Depends(adesso)],
+) -> dict[str, str]:
+    """Accende l'intervento e accoda il job `rigenera_immagine` (R-49, R-31)."""
+    interventi.rigenera_immagine(
+        db, post_id, corpo.nota, corpo.riscrivi_testo, corpo.nota_testo, ora
     )
     return {"stato": "in_corso"}
 

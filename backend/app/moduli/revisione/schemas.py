@@ -33,6 +33,20 @@ class PostRigenera(BaseModel):
     nota: str | None = None
 
 
+class PostRigeneraImmagine(BaseModel):
+    """Corpo di ``POST /post/{id}/rigenera-immagine`` (R-49, ADR-119).
+
+    ``nota`` è l'indicazione per l'immagine; con ``riscrivi_testo`` il job
+    riscrive anche il testo del post, con ``nota_testo`` e un ciclo di R-03.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    nota: str | None = Field(None, max_length=500)
+    riscrivi_testo: bool = False
+    nota_testo: str | None = Field(None, max_length=500)
+
+
 class PostRiprogramma(BaseModel):
     """Corpo di ``POST /post/{id}/riprogramma`` (R-34): la nuova data e ora."""
 

@@ -34,6 +34,10 @@ class EsitoImmagine:
 
     foto: Any | None = None
     errore: str | None = None
+    # Chi ha creato l'immagine: finiscono nella versione del post.
+    provider: str | None = None
+    modello: str | None = None
+    versione_prompt: str | None = None
 
 
 def con_dicitura(testo: str) -> str:
@@ -107,35 +111,102 @@ def immagine_del_post(
 
     ultimo: ErroreAI | None = None
     for semplice in (False, True):
+        prompt = prompt_immagine(snapshot, tema, giorno, semplice=semplice)
         try:
-            immagine = ai.genera_immagine(
-                prompt_immagine(snapshot, tema, giorno, semplice=semplice)
-            )
+            immagine = ai.genera_immagine(prompt)
         except ErroreAI as errore:
             if errore.tipo not in ("richiesta", "rifiuto"):
                 raise
             ultimo = errore
             continue
         service.registra_chiamata_ai(db, campagna.id, ai.ultimo_uso, post_id=post.id)
-        return EsitoImmagine(foto=_salva(db, campagna.id, immagine))
+        return EsitoImmagine(foto=_salva(db, campagna.id, immagine, prompt=prompt))
     return EsitoImmagine(errore=ultimo.messaggio if ultimo else "")
 
 
-def _salva(db: Session, campagna_id: int, immagine: Any) -> Any:
+def immagine_rigenerata(
+    db: Session,
+    campagna: Any,
+    ai: AIAdapter,
+    post: Post,
+    tema: str,
+    nota: str | None,
+    da_evitare: list[str],
+) -> EsitoImmagine:
+    """Una nuova immagine AI per l'uscita del post (R-49).
+
+    Come ``immagine_del_post``: un rifiuto del provider si riprova una volta
+    con il prompt semplice; due rifiuti lasciano il post senza immagine nuova
+    e chi chiama spegne l'intervento. Il prompt con cui è nata resta in
+    ``foto.analisi_ai``; la chiamata riuscita si registra subito in
+    ``chiamata_ai`` (R-44).
+    """
+    snapshot = campagna.profilo_snapshot
+    snapshot = snapshot if isinstance(snapshot, dict) else {}
+    giorno = post.data_ora.astimezone(ROMA).date()
+
+    ultimo: ErroreAI | None = None
+    for semplice in (False, True):
+        prompt = prompt_immagine(
+            snapshot,
+            tema,
+            giorno,
+            semplice=semplice,
+            nota=nota,
+            da_evitare=da_evitare,
+        )
+        try:
+            immagine = ai.genera_immagine(prompt)
+        except ErroreAI as errore:
+            if errore.tipo not in ("richiesta", "rifiuto"):
+                raise
+            ultimo = errore
+            continue
+        service.registra_chiamata_ai(db, campagna.id, ai.ultimo_uso, post_id=post.id)
+        return EsitoImmagine(
+            foto=_salva(db, campagna.id, immagine, prompt=prompt, nota=nota),
+            provider=immagine.provider,
+            modello=immagine.modello,
+            versione_prompt=immagine.versione_prompt,
+        )
+    return EsitoImmagine(errore=ultimo.messaggio if ultimo else "")
+
+
+def _salva(
+    db: Session,
+    campagna_id: int,
+    immagine: Any,
+    *,
+    prompt: str | None = None,
+    nota: str | None = None,
+) -> Any:
     """Il file nell'archivio e la foto `creata_ai`, senza gruppo.
 
     Se la foto non si crea, il file appena salvato si elimina. Se la transazione
     di chi chiama viene annullata più tardi, il file resta senza foto: è un file
-    orfano, innocuo.
+    orfano, innocuo. Con ``prompt`` la foto porta in ``analisi_ai`` il prompt con
+    cui è nata (R-49).
     """
     with Image.open(BytesIO(immagine.contenuto)) as aperta:
         larghezza, altezza = aperta.size
     archivio = ottieni_archivio()
     file = archivio.salva(immagine.contenuto, ESTENSIONI[immagine.mime])
     try:
-        return campagne.aggiungi_foto(
+        foto = campagne.aggiungi_foto(
             db, campagna_id, ORIGINE, file, immagine.mime, larghezza, altezza
         )
+        if prompt is not None:
+            campagne.aggiorna_foto(
+                db,
+                foto.id,
+                {
+                    "prompt": prompt,
+                    "versione_prompt": immagine.versione_prompt,
+                    "nota": nota,
+                },
+                foto.n_utilizzi or 0,
+            )
+        return foto
     except Exception:
         archivio.elimina(file)
         raise

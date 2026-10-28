@@ -126,6 +126,7 @@ def test_ogni_nome_accodabile_ha_il_suo_job():
         "genera_campagna",
         "tick_pubblicazione",
         "rigenera_post",
+        "rigenera_immagine",
         "invia_notifica",
     }
     assert modulo_coda._NOMI_JOB <= set(app.tasks)

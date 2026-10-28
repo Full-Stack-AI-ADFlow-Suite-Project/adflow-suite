@@ -529,6 +529,7 @@ def test_valori_di_dominio_nuovi_del_piano():
         "ritocco_foto",
         "scelta_foto",
         "cambio_foto",
+        "rigenera_immagine",
     }
     assert set(contenuti_domain.LIVELLI_VALIDATORE) == {"blocco", "avviso"}
     assert set(contenuti_domain.TIPI_ERRORE_GENERAZIONE) == {
@@ -542,6 +543,7 @@ def test_valori_di_dominio_nuovi_del_piano():
         "rigenera_totale",
         "rigenera_da_proposta",
         "ritocco_foto",
+        "rigenera_immagine",
     }
 
 

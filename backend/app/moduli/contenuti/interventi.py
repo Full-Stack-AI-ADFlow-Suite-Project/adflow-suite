@@ -18,8 +18,10 @@ from .domain import (
     IMMAGINE_AI,
     INTERVENTI,
     INTERVENTI_AMMESSI,
+    MAX_RIGENERAZIONI_IMMAGINE,
     MODIFICA,
     RIGENERA,
+    RIGENERA_IMMAGINE,
     SCHEDE_CANALE,
     STATI_CHE_USANO_LA_FOTO,
     TIPI_INTERVENTO_IN_CORSO,
@@ -31,7 +33,12 @@ from .generazione import (
     _gruppo_dell_uscita,
     _snapshot,
 )
-from .immagini_ai import IMMAGINE_NON_CREATA, con_dicitura, descrizione_immagine
+from .immagini_ai import (
+    IMMAGINE_NON_CREATA,
+    con_dicitura,
+    descrizione_immagine,
+    immagine_rigenerata,
+)
 from .models import Post, Uscita, VersionePost, VersionePostFoto
 from .service import (
     _azzera_spunta,
@@ -62,11 +69,13 @@ def interventi_ammessi(post: Post, stato_campagna: str, adesso: datetime) -> lis
     if post.stato == APPROVATO and post.data_ora < adesso + margine:
         return []
     if post.versione_corrente is None:
-        ammessi -= {MODIFICA, RIGENERA, CAMBIA_FOTO}
+        ammessi -= {MODIFICA, RIGENERA, RIGENERA_IMMAGINE, CAMBIA_FOTO}
     if post.riempitivo is not None:
         ammessi -= {CAMBIA_FOTO}
     if post.n_rigenerazioni_testo >= MAX_RIGENERAZIONI:
         ammessi -= {RIGENERA}
+    if _rigenerazioni_immagine(post) >= MAX_RIGENERAZIONI_IMMAGINE:
+        ammessi -= {RIGENERA_IMMAGINE}
     return [uno for uno in INTERVENTI if uno in ammessi]
 
 
@@ -102,6 +111,14 @@ def verifica_intervento(
             raise StatoNonValido(
                 "Le 3 rigenerazioni del testo sono finite: resta la modifica a mano."
             )
+        if (
+            intervento == RIGENERA_IMMAGINE
+            and _rigenerazioni_immagine(post) >= MAX_RIGENERAZIONI_IMMAGINE
+        ):
+            raise StatoNonValido(
+                "Questa immagine è già stata rigenerata 3 volte: scegli una foto "
+                "con Cambia immagine."
+            )
         if post.versione_corrente is None:
             raise StatoNonValido("Il post non ha ancora un testo.")
     raise StatoNonValido(
@@ -113,6 +130,236 @@ def verifica_intervento(
 def _foto_della_versione(post: Post) -> set[int]:
     corrente = post.versione_corrente
     return {legame.foto_id for legame in corrente.legami_foto} if corrente else set()
+
+
+def _rigenerazioni_immagine(post: Post) -> int:
+    """Quante versioni ``rigenera_immagine`` ha già il post (R-49)."""
+    return sum(1 for una in post.versioni if una.tipo_intervento == RIGENERA_IMMAGINE)
+
+
+def post_toccati_dall_immagine(db: Session, post: Post) -> list[Post]:
+    """I post che una rigenerazione dell'immagine tocca (R-49).
+
+    Se la foto della versione corrente è ``creata_ai`` l'immagine è dell'uscita
+    (R-28): valgono tutti i post ``da_approvare`` dell'uscita che usano quella
+    foto. Se è una foto vera, o il post non ne ha una (il blocco
+    ``immagine_non_creata``), vale solo quel post.
+    """
+    corrente = post.versione_corrente
+    if corrente is None or not corrente.legami_foto:
+        return [post]
+    foto_id = corrente.legami_foto[0].foto_id
+    foto = campagne.foto_per_id(db, [foto_id])
+    if not foto or foto[0].origine != "creata_ai":
+        return [post]
+    altri = db.scalars(
+        select(Post)
+        .where(Post.uscita_id == post.uscita_id, Post.stato == DA_APPROVARE)
+        .order_by(Post.id)
+    )
+    toccati = [
+        uno
+        for uno in altri
+        if uno.id == post.id
+        or (
+            uno.versione_corrente is not None
+            and any(
+                legame.foto_id == foto_id
+                for legame in uno.versione_corrente.legami_foto
+            )
+        )
+    ]
+    return toccati or [post]
+
+
+def _prompt_delle_immagini_gia_avute(db: Session, toccati: list[Post]) -> list[str]:
+    """I prompt delle immagini che l'uscita ha già avuto, da non ripetere (R-49)."""
+    ids = {
+        legame.foto_id
+        for uno in toccati
+        for versione in uno.versioni
+        for legame in versione.legami_foto
+    }
+    prompts: list[str] = []
+    for una in campagne.foto_per_id(db, sorted(ids)):
+        analisi = una.analisi_ai or {}
+        prompt = analisi.get("prompt")
+        if una.origine == "creata_ai" and isinstance(prompt, str):
+            prompt = " ".join(prompt.split())
+            if prompt and prompt not in prompts:
+                prompts.append(prompt)
+    return prompts
+
+
+def accendi_rigenerazione_immagine(
+    db: Session,
+    post_id: int,
+    riscrivi_testo: bool,
+    nota_testo: str | None,
+    adesso: datetime,
+) -> list[Post]:
+    """Controlla e accende ``rigenera_immagine`` sui post toccati (R-49, R-31).
+
+    Tutti i controlli vengono prima di cambiare qualcosa: un 409 lascia i post
+    come sono. Il limite di 3 vale per ogni post toccato; con ``riscrivi_testo``
+    serve anche un ciclo di R-03 rimasto.
+
+    Raises:
+        NonTrovato: il post non esiste.
+        StatoNonValido: intervento non ammesso, immagine già rigenerata 3 volte,
+            un intervento in corso o testo senza cicli (409).
+    """
+    record = _post(db, post_id)
+    verifica_intervento(db, record, RIGENERA_IMMAGINE, adesso)
+    toccati = post_toccati_dall_immagine(db, record)
+    for uno in toccati:
+        if _rigenerazioni_immagine(uno) >= MAX_RIGENERAZIONI_IMMAGINE:
+            raise StatoNonValido(
+                "Questa immagine è già stata rigenerata 3 volte: scegli una foto "
+                "con Cambia immagine."
+            )
+        if _intervento_attivo(uno, adesso):
+            raise StatoNonValido("Sul post c'è un intervento in corso.")
+    if riscrivi_testo:
+        for uno in toccati:
+            if uno.n_rigenerazioni_testo >= MAX_RIGENERAZIONI:
+                raise StatoNonValido(
+                    "Il testo di questo post non si può più rigenerare: modificalo a mano."
+                )
+    for uno in toccati:
+        uno.intervento_in_corso = RIGENERA_IMMAGINE
+        uno.intervento_dal = adesso
+    db.flush()
+    return toccati
+
+
+def spegni_rigenerazione_immagine(db: Session, post_id: int) -> None:
+    """Spegne ``rigenera_immagine`` sul post e sui post della sua uscita (R-31)."""
+    record = db.get(Post, post_id)
+    if record is None:
+        return
+    for uno in post_toccati_dall_immagine(db, record):
+        if uno.intervento_in_corso == RIGENERA_IMMAGINE:
+            uno.intervento_in_corso = None
+            uno.intervento_dal = None
+    db.flush()
+
+
+def rigenera_immagine(
+    db: Session,
+    post_id: int,
+    nota: str | None,
+    riscrivi_testo: bool,
+    nota_testo: str | None,
+    adesso: datetime,
+) -> list[VersionePost] | None:
+    """Una esecuzione di ``rigenera_immagine`` (R-49, CA-102, CA-103).
+
+    Non fa nulla (``None``) se la campagna non è ``in_revisione``, il post non è
+    ``da_approvare`` o non c'è l'intervento in corso. Crea una foto ``creata_ai``
+    con il prompt e la nota in ``analisi_ai`` e una versione
+    ``rigenera_immagine`` con lo stesso testo su ogni post toccato; la foto
+    vecchia resta (costituzione §1.2). Con ``riscrivi_testo`` segue, nello
+    stesso job, una versione ``rigenera_totale`` che conta un ciclo di R-03.
+    Due rifiuti del provider: nessuna versione e intervento spento.
+    """
+    record = db.get(Post, post_id)
+    if record is None or record.intervento_in_corso != RIGENERA_IMMAGINE:
+        return None
+    campagna = campagne.campagna(db, record.campagna_id)
+    if campagna.stato != "in_revisione" or record.stato != DA_APPROVARE:
+        return None
+
+    toccati = post_toccati_dall_immagine(db, record)
+    uscita = db.get(Uscita, record.uscita_id)
+    nota = (nota or "").strip() or None
+    esito = immagine_rigenerata(
+        db,
+        campagna,
+        ottieni_ai(),
+        record,
+        uscita.tema,
+        nota,
+        _prompt_delle_immagini_gia_avute(db, toccati),
+    )
+    if esito.foto is None:
+        for uno in toccati:
+            if uno.intervento_in_corso == RIGENERA_IMMAGINE:
+                uno.intervento_in_corso = None
+                uno.intervento_dal = None
+        db.flush()
+        return None
+
+    snapshot = _snapshot(campagna)
+    versioni: list[VersionePost] = []
+    for uno in toccati:
+        corrente = uno.versione_corrente
+        testo = corrente.testo
+        if uno.riempitivo != IMMAGINE_AI:
+            testo = con_dicitura(testo)
+        errori = [
+            dict(errore)
+            for errore in valida_testo(
+                testo, list(corrente.hashtag), uno.canale, snapshot
+            )
+        ]
+        nuova = VersionePost(
+            post_id=uno.id,
+            numero=corrente.numero + 1,
+            testo=testo,
+            hashtag=list(corrente.hashtag),
+            autore_id=None,
+            tipo_intervento=RIGENERA_IMMAGINE,
+            nota=nota,
+            provider_ai=esito.provider,
+            modello_ai=esito.modello,
+            versione_prompt=esito.versione_prompt,
+            errori_validazione=errori,
+        )
+        db.add(nuova)
+        db.flush()
+        if corrente.legami_foto:
+            for legame in corrente.legami_foto:
+                db.add(
+                    VersionePostFoto(
+                        versione_id=nuova.id,
+                        posizione=legame.posizione,
+                        foto_id=esito.foto.id,
+                    )
+                )
+        else:
+            # Il post non aveva una foto (blocco `immagine_non_creata`): ora ce l'ha.
+            db.add(
+                VersionePostFoto(
+                    versione_id=nuova.id, posizione=1, foto_id=esito.foto.id
+                )
+            )
+        uno.riempitivo = IMMAGINE_AI
+        uno.da_rivedere = any(errore["livello"] == BLOCCO for errore in errori)
+        uno.intervento_in_corso = None
+        uno.intervento_dal = None
+        _azzera_spunta(uno)
+        versioni.append(nuova)
+
+    campagne.aggiorna_foto(
+        db,
+        esito.foto.id,
+        esito.foto.analisi_ai,
+        (esito.foto.n_utilizzi or 0) + len(toccati),
+    )
+    db.flush()
+    for uno in toccati:
+        db.expire(uno, ["versioni"])
+
+    if riscrivi_testo:
+        for uno in toccati:
+            uno.intervento_in_corso = "rigenera_totale"
+            uno.intervento_dal = adesso
+        for uno in toccati:
+            scritta = rigenera(db, uno.id, None, nota_testo, adesso)
+            if scritta is not None:
+                versioni.append(scritta)
+    return versioni
 
 
 def foto_possibili(db: Session, post_id: int, adesso: datetime) -> list:

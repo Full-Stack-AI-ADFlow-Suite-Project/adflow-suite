@@ -32,6 +32,7 @@ TIPI_INTERVENTO = (
     "ritocco_foto",
     "scelta_foto",
     "cambio_foto",
+    "rigenera_immagine",
 )
 
 FORMATI_POST = ("singola", "carosello")
@@ -49,17 +50,33 @@ TIPI_ERRORE_GENERAZIONE = (
 )
 # Gli esiti di una chiamata all'AI: riuscita, oppure il tipo dell'errore (R-35, R-50).
 ESITI_CHIAMATA_AI = ("ok",) + TIPI_ERRORE_GENERAZIONE
-TIPI_INTERVENTO_IN_CORSO = ("rigenera_totale", "rigenera_da_proposta", "ritocco_foto")
+TIPI_INTERVENTO_IN_CORSO = (
+    "rigenera_totale",
+    "rigenera_da_proposta",
+    "ritocco_foto",
+    "rigenera_immagine",
+)
 STATI_CHIUSI = (PUBBLICATO, FALLITO, ANNULLATO, SCARTATO, SCADUTO)
 
-# Interventi dell'operatore sul singolo post (spec R-16, R-30, R-34, R-36).
+# Interventi dell'operatore sul singolo post (spec R-16, R-30, R-34, R-36, R-49).
 MODIFICA = "modifica"
 RIGENERA = "rigenera"
+RIGENERA_IMMAGINE = "rigenera_immagine"
 CAMBIA_FOTO = "cambia_foto"
 SPOSTA = "sposta"
 ANNULLA = "annulla"
 RIPROGRAMMA = "riprogramma"
-INTERVENTI = (MODIFICA, RIGENERA, CAMBIA_FOTO, SPOSTA, ANNULLA, RIPROGRAMMA)
+INTERVENTI = (
+    MODIFICA,
+    RIGENERA,
+    RIGENERA_IMMAGINE,
+    CAMBIA_FOTO,
+    SPOSTA,
+    ANNULLA,
+    RIPROGRAMMA,
+)
+# R-49: al massimo 3 rigenerazioni dell'immagine per post, contate a parte da R-03.
+MAX_RIGENERAZIONI_IMMAGINE = 3
 
 # (stato della campagna, stato del post) → interventi ammessi (spec R-16).
 # Sui post APPROVATO vale anche il margine: il post esce tra almeno
@@ -67,7 +84,7 @@ INTERVENTI = (MODIFICA, RIGENERA, CAMBIA_FOTO, SPOSTA, ANNULLA, RIPROGRAMMA)
 # Gli stati della campagna si scrivono per nome (plan §6).
 INTERVENTI_AMMESSI: dict[tuple[str, str], frozenset[str]] = {
     ("in_revisione", DA_APPROVARE): frozenset(
-        {MODIFICA, RIGENERA, CAMBIA_FOTO, SPOSTA}
+        {MODIFICA, RIGENERA, RIGENERA_IMMAGINE, CAMBIA_FOTO, SPOSTA}
     ),
     ("attiva", APPROVATO): frozenset({MODIFICA, CAMBIA_FOTO, SPOSTA, ANNULLA}),
     ("sospesa", APPROVATO): frozenset({MODIFICA, CAMBIA_FOTO, SPOSTA, ANNULLA}),
