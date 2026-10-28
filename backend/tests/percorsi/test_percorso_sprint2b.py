@@ -524,8 +524,9 @@ def test_percorso_completo_sprint2b(
     # =========================================================================
     # 4. Campagna B respinta: prove negative, poi motivo+nota+2 foto (CA-24,25)
     # =========================================================================
-    # Periodo libero: A (attiva) occupa INIZIO–UNA_SETTIMANA e le campagne non
-    # chiuse dello stesso artigiano non possono sovrapporsi (CA-12).
+    # Periodo libero: A (attiva) occupa INIZIO–UNA_SETTIMANA. Dall'ADR-119 le
+    # campagne della stessa bottega possono sovrapporsi (CA-12); qui si sceglie
+    # comunque un periodo diverso per non confondere i post delle due campagne.
     b_id, foto_b = _nuova_campagna(
         api,
         entra,

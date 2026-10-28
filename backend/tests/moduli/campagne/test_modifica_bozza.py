@@ -9,7 +9,7 @@ Verifica i criteri di accettazione:
 - Modifica con data di un gruppo che esce dal nuovo periodo (R-13) -> 422
 - Modifica campagna altrui o inesistente -> 404
 - Modifica con ruolo operatore o admin -> 403
-- Modifica sovrapposta ad altra campagna aperta dell'artigiano -> 409
+- Modifica sovrapposta ad altra campagna aperta dell'artigiano -> ammessa (ADR-119)
 """
 
 from datetime import date, timedelta
@@ -328,10 +328,10 @@ def test_modifica_ruolo_non_autorizzato_da_403(
     assert risposta.status_code == 403
 
 
-def test_modifica_sovrapposizione_con_altra_campagna_da_409(
+def test_modifica_sovrapposizione_con_altra_campagna_ammessa(
     client: TestClient, utente_di_prova, db: Session
 ):
-    """Modifica che crea sovrapposizione con un'altra campagna aperta dello stesso artigiano fallisce con 409."""
+    """Modificare la bozza fino a sovrapporsi a un'altra campagna aperta è ammesso (ADR-119)."""
     artigiano = utente_di_prova("artigiano")
     bottega = profilo(db, utente_id=artigiano.id, canali=["facebook"])
 
@@ -362,8 +362,8 @@ def test_modifica_sovrapposizione_con_altra_campagna_da_409(
     risposta = client.patch(
         f"/api/campagne/{c_bozza.id}", json={"fine": fine_sovrapposta.isoformat()}
     )
-    assert risposta.status_code == 409
-    assert "si sovrappone" in risposta.json()["detail"]
+    assert risposta.status_code == 200
+    assert c_bozza.fine == fine_sovrapposta
 
 
 def test_modifica_bozza_senza_profilo_da_404(

@@ -9,7 +9,7 @@ from app.core.config import leggi_impostazioni
 from app.core.errori import DatiNonValidi, NonTrovato, StatoNonValido
 from app.core.orologio import ROMA
 from app.moduli.artigiani import service as artigiani_service
-from .domain import BOZZA, STATI_CHIUSI
+from .domain import BOZZA
 from .models import Campagna, GruppoFoto
 from .schemas import CampagnaModifica
 
@@ -105,18 +105,8 @@ def modifica_bozza(
     if durata > 92:
         raise DatiNonValidi("La durata della campagna non può superare 92 giorni.")
 
-    # R-12, CA-12: campagne non chiuse non sovrapposte (esclusa la campagna corrente)
-    campagna_sovrapposta = db.scalar(
-        select(Campagna.id).where(
-            Campagna.profilo_id == profilo.id,
-            Campagna.stato.not_in(STATI_CHIUSI),
-            Campagna.id != campagna.id,
-            Campagna.inizio <= nuovo_fine,
-            Campagna.fine >= nuovo_inizio,
-        )
-    )
-    if campagna_sovrapposta is not None:
-        raise StatoNonValido("Il periodo si sovrappone a una campagna già esistente.")
+    # R-12, CA-12: il periodo può sovrapporsi a un'altra campagna della bottega;
+    # il dettaglio lo segnala con l'avviso `campagne_sovrapposte` (R-25, CA-100).
 
     # R-13, T2a-21: se la data di un gruppo esce dal nuovo periodo -> 422
     gruppi = list(

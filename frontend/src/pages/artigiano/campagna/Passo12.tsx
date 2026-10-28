@@ -41,6 +41,8 @@ function testoAvviso(avviso: string, daCreareConAI: number): string | null {
       return "I post senza una tua foto sono più di uno ogni due foto caricate: aggiungine qualcuna, se puoi.";
     case "frequenza_alta":
       return "Il ritmo è alto rispetto alle foto che hai dichiarato di poter fare: valuta se abbassarlo nel profilo.";
+    case "campagne_sovrapposte":
+      return "Nello stesso periodo hai già un'altra campagna: i post delle due campagne usciranno insieme sulla tua pagina.";
     default:
       return null;
   }
