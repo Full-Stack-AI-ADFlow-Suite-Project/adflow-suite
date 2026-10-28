@@ -39,7 +39,7 @@ from .service import (
     _post,
     registra_chiamata_ai,
 )
-from .validatore import BLOCCO, valida_testo
+from .validatore import BLOCCO, testo_salvabile, valida_testo
 
 # R-03: al massimo 3 rigenerazioni del testo per post (da zero e da proposta insieme).
 MAX_RIGENERAZIONI = 3
@@ -413,6 +413,12 @@ def rigenera(
             versioni_rifiutate=rifiutate,
             testo_proposto=proposto,
             nota=nota,
+        )
+        # Come in generazione: un carattere nullo nella risposta non si salva.
+        scritto = replace(
+            scritto,
+            testo=testo_salvabile(scritto.testo),
+            hashtag=[testo_salvabile(uno) for uno in scritto.hashtag],
         )
         registra_chiamata_ai(db, campagna.id, ai.ultimo_uso, post_id=record.id)
         scritto_dall_ai = scritto.testo

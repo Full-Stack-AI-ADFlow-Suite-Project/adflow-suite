@@ -18,6 +18,17 @@ from .domain import LIVELLI_VALIDATORE, SCHEDE_CANALE
 
 BLOCCO, AVVISO = LIVELLI_VALIDATORE
 
+
+def testo_salvabile(testo: str) -> str:
+    """Il testo come PostgreSQL lo può salvare: senza NUL né surrogati isolati.
+
+    L'AI può restituire un carattere nullo (0x00): una colonna ``text`` non lo
+    accetta e la tappa fallirebbe con un ``DataError`` (T3-906). Un surrogato
+    isolato non si codifica in UTF-8. Il resto del testo non cambia.
+    """
+    return testo.replace("\x00", "").encode("utf-8", "replace").decode("utf-8")
+
+
 TESTO_VUOTO = "testo_vuoto"
 LIMITE_CARATTERI = "limite_caratteri"
 LIMITE_HASHTAG = "limite_hashtag"
