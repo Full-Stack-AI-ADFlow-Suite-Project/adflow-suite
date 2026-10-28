@@ -89,6 +89,7 @@ def test_regole_sast_rilevano_pattern_pericolosi(sorgente: str, regola: str) -> 
 
 def _impostazioni_produzione(**extra) -> Impostazioni:
     return Impostazioni(
+        _env_file=None,
         database_url="postgresql+psycopg://app:pass@db/app",
         database_url_test="postgresql+psycopg://app:pass@db/app_test",
         ambiente="produzione",
