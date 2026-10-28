@@ -1,14 +1,13 @@
 /**
  * Le azioni dell'operatore sul singolo post (T2b-51, T3-64). I pulsanti nascono
  * solo da `post.interventi`, cioè da ciò che il server dice ammesso adesso
- * (R-16): modifica a mano, rigenera nelle due modalità, cambia foto, sposta,
+ * (R-16): modifica a mano, rigenera il testo, cambia foto, sposta,
  * annulla il post, riprogramma. Con un intervento in corso nessun altro
  * intervento (R-31); alla terza rigenerazione resta la modifica a mano (R-03).
  */
 import { Alert, Button, Group, Loader, Stack, Text } from "@mantine/core";
 import { useEffect, useState } from "react";
 
-import type { ModalitaRigenerazione } from "../../../../api/interventi";
 import type { PostVista } from "../../../../api/revisione";
 import { dataOra } from "../../campagna/util";
 import { RiprogrammaPost } from "../decisioni/RiprogrammaPost";
@@ -31,8 +30,7 @@ type Finestra =
   | "cambia_foto"
   | "sposta"
   | "annulla"
-  | "rigenera_totale"
-  | "rigenera_da_proposta"
+  | "rigenera"
   | null;
 
 export function AzioniPost({
@@ -79,11 +77,7 @@ export function AzioniPost({
           <Group gap="xs" wrap="nowrap">
             <Loader size="xs" color="yellow" />
             <Text size="sm">
-              Rigenerazione{" "}
-              {post.intervento_in_corso === "rigenera_da_proposta"
-                ? "da testo proposto"
-                : "da zero"}{" "}
-              in corso
+              Rigenerazione del testo in corso
               {post.intervento_dal
                 ? ` dalle ${dataOra(post.intervento_dal)}`
                 : ""}
@@ -114,22 +108,13 @@ export function AzioniPost({
             </Button>
           )}
           {ammessi.includes("rigenera") && (
-            <>
-              <Button
-                size="xs"
-                variant="light"
-                onClick={() => setFinestra("rigenera_totale")}
-              >
-                Rigenera da zero
-              </Button>
-              <Button
-                size="xs"
-                variant="light"
-                onClick={() => setFinestra("rigenera_da_proposta")}
-              >
-                Rigenera da testo proposto
-              </Button>
-            </>
+            <Button
+              size="xs"
+              variant="light"
+              onClick={() => setFinestra("rigenera")}
+            >
+              Rigenera testo
+            </Button>
           )}
           {ammessi.includes("cambia_foto") && (
             <Button
@@ -192,18 +177,8 @@ export function AzioniPost({
           fatto={dopoIntervento}
         />
       )}
-      {(finestra === "rigenera_totale" ||
-        finestra === "rigenera_da_proposta") && (
-        <Rigenera
-          post={post}
-          modalita={
-            (finestra === "rigenera_totale"
-              ? "totale"
-              : "da_proposta") satisfies ModalitaRigenerazione
-          }
-          chiudi={chiudi}
-          fatto={dopoIntervento}
-        />
+      {finestra === "rigenera" && (
+        <Rigenera post={post} chiudi={chiudi} fatto={dopoIntervento} />
       )}
       {finestra === "cambia_foto" && (
         <CambiaFoto
