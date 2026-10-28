@@ -970,3 +970,45 @@ def test_ca107_altri_post_porta_le_prime_frasi_dei_testi_gia_scritti(db, ai):
     assert len(ultimo) == len(chiamate) - 1
     assert all(len(frase) <= 120 for frase in ultimo)
     assert all("Il resto non conta" not in frase for frase in ultimo)
+
+
+def test_ca108_ogni_foto_idonea_ha_il_riquadro_del_soggetto(db, ai):
+    campagna = _campagna(db)
+
+    _job(campagna.id)
+
+    caricate = [
+        f
+        for f in campagne.foto_della_campagna(db, campagna.id)
+        if f.origine == "caricata"
+    ]
+    assert caricate
+    for foto in caricate:
+        assert foto.analisi_ai["soggetto_box"] == {
+            "x": 0.25,
+            "y": 0.25,
+            "larghezza": 0.5,
+            "altezza": 0.5,
+        }
+
+
+@pytest.mark.parametrize(
+    "riquadro",
+    [{"x": 0.6, "y": 0.0, "larghezza": 0.6, "altezza": 0.5}, "centro", {"x": 0.1}],
+)
+def test_ca108_un_riquadro_fuori_da_0_1_o_malformato_vale_none_senza_errore(
+    db, ai, riquadro
+):
+    campagna = _campagna(db)
+    for foto_id in _foto_ids(db, campagna):
+        ai.comanda_analisi(foto_id, soggetto_box=riquadro)
+
+    _job(campagna.id)
+
+    assert campagna.stato == "in_revisione"
+    caricate = [
+        f
+        for f in campagne.foto_della_campagna(db, campagna.id)
+        if f.origine == "caricata"
+    ]
+    assert all(f.analisi_ai["soggetto_box"] is None for f in caricate)

@@ -184,6 +184,13 @@ class AIFinto(AIAdapter):
                 "motivo": None,
                 "soggetto": gruppo.descrizione or "Foto della bottega",
                 "descrizione": gruppo.descrizione or "Foto della bottega",
+                # Un riquadro al centro, metà della foto.
+                "soggetto_box": {
+                    "x": 0.25,
+                    "y": 0.25,
+                    "larghezza": 0.5,
+                    "altezza": 0.5,
+                },
             }
             analisi.update(self._analisi.get(foto.id, {}))
             risultato[foto.id] = analisi

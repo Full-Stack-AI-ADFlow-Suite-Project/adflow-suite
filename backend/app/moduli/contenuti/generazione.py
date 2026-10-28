@@ -37,6 +37,7 @@ from app.adapters.ai import (
     PostAI,
     ottieni_ai,
 )
+from app.adapters.ai.schemi import riquadro_valido
 from app.core.config import leggi_impostazioni
 from app.core.orologio import adesso as ora_di_adesso
 from app.moduli.artigiani import service as artigiani
@@ -88,6 +89,7 @@ _CAMPI_ANALISI = (
     "motivo",
     "soggetto",
     "descrizione",
+    "soggetto_box",
     "persone_riconoscibili",
     "marchi_visibili",
 )
@@ -260,6 +262,10 @@ def _analizza(
                         ANALISI,
                     )
                 risultati[foto.id] = {c: analisi.get(c) for c in _CAMPI_ANALISI}
+                # Un riquadro fuori da 0–1 o malformato vale None (CA-108).
+                risultati[foto.id]["soggetto_box"] = riquadro_valido(
+                    analisi.get("soggetto_box")
+                )
             break
 
     for foto in senza_analisi:
