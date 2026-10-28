@@ -5,7 +5,7 @@ Verifica i criteri di accettazione:
 - CA-09: inizio < oggi + 3 giorni -> 422
 - CA-10: durata > 92 giorni, < 7 giorni o fine <= inizio -> 422
 - CA-11: bozza esistente per lo stesso artigiano -> 409
-- CA-12: periodo sovrapposto con campagna attiva/in corso -> 409; se respinta o scaduta -> ok
+- CA-12: periodo sovrapposto a una campagna attiva/in corso -> creazione, modifica e invio ammessi (ADR-119)
 - CA-48: canali non collegati alla creazione bozza -> 422
 - CA-54: dettaglio bozza con avvisi informativi (foto_poche, riempitivi_molti, frequenza_alta)
 - Elenco con due stati insieme (filtro ripetibile ?stato=) e bottega/citta per l'operatore
@@ -171,10 +171,10 @@ def test_ca11_bozza_esistente_nuova_bozza_da_409(
     assert "Esiste già una campagna in bozza" in risposta2.json()["detail"]
 
 
-def test_ca12_periodo_sovrapposto_campagna_attiva_da_409(
+def test_ca12_periodo_sovrapposto_campagna_attiva_ammesso(
     client: TestClient, utente_di_prova, db: Session
 ):
-    """CA-12: Campagna attiva sovrapposta dà 409; se respinta o scaduta -> ok."""
+    """CA-12: il periodo sovrapposto non blocca creazione, modifica e invio (ADR-119)."""
     u = utente_di_prova("artigiano")
     p = profilo(db, utente_id=u.id, canali=["instagram"])
 
@@ -182,7 +182,7 @@ def test_ca12_periodo_sovrapposto_campagna_attiva_da_409(
     inizio_esistente = oggi + timedelta(days=10)
     fine_esistente = inizio_esistente + timedelta(days=20)
 
-    c_attiva = campagna_in_bozza(
+    campagna_in_bozza(
         db,
         profilo_id=p.id,
         titolo="Campagna già attiva",
@@ -203,25 +203,27 @@ def test_ca12_periodo_sovrapposto_campagna_attiva_da_409(
             "canali": ["instagram"],
         },
     )
-    assert risposta_sovrapposta.status_code == 409
-    assert (
-        "sovrappone a una campagna già esistente"
-        in risposta_sovrapposta.json()["detail"]
-    )
+    assert risposta_sovrapposta.status_code == 201
 
-    c_attiva.stato = domain.RESPINTA
-    db.flush()
-
-    risposta_dopo_respinta = client.post(
+    # CA-11: resta una sola bozza per artigiano.
+    risposta_seconda_bozza = client.post(
         "/api/campagne",
         json={
-            "titolo": "Bozza valida dopo respinta",
+            "titolo": "Seconda bozza",
             "inizio": inizio_nuova.isoformat(),
             "fine": fine_nuova.isoformat(),
             "canali": ["instagram"],
         },
     )
-    assert risposta_dopo_respinta.status_code == 201
+    assert risposta_seconda_bozza.status_code == 409
+    assert "Esiste già una campagna in bozza" in risposta_seconda_bozza.json()["detail"]
+
+    # L'invio non ricontrolla la sovrapposizione.
+    invio = client.post(
+        f"/api/campagne/{risposta_sovrapposta.json()['id']}/invia",
+        json={"dichiarazione": True},
+    )
+    assert invio.status_code == 200
 
 
 def test_ca48_creazione_canale_non_collegato_da_422(

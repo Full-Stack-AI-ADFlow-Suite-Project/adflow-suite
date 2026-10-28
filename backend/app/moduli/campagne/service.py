@@ -574,8 +574,8 @@ def crea_bozza(
 ) -> Campagna:
     """Crea una nuova campagna nello stato bozza per l'artigiano autenticato.
 
-    Verifica le regole di pianificazione R-08, i vincoli di unicità R-12 e la presenza
-    dei canali collegati R-22 (CA-09, CA-10, CA-11, CA-12, CA-48).
+    Verifica le regole di pianificazione R-08, l'unicità della bozza R-12 e la
+    presenza dei canali collegati R-22 (CA-09, CA-10, CA-11, CA-12, CA-48).
     """
     profilo = artigiani_service.profilo_di(db, utente_id)
     if profilo is None:
@@ -627,17 +627,8 @@ def crea_bozza(
     if bozza_aperta is not None:
         raise StatoNonValido("Esiste già una campagna in bozza per questo artigiano.")
 
-    # R-12, CA-12: campagne non chiuse non sovrapposte
-    campagna_sovrapposta = db.scalar(
-        select(Campagna.id).where(
-            Campagna.profilo_id == profilo.id,
-            Campagna.stato.not_in(STATI_CHIUSI),
-            Campagna.inizio <= dati.fine,
-            Campagna.fine >= dati.inizio,
-        )
-    )
-    if campagna_sovrapposta is not None:
-        raise StatoNonValido("Il periodo si sovrappone a una campagna già esistente.")
+    # R-12, CA-12: il periodo può sovrapporsi a un'altra campagna della bottega;
+    # il dettaglio lo segnala con l'avviso `campagne_sovrapposte` (R-25, CA-100).
 
     nuova = Campagna(
         profilo_id=profilo.id,
@@ -839,6 +830,20 @@ def dettaglio_campagna(
             if (post_sett * 4) > limite:
                 if "frequenza_alta" not in avvisi:
                     avvisi.append("frequenza_alta")
+
+    # R-12, R-25, CA-100: un'altra campagna della stessa bottega, non in bozza e
+    # non chiusa, con un periodo che si sovrappone.
+    altra_sovrapposta = db.scalar(
+        select(Campagna.id).where(
+            Campagna.profilo_id == rec.profilo_id,
+            Campagna.id != rec.id,
+            Campagna.stato.not_in((BOZZA,) + STATI_CHIUSI),
+            Campagna.inizio <= rec.fine,
+            Campagna.fine >= rec.inizio,
+        )
+    )
+    if altra_sovrapposta is not None:
+        avvisi.append("campagne_sovrapposte")
 
     snapshot = None
     decisioni = []
