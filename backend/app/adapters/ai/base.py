@@ -197,6 +197,7 @@ class AIAdapter(ABC):
         schede: Mapping[str, Mapping[str, Any]],
         *,
         non_prima_di: datetime,
+        orari_occupati: Sequence[Mapping[str, Any]] = (),
         piano_precedente: Mapping[str, Any] | None = None,
         violazioni: Sequence[Mapping[str, Any]] | None = None,
     ) -> PianoAI:
@@ -216,6 +217,10 @@ class AIAdapter(ABC):
                 resta vuoto.
             schede: la scheda di ogni canale (R-21).
             non_prima_di: nessun post può uscire prima di questo momento (R-08).
+            orari_occupati: i post già in programma delle altre campagne della
+                bottega che cadono nel periodo (``{"canale", "data_ora"}``):
+                il piano non mette un post nella stessa ora dello stesso
+                canale (R-12, T3-922). Il controllo non lo verifica.
             piano_precedente, violazioni: nelle riscritture, il piano che non
                 ha passato il controllo e le regole che non rispettava (R-09).
         """

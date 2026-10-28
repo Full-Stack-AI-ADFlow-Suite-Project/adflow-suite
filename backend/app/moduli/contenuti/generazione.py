@@ -39,13 +39,14 @@ from app.adapters.ai import (
 )
 from app.adapters.ai.schemi import riquadro_valido
 from app.core.config import leggi_impostazioni
+from app.core.orologio import ROMA
 from app.core.orologio import adesso as ora_di_adesso
 from app.moduli.artigiani import service as artigiani
 from app.moduli.campagne import service as campagne
 from app.moduli.notifiche import service as notifiche
 
 from . import service
-from .domain import DA_APPROVARE, IMMAGINE_AI, SCHEDE_CANALE
+from .domain import APPROVATO, DA_APPROVARE, IMMAGINE_AI, SCHEDE_CANALE
 from .immagini_ai import (
     blocco_immagine_non_creata,
     con_dicitura,
@@ -314,6 +315,28 @@ def _snapshot(campagna: Any) -> dict[str, Any]:
     return fotografia if isinstance(fotografia, dict) else {}
 
 
+def orari_occupati(db: Session, campagna: Any) -> list[dict[str, str]]:
+    """I post già in programma nelle altre campagne della bottega (R-12, T3-922).
+
+    Sono i post ``da_approvare`` e ``approvato`` delle altre campagne della
+    stessa bottega che cadono nel periodo. I post delle campagne chiuse non
+    sono in questi stati, quindi non entrano. L'elenco va all'AI perché non
+    metta un post nella stessa ora dello stesso canale; il controllo del piano
+    non lo verifica.
+    """
+    orari: list[dict[str, str]] = []
+    for altra in campagne.campagne_di(db, campagna.profilo_id):
+        if altra.id == campagna.id:
+            continue
+        for post in service.post_della_campagna(db, altra.id):
+            if post.stato not in (DA_APPROVARE, APPROVATO):
+                continue
+            quando = post.data_ora.astimezone(ROMA)
+            if campagna.inizio <= quando.date() <= campagna.fine:
+                orari.append({"canale": post.canale, "data_ora": quando.isoformat()})
+    return sorted(orari, key=lambda voce: (voce["data_ora"], voce["canale"]))
+
+
 def _gruppi_preselezionati_ai(
     gruppi: list[Any], limiti: dict[str, Any]
 ) -> list[GruppoAI]:
@@ -339,7 +362,8 @@ def _pianifica(db: Session, campagna: Any, adesso: datetime) -> None:
     All'AI vanno solo le foto migliori per punteggio, fino ai post chiesti; i
     post che quelle foto non coprono hanno un'immagine AI (R-05, R-28). Un
     piano che non passa il controllo si fa riscrivere, al massimo 3 volte:
-    dopo vale come errore `risposta` (R-09).
+    dopo vale come errore `risposta` (R-09). La `scena` di ogni uscita con
+    immagine AI (T3-910) resta dentro `piano.contenuto`, com'è uscita.
     """
     gruppi = _caricate(db, campagna.id)
     limiti = limiti_per_canale(
@@ -351,6 +375,7 @@ def _pianifica(db: Session, campagna: Any, adesso: datetime) -> None:
     )
     margine = leggi_impostazioni().margine_slot_minuti
     gruppi_ai = _gruppi_preselezionati_ai(gruppi, limiti)
+    occupati = orari_occupati(db, campagna)
 
     with _nella_tappa(PIANO):
         ai = ottieni_ai()
@@ -364,6 +389,7 @@ def _pianifica(db: Session, campagna: Any, adesso: datetime) -> None:
                     limiti,
                     SCHEDE_CANALE,
                     non_prima_di=adesso + timedelta(minutes=margine),
+                    orari_occupati=occupati,
                     piano_precedente=precedente,
                     violazioni=violazioni,
                 )
@@ -501,7 +527,7 @@ def _scrivi(
         # Un'immagine AI non è analizzata: all'AI va che cosa le è stato chiesto di mostrare.
         foto=[] if post.riempitivo == IMMAGINE_AI else [_foto_ai(una) for una in foto],
         immagine_ai=(
-            descrizione_immagine(campagna, post, uscita.tema)
+            descrizione_immagine(db, campagna, post, uscita.tema)
             if post.riempitivo == IMMAGINE_AI and foto
             else None
         ),

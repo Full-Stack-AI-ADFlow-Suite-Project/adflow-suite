@@ -101,7 +101,7 @@ _FILTRO = ("content_policy", "moderation_blocked", "safety system")
 
 @lru_cache
 def _prompt(nome: str) -> str:
-    """Il testo di ``prompts/<nome>.md``; il nome porta la versione (``piano_v2``)."""
+    """Il testo di ``prompts/<nome>.md``; il nome porta la versione (``piano_v3``)."""
     return (CARTELLA_PROMPT / f"{nome}.md").read_text(encoding="utf-8")
 
 
@@ -479,6 +479,7 @@ class AILiteLLM(AIAdapter):
         schede: Mapping[str, Mapping[str, Any]],
         *,
         non_prima_di: datetime,
+        orari_occupati: Sequence[Mapping[str, Any]] = (),
         piano_precedente: Mapping[str, Any] | None = None,
         violazioni: Sequence[Mapping[str, Any]] | None = None,
     ) -> PianoAI:
@@ -497,6 +498,7 @@ class AILiteLLM(AIAdapter):
                 "obiettivo": campagna.obiettivo,
             },
             "non_prima_di": non_prima_di,
+            "orari_occupati": [dict(uno) for uno in orari_occupati],
             "canali": {
                 canale: {
                     "post_chiesti": limite["post_chiesti"],
@@ -528,7 +530,7 @@ class AILiteLLM(AIAdapter):
             "piano",
             self._modello_testo,
             [
-                {"role": "system", "content": _prompt("piano_v2")},
+                {"role": "system", "content": _prompt("piano_v3")},
                 {"role": "user", "content": _json(richiesta)},
             ],
             RispostaPiano,
@@ -538,7 +540,7 @@ class AILiteLLM(AIAdapter):
             contenuto=risposta.model_dump(),
             provider=PROVIDER,
             modello=self._modello_testo,
-            versione_prompt="piano_v2",
+            versione_prompt="piano_v3",
         )
 
     def genera_post(

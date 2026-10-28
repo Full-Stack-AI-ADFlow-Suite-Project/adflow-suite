@@ -149,7 +149,7 @@ Ogni task ha in `brief-richieste.md` i file da toccare, le firme, i messaggi d'e
 | T3-907 | **Migrazione 013**: `chiamata_ai` estesa e `valutazione_ai`, modelli e fabbriche | `brief-richieste.md` §1.3, §T3-907; plan §2 | T3-900 | upgrade e downgrade provati; comandi del backend verdi | ☑ |
 | T3-908 | **Rigenera immagine, backend**: intervento, rotta e job; anche sui post con l'immagine non creata | `brief-richieste.md` §1.2, §T3-908; spec R-16, R-31, R-43, R-49 | T3-900 | CA-102, CA-103 verdi; CA-71 ancora verde; comandi del backend verdi | ☑ |
 | T3-909 | **Cambia foto da gruppo, campagna e archivio, backend**: anche sui post con immagine AI, dicitura, riscrivi il testo | `brief-richieste.md` §1.2, §T3-909; spec R-27, R-36 | T3-900 | CA-71, CA-104, CA-105 verdi; comandi del backend verdi | ☑ |
-| T3-910 | **Prompt del piano v3**: la scena delle immagini AI, nessun numero di immagini AI imposto | `brief-richieste.md` §1.4, §T3-910; spec R-28, R-43 | T3-900 | CA-106 verde; comandi del backend verdi | ☐ |
+| T3-910 | **Prompt del piano v3**: la scena delle immagini AI, nessun numero di immagini AI imposto | `brief-richieste.md` §1.4, §T3-910; spec R-28, R-43 | T3-900 | CA-106 verde; comandi del backend verdi | ☑ |
 | T3-911 | **Prompt dei testi v3**: gli attacchi degli altri post, per non ripetersi | `brief-richieste.md` §1.4, §T3-911 | T3-900 | CA-107 verde; comandi del backend verdi | ☑ |
 | T3-912 | **Proporzioni vere**: da 4:5 a 1,91:1 senza taglio | `brief-richieste.md` §1.5, §T3-912; spec R-21, R-42 | T3-900 | CA-81 verde; comandi del backend verdi | ☑ |
 | T3-913 | **Analisi v3**: il riquadro del soggetto di ogni foto | `brief-richieste.md` §1.4, §T3-913; spec R-42 | T3-900 | CA-108 verde; comandi del backend verdi | ☑ |
@@ -159,9 +159,9 @@ Ogni task ha in `brief-richieste.md` i file da toccare, le firme, i messaggi d'e
 | T3-917 | **Storico AI, letture**: elenco, dettaglio e numeri | `brief-richieste.md` §1.3, §T3-917; spec R-50 | T3-907 | CA-110, CA-111 verdi; comandi del backend verdi | ☑ |
 | T3-918 | **Voto sulle risposte dell'AI**, backend | `brief-richieste.md` §1.3, §T3-918; spec R-50 | T3-907 | CA-112 verde; comandi del backend verdi | ☑ |
 | T3-919 | **Cambia immagine, frontend**: le foto del gruppo, della campagna e dell'archivio | `brief-richieste.md` §1.2, §1.7, §T3-919 | T3-904 | build e lint puliti; dati di esempio finché T3-909 non è su `main`, poi API vere; screenshot | ☑ |
-| T3-920 | **Prompt delle immagini v3**: scena, bottega, campagna e stile delle foto vere | `brief-richieste.md` §1.4, §T3-920; spec R-43 | T3-908, T3-910 | CA-113 verde; tre prompt d'esempio nella PR; comandi del backend verdi | ☐ |
+| T3-920 | **Prompt delle immagini v3**: scena, bottega, campagna e stile delle foto vere | `brief-richieste.md` §1.4, §T3-920; spec R-43 | T3-908, T3-910 | CA-113 verde; tre prompt d'esempio nella PR; comandi del backend verdi | ☑ |
 | T3-921 | **Ritaglio sul soggetto e bordi sfocati** | `brief-richieste.md` §1.5, §T3-921; spec R-42 | T3-912 | CA-114 verde; CA-81 ancora verde; prima e dopo nella PR; comandi del backend verdi | ☑ |
-| T3-922 | **Orari occupati nel piano**: i post delle altre campagne della bottega | `brief-richieste.md` §1.4, §1.6, §T3-922 | T3-905, T3-910 | CA-115 verde; comandi del backend verdi | ☐ |
+| T3-922 | **Orari occupati nel piano**: i post delle altre campagne della bottega | `brief-richieste.md` §1.4, §1.6, §T3-922 | T3-905, T3-910 | CA-115 verde; comandi del backend verdi | ☑ |
 | T3-923 | **Rifai il post e Rigenera immagine, frontend** | `brief-richieste.md` §1.2, §1.7, §T3-923 | T3-919 | build e lint puliti; dati di esempio finché T3-908 e T3-909 non sono su `main`, poi API vere; screenshot | ☑ |
 | T3-924 | **Storico AI, numeri e voto** nella pagina | `brief-richieste.md` §1.3, §T3-924 | T3-914 | build e lint puliti; dati di esempio finché T3-917 e T3-918 non sono su `main`, poi API vere; screenshot | ☑ |
 | T3-925 | **Prova dei prompt v3** su una campagna del seed, confronto con v2 e voto | `brief-richieste.md` §T3-925 | T3-910, T3-911, T3-916, T3-920 | tabella e immagini a confronto nella PR | ☐ |

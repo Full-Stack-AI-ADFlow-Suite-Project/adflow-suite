@@ -1012,3 +1012,127 @@ def test_ca108_un_riquadro_fuori_da_0_1_o_malformato_vale_none_senza_errore(
         if f.origine == "caricata"
     ]
     assert all(f.analisi_ai["soggetto_box"] is None for f in caricate)
+
+
+def test_ca106_ogni_uscita_con_immagine_ai_ha_la_sua_scena(db, ai):
+    """CA-106: il piano dà una scena valida a ogni uscita con immagine AI."""
+    from app.adapters.ai.schemi import INQUADRATURE
+    from app.moduli.contenuti.immagini_ai import scena_dell_uscita
+
+    campagna = _campagna(db, n_foto=4)
+    _job(campagna.id)
+
+    contenuto = piano_corrente(db, campagna.id).contenuto
+    con_immagine = [
+        uscita
+        for uscita in contenuto["uscite"]
+        if any(post["riempitivo"] == "immagine_ai" for post in uscita["post"])
+    ]
+    assert con_immagine
+
+    inquadrature = []
+    for uscita in con_immagine:
+        scena = uscita["scena"]
+        assert isinstance(scena, dict)
+        assert scena["soggetto"].strip()
+        assert scena["inquadratura"] in INQUADRATURE
+        assert scena["luce"].strip() and scena["colori"].strip()
+        inquadrature.append(scena["inquadratura"])
+
+    # Due uscite vicine non hanno la stessa inquadratura.
+    assert all(prima != dopo for prima, dopo in zip(inquadrature, inquadrature[1:]))
+
+    # Le uscite senza immagini AI hanno `scena`: null.
+    numeri_con_immagine = {uscita["numero"] for uscita in con_immagine}
+    for uscita in contenuto["uscite"]:
+        if uscita["numero"] not in numeri_con_immagine:
+            assert uscita["scena"] is None
+
+    # `scena_dell_uscita()` la legge dal piano corrente.
+    numero = con_immagine[0]["numero"]
+    uscita = next(
+        una for una in uscite_della_campagna(db, campagna.id) if una.numero == numero
+    )
+    assert scena_dell_uscita(db, uscita) == con_immagine[0]["scena"]
+
+
+def test_ca115_orari_occupati_delle_altre_campagne(db):
+    """CA-115, parte del calcolo: solo i post vivi, nel periodo, delle altre campagne."""
+    from app.core.orologio import ROMA
+    from app.moduli.contenuti.generazione import orari_occupati
+    from tests.moduli.campagne.fabbrica import campagna_attiva
+    from tests.moduli.contenuti.fabbrica import post_approvato
+
+    bottega = profilo(db, canali=DUE_CANALI, frequenza="f3_4")
+    attiva = campagna_attiva(db, profilo_id=bottega.id, inizio=INIZIO, fine=FINE)
+    dentro = post_approvato(
+        db,
+        campagna_id=attiva.id,
+        canale="facebook",
+        data_ora=datetime(2030, 1, 8, 10, tzinfo=ROMA),
+    )
+    post_approvato(
+        db,
+        campagna_id=attiva.id,
+        canale="facebook",
+        data_ora=datetime(2030, 2, 8, 10, tzinfo=ROMA),
+    )
+    post_approvato(
+        db,
+        campagna_id=attiva.id,
+        canale="instagram",
+        stato="scartato",
+        data_ora=datetime(2030, 1, 8, 10, tzinfo=ROMA),
+    )
+    nuova = campagna_inviata(db, profilo_id=bottega.id, inizio=INIZIO, fine=FINE)
+    post_approvato(
+        db,
+        campagna_id=nuova.id,
+        canale="facebook",
+        data_ora=datetime(2030, 1, 9, 10, tzinfo=ROMA),
+    )
+
+    assert orari_occupati(db, nuova) == [
+        {
+            "canale": "facebook",
+            "data_ora": dentro.data_ora.astimezone(ROMA).isoformat(),
+        }
+    ]
+
+
+def test_ca115_il_finto_non_mette_un_post_nella_stessa_ora_occupata(db, ai):
+    """CA-115: gli orari arrivano all'AI e il finto sposta il post che collide."""
+    from app.core.orologio import ROMA
+    from tests.moduli.campagne.fabbrica import campagna_attiva
+    from tests.moduli.contenuti.fabbrica import post_approvato
+
+    bottega = profilo(db, canali=DUE_CANALI, frequenza="f3_4")
+    attiva = campagna_attiva(db, profilo_id=bottega.id, inizio=INIZIO, fine=FINE)
+    occupato = post_approvato(
+        db,
+        campagna_id=attiva.id,
+        canale="instagram",
+        data_ora=datetime(2030, 1, 8, 10, tzinfo=ROMA),
+    )
+    nuova = campagna_inviata(db, profilo_id=bottega.id, inizio=INIZIO, fine=FINE)
+    db.commit()
+
+    _job(nuova.id)
+
+    chiamata = [
+        una for una in ai.chiamate if una["operazione"] == "pianifica_campagna"
+    ][-1]
+    atteso = {
+        "canale": "instagram",
+        "data_ora": occupato.data_ora.astimezone(ROMA).isoformat(),
+    }
+    assert chiamata["orari_occupati"] == [atteso]
+
+    quando_occupato = occupato.data_ora.astimezone(ROMA)
+    for post in post_della_campagna(db, nuova.id):
+        quando = post.data_ora.astimezone(ROMA)
+        assert not (
+            post.canale == "instagram"
+            and quando.date() == quando_occupato.date()
+            and quando.hour == quando_occupato.hour
+        )

@@ -25,10 +25,47 @@ from .base import (
     ImmagineAI,
     UsoAI,
 )
+from .schemi import INQUADRATURE
 
 PROVIDER = "finto"
 MODELLO = "finto"
 VERSIONE_PROMPT = "finto-1"
+
+# La scena di un'uscita con immagine AI (T3-910): concreta e fotografabile,
+# una per inquadratura. Il finto le gira in ordine, così due uscite vicine
+# non hanno mai la stessa inquadratura.
+SCENE_DEL_FINTO: dict[str, tuple[str, str, str]] = {
+    "dettaglio_materia": (
+        "la materia prima sul banco, vista da vicino",
+        "luce morbida del mattino",
+        "terra, ocra e grigio",
+    ),
+    "banco_dall_alto": (
+        "il banco di lavoro visto dall'alto, con gli attrezzi in ordine",
+        "luce chiara e uniforme",
+        "legno, ferro e bianco",
+    ),
+    "attrezzi_still_life": (
+        "gli attrezzi della bottega appoggiati sul tavolo",
+        "luce laterale del pomeriggio",
+        "ferro scuro e legno caldo",
+    ),
+    "bottega_campo_largo": (
+        "l'interno della bottega con il banco e le mensole",
+        "luce naturale dalle finestre",
+        "legno, terra e verde",
+    ),
+    "materie_prime": (
+        "i sacchi di materia prima accanto al piano di lavoro",
+        "luce soffusa del mattino",
+        "beige, ruggine e grigio",
+    ),
+    "atmosfera_stagione": (
+        "la luce della stagione sulla parete della bottega",
+        "luce calda che entra da una porta aperta",
+        "ambra, rame e ombre morbide",
+    ),
+}
 
 OPERAZIONI = ("analizza_gruppo", "pianifica_campagna", "genera_post", "genera_immagine")
 ORA_DI_USCITA = time(10, 0)
@@ -68,6 +105,22 @@ class _Testo:
     hashtag: list[str]
     volte: int | None
     canale: str | None
+
+
+def _slot(quando: Any) -> tuple[date, int] | None:
+    """Giorno e ora (a Roma) di un ``data_ora`` ISO o datetime; ``None`` se non si legge."""
+    if isinstance(quando, datetime):
+        momento = quando
+    elif isinstance(quando, str):
+        try:
+            momento = datetime.fromisoformat(quando)
+        except ValueError:
+            return None
+    else:
+        return None
+    if momento.tzinfo is not None:
+        momento = momento.astimezone(ROMA)
+    return momento.date(), momento.hour
 
 
 class AIFinto(AIAdapter):
@@ -242,6 +295,7 @@ class AIFinto(AIAdapter):
         schede: Mapping[str, Mapping[str, Any]],
         *,
         non_prima_di: datetime,
+        orari_occupati: Sequence[Mapping[str, Any]] = (),
         piano_precedente: Mapping[str, Any] | None = None,
         violazioni: Sequence[Mapping[str, Any]] | None = None,
     ) -> PianoAI:
@@ -249,6 +303,7 @@ class AIFinto(AIAdapter):
         chiamata = {
             "operazione": "pianifica_campagna",
             "riscrittura": piano_precedente is not None,
+            "orari_occupati": [dict(uno) for uno in orari_occupati],
         }
         self.chiamate.append(chiamata)
         self._solleva("pianifica_campagna", "piano", chiamata)
@@ -264,8 +319,15 @@ class AIFinto(AIAdapter):
         n_uscite = max(
             (limite["post_chiesti"] for limite in limiti.values()), default=0
         )
+        occupati = {
+            (voce["canale"], slot)
+            for voce in orari_occupati
+            if isinstance(voce.get("canale"), str)
+            and (slot := _slot(voce.get("data_ora"))) is not None
+        }
 
         uscite = []
+        n_scene = 0
         for indice in range(n_uscite):
             post = []
             gruppo = None
@@ -291,9 +353,17 @@ class AIFinto(AIAdapter):
                 if foto and gruppo is None:
                     gruppo = gruppo_della_foto.get(foto[0])
                 sfasamento = 1 if canale == "instagram" and "facebook" in limiti else 0
-                giorno = giorni[
-                    min(indice * len(giorni) // n_uscite + sfasamento, len(giorni) - 1)
-                ]
+                base = min(
+                    indice * len(giorni) // n_uscite + sfasamento, len(giorni) - 1
+                )
+                giorno = giorni[base]
+                # R-12, T3-922: niente stessa ora dello stesso canale di un
+                # post già in programma; si sposta al primo giorno libero.
+                for scatto in range(len(giorni)):
+                    candidato = giorni[(base + scatto) % len(giorni)]
+                    if (canale, (candidato, ORA_DI_USCITA.hour)) not in occupati:
+                        giorno = candidato
+                        break
                 post.append(
                     {
                         "canale": canale,
@@ -309,11 +379,23 @@ class AIFinto(AIAdapter):
                 tema = gruppo.descrizione or "Le creazioni della bottega"
             else:
                 tema = TEMI_DEI_RIEMPITIVI[indice % len(TEMI_DEI_RIEMPITIVI)]
+            scena = None
+            if any(uno["riempitivo"] == "immagine_ai" for uno in post):
+                inquadratura = INQUADRATURE[n_scene % len(INQUADRATURE)]
+                soggetto, luce, colori = SCENE_DEL_FINTO[inquadratura]
+                scena = {
+                    "soggetto": soggetto,
+                    "inquadratura": inquadratura,
+                    "luce": luce,
+                    "colori": colori,
+                }
+                n_scene += 1
             uscite.append(
                 {
                     "numero": indice + 1,
                     "tema": tema,
                     "gruppo_id": gruppo.id if gruppo is not None else None,
+                    "scena": scena,
                     "post": post,
                 }
             )

@@ -14,13 +14,14 @@ from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from app.adapters.ai import AIAdapter, ErroreAI, prompt_immagine
+from app.adapters.ai.schemi import INQUADRATURE
 from app.adapters.archivio import ottieni_archivio
 from app.core.orologio import ROMA
 from app.moduli.campagne import service as campagne
 
 from . import service
 from .domain import DICITURA_IMMAGINE_AI, IMMAGINE_AI
-from .models import Post
+from .models import Post, Uscita
 
 ORIGINE = "creata_ai"
 ESTENSIONI = {"image/png": "png", "image/jpeg": "jpg"}
@@ -59,6 +60,55 @@ def senza_dicitura(testo: str) -> str:
     return testo
 
 
+def stile_delle_foto(db: Session, campagna_id: int) -> str | None:
+    """Ciò che le descrizioni delle foto vere dicono di luce, sfondi e colori (T3-920).
+
+    Al massimo 400 caratteri; ``None`` se la campagna non ha foto vere
+    analizzate. Le immagini AI restano fuori: lo stile è quello delle foto
+    dell'artigiano.
+    """
+    descrizioni = []
+    for foto in campagne.foto_della_campagna(db, campagna_id):
+        if foto.origine != "caricata":
+            continue
+        analisi = foto.analisi_ai or {}
+        descrizione = analisi.get("descrizione")
+        if isinstance(descrizione, str) and descrizione.strip():
+            descrizioni.append(" ".join(descrizione.split()))
+    if not descrizioni:
+        return None
+    return " · ".join(dict.fromkeys(descrizioni))[:400].rstrip()
+
+
+def scena_dell_uscita(db: Session, uscita: Any) -> dict[str, Any] | None:
+    """La scena dell'uscita dal piano corrente, se c'è e è ben formata (T3-910).
+
+    La scena sta dentro ``piano.contenuto``, accanto ai post dell'uscita:
+    nessuna colonna nuova. Una scena mancante, malformata o con
+    un'inquadratura sconosciuta vale ``None``: non è una violazione del piano
+    e l'immagine parte dal tema, come oggi.
+    """
+    piano = service.piano_corrente(db, uscita.campagna_id)
+    if piano is None or not isinstance(piano.contenuto, dict):
+        return None
+    for voce in piano.contenuto.get("uscite") or []:
+        if not isinstance(voce, dict) or voce.get("numero") != uscita.numero:
+            continue
+        scena = voce.get("scena")
+        if not isinstance(scena, dict):
+            return None
+        campi = ("soggetto", "inquadratura", "luce", "colori")
+        if not all(
+            isinstance(scena.get(campo), str) and scena[campo].strip()
+            for campo in campi
+        ):
+            return None
+        if scena["inquadratura"] not in INQUADRATURE:
+            return None
+        return scena
+    return None
+
+
 def blocco_immagine_non_creata(errore: str) -> dict[str, str]:
     """La voce di ``errori_validazione`` di un post la cui immagine non è nata."""
     return {
@@ -93,14 +143,38 @@ def _gia_deciso(db: Session, post: Post) -> EsitoImmagine | None:
     return None
 
 
-def descrizione_immagine(campagna: Any, post: Post, tema: str) -> str:
+def descrizione_immagine(db: Session, campagna: Any, post: Post, tema: str) -> str:
     """Che cosa mostra l'immagine AI del post: il prompt con cui è stata chiesta.
 
-    Va a chi scrive il testo, che non vede l'immagine ma deve richiamarla.
+    Va a chi scrive il testo, che non vede l'immagine ma deve richiamarla. È lo
+    stesso prompt della generazione, con la scena, la campagna e lo stile delle
+    foto vere (T3-920).
     """
     snapshot = campagna.profilo_snapshot
     snapshot = snapshot if isinstance(snapshot, dict) else {}
-    return prompt_immagine(snapshot, tema, post.data_ora.astimezone(ROMA).date())
+    return prompt_immagine(
+        snapshot,
+        tema,
+        post.data_ora.astimezone(ROMA).date(),
+        campagna=_campagna_immagine(campagna),
+        scena=_scena_del_post(db, post),
+        stile=stile_delle_foto(db, campagna.id),
+    )
+
+
+def _campagna_immagine(campagna: Any) -> dict[str, str]:
+    """Titolo, descrizione e obiettivo della campagna per il prompt (T3-920)."""
+    return {
+        "titolo": campagna.titolo or "",
+        "descrizione": campagna.descrizione or "",
+        "obiettivo": campagna.obiettivo or "",
+    }
+
+
+def _scena_del_post(db: Session, post: Post) -> dict[str, Any] | None:
+    """La scena dell'uscita del post, se il piano corrente la contiene."""
+    uscita = db.get(Uscita, post.uscita_id)
+    return scena_dell_uscita(db, uscita) if uscita is not None else None
 
 
 def immagine_del_post(
@@ -126,10 +200,21 @@ def immagine_del_post(
     snapshot = campagna.profilo_snapshot
     snapshot = snapshot if isinstance(snapshot, dict) else {}
     giorno = post.data_ora.astimezone(ROMA).date()
+    scena = _scena_del_post(db, post)
+    stile = stile_delle_foto(db, campagna.id)
+    dati_campagna = _campagna_immagine(campagna)
 
     ultimo: ErroreAI | None = None
     for semplice in (False, True):
-        prompt = prompt_immagine(snapshot, tema, giorno, semplice=semplice)
+        prompt = prompt_immagine(
+            snapshot,
+            tema,
+            giorno,
+            semplice=semplice,
+            campagna=dati_campagna,
+            scena=scena,
+            stile=stile,
+        )
         try:
             with service.contesto_chiamata_ai(
                 campagna.id, post_id=post.id, tentativo=tentativo
@@ -173,6 +258,9 @@ def immagine_rigenerata(
     snapshot = campagna.profilo_snapshot
     snapshot = snapshot if isinstance(snapshot, dict) else {}
     giorno = post.data_ora.astimezone(ROMA).date()
+    scena = _scena_del_post(db, post)
+    stile = stile_delle_foto(db, campagna.id)
+    dati_campagna = _campagna_immagine(campagna)
 
     ultimo: ErroreAI | None = None
     for semplice in (False, True):
@@ -183,6 +271,9 @@ def immagine_rigenerata(
             semplice=semplice,
             nota=nota,
             da_evitare=da_evitare,
+            campagna=dati_campagna,
+            scena=scena,
+            stile=stile,
         )
         try:
             with service.contesto_chiamata_ai(

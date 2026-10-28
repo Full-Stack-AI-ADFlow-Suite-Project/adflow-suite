@@ -731,7 +731,7 @@ def rigenera(
         if record.riempitivo == IMMAGINE_AI
         else [_foto_ai(una) for una in foto],
         immagine_ai=(
-            descrizione_immagine(campagna, record, uscita.tema)
+            descrizione_immagine(db, campagna, record, uscita.tema)
             if record.riempitivo == IMMAGINE_AI and foto
             else None
         ),

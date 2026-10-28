@@ -9,7 +9,17 @@ fuori misura è una risposta fuori schema (R-35).
 
 from typing import Any, Literal
 
-from pydantic import BaseModel, field_validator
+from pydantic import BaseModel, Field, field_validator
+
+# Le sei inquadrature della scena di un'immagine AI (R-43, ADR-119).
+INQUADRATURE = (
+    "dettaglio_materia",
+    "banco_dall_alto",
+    "attrezzi_still_life",
+    "bottega_campo_largo",
+    "materie_prime",
+    "atmosfera_stagione",
+)
 
 # plan §2 (foto.analisi_ai.tipo): la copia sta qui perché un adattatore non
 # importa i moduli; un test la confronta con quella di campagne.
@@ -103,10 +113,20 @@ class PostDelPiano(BaseModel):
     data_ora: str
 
 
+class Scena(BaseModel):
+    """Che cosa mostra l'immagine AI di un'uscita (R-43, T3-910)."""
+
+    soggetto: str = Field(max_length=200)
+    inquadratura: Literal[INQUADRATURE]
+    luce: str = Field(max_length=100)
+    colori: str = Field(max_length=100)
+
+
 class UscitaDelPiano(BaseModel):
     numero: int
     tema: str
     gruppo_id: int | None
+    scena: Scena | None
     post: list[PostDelPiano]
 
 
