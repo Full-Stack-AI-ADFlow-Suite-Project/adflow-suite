@@ -496,7 +496,7 @@ def _scrivi(db: Session, campagna: Any, post: Post) -> None:
         # Un'immagine AI non è analizzata: all'AI va che cosa le è stato chiesto di mostrare.
         foto=[] if post.riempitivo == IMMAGINE_AI else [_foto_ai(una) for una in foto],
         immagine_ai=(
-            descrizione_immagine(campagna, post, uscita.tema)
+            descrizione_immagine(db, campagna, post, uscita.tema)
             if post.riempitivo == IMMAGINE_AI and foto
             else None
         ),

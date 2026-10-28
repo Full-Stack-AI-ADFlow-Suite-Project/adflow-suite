@@ -456,3 +456,53 @@ def test_ca106_scena_senza_piano_vale_none(db):
     campagna = campagna_inviata(db)
     uscita = fabbrica_uscita(db, campagna)
     assert scena_dell_uscita(db, uscita) is None
+
+
+# --- Prompt v3: scena, campagna e stile (T3-920, CA-113) -----------------------
+
+
+def test_ca113_lo_stile_viene_dalle_descrizioni_delle_foto_vere(db):
+    from app.moduli.contenuti.immagini_ai import stile_delle_foto
+
+    campagna = _campagna(db)
+    vere = [
+        una
+        for una in campagne.foto_della_campagna(db, campagna.id)
+        if una.origine == "caricata"
+    ]
+    assert len(vere) == 4
+    for numero, foto in enumerate(vere, start=1):
+        foto.analisi_ai = {
+            **(foto.analisi_ai or {}),
+            "descrizione": f"Descrizione {numero}: luce laterale, fondo chiaro.",
+        }
+    db.flush()
+
+    stile = stile_delle_foto(db, campagna.id)
+
+    assert stile is not None
+    assert "Descrizione 1" in stile and "Descrizione 4" in stile
+    assert len(stile) <= 400
+
+
+def test_ca113_senza_foto_vere_analizzate_non_c_e_stile(db):
+    from app.moduli.contenuti.immagini_ai import stile_delle_foto
+
+    campagna = _campagna(db)
+    assert stile_delle_foto(db, campagna.id) is None
+
+
+def test_ca113_il_prompt_della_generazione_ha_scena_campagna_e_stile(db, ai):
+    """CA-113: la generazione passa all'AI scena, campagna e stile delle foto vere."""
+    campagna = _campagna(db)
+
+    _job(campagna.id)
+
+    prompt = _chiamate(ai, "genera_immagine")[0]["prompt"]
+    assert "Campagna: Campagna di prova" in prompt
+    assert "Obiettivo della campagna: notorieta" in prompt
+    assert "Stile delle foto vere della bottega:" in prompt
+    assert "la materia prima sul banco" in prompt
+    assert "Stagione: inverno." in prompt
+    assert "sfondo semplice e leggermente sfocato" not in prompt
+    assert "colori fedeli e caldi" not in prompt
