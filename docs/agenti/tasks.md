@@ -153,7 +153,7 @@ Ogni task ha in `brief-richieste.md` i file da toccare, le firme, i messaggi d'e
 | T3-911 | **Prompt dei testi v3**: gli attacchi degli altri post, per non ripetersi | `brief-richieste.md` §1.4, §T3-911 | T3-900 | CA-107 verde; comandi del backend verdi | ☑ |
 | T3-912 | **Proporzioni vere**: da 4:5 a 1,91:1 senza taglio | `brief-richieste.md` §1.5, §T3-912; spec R-21, R-42 | T3-900 | CA-81 verde; comandi del backend verdi | ☑ |
 | T3-913 | **Analisi v3**: il riquadro del soggetto di ogni foto | `brief-richieste.md` §1.4, §T3-913; spec R-42 | T3-900 | CA-108 verde; comandi del backend verdi | ☑ |
-| T3-914 | **Storico AI, la pagina**: elenco con i filtri e dettaglio di ogni chiamata, voce nella barra dell'operatore | `brief-richieste.md` §1.3, §1.7, §T3-914; spec R-50 | T3-900 | build e lint puliti; dati di esempio finché T3-917 non è su `main`, poi API vere; screenshot | ☐ |
+| T3-914 | **Storico AI, la pagina**: elenco con i filtri e dettaglio di ogni chiamata, voce nella barra dell'operatore | `brief-richieste.md` §1.3, §1.7, §T3-914; spec R-50 | T3-900 | build e lint puliti; dati di esempio finché T3-917 non è su `main`, poi API vere; screenshot | ☑ |
 | T3-915 | **Barra di avanzamento** della campagna in Vedi campagna | `brief-richieste.md` §1.1, §T3-915 | T3-901 | build e lint puliti; screenshot per stato | ☑ |
 | T3-916 | **Storico AI, registrazione**: ogni chiamata all'AI, riuscita o fallita, con prompt, risposta, esito e durata | `brief-richieste.md` §1.3, §T3-916; spec R-44, R-50 | T3-907 | CA-109 verde; CA-82 ancora verde; comandi del backend verdi | ☑ |
 | T3-917 | **Storico AI, letture**: elenco, dettaglio e numeri | `brief-richieste.md` §1.3, §T3-917; spec R-50 | T3-907 | CA-110, CA-111 verdi; comandi del backend verdi | ☑ |
