@@ -263,5 +263,13 @@ def cambia_foto_post(
     ora: Annotated[datetime, Depends(adesso)],
 ) -> dict[str, str]:
     """Cambia la foto del post: versione `cambio_foto` (R-16, R-36, CA-71)."""
-    interventi.cambia_foto(db, post_id, corpo.foto_id, utente, ora)
+    interventi.cambia_foto(
+        db,
+        post_id,
+        corpo.foto_id,
+        utente,
+        ora,
+        riscrivi_testo=corpo.riscrivi_testo,
+        nota=corpo.nota,
+    )
     return {"stato": "ok"}

@@ -43,6 +43,18 @@ def con_dicitura(testo: str) -> str:
     return f"{testo.rstrip()}\n\n{DICITURA_IMMAGINE_AI}"
 
 
+def senza_dicitura(testo: str) -> str:
+    """Il testo senza «Immagine creata con AI» in fondo (R-36).
+
+    Serve quando un post passa da un'immagine AI a una foto vera: la dicitura
+    non ha più senso. Il resto del testo non cambia.
+    """
+    ripulito = testo.rstrip()
+    if ripulito.endswith(DICITURA_IMMAGINE_AI):
+        return ripulito[: -len(DICITURA_IMMAGINE_AI)].rstrip()
+    return testo
+
+
 def blocco_immagine_non_creata(errore: str) -> dict[str, str]:
     """La voce di ``errori_validazione`` di un post la cui immagine non è nata."""
     return {

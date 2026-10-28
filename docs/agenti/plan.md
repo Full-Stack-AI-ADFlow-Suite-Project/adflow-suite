@@ -204,7 +204,7 @@ Le sole funzioni di `moduli/<modulo>/service.py` che un altro modulo può chiama
 | campagne | `url_foto_pubblica(db, foto_id, canale="instagram", durata_secondi=86400, url_base=None)` → str con firma a tempo (spec R-42, CA-81) | pubblicazione | T3-23 |
 | contenuti | `interventi_ammessi(post, stato_campagna, adesso)` → gli interventi ammessi adesso sul post, nell'ordine di `INTERVENTI` (spec R-16); funzione pura, senza `db` | revisione | T3-61 |
 | contenuti | `sposta_post(db, post_id, data_ora, adesso)` → `(post, data_ora_di_prima)` · `annulla_un_post(db, post_id, adesso)` → il post `annullato`; `modifica_post()` e `riprogramma_post()` controllano con `INTERVENTI_AMMESSI` (spec R-16, R-34, R-36) | revisione | T3-61 |
-| contenuti | `foto_possibili(db, post_id, adesso)` → le foto per Cambia foto · `cambia_foto(db, post_id, foto_id, utente_id, adesso)` → la versione `cambio_foto` (spec R-36) | revisione | T3-62 |
+| contenuti | `foto_possibili(db, post_id, adesso)` → le foto per Cambia immagine, con `provenienza` (gruppo, campagna, archivio) · `cambia_foto(db, post_id, foto_id, utente_id, adesso, riscrivi_testo=False)` → la versione `cambio_foto`; con `riscrivi_testo` accende `rigenera_totale` (spec R-36, ADR-119) | revisione | T3-62, T3-909 |
 | campagne | `richiesta_di(db, campagna_id)` → `RichiestaArtigiano` (schema di `campagne`) o `None` (spec R-46) | revisione | T3-63 |
 | accesso | `artigiani(db)` → gli utenti con ruolo artigiano, anche non attivi, in ordine di id | revisione | T3-71 |
 

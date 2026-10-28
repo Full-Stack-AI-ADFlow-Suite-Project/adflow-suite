@@ -69,15 +69,15 @@ def test_fallito_solo_riprogramma(db):
     assert interventi_ammessi(sospeso, "sospesa", ADESSO) == ["riprogramma"]
 
 
-def test_immagine_ai_senza_cambia_foto(db):
+def test_immagine_ai_ammette_cambia_foto(db):
+    """ADR-119: anche un post con un'immagine AI cambia immagine."""
     uno = post_da_approvare(db, riempitivo="immagine_ai")
     assert interventi_ammessi(uno, "in_revisione", ADESSO) == [
         "modifica",
         "rigenera",
+        "cambia_foto",
         "sposta",
     ]
-    with pytest.raises(StatoNonValido, match="immagine AI non cambia foto"):
-        verifica_intervento(db, uno, "cambia_foto", ADESSO)
 
 
 def test_rigenerazioni_finite_senza_rigenera(db):
