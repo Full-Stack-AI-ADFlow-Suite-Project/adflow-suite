@@ -47,6 +47,7 @@ from .service import (
     _azzera_spunta,
     _intervento_attivo,
     _post,
+    contesto_chiamata_ai,
     registra_chiamata_ai,
 )
 from .validatore import BLOCCO, testo_salvabile, valida_testo
@@ -251,6 +252,7 @@ def rigenera_immagine(
     riscrivi_testo: bool,
     nota_testo: str | None,
     adesso: datetime,
+    esecuzione: int | None = None,
 ) -> list[VersionePost] | None:
     """Una esecuzione di ``rigenera_immagine`` (R-49, CA-102, CA-103).
 
@@ -280,6 +282,7 @@ def rigenera_immagine(
         uscita.tema,
         nota,
         _prompt_delle_immagini_gia_avute(db, toccati),
+        tentativo=esecuzione,
     )
     if esito.foto is None:
         for uno in toccati:
@@ -739,26 +742,31 @@ def rigenera(
     ai = ottieni_ai()
     precedente, errori = None, None
     altri = attacchi_degli_altri_post(db, campagna.id, record.canale, record.id)
-    for _ in range(1 + RISCRITTURE):
-        scritto = ai.genera_post(
-            snapshot,
-            _campagna_ai(campagna),
-            da_scrivere,
-            SCHEDE_CANALE[record.canale],
-            testo_precedente=precedente,
-            violazioni=errori,
-            versioni_rifiutate=rifiutate,
-            testo_proposto=proposto,
-            nota=nota,
-            altri_post=altri,
-        )
+    for riscrittura in range(1, 2 + RISCRITTURE):
+        with contesto_chiamata_ai(
+            campagna.id, post_id=record.id, tentativo=riscrittura
+        ):
+            scritto = ai.genera_post(
+                snapshot,
+                _campagna_ai(campagna),
+                da_scrivere,
+                SCHEDE_CANALE[record.canale],
+                testo_precedente=precedente,
+                violazioni=errori,
+                versioni_rifiutate=rifiutate,
+                testo_proposto=proposto,
+                nota=nota,
+                altri_post=altri,
+            )
         # Come in generazione: un carattere nullo nella risposta non si salva.
         scritto = replace(
             scritto,
             testo=testo_salvabile(scritto.testo),
             hashtag=[testo_salvabile(uno) for uno in scritto.hashtag],
         )
-        registra_chiamata_ai(db, campagna.id, ai.ultimo_uso, post_id=record.id)
+        registra_chiamata_ai(
+            db, campagna.id, ai.ultimo_uso, post_id=record.id, tentativo=riscrittura
+        )
         scritto_dall_ai = scritto.testo
         if dicitura:
             scritto = replace(scritto, testo=con_dicitura(scritto.testo))

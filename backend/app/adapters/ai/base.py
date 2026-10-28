@@ -40,6 +40,11 @@ class ErroreAI(Exception):
         self.tipo = tipo
         self.messaggio = messaggio
         self.foto_id = foto_id
+        # La chiamata fallita (R-50): la scrive l'adattatore prima di sollevare;
+        # ``contesto`` lo aggiunge chi chiama (post, foto, tentativo) e serve a
+        # registrarla anche quando la transazione della tappa si annulla.
+        self.uso: "UsoAI | None" = None
+        self.contesto: dict[str, Any] | None = None
 
 
 @dataclass
@@ -130,7 +135,12 @@ class UsoAI:
     """Che cosa è costata una chiamata (spec R-44).
 
     ``immagini`` conta le immagini create; i token sono vuoti se il provider
-    non li dice. ``costo_usd`` è 0 se il prezzo del modello non si conosce.
+    non li dice. ``costo_usd`` è 0 se il prezzo del modello non si conosce, e
+    per una chiamata fallita se il provider non dice altro.
+
+    Dall'ADR-119 (R-50) porta anche lo storico: ``richiesta`` con le foto come
+    ``"<foto {id}>"`` (mai i byte, mai chiavi), ``risposta``, ``durata_ms``,
+    ``esito`` (``ok`` o il tipo di ``ErroreAI``) ed ``errore``.
     """
 
     tipo: str
@@ -140,6 +150,12 @@ class UsoAI:
     token_uscita: int | None = None
     immagini: int | None = None
     costo_usd: Decimal = Decimal(0)
+    versione_prompt: str | None = None
+    richiesta: dict | None = None
+    risposta: str | None = None
+    durata_ms: int | None = None
+    esito: str = "ok"
+    errore: str | None = None
 
 
 class AIAdapter(ABC):
@@ -148,9 +164,11 @@ class AIAdapter(ABC):
     In sviluppo e nei test si usa ``AIFinto``, che risponde senza rete. Ogni
     metodo solleva ``ErroreAI`` per gli errori tecnici di R-35.
 
-    Dopo ogni chiamata riuscita ``ultimo_uso`` dice cosa è costata; chi chiama
-    la scrive subito in ``chiamata_ai`` (R-44). All'inizio di ogni chiamata
-    torna ``None``, così un errore non lascia l'uso della chiamata di prima.
+    Dopo ogni chiamata ``ultimo_uso`` dice cosa è costata; chi chiama la scrive
+    subito in ``chiamata_ai`` (R-44). Se la chiamata fallisce ``ultimo_uso`` è
+    scritto lo stesso, con ``esito`` e ``errore``, prima di sollevare
+    ``ErroreAI`` (R-50). All'inizio di ogni chiamata torna ``None``, così un
+    errore non lascia l'uso della chiamata di prima.
     """
 
     ultimo_uso: UsoAI | None = None

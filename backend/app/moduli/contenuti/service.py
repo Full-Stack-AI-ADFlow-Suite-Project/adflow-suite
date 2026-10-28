@@ -1,13 +1,14 @@
 """Logica del modulo contenuti: l'unica parte che gli altri moduli possono importare."""
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
+from contextlib import contextmanager
 from datetime import datetime, timedelta
 from decimal import Decimal
 
 from sqlalchemy import select, or_, and_, func
 from sqlalchemy.orm import Session, selectinload
 
-from app.adapters.ai import TIPI_USO, UsoAI
+from app.adapters.ai import TIPI_USO, ErroreAI, UsoAI
 from app.core.config import leggi_impostazioni
 from app.core.errori import DatiNonValidi, NonTrovato, StatoNonValido
 from app.core.orologio import ROMA
@@ -29,7 +30,7 @@ from .domain import (
     STATI_CHIUSI,
 )
 from .models import ChiamataAI, Post, VersionePost, Piano, Uscita, ErroreGenerazione
-from .validatore import BLOCCO
+from .validatore import BLOCCO, testo_salvabile
 from .schemas import (
     CalendarioCampagna,
     ChiamateAIDiUnTipo,
@@ -226,20 +227,36 @@ def uscite_della_campagna(db: Session, campagna_id: int) -> list[Uscita]:
 
 
 def registra_chiamata_ai(
-    db: Session, campagna_id: int, uso: UsoAI | None, *, post_id: int | None = None
+    db: Session,
+    campagna_id: int,
+    uso: UsoAI | None,
+    *,
+    post_id: int | None = None,
+    foto_id: int | None = None,
+    tentativo: int | None = None,
 ) -> ChiamataAI | None:
-    """Scrive il costo di una chiamata all'AI (R-44); senza ``uso`` non fa nulla.
+    """Scrive una chiamata all'AI, riuscita o no, con costo e storico (R-44, R-50).
 
-    Si chiama subito dopo la chiamata, con l'``ultimo_uso`` dell'adattatore.
+    Si chiama subito dopo la chiamata, con l'``ultimo_uso`` dell'adattatore;
+    senza ``uso`` non fa nulla. ``tentativo`` è l'esecuzione del job o la
+    riscrittura del piano o del testo.
     """
     if uso is None:
         return None
     riga = ChiamataAI(
         campagna_id=campagna_id,
         post_id=post_id,
+        foto_id=foto_id,
         tipo=uso.tipo,
         provider_ai=uso.provider,
         modello_ai=uso.modello,
+        versione_prompt=uso.versione_prompt,
+        richiesta=uso.richiesta,
+        risposta=testo_salvabile(uso.risposta) if uso.risposta else None,
+        esito=uso.esito,
+        errore=testo_salvabile(uso.errore) if uso.errore else None,
+        durata_ms=uso.durata_ms,
+        tentativo=tentativo,
         token_ingresso=uso.token_ingresso,
         token_uscita=uso.token_uscita,
         n_immagini=uso.immagini,
@@ -248,6 +265,55 @@ def registra_chiamata_ai(
     db.add(riga)
     db.flush()
     return riga
+
+
+@contextmanager
+def contesto_chiamata_ai(
+    campagna_id: int,
+    *,
+    post_id: int | None = None,
+    foto_id: int | None = None,
+    tentativo: int | None = None,
+) -> Iterator[None]:
+    """Segna sull'``ErroreAI`` a chi appartiene la chiamata fallita (R-50).
+
+    Quando la tappa si annulla, chi registra l'errore (``registra_errore``,
+    i job di rigenerazione) scrive anche la chiamata, nella transazione nuova.
+    """
+    try:
+        yield
+    except ErroreAI as errore:
+        if errore.contesto is None:
+            errore.contesto = {
+                "campagna_id": campagna_id,
+                "post_id": post_id,
+                "foto_id": errore.foto_id or foto_id,
+                "tentativo": tentativo,
+            }
+        raise
+
+
+def registra_chiamata_fallita(db: Session, errore: BaseException) -> bool:
+    """Scrive la chiamata che ha fatto sollevare ``errore``; vero se c'era.
+
+    Cerca l'``ErroreAI`` nell'errore o nella sua causa. Senza uso o senza
+    contesto (la chiamata non è stata segnata da ``contesto_chiamata_ai``) non
+    fa nulla. Senza commit.
+    """
+    causa = errore if isinstance(errore, ErroreAI) else errore.__cause__
+    if not isinstance(causa, ErroreAI) or causa.uso is None or not causa.contesto:
+        return False
+    registra_chiamata_ai(
+        db,
+        causa.contesto["campagna_id"],
+        causa.uso,
+        **{
+            chiave: valore
+            for chiave, valore in causa.contesto.items()
+            if chiave != "campagna_id"
+        },
+    )
+    return True
 
 
 def costo_ai_della_campagna(db: Session, campagna_id: int) -> Decimal:

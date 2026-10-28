@@ -225,7 +225,7 @@ def test_ogni_errore_del_provider_diventa_uno_dei_cinque_tipi(
     with pytest.raises(ErroreAI) as sollevato:
         ai.genera_post(SNAPSHOT, CAMPAGNA, _post(), domain.SCHEDE_CANALE["instagram"])
     assert sollevato.value.tipo == tipo
-    assert ai.ultimo_uso is None
+    assert (ai.ultimo_uso.esito, ai.ultimo_uso.costo_usd) == (tipo, 0)
 
 
 def test_il_messaggio_per_l_operatore_non_riporta_il_testo_del_provider(completion, ai):
@@ -341,7 +341,7 @@ def test_un_errore_cancella_l_uso_della_chiamata_di_prima(completion, ai):
     assert ai.ultimo_uso is not None
     with pytest.raises(ErroreAI):
         ai.genera_post(SNAPSHOT, CAMPAGNA, _post(), domain.SCHEDE_CANALE["instagram"])
-    assert ai.ultimo_uso is None
+    assert ai.ultimo_uso.esito == "temporaneo"
 
 
 # --- Chiamata ------------------------------------------------------------------
@@ -842,7 +842,7 @@ def test_ogni_errore_dell_immagine_diventa_uno_dei_cinque_tipi(
 
     assert sollevato.value.tipo == tipo
     assert sollevato.value.foto_id is None
-    assert ai.ultimo_uso is None
+    assert (ai.ultimo_uso.esito, ai.ultimo_uso.costo_usd) == (tipo, 0)
     assert "Incorrect API key" not in sollevato.value.messaggio
 
 
@@ -865,7 +865,7 @@ def test_un_immagine_vuota_illeggibile_o_di_un_altro_formato_e_di_tipo_risposta(
         ai.genera_immagine("Un prompt")
 
     assert sollevato.value.tipo == "risposta"
-    assert ai.ultimo_uso is None
+    assert ai.ultimo_uso.esito == "risposta"
 
 
 def test_senza_il_modello_delle_immagini_la_chiamata_e_di_configurazione(

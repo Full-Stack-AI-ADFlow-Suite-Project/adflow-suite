@@ -173,7 +173,9 @@ def prossima_tappa(db: Session, campagna: Any) -> str | None:
     return FINE
 
 
-def passo(db: Session, campagna_id: int, adesso: datetime) -> bool:
+def passo(
+    db: Session, campagna_id: int, adesso: datetime, esecuzione: int | None = None
+) -> bool:
     """Fa la prima cosa che manca; vero se dopo c'è ancora lavoro.
 
     Chi chiama apre una transazione per ogni passo: ciò che un passo ha
@@ -188,13 +190,13 @@ def passo(db: Session, campagna_id: int, adesso: datetime) -> bool:
         return True
     if tappa == ANALISI:
         gruppo, da_fare = _da_analizzare(db, campagna)
-        _analizza(db, campagna.id, gruppo, da_fare)
+        _analizza(db, campagna.id, gruppo, da_fare, esecuzione)
         return True
     if tappa == PIANO:
         _pianifica(db, campagna, adesso)
         return True
     if tappa == TESTI:
-        _scrivi(db, campagna, _post_da_scrivere(db, campagna))
+        _scrivi(db, campagna, _post_da_scrivere(db, campagna), esecuzione)
         return True
     campagne.cambia_stato(db, campagna, "in_revisione")
     notifiche.crea(
@@ -205,6 +207,10 @@ def passo(db: Session, campagna_id: int, adesso: datetime) -> bool:
         contenuto={"titolo": campagna.titolo},
     )
     return False
+
+
+def _senza_campagna(contesto: dict[str, Any]) -> dict[str, Any]:
+    return {chiave: v for chiave, v in contesto.items() if chiave != "campagna_id"}
 
 
 # --- Analisi ------------------------------------------------------------------
@@ -229,7 +235,11 @@ def _non_idonea(motivo: str) -> dict[str, Any]:
 
 
 def _analizza(
-    db: Session, campagna_id: int, gruppo: Any, senza_analisi: list[Any]
+    db: Session,
+    campagna_id: int,
+    gruppo: Any,
+    senza_analisi: list[Any],
+    esecuzione: int | None = None,
 ) -> None:
     """Analizza le foto del gruppo che non hanno ancora un'analisi (R-24).
 
@@ -241,16 +251,30 @@ def _analizza(
     with _nella_tappa(ANALISI):
         ai = ottieni_ai()
         while da_fare:
+            solo = da_fare[0].id if len(da_fare) == 1 else None
             try:
-                risposta = ai.analizza_gruppo(_gruppo_ai(gruppo, da_fare))
+                with service.contesto_chiamata_ai(
+                    campagna_id, foto_id=solo, tentativo=esecuzione
+                ):
+                    risposta = ai.analizza_gruppo(_gruppo_ai(gruppo, da_fare))
             except ErroreAI as errore:
                 ids = {foto.id for foto in da_fare}
                 if errore.tipo in ("richiesta", "rifiuto") and errore.foto_id in ids:
+                    # La tappa continua: la chiamata fallita si scrive qui.
+                    service.registra_chiamata_ai(
+                        db,
+                        campagna_id,
+                        errore.uso,
+                        foto_id=errore.foto_id,
+                        tentativo=esecuzione,
+                    )
                     risultati[errore.foto_id] = _non_idonea(errore.messaggio)
                     da_fare = [f for f in da_fare if f.id != errore.foto_id]
                     continue
                 raise
-            service.registra_chiamata_ai(db, campagna_id, ai.ultimo_uso)
+            service.registra_chiamata_ai(
+                db, campagna_id, ai.ultimo_uso, foto_id=solo, tentativo=esecuzione
+            )
             for foto in da_fare:
                 analisi = risposta.get(foto.id)
                 if not isinstance(analisi, dict) or not isinstance(
@@ -331,18 +355,21 @@ def _pianifica(db: Session, campagna: Any, adesso: datetime) -> None:
     with _nella_tappa(PIANO):
         ai = ottieni_ai()
         precedente, violazioni = None, None
-        for _ in range(1 + RISCRITTURE):
-            scritto = ai.pianifica_campagna(
-                _snapshot(campagna),
-                _campagna_ai(campagna),
-                gruppi_ai,
-                limiti,
-                SCHEDE_CANALE,
-                non_prima_di=adesso + timedelta(minutes=margine),
-                piano_precedente=precedente,
-                violazioni=violazioni,
+        for riscrittura in range(1, 2 + RISCRITTURE):
+            with service.contesto_chiamata_ai(campagna.id, tentativo=riscrittura):
+                scritto = ai.pianifica_campagna(
+                    _snapshot(campagna),
+                    _campagna_ai(campagna),
+                    gruppi_ai,
+                    limiti,
+                    SCHEDE_CANALE,
+                    non_prima_di=adesso + timedelta(minutes=margine),
+                    piano_precedente=precedente,
+                    violazioni=violazioni,
+                )
+            service.registra_chiamata_ai(
+                db, campagna.id, ai.ultimo_uso, tentativo=riscrittura
             )
-            service.registra_chiamata_ai(db, campagna.id, ai.ultimo_uso)
             violazioni = controlla_piano(
                 scritto.contenuto,
                 limiti=limiti,
@@ -428,7 +455,9 @@ def _gruppo_dell_uscita(db: Session, campagna: Any, uscita: Uscita) -> Any | Non
     return None
 
 
-def _scrivi(db: Session, campagna: Any, post: Post) -> None:
+def _scrivi(
+    db: Session, campagna: Any, post: Post, esecuzione: int | None = None
+) -> None:
     """Scrive la versione 1 del post: immagine AI se serve, testo, validatore.
 
     Un post `immagine_ai` ha l'immagine della sua uscita, creata dal primo dei
@@ -450,7 +479,9 @@ def _scrivi(db: Session, campagna: Any, post: Post) -> None:
 
     if post.riempitivo == IMMAGINE_AI:
         with _nella_tappa(IMMAGINI, post.canale):
-            esito = immagine_del_post(db, campagna, ai, post, uscita.tema)
+            esito = immagine_del_post(
+                db, campagna, ai, post, uscita.tema, tentativo=esecuzione
+            )
         foto = [esito.foto] if esito.foto is not None else []
         if esito.errore is not None:
             errori_immagine = [blocco_immagine_non_creata(esito.errore)]
@@ -492,6 +523,11 @@ def _scrivi(db: Session, campagna: Any, post: Post) -> None:
         except ErroreAI as errore:
             if errore.tipo not in ("richiesta", "rifiuto"):
                 raise
+            # La tappa continua: la chiamata fallita si scrive qui.
+            if errore.contesto:
+                service.registra_chiamata_ai(
+                    db, campagna.id, errore.uso, **_senza_campagna(errore.contesto)
+                )
             testo, hashtag, firma = "", [], (None, None, None)
             errori = [
                 {
@@ -574,16 +610,19 @@ def _testo_validato(
     """
     precedente, errori = None, None
     altri = attacchi_degli_altri_post(db, campagna.id, post.canale, post_id)
-    for _ in range(1 + RISCRITTURE):
-        scritto = ai.genera_post(
-            snapshot,
-            _campagna_ai(campagna),
-            post,
-            SCHEDE_CANALE[post.canale],
-            testo_precedente=precedente,
-            violazioni=errori,
-            altri_post=altri,
-        )
+    for riscrittura in range(1, 2 + RISCRITTURE):
+        with service.contesto_chiamata_ai(
+            campagna.id, post_id=post_id, tentativo=riscrittura
+        ):
+            scritto = ai.genera_post(
+                snapshot,
+                _campagna_ai(campagna),
+                post,
+                SCHEDE_CANALE[post.canale],
+                testo_precedente=precedente,
+                violazioni=errori,
+                altri_post=altri,
+            )
         # Un carattere nullo nella risposta dell'AI non si salva: si toglie
         # prima del validatore e della versione (T3-906).
         scritto = replace(
@@ -591,7 +630,9 @@ def _testo_validato(
             testo=testo_salvabile(scritto.testo),
             hashtag=[testo_salvabile(uno) for uno in scritto.hashtag],
         )
-        service.registra_chiamata_ai(db, campagna.id, ai.ultimo_uso, post_id=post_id)
+        service.registra_chiamata_ai(
+            db, campagna.id, ai.ultimo_uso, post_id=post_id, tentativo=riscrittura
+        )
         scritto_dall_ai = scritto.testo
         if dicitura:
             scritto = replace(scritto, testo=con_dicitura(scritto.testo))
@@ -620,6 +661,8 @@ def registra_errore(
     annullata.
     """
     campagna = campagne.campagna(db, campagna_id)
+    # La chiamata fallita resta anche se la tappa si è annullata (R-50).
+    service.registra_chiamata_fallita(db, errore)
     if isinstance(errore, GenerazioneInterrotta):
         tipo, messaggio = errore.tipo, errore.messaggio
         tappa, canale = errore.tappa, errore.canale

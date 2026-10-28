@@ -11,13 +11,22 @@ from app.core.db import transazione
 from app.core.errori import DatiNonValidi
 from app.core.orologio import adesso
 
-from . import generazione, interventi
+from . import generazione, interventi, service
 
 logger = logging.getLogger(__name__)
 
 
 class NuovaEsecuzione(Exception):
     """Chiede a Procrastinate di rieseguire il job dopo l'attesa."""
+
+
+def _registra_chiamata_fallita(errore: Exception) -> None:
+    """Scrive la chiamata all'AI che ha fatto fallire il job, in una transazione nuova."""
+    try:
+        with transazione() as db:
+            service.registra_chiamata_fallita(db, errore)
+    except Exception as secondo:
+        logger.error("chiamata AI fallita non registrata (%s)", type(secondo).__name__)
 
 
 def esegui_generazione(campagna_id: int, esecuzione: int) -> bool:
@@ -29,7 +38,7 @@ def esegui_generazione(campagna_id: int, esecuzione: int) -> bool:
     try:
         for _ in range(generazione.MAX_PASSI):
             with transazione() as db:
-                if not generazione.passo(db, campagna_id, adesso()):
+                if not generazione.passo(db, campagna_id, adesso(), esecuzione):
                     return False
         raise RuntimeError("La generazione non arriva alla fine.")
     except Exception as errore:
@@ -93,6 +102,7 @@ def esegui_rigenerazione(
             type(errore).__name__,
             "".join(traceback.format_tb(errore.__traceback__)),
         )
+        _registra_chiamata_fallita(errore)
         inutile = isinstance(errore, DatiNonValidi) or (
             isinstance(errore, ErroreAI) and errore.tipo == "configurazione"
         )
@@ -153,7 +163,7 @@ def esegui_rigenerazione_immagine(
     try:
         with transazione() as db:
             interventi.rigenera_immagine(
-                db, post_id, nota, riscrivi_testo, nota_testo, adesso()
+                db, post_id, nota, riscrivi_testo, nota_testo, adesso(), esecuzione
             )
         return False
     except Exception as errore:
@@ -165,6 +175,7 @@ def esegui_rigenerazione_immagine(
             type(errore).__name__,
             "".join(traceback.format_tb(errore.__traceback__)),
         )
+        _registra_chiamata_fallita(errore)
         inutile = isinstance(errore, DatiNonValidi) or (
             isinstance(errore, ErroreAI) and errore.tipo == "configurazione"
         )

@@ -104,7 +104,13 @@ def descrizione_immagine(campagna: Any, post: Post, tema: str) -> str:
 
 
 def immagine_del_post(
-    db: Session, campagna: Any, ai: AIAdapter, post: Post, tema: str
+    db: Session,
+    campagna: Any,
+    ai: AIAdapter,
+    post: Post,
+    tema: str,
+    *,
+    tentativo: int | None = None,
 ) -> EsitoImmagine:
     """L'immagine AI di un post `immagine_ai`: quella dell'uscita, o una nuova.
 
@@ -125,13 +131,22 @@ def immagine_del_post(
     for semplice in (False, True):
         prompt = prompt_immagine(snapshot, tema, giorno, semplice=semplice)
         try:
-            immagine = ai.genera_immagine(prompt)
+            with service.contesto_chiamata_ai(
+                campagna.id, post_id=post.id, tentativo=tentativo
+            ):
+                immagine = ai.genera_immagine(prompt)
         except ErroreAI as errore:
             if errore.tipo not in ("richiesta", "rifiuto"):
                 raise
+            # Il post resta senza immagine e la tappa continua: si scrive qui.
+            service.registra_chiamata_ai(
+                db, campagna.id, errore.uso, post_id=post.id, tentativo=tentativo
+            )
             ultimo = errore
             continue
-        service.registra_chiamata_ai(db, campagna.id, ai.ultimo_uso, post_id=post.id)
+        service.registra_chiamata_ai(
+            db, campagna.id, ai.ultimo_uso, post_id=post.id, tentativo=tentativo
+        )
         return EsitoImmagine(foto=_salva(db, campagna.id, immagine, prompt=prompt))
     return EsitoImmagine(errore=ultimo.messaggio if ultimo else "")
 
@@ -144,6 +159,8 @@ def immagine_rigenerata(
     tema: str,
     nota: str | None,
     da_evitare: list[str],
+    *,
+    tentativo: int | None = None,
 ) -> EsitoImmagine:
     """Una nuova immagine AI per l'uscita del post (R-49).
 
@@ -168,13 +185,21 @@ def immagine_rigenerata(
             da_evitare=da_evitare,
         )
         try:
-            immagine = ai.genera_immagine(prompt)
+            with service.contesto_chiamata_ai(
+                campagna.id, post_id=post.id, tentativo=tentativo
+            ):
+                immagine = ai.genera_immagine(prompt)
         except ErroreAI as errore:
             if errore.tipo not in ("richiesta", "rifiuto"):
                 raise
+            service.registra_chiamata_ai(
+                db, campagna.id, errore.uso, post_id=post.id, tentativo=tentativo
+            )
             ultimo = errore
             continue
-        service.registra_chiamata_ai(db, campagna.id, ai.ultimo_uso, post_id=post.id)
+        service.registra_chiamata_ai(
+            db, campagna.id, ai.ultimo_uso, post_id=post.id, tentativo=tentativo
+        )
         return EsitoImmagine(
             foto=_salva(db, campagna.id, immagine, prompt=prompt, nota=nota),
             provider=immagine.provider,
