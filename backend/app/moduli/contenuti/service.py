@@ -704,6 +704,35 @@ def accendi_intervento(db: Session, post_id: int, tipo: str, adesso: datetime) -
     return _accendi(db, post_id, tipo, adesso)
 
 
+def accendi_rigenerazione_immagine(
+    db: Session,
+    post_id: int,
+    riscrivi_testo: bool,
+    nota_testo: str | None,
+    adesso: datetime,
+) -> list[Post]:
+    """Accende ``rigenera_immagine`` sui post che l'immagine tocca (R-49).
+
+    Usata da ``revisione`` prima di accodare il job ``rigenera_immagine``
+    (plan §6). Controlla i limiti prima di cambiare qualcosa: 3 immagini per
+    post, un intervento in corso, campagna in revisione, e con
+    ``riscrivi_testo`` un ciclo di R-03 rimasto (409).
+
+    Returns:
+        I post su cui l'intervento è acceso: quello chiesto e, se l'immagine è
+        dell'uscita, i post ``da_approvare`` che la usano.
+
+    Raises:
+        NonTrovato: il post non esiste.
+        StatoNonValido: un controllo non passa (409).
+    """
+    from .interventi import (  # interventi importa questo modulo
+        accendi_rigenerazione_immagine as _accendi,
+    )
+
+    return _accendi(db, post_id, riscrivi_testo, nota_testo, adesso)
+
+
 def ferma_generazione(db: Session, campagna_id: int, adesso: datetime) -> None:
     """Ferma una campagna rimasta bloccata in ``inviata`` o ``in_generazione`` (R-35).
 
