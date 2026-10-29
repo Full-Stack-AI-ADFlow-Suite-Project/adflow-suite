@@ -1,6 +1,6 @@
 # T3-927 · Prova della corsia 9
 
-**Casella ☐ (non spuntata).** CA-116 è verde e il percorso a mano è stato eseguito davvero, con screenshot, sull'app vera (API, worker e frontend). Ma la demo di `converge.md` §4 è scritta con l'AI vera e Meta, e qui i due provider erano finti; il confronto visivo con le pagine statiche e due prove negative non sono state fatte. Il dettaglio è in fondo («Cosa manca»).
+**Casella ☐ (non spuntata).** CA-116 è verde, il percorso a mano è stato eseguito sull'app vera, il confronto visivo con le pagine statiche è fatto e le due prove negative mancanti sono fatte. Manca la demo di `converge.md` §4 con l'AI vera e Meta: Giovanni ha dato il «sì» il 29/10/2026, ma la demo non è partita perché manca il tunnel pubblico delle foto (dettaglio in fondo, «Cosa manca»). Giovanni non ha dichiarato accettabili i provider finti, quindi la casella resta vuota.
 
 ## (a) CA-116, test di percorso
 
@@ -11,7 +11,7 @@ L'artigiano invia due campagne di una settimana della stessa bottega, con lo ste
 | Comando (da `backend/`, con `DATABASE_URL_TEST` su `adflow_test`) | Esito |
 |---|---|
 | `uv run pytest tests/percorsi/test_ca116_percorso_corsia9.py` | 1 passato |
-| `uv run pytest` | 1990 passati (1989 della corsia + CA-116) |
+| `uv run pytest` | vedi «Verifica finale» in fondo |
 | `uv run black --check .` | 237 file puliti |
 
 Controllo che il test non sia vuoto: due copie temporanee con un'asserzione sbagliata (intervento in corso e voto medio) falliscono proprio su quelle righe; le copie sono state cancellate.
@@ -39,18 +39,49 @@ Nessun `git push`, nessuna chiamata reale ad AI, Meta o email.
 | 5 · pubblicazione: con l'orologio avanti di 12 giorni il worker pubblica i post approvati (il post annullato no) e le campagne si concludono | eseguito con il social **finto**: non si è visto un post su Facebook né su Instagram | 43, 44, 45, 46 |
 | 6 · dopo l'approvazione: modifica a mano (versione dell'operatore), Cambia immagine senza quarta scelta né spunta, sposta, annulla con la nota, sospendi con nota (l'artigiano legge «Pubblicazioni ferme», non la nota) e riattiva (CA-84, CA-72, CA-85, CA-32) | eseguito | 38–42 |
 | 8 · respinta: una campagna con foto non della bottega, «Respingi» con motivo foto, nota e foto segnate; l'artigiano rilegge nota e foto da rifare | eseguito | 47, 48, 49 |
-| 9 · prove negative | vedi sotto | — |
+| 9 · prove negative | eseguito, comprese le due che mancavano (vedi sotto) | — |
 
 Prove negative eseguite (tutte rifiutate come deve): inizio tra 1 giorno (422), durata di 3 giorni (422), un PDF come foto (422), canale non collegato (422), artigiano su una pagina dell'operatore (torna all'Ingresso), rigenerazione del testo e Rigenera immagine su una campagna attiva (409), Cambia immagine con «riscrivi il testo» dopo l'approvazione (422, «Dopo l'approvazione il testo non si riscrive con l'AI»), caricamento dell'artigiano dopo l'approvazione (409), nuovo artigiano con un'email già usata (409). Nessun errore di pagina né risposta 5xx in nessun passo.
 
 Una campagna senza foto, tutta con immagini AI (A5), è stata inviata e generata per ripetere la finestra di Rigenera immagine (`19`): lo screenshot di prima aveva colto la spunta durante la sua animazione.
 
+### Confronto visivo con le pagine statiche (converge §4, punto 7)
+
+Fatto il 29/10/2026 da un agente (non da un collega: la persona che lo conferma è chi rivede la PR #166). Le pagine statiche aggiornate di T3-926 aperte in Chromium a 1280 px accanto agli screenshot di questa cartella (`10`, `11`, `34` e gli altri). Corrispondono: le cinque voci della barra dell'operatore (Da approvare, Artigiani, Calendario, Storico AI, Nuovo artigiano), i testi dei filtri e dei numeri dello Storico AI, le etichette degli stati, la barra di avanzamento a cinque passi, i pulsanti di Vedi campagna e il testo del 409. Differenze, tutte volute o già note:
+
+| Dove | Pagina statica | App | Giudizio |
+|---|---|---|---|
+| Intestazione | Fascia «Pagina statica · MVP · ADR…», briciole di pane, pulsante «Vista Artigiano» | Nessuna | voluta: sono note per chi legge il prototipo |
+| Barra, fondo | «Mappa Pagine» e «Laura Rossi / Operatore Consorzio» | «Esci» e «Operatore del consorzio» | voluta |
+| Barra, Da approvare | Pallino con 4 | Nessun numero (il database di prova ha due campagne, il numero c'è nell'app solo quando ce ne sono) | da guardare con dati veri |
+| Vedi campagna | Titolo = nome campagna; la decisione sta in una scheda sotto il riquadro di prova; avanzamento senza linee tra i passi; «Da rivedere» senza il pallino | Titolo «Vedi campagna» con il nome sotto; i pulsanti Approva, Chiedi, Respingi a destra della decisione; linee tra i passi; pallino davanti all'etichetta | il pallino è già in «Non simulato»; il resto è impaginazione: da dire ai revisori |
+| Vedi campagna | Riquadro «Pagina statica interattiva · Prova» con selettore dello stato | Assente | voluta |
+| Vedi campagna | Nessuna scheda «Il piano» | Scheda «Il piano» con l'ordine delle uscite e i conteggi | differenza di contenuto: da dire ai revisori |
+| Storico AI | Dati di esempio (120 chiamate, 3,35 $, versioni `analisi_v2`…) e filtri in una scheda | Dati veri del database di prova (22 chiamate, 0 $, versione `finto-1`) e filtri senza scheda | i dati sono diversi per costruzione |
+| Storico AI | Numeri in riquadri pieni | Numeri in riquadri con il bordo | colore, non testo |
+
+### Prove negative che mancavano (passo 9)
+
+- **Modifica di un post che esce entro 15 minuti.** A mano, su `adflow_t927`, con AI e social **finti**, API (porta 8010) e worker riavviati con `OROLOGIO_GIORNI_AVANTI=12`: la campagna 4 (in revisione, 3 post) è stata approvata; il post 19 era stato portato (solo in questo database) a «ora di prova + 10 minuti» e il post 20 a «+ 3 ore». Sul post 19: modifica, sposta, annulla e cambia foto rispondono tutti 409 «Il post esce tra meno di 15 minuti: non si tocca più.»; nessuna versione nuova, stato ancora `approvato`. Sul post 20 la modifica a mano riesce (200, versione `modifica_operatore`). API e worker sono stati fermati subito dopo, prima che il worker pubblicasse il post 19; nessuna chiamata reale. Per i 15 minuti non basta l'orologio in giorni interi: la data del post è stata scelta per cadere dentro la soglia.
+- **Approva con un post da rivedere.** Test di percorso nuovo, `backend/tests/percorsi/test_prove_negative_corsia9.py` (API vere su `adflow_c_test`): con un post `da_rivedere` l'approvazione risponde 409, la campagna resta `in_revisione` e nessun post cambia stato. Lo stesso file ripete la prova dei 15 minuti con le API del test (4 interventi rifiutati, un post a più di 15 minuti modificabile). Non è stato fatto a mano perché l'AI finta non produce blocchi.
+
 ### Cosa manca per spuntare la casella
 
-1. **AI vera e Meta.** La demo di converge §4 si fa con `AI_PROVIDER=litellm` e `SOCIAL_PROVIDER=meta`. Qui: AI e social finti. Mancano il costo AI vero (CA-82), i prompt v3 sulle immagini vere (T3-925, serve il tuo «sì») e i post visti su Facebook e Instagram con foto dritta, senza GPS e nel formato del canale (CA-81, CA-83).
-2. **Confronto visivo (§4, punto 7).** Gli screenshot ci sono, ma il confronto con le pagine statiche aggiornate (T3-926, che attendono la rilettura) lo fa una persona (converge §3).
-3. **Due prove negative non fatte:** modifica di un post che esce entro 15 minuti (serve un orologio puntato su quell'ora) e «approva con un post da rivedere» (l'AI finta non produce blocchi; è coperto dai test del backend).
-4. **Non con `avvia.py`.** Stesso codice, ma porte e database diversi (sopra).
+1. **AI vera e Meta: autorizzata, non eseguita.** Giovanni ha dato il «sì» (costo stimato ~0,6 $ per campagna; `SOCIAL_PROVIDER=meta` pubblica sulla pagina di prova vera). Prima di partire ho controllato la configurazione: in `backend/.env` `FOTO_URL_PUBBLICO` è ancora `https://esempio-tunnel.trycloudflare.com` (un segnaposto) e non c'è nessun tunnel acceso (né `cloudflared` né altro); `META_INSTAGRAM_ID` è vuoto (Instagram resta simulato, D1: si mostra solo Facebook); `OPENROUTER_API_KEY` è vuota mentre i modelli sono `openrouter/…` (c'è `OPENAI_API_KEY`: non so se basti). Senza un indirizzo pubblico per le foto Meta non può scaricarle e la pubblicazione fallirebbe: non ho lanciato una demo che costa e pubblica sapendo che si ferma a metà, e non posso cambiare `.env`. Servono: il tunnel acceso con il suo indirizzo (si può passare come variabile d'ambiente `FOTO_URL_PUBBLICO`), una conferma che la chiave AI è quella giusta, e la demo da database vuoto con i dati di T3-06. Restano da vedere il costo AI vero (CA-82) e i post su Facebook con foto dritta, senza GPS, nel formato del canale (CA-81, CA-83).
+2. **Provider finti.** Giovanni non li ha dichiarati accettabili.
+3. **Non con `avvia.py`.** Stesso codice, ma porte e database diversi (sopra).
+4. Confronto visivo e prove negative: fatti (sopra); il confronto lo conferma chi rivede la PR.
+
+## Verifica finale (29/10/2026, branch `integrazione-finale`)
+
+| Comando | Esito |
+|---|---|
+| `uv run pytest` (da `backend/`, `DATABASE_URL_TEST` su `adflow_test`) | 1996 passati |
+| `uv run black --check .` | 239 file puliti |
+| `npm run lint` (da `frontend/`) | nessun problema |
+| `npm run build` | riuscito (solo l'avviso sulla dimensione dei pezzi, già noto) |
+
+Attenzione: il `backend/.env` di questo worktree ha `DATABASE_URL_TEST` su `adflow_c_test`; con quel valore 5 test e 23 errori del modulo `accesso` falliscono perché controllano il nome `adflow_test`. Il `.env` non è stato toccato: la variabile si passa da fuori.
 
 ## Osservazioni, non toccate
 
@@ -61,4 +92,4 @@ Una campagna senza foto, tutta con immagini AI (A5), è stata inviata e generata
 
 ## Pulizia
 
-Il database `adflow_t927` esiste ancora: si elimina con `DROP DATABASE adflow_t927` solo se conferma Giovanni (come gli altri database di prova). I processi di API, worker e frontend sono fermi.
+Il database `adflow_t927` esiste ancora (ora con la campagna 4 approvata, la password dell'operatore cambiata e due post con data di prova): si elimina con `DROP DATABASE adflow_t927` solo se conferma Giovanni (come gli altri database di prova). I processi di API, worker e frontend sono fermi.
