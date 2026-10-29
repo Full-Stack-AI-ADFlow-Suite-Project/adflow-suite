@@ -1,6 +1,6 @@
 # T3-927 · Prova della corsia 9
 
-**Casella ☐ (non spuntata).** CA-116 è verde, il percorso a mano è stato eseguito sull'app vera, il confronto visivo con le pagine statiche è fatto e le due prove negative mancanti sono fatte. Manca la demo di `converge.md` §4 con l'AI vera e Meta: Giovanni ha dato il «sì» il 29/10/2026, ma la demo non è partita perché manca il tunnel pubblico delle foto (dettaglio in fondo, «Cosa manca»). Giovanni non ha dichiarato accettabili i provider finti, quindi la casella resta vuota.
+**Casella ☑.** CA-116 è verde, il percorso a mano è stato eseguito sull'app vera, il confronto visivo è fatto, le due prove negative mancanti sono fatte e la demo con l'AI vera e Facebook vero è stata eseguita da uno script automatico (`demo_reale.py`, «Demo con AI vera e Facebook vero» più sotto). Decisione di Giovanni del 29/10/2026: la demo si fa **solo su Facebook**; Instagram resta simulato (D1, converge §4 passo 5). Il confronto con le pagine statiche lo ha fatto un agente, non un collega: lo conferma chi rivede la PR #166.
 
 ## (a) CA-116, test di percorso
 
@@ -65,12 +65,25 @@ Fatto il 29/10/2026 da un agente (non da un collega: la persona che lo conferma 
 - **Modifica di un post che esce entro 15 minuti.** A mano, su `adflow_t927`, con AI e social **finti**, API (porta 8010) e worker riavviati con `OROLOGIO_GIORNI_AVANTI=12`: la campagna 4 (in revisione, 3 post) è stata approvata; il post 19 era stato portato (solo in questo database) a «ora di prova + 10 minuti» e il post 20 a «+ 3 ore». Sul post 19: modifica, sposta, annulla e cambia foto rispondono tutti 409 «Il post esce tra meno di 15 minuti: non si tocca più.»; nessuna versione nuova, stato ancora `approvato`. Sul post 20 la modifica a mano riesce (200, versione `modifica_operatore`). API e worker sono stati fermati subito dopo, prima che il worker pubblicasse il post 19; nessuna chiamata reale. Per i 15 minuti non basta l'orologio in giorni interi: la data del post è stata scelta per cadere dentro la soglia.
 - **Approva con un post da rivedere.** Test di percorso nuovo, `backend/tests/percorsi/test_prove_negative_corsia9.py` (API vere su `adflow_c_test`): con un post `da_rivedere` l'approvazione risponde 409, la campagna resta `in_revisione` e nessun post cambia stato. Lo stesso file ripete la prova dei 15 minuti con le API del test (4 interventi rifiutati, un post a più di 15 minuti modificabile). Non è stato fatto a mano perché l'AI finta non produce blocchi.
 
-### Cosa manca per spuntare la casella
+### Demo con AI vera e Facebook vero (29/10/2026)
 
-1. **AI vera e Meta: autorizzata, non eseguita.** Giovanni ha dato il «sì» (costo stimato ~0,6 $ per campagna; `SOCIAL_PROVIDER=meta` pubblica sulla pagina di prova vera). Prima di partire ho controllato la configurazione: in `backend/.env` `FOTO_URL_PUBBLICO` è ancora `https://esempio-tunnel.trycloudflare.com` (un segnaposto) e non c'è nessun tunnel acceso (né `cloudflared` né altro); `META_INSTAGRAM_ID` è vuoto (Instagram resta simulato, D1: si mostra solo Facebook); `OPENROUTER_API_KEY` è vuota mentre i modelli sono `openrouter/…` (c'è `OPENAI_API_KEY`: non so se basti). Senza un indirizzo pubblico per le foto Meta non può scaricarle e la pubblicazione fallirebbe: non ho lanciato una demo che costa e pubblica sapendo che si ferma a metà, e non posso cambiare `.env`. Servono: il tunnel acceso con il suo indirizzo (si può passare come variabile d'ambiente `FOTO_URL_PUBBLICO`), una conferma che la chiave AI è quella giusta, e la demo da database vuoto con i dati di T3-06. Restano da vedere il costo AI vero (CA-82) e i post su Facebook con foto dritta, senza GPS, nel formato del canale (CA-81, CA-83).
-2. **Provider finti.** Giovanni non li ha dichiarati accettabili.
-3. **Non con `avvia.py`.** Stesso codice, ma porte e database diversi (sopra).
-4. Confronto visivo e prove negative: fatti (sopra); il confronto lo conferma chi rivede la PR.
+Script: [`demo_reale.py`](demo_reale.py), da lanciare a mano e mai da `pytest` (nei test nessuna chiamata reale): `uv run python qa/corsia9/T3-927/demo_reale.py --foto CARTELLA --si-spendo`. Crea il database nuovo `adflow_demo`, lo prepara con `cli.esegui_demo` (T3-06, due foto vere, solo Facebook), avvia API e worker veri con `AI_PROVIDER=litellm` e `SOCIAL_PROVIDER=meta` passati come variabili d'ambiente (`backend/.env` non toccato) e percorre i passi 1–6 di converge §4 con asserzioni; per il passo 5 riavvia API e worker con `OROLOGIO_GIORNI_AVANTI`. Il rapporto della corsa riuscita è in [`demo-reale-rapporto.md`](demo-reale-rapporto.md) (ora, id dei post, costo; nessun segreto).
+
+Esito: **PROVA SUPERATA**. Costo AI vero della campagna: **0,0781 $** (CA-82; le chiamate sono le stesse di una campagna da 3 post: analisi di 2 foto, piano, 3 testi, una rigenerazione e 1 immagine; la stima di ~0,6 $ era per campagna più grande). Provati sul vero:
+- passo 1: password provvisoria alla creazione, stessa email → 409, il nuovo artigiano entra (CA-79);
+- passo 2: avviso «foto poche» al passo 12, invio senza dichiarazione 422, con dichiarazione inviata (CA-14, CA-54);
+- passo 3: 3 post su Facebook, 1 con immagine AI e la dicitura, nessuna dicitura sui post con foto (CA-17, CA-57, CA-80), costo letto in Vedi campagna;
+- passo 4: modifica a mano, testo rigenerato dall'AI, richiesta all'artigiano con foto segnata, l'artigiano carica la foto con la dichiarazione e risponde e non legge i post (403), la foto nuova entra con Cambia foto, approvazione, calendario (CA-71, CA-86…90, CA-56);
+- passo 6: modifica dopo l'approvazione, sposta, annulla con nota, sospendi con nota (l'artigiano non la legge), riattiva (CA-84, CA-72, CA-85, CA-32);
+- passo 5: il worker pubblica sulla Pagina di prova i 2 post approvati, un solo tentativo `ok` per post con l'id di Facebook; per ogni post, letto da Graph, il testo è quello approvato, la foto è senza GPS e dritta (le due foto di partenza avevano il GPS) e misura 720×900 (4:5); la campagna si conclude.
+
+Limiti, detti con onestà:
+- **Foto del post:** per «un'altra del gruppo» (CA-71) le foto del gruppo erano già tutte usate, quindi Cambia foto è provato con la foto nuova dell'artigiano (provenienza «richiesta»).
+- **Passi 7, 8 e 9** non sono nello script: il confronto visivo è sopra, la respinta e le prove negative sono nel percorso a mano (esito sopra) e nei test automatici.
+- **Sulla Pagina restano 4 post di prova, non 2:** la prima corsa ha pubblicato 2 post, poi il mio controllo su Graph usava un campo che per un post di Pagina non esiste (`images`); ho corretto lo script (`full_picture`) e rilanciato da database vuoto, che ha pubblicato altri 2 post. Se non li vuoi, si tolgono dalla Pagina.
+- **Instagram:** simulato (D1), come deciso.
+- **`avvia.py`:** non usato; stesso codice, porte (8020) e database diversi.
+- `adflow_demo` esiste ancora (si elimina con `DROP DATABASE adflow_demo` solo se conferma Giovanni).
 
 ## Verifica finale (29/10/2026, branch `integrazione-finale`)
 
@@ -80,6 +93,7 @@ Fatto il 29/10/2026 da un agente (non da un collega: la persona che lo conferma 
 | `uv run black --check .` | 239 file puliti |
 | `npm run lint` (da `frontend/`) | nessun problema |
 | `npm run build` | riuscito (solo l'avviso sulla dimensione dei pezzi, già noto) |
+| `uv run python qa/corsia9/T3-927/demo_reale.py --foto … --si-spendo` | PROVA SUPERATA (vedi sopra) |
 
 Attenzione: il `backend/.env` di questo worktree ha `DATABASE_URL_TEST` su `adflow_c_test`; con quel valore 5 test e 23 errori del modulo `accesso` falliscono perché controllano il nome `adflow_test`. Il `.env` non è stato toccato: la variabile si passa da fuori.
 
