@@ -1,6 +1,6 @@
 # T3-926 · Pagine statiche della corsia 9
 
-**Casella ☐: la pagina di una persona non spunta da sola.** Il «fatto quando» chiede che ogni pagina toccata sia riletta da un collega; finché Giovanni non conferma la rilettura la casella resta vuota.
+**Casella ☑, senza la rilettura di un collega.** Il «fatto quando» chiede pagine riviste da un collega: questa rilettura non c'è stata. I quattro punti «Da decidere» li ha decisi l'agente di chiusura, con il codice dell'app come riferimento; **la decisione spetta ai revisori della PR #166**, che confermano o correggono le righe di «Decisioni prese» qui sotto.
 
 Riferimento usato: il codice del frontend (`stati.ts`, `StatoBadge.tsx`, `AvanzamentoCampagna.tsx`, `Guscio.tsx`, `Passo10.tsx`, `Rigenera.tsx`, `CambiaFoto.tsx`, `AzioniPost.tsx`, `StoricoAI.tsx`, `StoricoAIDettaglio.tsx`, `NumeriStorico.tsx`), `brief-richieste.md` §1.1–§1.7 e gli screenshot di `qa/corsia9/`. Le immagini in questa cartella sono le pagine statiche come si vedono ora, per chi rilegge.
 
@@ -20,21 +20,24 @@ Riferimento usato: il codice del frontend (`stati.ts`, `StatoBadge.tsx`, `Avanza
 | `index.html` | Mappa: scheda 14 «Storico AI», voce nella barra, conteggi (14 pagine del programma, 15 statiche MVP, 2 roadmap), descrizioni di Campagna, Campagne da approvare e Vedi campagna, fonti | I numeri (la fascia in alto diceva «7 MVP · 5 roadmap», non più vero) |
 | `assets/adflow.css` | Due blocchi nuovi in fondo: `.avanzamento` (barra, compatta sotto i 768 px) e `.riga-bottega`. Nessuna regola esistente cambiata | |
 
-Non toccate: `AdFlow-login.html`, `AdFlow-operatore-elenco.html`, `AdFlow-operatore-artigiano.html`, `AdFlow-operatore-nuovo-artigiano.html`, `AdFlow-operatore-ingresso.html`, `AdFlow-operatore-metriche.html`.
+Toccate in chiusura (decisioni 2–4 qui sotto): `AdFlow-operatore-elenco.html`, `AdFlow-operatore-artigiano.html`, `AdFlow-operatore-nuovo-artigiano.html` (voce Storico AI nella barra); `AdFlow-campagna.html`, `AdFlow-campagna-stati.html`, `AdFlow-profilo-bottega.html` (barra nuova); `AdFlow-campagna.html` anche con l'avviso del passo 12.
+
+Non toccate: `AdFlow-login.html`, `AdFlow-operatore-ingresso.html`, `AdFlow-operatore-metriche.html`.
 
 ## Controlli fatti
 
-- Tutte le 18 pagine si aprono in Chromium a 1280 e a 375 px senza errori in console né richieste fallite; nessuna scorre in orizzontale.
-- 290 link relativi (barre, mappa, schede) puntano a file che esistono; le ancore interne esistono.
+- Ripetuto dopo le decisioni sopra: tutte le 18 pagine in Chromium a 1280 e a 375 px senza errori di pagina, errori in console né richieste fallite; nessuna scorre in orizzontale; 548 link relativi controllati (due viewport) puntano a file che esistono, con le ancore interne.
+- Confronto con gli screenshot di `qa/corsia9/` (T3-926 e T3-927): barra dell'operatore con le cinque voci dell'app in Artigiani e Da approvare; avviso del passo 12 visibile. Le differenze con l'app (barra «pagina statica», briciole, riquadro di prova, nessuna linea tra i passi della barra di avanzamento) sono quelle volute di una pagina statica e sono elencate in `qa/corsia9/T3-927/README.md`.
+- (Controlli di prima) 290 link relativi (barre, mappa, schede) puntano a file che esistono; le ancore interne esistono.
 - Il testo visibile di Da approvare, Campagne dell'artigiano, Calendario, Vedi campagna e Ingresso non contiene valori con il trattino basso. Resta nello Storico AI il nome dei prompt (`post_v3`…), che sono versioni e non stati, come nell'app.
 - Vedi campagna, provata con controlli automatici: etichette; barra per ogni stato (in revisione, preparazione non riuscita, L'AI la prepara, in pubblicazione, sospesa, annullata, respinta, scaduta); «Rigenera testo» vuoto o con testo; «Parti da questo testo» propone il testo attuale; Cambia immagine con le sezioni non vuote, spunta accesa e spenta; Rigenera immagine fino a 3, la quarta è rifiutata con il messaggio del brief; da immagine AI a foto la dicitura sparisce; dopo l'approvazione né quarta scelta né spunta né Rigenera.
 
-## Da decidere (Giovanni)
+## Decisioni prese (da confermare dai revisori della PR)
 
-1. **Spunta «Riscrivi anche il testo» e «Usa questa foto».** Nell'app (`CambiaFoto.tsx`) la spunta è accesa di base ed è nel riquadro «Crea una nuova immagine AI», in fondo alla finestra; ma lo stato vale anche per «Usa questa foto»: in revisione una foto scelta parte con `riscrivi_testo: true` (verificato dalla rete del browser: `{"foto_id":102,"riscrivi_testo":true,"nota":null}`), mentre il testo della finestra dice «Il testo non cambia». La pagina statica fa come l'app. Se non è voluto, va corretto nel frontend (non qui).
-2. **Barra dell'operatore.** Vedi campagna e Da approvare avevano solo «Da approvare» e «Nuovo artigiano»: ho messo la barra dell'app (Da approvare, Artigiani, Calendario, Storico AI, Nuovo artigiano), perché «Storico AI dopo Calendario» non si può dire senza. Le pagine `AdFlow-operatore-elenco.html`, `AdFlow-operatore-artigiano.html` e `AdFlow-operatore-nuovo-artigiano.html` non sono nell'elenco di T3-926 e non hanno la voce Storico AI: una riga ciascuna, se la vuoi.
-3. **Pagine con la barra vecchia, già prima della corsia 9.** `AdFlow-campagna.html`, `AdFlow-campagna-stati.html` e `AdFlow-profilo-bottega.html` hanno ancora «Nuova Campagna · Stati & Calendario · Profilo Bottega» al posto di «Ingresso · Campagne · Calendario · Archivio foto · Profilo bottega». Non l'ho cambiata.
-4. **Avviso «campagne sovrapposte» (T3-905, J3).** Il testo del passo 12 («Nello stesso periodo hai già un'altra campagna…», brief §1.6) non è nell'elenco di T3-926 e non l'ho aggiunto.
+1. **Barra dell'operatore: Storico AI ovunque.** La voce (con l'icona dell'orologio, dopo Calendario e prima di Nuovo artigiano, come nell'app) è ora anche in `AdFlow-operatore-elenco.html`, `-artigiano.html` e `-nuovo-artigiano.html`. Nuovo artigiano ha ancora la sola barra corta di prima (Da approvare, Nuovo artigiano): ci ho aggiunto solo Storico AI, senza riordinarla.
+2. **Barra dell'artigiano: quella nuova.** `AdFlow-campagna.html`, `-campagna-stati.html` e `-profilo-bottega.html` hanno ora Ingresso, Campagne, Calendario, Archivio foto, Profilo bottega (la stessa di `AdFlow-campagne.html`). La voce attiva è Campagne per le due pagine della campagna e Profilo bottega per il profilo. «Nuova Campagna» e «Stati & Calendario» non sono più voci di barra: le due pagine restano raggiungibili dai link nel testo e dalla mappa.
+3. **Avviso «campagne sovrapposte» (T3-905, J3).** Al passo 12 di `AdFlow-campagna.html` c'è il terzo avviso, con il testo di `Passo12.tsx`: «Nello stesso periodo hai già un'altra campagna: i post delle due campagne usciranno insieme sulla tua pagina.» (con il codice `campagne_sovrapposte`). La pillola in testa dice «3 avvisi · puoi inviare» e la nota sotto cita il nuovo avviso.
+4. **Spunta «Riscrivi anche il testo» e «Usa questa foto»: non si cambia, è il frontend.** La pagina statica descrive il comportamento dell'app (spunta accesa di base, nel riquadro «Crea una nuova immagine AI»). **Discrepanza da segnalare:** nell'app lo stato della spunta vale anche per «Usa questa foto»: in revisione una foto scelta parte con `riscrivi_testo: true` (`{"foto_id":102,"riscrivi_testo":true,"nota":null}`), mentre la finestra dice «Il testo non cambia». Se non è voluto, è un task del frontend (`CambiaFoto.tsx`), non delle pagine statiche.
 
 ## Non simulato
 
