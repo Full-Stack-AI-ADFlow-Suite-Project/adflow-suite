@@ -534,7 +534,7 @@ class AILiteLLM(AIAdapter):
                 {"role": "user", "content": _json(richiesta)},
             ],
             RispostaPiano,
-            versione_prompt="piano_v2",
+            versione_prompt="piano_v3",
         )
         return PianoAI(
             contenuto=risposta.model_dump(),
