@@ -1,8 +1,7 @@
-"""Test di ``GET /da-approvare`` (T2b-45, spec §4, R-38, CA-69)."""
+"""Test di ``GET /da-approvare`` (spec §4, R-38, CA-69)."""
 
 from datetime import date, datetime, timezone
 
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 from starlette.testclient import TestClient
 

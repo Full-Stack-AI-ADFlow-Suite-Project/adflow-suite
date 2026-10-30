@@ -12,7 +12,6 @@ Verifica:
 from datetime import datetime, timedelta, timezone
 import io
 from pathlib import Path
-from unittest.mock import patch
 
 from fastapi.testclient import TestClient
 from PIL import Image

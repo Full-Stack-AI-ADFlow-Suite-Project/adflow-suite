@@ -1,5 +1,5 @@
 /**
- * Le azioni dell'operatore sul singolo post (T2b-51, T3-64). I pulsanti nascono
+ * Le azioni dell'operatore sul singolo post (T3-64). I pulsanti nascono
  * solo da `post.interventi`, cioè da ciò che il server dice ammesso adesso
  * (R-16): modifica a mano, rigenera il testo, cambia foto, sposta,
  * annulla il post, riprogramma. Con un intervento in corso nessun altro

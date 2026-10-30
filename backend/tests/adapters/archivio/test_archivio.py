@@ -1,4 +1,4 @@
-"""Test completi per l'adattatore archivio foto (Corsia 2 · Task T1-21).
+"""Test completi per l'adattatore archivio foto.
 
 Copre:
 1. Protezione DoS: limite dimensione massima payload (10 MB come da Spec R-13);
@@ -14,11 +14,9 @@ import pytest
 
 from app.adapters.archivio import (
     DIMENSIONE_MAX_BYTE,
-    ESTENSIONI_AMMESSE,
     ArchivioAdapter,
     ArchivioDisco,
     ArchivioFinto,
-    imposta_archivio,
     ottieni_archivio,
     usa_archivio,
 )

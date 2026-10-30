@@ -2,26 +2,12 @@
 
 
 import json
-
-
 import pytest
-
-
-from sqlalchemy import func, select
-
-
-from app.core.errori import DatiNonValidi
-
+from sqlalchemy import select
 
 from app.main import app
-
-
 from app.moduli.accesso import service
-
-
-from app.moduli.accesso.models import Sessione, Utente
-
-
+from app.moduli.accesso.models import Sessione
 from tests.moduli.accesso.fabbrica import PASSWORD_DI_PROVA, utente
 
 

@@ -41,7 +41,7 @@ def cookie_sicuro(request: Request) -> bool:
 
 
 def durata_sessione(ruolo: str) -> timedelta:
-    """Durata per ruolo configurata in T1-09; nessun ruolo sconosciuto."""
+    """Durata della sessione per ruolo (spec R-29); nessun ruolo sconosciuto."""
     impostazioni = leggi_impostazioni()
     if ruolo == "artigiano":
         return timedelta(days=impostazioni.sessione_artigiano_giorni)
@@ -314,7 +314,7 @@ def crea_utente(
 def cambia_password(db: Session, email: str, password: str) -> None:
     """Cambia l'hash scrypt e revoca tutte le sessioni, senza commit.
 
-    Il blocco sull'utente coordina questa operazione con il login di T1-11.
+    Il blocco sull'utente coordina questa operazione con il login.
     Un'identità legacy ambigua non viene selezionata arbitrariamente.
     """
     candidati_email = candidati_login(email)

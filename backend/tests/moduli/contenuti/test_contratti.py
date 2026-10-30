@@ -1,4 +1,4 @@
-"""T1-04: stati, transizioni e funzioni comuni del modulo contenuti."""
+"""Stati, transizioni e funzioni comuni del modulo contenuti."""
 from datetime import datetime, timedelta, timezone
 from itertools import product
 

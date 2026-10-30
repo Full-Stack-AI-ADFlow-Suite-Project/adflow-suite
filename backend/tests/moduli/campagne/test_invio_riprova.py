@@ -1,4 +1,4 @@
-"""Invio e riprova T1-24: API, minimi, isolamento e conservazione delle tappe."""
+"""Invio e riprova: API, minimi, isolamento e conservazione delle tappe."""
 from copy import deepcopy
 from datetime import date, datetime, timedelta, timezone
 
