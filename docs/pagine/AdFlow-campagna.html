@@ -26,17 +26,25 @@
 
     <nav class="sidebar-nav">
       <div class="nav-section-label">Area Bottega</div>
-      <a href="AdFlow-campagna.html" class="nav-link active">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><polygon points="10 8 16 12 10 16 10 8"></polygon></svg>
-        <span>Nuova Campagna</span>
+      <a href="AdFlow-ingresso.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
+        <span>Ingresso</span>
       </a>
-      <a href="AdFlow-campagna-stati.html" class="nav-link">
+      <a href="AdFlow-campagne.html" class="nav-link active">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path></svg>
+        <span>Campagne</span>
+      </a>
+      <a href="AdFlow-calendario.html" class="nav-link">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-        <span>Stati & Calendario</span>
+        <span>Calendario</span>
+      </a>
+      <a href="AdFlow-archivio-foto.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+        <span>Archivio foto</span>
       </a>
       <a href="AdFlow-profilo-bottega.html" class="nav-link">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-        <span>Profilo Bottega</span>
+        <span>Profilo bottega</span>
       </a>
 
       <div class="nav-section-label">Riferimenti</div>
@@ -85,6 +93,7 @@
         <span class="breadcrumb-sep">/</span>
         <span class="breadcrumb-current">Campagna (sezioni 10–12)</span>
       </nav>
+      <div class="riga-bottega">Falegnameria Bianchi · Mario Bianchi</div>
 
       <div class="page-header">
         <div class="page-title-group">
@@ -156,10 +165,11 @@
           <div class="form-group">
             <div class="form-hint" style="margin: 0 0 8px;">L'inizio deve cadere almeno 3 giorni dopo oggi: il consorzio deve avere il tempo di approvare i post prima che partano. La campagna dura almeno 7 giorni e al massimo 3 mesi.</div>
             <div class="scelte">
+              <span class="scelta">1 settimana</span>
               <span class="scelta">2 settimane</span>
-              <span class="scelta attiva">1 mese</span>
-              <span class="scelta">2 mesi</span>
+              <span class="scelta">1 mese</span>
             </div>
+            <div class="form-hint">Durata rapida: «1 settimana» porta la data di fine a 6 giorni dopo l'inizio (7 giorni di durata), «2 settimane» a 13 giorni dopo (14), «1 mese» a 29 giorni dopo (30). Cambia solo la data di fine, e il pulsante che corrisponde alla durata scelta si accende; qui nessuno è acceso, perché dal 1° al 31 sono 31 giorni.</div>
           </div>
 
           <div class="form-group">
@@ -275,7 +285,7 @@
             <h3 class="surface-card-title">12 · Riepilogo · Hai controllato tutto prima di inviare?</h3>
             <span class="sotto">Ultimo controllo prima dell'invio. Da qui si torna alle sezioni 10 e 11; i dati del profilo sono in sola lettura e si cambiano nella pagina <a href="AdFlow-profilo-bottega.html">Profilo bottega</a>.</span>
           </div>
-          <span class="status-pill review">2 avvisi · puoi inviare</span>
+          <span class="status-pill review">3 avvisi · puoi inviare</span>
         </div>
         <div class="surface-card-body">
           <div class="kpi-griglia">
@@ -339,6 +349,7 @@
             <ul style="margin: 6px 0 0; padding-left: 20px;">
               <li>Le foto caricate sono meno dei post chiesti: <strong>7 post per canale avranno un'immagine creata con l'AI</strong> (<code>foto_poche</code>).</li>
               <li>I post senza una tua foto sono più di uno ogni due foto caricate: aggiungine qualcuna, se puoi (<code>riempitivi_molti</code>).</li>
+              <li>Nello stesso periodo hai già un'altra campagna: i post delle due campagne usciranno insieme sulla tua pagina (<code>campagne_sovrapposte</code>).</li>
             </ul>
           </div>
 
@@ -359,7 +370,7 @@
           </div>
 
           <p class="nota-card">È una stima: quali foto sono buone lo dice l'analisi, dopo l'invio. Lo stesso riquadro in altri due casi. Nessuna foto: "13 post per canale, tutti con un'immagine creata dall'AI." Foto in più dei post scelti: "Usiamo le 13 migliori secondo l'analisi; le altre restano tra le foto della campagna."</p>
-          <p class="nota-card">Altro avviso che non blocca: frequenza alta rispetto alle foto che dichiari nel profilo (<code>frequenza_alta</code>). Gli avvisi arrivano dal server (ADR-73, spec R-25). Blocchi, con il campo evidenziato: la dichiarazione non spuntata (spec R-41); una serie di foto senza un racconto; un canale non più collegato ("Instagram non è collegato: contatta il consorzio"). Nessun minimo di foto.</p>
+          <p class="nota-card">Altri avvisi che non bloccano: campagne sovrapposte (<code>campagne_sovrapposte</code>, T3-905) e frequenza alta rispetto alle foto che dichiari nel profilo (<code>frequenza_alta</code>). Gli avvisi arrivano dal server (ADR-73, spec R-25). Blocchi, con il campo evidenziato: la dichiarazione non spuntata (spec R-41); una serie di foto senza un racconto; un canale non più collegato ("Instagram non è collegato: contatta il consorzio"). Nessun minimo di foto.</p>
         </div>
       </div>
 
@@ -367,6 +378,7 @@
       <div class="note-pagina">
         <p><strong>Schema statico, non interattivo</strong> (v6, ADR-47, ADR-57…70, ADR-81, ADR-82, ADR-114): mostra in sequenza tutte le schermate della pagina con dati di esempio. Non salva né valida nulla — è lo scheletro da cui costruire la pagina reale nel software.</p>
         <p><strong>Cosa cambia con l'MVP (ADR-114).</strong> Tolti: la stella sulle foto (A11), il minimo di 4 foto all'invio (A5), i gruppi di immagini da creare con l'AI (A4, in roadmap), le foto d'archivio e le cartoline nella stima (A10 congelato, A6 tolto). Nuovi: le foto sono facoltative e i post che mancano hanno un'immagine creata dall'AI (spec R-28, R-43), l'avviso <code>foto_poche</code> dice quanti (R-25), la dichiarazione obbligatoria al passo 12 (R-41, salvata nella fotografia del profilo). Task: T3-22 (invio) e T3-52 (pagina); CA-14, CA-54.</p>
+        <p><strong>Durata rapida e nome della bottega (ADR-119, T3-903, T3-902).</strong> Al passo 10, accanto alla data di fine, i tre pulsanti «1 settimana», «2 settimane», «1 mese» (R-08): mettono la fine a inizio + 6, + 13 e + 29 giorni, cioè 7, 14 e 30 giorni di durata. I controlli di prima restano: inizio almeno 3 giorni dopo oggi, durata da 7 a 92 giorni. Sopra il titolo di ogni pagina dell'artigiano, anche dal telefono con il menu chiuso, la riga «bottega · referente».</p>
       </div>
 
     </main>

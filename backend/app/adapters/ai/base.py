@@ -40,6 +40,11 @@ class ErroreAI(Exception):
         self.tipo = tipo
         self.messaggio = messaggio
         self.foto_id = foto_id
+        # La chiamata fallita (R-50): la scrive l'adattatore prima di sollevare;
+        # ``contesto`` lo aggiunge chi chiama (post, foto, tentativo) e serve a
+        # registrarla anche quando la transazione della tappa si annulla.
+        self.uso: "UsoAI | None" = None
+        self.contesto: dict[str, Any] | None = None
 
 
 @dataclass
@@ -130,7 +135,12 @@ class UsoAI:
     """Che cosa è costata una chiamata (spec R-44).
 
     ``immagini`` conta le immagini create; i token sono vuoti se il provider
-    non li dice. ``costo_usd`` è 0 se il prezzo del modello non si conosce.
+    non li dice. ``costo_usd`` è 0 se il prezzo del modello non si conosce, e
+    per una chiamata fallita se il provider non dice altro.
+
+    Dall'ADR-119 (R-50) porta anche lo storico: ``richiesta`` con le foto come
+    ``"<foto {id}>"`` (mai i byte, mai chiavi), ``risposta``, ``durata_ms``,
+    ``esito`` (``ok`` o il tipo di ``ErroreAI``) ed ``errore``.
     """
 
     tipo: str
@@ -140,6 +150,12 @@ class UsoAI:
     token_uscita: int | None = None
     immagini: int | None = None
     costo_usd: Decimal = Decimal(0)
+    versione_prompt: str | None = None
+    richiesta: dict | None = None
+    risposta: str | None = None
+    durata_ms: int | None = None
+    esito: str = "ok"
+    errore: str | None = None
 
 
 class AIAdapter(ABC):
@@ -148,9 +164,11 @@ class AIAdapter(ABC):
     In sviluppo e nei test si usa ``AIFinto``, che risponde senza rete. Ogni
     metodo solleva ``ErroreAI`` per gli errori tecnici di R-35.
 
-    Dopo ogni chiamata riuscita ``ultimo_uso`` dice cosa è costata; chi chiama
-    la scrive subito in ``chiamata_ai`` (R-44). All'inizio di ogni chiamata
-    torna ``None``, così un errore non lascia l'uso della chiamata di prima.
+    Dopo ogni chiamata ``ultimo_uso`` dice cosa è costata; chi chiama la scrive
+    subito in ``chiamata_ai`` (R-44). Se la chiamata fallisce ``ultimo_uso`` è
+    scritto lo stesso, con ``esito`` e ``errore``, prima di sollevare
+    ``ErroreAI`` (R-50). All'inizio di ogni chiamata torna ``None``, così un
+    errore non lascia l'uso della chiamata di prima.
     """
 
     ultimo_uso: UsoAI | None = None
@@ -179,6 +197,7 @@ class AIAdapter(ABC):
         schede: Mapping[str, Mapping[str, Any]],
         *,
         non_prima_di: datetime,
+        orari_occupati: Sequence[Mapping[str, Any]] = (),
         piano_precedente: Mapping[str, Any] | None = None,
         violazioni: Sequence[Mapping[str, Any]] | None = None,
     ) -> PianoAI:
@@ -198,6 +217,10 @@ class AIAdapter(ABC):
                 resta vuoto.
             schede: la scheda di ogni canale (R-21).
             non_prima_di: nessun post può uscire prima di questo momento (R-08).
+            orari_occupati: i post già in programma delle altre campagne della
+                bottega che cadono nel periodo (``{"canale", "data_ora"}``):
+                il piano non mette un post nella stessa ora dello stesso
+                canale (R-12, T3-922). Il controllo non lo verifica.
             piano_precedente, violazioni: nelle riscritture, il piano che non
                 ha passato il controllo e le regole che non rispettava (R-09).
         """
@@ -216,6 +239,7 @@ class AIAdapter(ABC):
         versioni_rifiutate: Sequence[str] | None = None,
         testo_proposto: str | None = None,
         nota: str | None = None,
+        altri_post: Sequence[str] | None = None,
     ) -> PostScritto:
         """Scrive testo e hashtag di un post per il suo canale.
 
@@ -228,6 +252,9 @@ class AIAdapter(ABC):
             testo_proposto: nella rigenerazione da testo proposto, il testo
                 dell'operatore da cui partire.
             nota: la nota facoltativa dell'operatore per la rigenerazione.
+            altri_post: la prima frase dei testi già scritti degli altri post
+                della campagna sullo stesso canale (al massimo 10, 120
+                caratteri ciascuna): il testo non comincia come loro.
         """
         raise NotImplementedError
 

@@ -86,6 +86,7 @@
         <span class="breadcrumb-sep">/</span>
         <span class="breadcrumb-current">Archivio foto</span>
       </nav>
+      <div class="riga-bottega">Falegnameria Bianchi · Mario Bianchi</div>
 
       <div class="page-header">
         <div class="page-title-group">
@@ -141,6 +142,7 @@
       <div class="note-pagina">
         <p><strong>Pagina statica, non interattiva.</strong> Dati da <code>GET /archivio-foto</code> (spec R-47). Solo foto <code>caricata</code> e <code>creata_ai</code>, mai le cartoline; sotto la foto i canali dove è uscita (<code>pubblicata_su</code>). Nessun pulsante per caricare, cambiare o eliminare: l'archivio come rimpiazzo e l'archivio modificabile restano fuori (A10, ADR-117).</p>
         <p><strong>Artigiano</strong>: le immagini AI solo delle campagne approvate (attiva, sospesa, conclusa, annullata); nella campagna in lavorazione solo le foto caricate. <strong>Operatore</strong> (<code>/artigiani/{id}/archivio</code>): lo stesso componente, con il nome della bottega nel titolo, il ritorno alla pagina dell'artigiano e anche le immagini AI delle campagne non ancora approvate. Le foto senza campagna (archivio di prima) stanno in un ultimo blocco "Foto senza campagna", se ci sono.</p>
+        <p><strong>Nome della bottega (ADR-119, T3-902).</strong> Sopra il titolo, in ogni pagina dell'artigiano e anche dal telefono con il menu chiuso, la riga «bottega · referente» (ADR-119, T3-902): senza profilo, o finché si carica, solo il nome dell'utente.</p>
       </div>
 
     </main>

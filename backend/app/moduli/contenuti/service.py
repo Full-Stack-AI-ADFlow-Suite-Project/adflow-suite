@@ -1,13 +1,15 @@
 """Logica del modulo contenuti: l'unica parte che gli altri moduli possono importare."""
 
-from collections.abc import Iterable
+from collections.abc import Iterable, Iterator
+from contextlib import contextmanager
 from datetime import datetime, timedelta
 from decimal import Decimal
+from typing import Any
 
 from sqlalchemy import select, or_, and_, func
 from sqlalchemy.orm import Session, selectinload
 
-from app.adapters.ai import TIPI_USO, UsoAI
+from app.adapters.ai import TIPI_USO, ErroreAI, UsoAI
 from app.core.config import leggi_impostazioni
 from app.core.errori import DatiNonValidi, NonTrovato, StatoNonValido
 from app.core.orologio import ROMA
@@ -29,12 +31,16 @@ from .domain import (
     STATI_CHIUSI,
 )
 from .models import ChiamataAI, Post, VersionePost, Piano, Uscita, ErroreGenerazione
-from .validatore import BLOCCO
+from .validatore import BLOCCO, testo_salvabile
 from .schemas import (
     CalendarioCampagna,
+    ChiamataAIDettaglio,
     ChiamateAIDiUnTipo,
+    NumeriAI,
+    PaginaChiamateAI,
     PostSegnalato,
     RiepilogoAI,
+    ValutazioneAISchema,
 )
 
 
@@ -226,20 +232,36 @@ def uscite_della_campagna(db: Session, campagna_id: int) -> list[Uscita]:
 
 
 def registra_chiamata_ai(
-    db: Session, campagna_id: int, uso: UsoAI | None, *, post_id: int | None = None
+    db: Session,
+    campagna_id: int,
+    uso: UsoAI | None,
+    *,
+    post_id: int | None = None,
+    foto_id: int | None = None,
+    tentativo: int | None = None,
 ) -> ChiamataAI | None:
-    """Scrive il costo di una chiamata all'AI (R-44); senza ``uso`` non fa nulla.
+    """Scrive una chiamata all'AI, riuscita o no, con costo e storico (R-44, R-50).
 
-    Si chiama subito dopo la chiamata, con l'``ultimo_uso`` dell'adattatore.
+    Si chiama subito dopo la chiamata, con l'``ultimo_uso`` dell'adattatore;
+    senza ``uso`` non fa nulla. ``tentativo`` è l'esecuzione del job o la
+    riscrittura del piano o del testo.
     """
     if uso is None:
         return None
     riga = ChiamataAI(
         campagna_id=campagna_id,
         post_id=post_id,
+        foto_id=foto_id,
         tipo=uso.tipo,
         provider_ai=uso.provider,
         modello_ai=uso.modello,
+        versione_prompt=uso.versione_prompt,
+        richiesta=uso.richiesta,
+        risposta=testo_salvabile(uso.risposta) if uso.risposta else None,
+        esito=uso.esito,
+        errore=testo_salvabile(uso.errore) if uso.errore else None,
+        durata_ms=uso.durata_ms,
+        tentativo=tentativo,
         token_ingresso=uso.token_ingresso,
         token_uscita=uso.token_uscita,
         n_immagini=uso.immagini,
@@ -248,6 +270,55 @@ def registra_chiamata_ai(
     db.add(riga)
     db.flush()
     return riga
+
+
+@contextmanager
+def contesto_chiamata_ai(
+    campagna_id: int,
+    *,
+    post_id: int | None = None,
+    foto_id: int | None = None,
+    tentativo: int | None = None,
+) -> Iterator[None]:
+    """Segna sull'``ErroreAI`` a chi appartiene la chiamata fallita (R-50).
+
+    Quando la tappa si annulla, chi registra l'errore (``registra_errore``,
+    i job di rigenerazione) scrive anche la chiamata, nella transazione nuova.
+    """
+    try:
+        yield
+    except ErroreAI as errore:
+        if errore.contesto is None:
+            errore.contesto = {
+                "campagna_id": campagna_id,
+                "post_id": post_id,
+                "foto_id": errore.foto_id or foto_id,
+                "tentativo": tentativo,
+            }
+        raise
+
+
+def registra_chiamata_fallita(db: Session, errore: BaseException) -> bool:
+    """Scrive la chiamata che ha fatto sollevare ``errore``; vero se c'era.
+
+    Cerca l'``ErroreAI`` nell'errore o nella sua causa. Senza uso o senza
+    contesto (la chiamata non è stata segnata da ``contesto_chiamata_ai``) non
+    fa nulla. Senza commit.
+    """
+    causa = errore if isinstance(errore, ErroreAI) else errore.__cause__
+    if not isinstance(causa, ErroreAI) or causa.uso is None or not causa.contesto:
+        return False
+    registra_chiamata_ai(
+        db,
+        causa.contesto["campagna_id"],
+        causa.uso,
+        **{
+            chiave: valore
+            for chiave, valore in causa.contesto.items()
+            if chiave != "campagna_id"
+        },
+    )
+    return True
 
 
 def costo_ai_della_campagna(db: Session, campagna_id: int) -> Decimal:
@@ -636,15 +707,15 @@ def foto_possibili(db: Session, post_id: int, adesso: datetime) -> list:
     """Le foto con cui si può cambiare quella del post, la migliore in cima (R-36).
 
     Usata da ``revisione`` per ``GET /post/{id}/foto-possibili`` (plan §6).
-    Restituisce le ``Foto`` caricate del gruppo dell'uscita, idonee o senza
-    analisi perché arrivate con una richiesta (R-46), non già su un altro post
-    vivo dello stesso canale (§1.9). Prima quelle senza analisi, poi per
-    punteggio decrescente.
+    Restituisce coppie ``FotoPerPost(foto, provenienza)``: prima il gruppo
+    dell'uscita, poi le altre foto della campagna, poi l'archivio della bottega
+    (R-27). Restano fuori le non idonee e quelle già su un altro post vivo
+    dello stesso canale (§1.9). Dentro ogni fonte: prima quelle senza analisi,
+    poi per punteggio decrescente. Ammessa anche sui post con un'immagine AI.
 
     Raises:
         NonTrovato: se non esiste nessun post con quell'id.
-        StatoNonValido: ``cambia_foto`` non è ammesso sul post o il post ha
-            un'immagine AI (409).
+        StatoNonValido: ``cambia_foto`` non è ammesso sul post (409).
     """
     from .interventi import foto_possibili as _foto_possibili  # importa questo modulo
 
@@ -652,22 +723,32 @@ def foto_possibili(db: Session, post_id: int, adesso: datetime) -> list:
 
 
 def cambia_foto(
-    db: Session, post_id: int, foto_id: int, utente_id: int, adesso: datetime
+    db: Session,
+    post_id: int,
+    foto_id: int,
+    utente_id: int,
+    adesso: datetime,
+    riscrivi_testo: bool = False,
 ) -> VersionePost:
     """Cambia la foto di un post con una nuova versione ``cambio_foto`` (R-36, CA-71).
 
     Usata da ``revisione`` per ``POST /post/{id}/cambia-foto`` (plan §6). Stesso
-    testo e hashtag della versione corrente, ``utente_id`` come autore, la foto
-    scelta al posto della prima; la spunta cade. Non conta cicli (R-03).
+    testo e hashtag della versione corrente (senza la dicitura se da
+    un'immagine AI si passa a una foto vera), ``utente_id`` come autore, la
+    foto scelta al posto della prima; la spunta cade. Non conta cicli (R-03).
+    Con ``riscrivi_testo``, in revisione, accende ``rigenera_totale``: il testo
+    lo riscrive il job ``rigenera_post`` (CA-105).
 
     Raises:
         NonTrovato: se non esiste nessun post con quell'id.
-        StatoNonValido: ``cambia_foto`` non è ammesso sul post (409).
-        DatiNonValidi: ``foto_id`` non è tra ``foto_possibili()`` (422).
+        StatoNonValido: ``cambia_foto`` non è ammesso sul post (409), oppure
+            ``riscrivi_testo`` senza rigenerazioni del testo rimaste.
+        DatiNonValidi: ``foto_id`` non è tra ``foto_possibili()`` (422), oppure
+            ``riscrivi_testo`` dopo l'approvazione.
     """
     from .interventi import cambia_foto as _cambia_foto  # importa questo modulo
 
-    return _cambia_foto(db, post_id, foto_id, utente_id, adesso)
+    return _cambia_foto(db, post_id, foto_id, utente_id, adesso, riscrivi_testo)
 
 
 def puo_rigenerare(db: Session, post_id: int, adesso: datetime) -> bool:
@@ -702,6 +783,35 @@ def accendi_intervento(db: Session, post_id: int, tipo: str, adesso: datetime) -
     from .interventi import accendi_intervento as _accendi  # importa questo modulo
 
     return _accendi(db, post_id, tipo, adesso)
+
+
+def accendi_rigenerazione_immagine(
+    db: Session,
+    post_id: int,
+    riscrivi_testo: bool,
+    nota_testo: str | None,
+    adesso: datetime,
+) -> list[Post]:
+    """Accende ``rigenera_immagine`` sui post che l'immagine tocca (R-49).
+
+    Usata da ``revisione`` prima di accodare il job ``rigenera_immagine``
+    (plan §6). Controlla i limiti prima di cambiare qualcosa: 3 immagini per
+    post, un intervento in corso, campagna in revisione, e con
+    ``riscrivi_testo`` un ciclo di R-03 rimasto (409).
+
+    Returns:
+        I post su cui l'intervento è acceso: quello chiesto e, se l'immagine è
+        dell'uscita, i post ``da_approvare`` che la usano.
+
+    Raises:
+        NonTrovato: il post non esiste.
+        StatoNonValido: un controllo non passa (409).
+    """
+    from .interventi import (  # interventi importa questo modulo
+        accendi_rigenerazione_immagine as _accendi,
+    )
+
+    return _accendi(db, post_id, riscrivi_testo, nota_testo, adesso)
 
 
 def ferma_generazione(db: Session, campagna_id: int, adesso: datetime) -> None:
@@ -741,3 +851,45 @@ def calendario_campagna(
     from .calendario import leggi
 
     return leggi(db, campagna_id, utente_id, ruolo)
+
+
+# --- Storico dell'AI (R-50): le letture stanno in storico_ai.py ----------------
+
+
+def storico_ai(db: Session, **filtri: Any) -> PaginaChiamateAI:
+    """Una pagina di chiamate all'AI, con i filtri di ``storico_ai.elenco()``."""
+    from . import storico_ai as storico
+
+    return storico.elenco(db, **filtri)
+
+
+def numeri_ai(db: Session, **filtri: Any) -> NumeriAI:
+    """I numeri delle chiamate all'AI, con i filtri di ``storico_ai.numeri()``."""
+    from . import storico_ai as storico
+
+    return storico.numeri(db, **filtri)
+
+
+def chiamata_ai(db: Session, chiamata_id: int) -> ChiamataAIDettaglio:
+    """Il dettaglio di una chiamata all'AI.
+
+    Raises:
+        NonTrovato: «Chiamata non trovata.» (404).
+    """
+    from . import storico_ai as storico
+
+    return storico.dettaglio(db, chiamata_id)
+
+
+def vota_chiamata_ai(
+    db: Session, chiamata_id: int, utente_id: int, voto: int, nota: str | None
+) -> ValutazioneAISchema:
+    """Il voto da 1 a 5 di un operatore su una chiamata all'AI, con la nota.
+
+    Raises:
+        NonTrovato: «Chiamata non trovata.» (404).
+        DatiNonValidi: il voto è fuori da 1–5 (422).
+    """
+    from . import storico_ai as storico
+
+    return storico.vota(db, chiamata_id, utente_id, voto, nota)

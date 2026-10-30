@@ -19,6 +19,8 @@ import {
 } from "@mantine/core";
 import { useState } from "react";
 
+import { StatoBadge } from "./StatoBadge";
+
 import type {
   BloccoArchivio,
   CampagnaDelBlocco,
@@ -30,7 +32,7 @@ const CANALE: Record<string, string> = {
   instagram: "Instagram",
 };
 
-/** Lo stato come lo legge l'artigiano; l'operatore vede lo stato com'è. */
+/** Lo stato come lo legge l'artigiano; l'operatore usa `StatoBadge`. */
 const STATO_ARTIGIANO: Record<string, string> = {
   bozza: "Bozza",
   inviata: "In lavorazione",
@@ -138,13 +140,14 @@ export function ArchivioFoto({
                 <Title order={2} size="h4">
                   {c ? c.titolo : "Foto senza campagna"}
                 </Title>
-                {c && (
-                  <Badge variant="light" color="gray">
-                    {lato === "artigiano"
-                      ? STATO_ARTIGIANO[c.stato] ?? c.stato
-                      : c.stato}
-                  </Badge>
-                )}
+                {c &&
+                  (lato === "artigiano" ? (
+                    <Badge variant="light" color="gray">
+                      {STATO_ARTIGIANO[c.stato] ?? c.stato}
+                    </Badge>
+                  ) : (
+                    <StatoBadge tipo="campagna" stato={c.stato} />
+                  ))}
               </Group>
               {c && (
                 <Text size="sm" c="dimmed">

@@ -1,10 +1,15 @@
 """Sistemazione delle foto per anteprima e pubblicazione.
 
-Implementa la logica locale con Pillow secondo spec R-21, R-42 e CA-81:
+Implementa la logica locale con Pillow secondo spec R-21, R-42, CA-81 e CA-114 (ADR-119):
 1. Rotazione dell'immagine secondo i metadati di orientamento EXIF;
 2. Rimozione di qualsiasi metadato GPS e dato sensibile;
-3. Ritaglio al centro nelle proporzioni ammesse dalla scheda del canale (1:1 o 4:5),
-   applicato solo se la foto è fuori dalle proporzioni consentite;
+3. Adattamento alle proporzioni ammesse, da 4:5 a 1,91:1 (uguale per Facebook e Instagram):
+   - Una foto dentro l'intervallo non si taglia;
+   - Se fuori:
+     (a) con soggetto_box che entra nella finestra e taglio <= 35% area -> ritaglio attorno al soggetto;
+     (b) senza riquadro e taglio <= 10% area -> ritaglio al centro;
+     (c) altrimenti -> bordi sfocati (tela della proporzione, foto sfocata GaussianBlur 30 e scurita 15%,
+         foto intera centrata sopra);
 4. Ridimensionamento con lato corto esattamente a 1080 px;
 5. Applicazione di un leggero autocontrasto;
 6. Esportazione finale in formato JPEG;
@@ -14,12 +19,16 @@ Implementa la logica locale con Pillow secondo spec R-21, R-42 e CA-81:
 from __future__ import annotations
 
 import io
-from typing import Final
-from PIL import Image, ImageOps
+from typing import Any, Final
+from PIL import Image, ImageEnhance, ImageFilter, ImageOps
 
 from app.core.errori import DatiNonValidi
 
-# Proporzioni ammesse per canale secondo spec R-21 e R-42 (MVP: 1:1 o 4:5)
+# Intervallo ammesso per entrambi i canali (R-21, R-42): da 4:5 a 1,91:1.
+RATIO_MINIMO: Final[float] = 4 / 5
+RATIO_MASSIMO: Final[float] = 1.91
+
+# Proporzioni che si possono ancora forzare a mano (R-42).
 PROPORZIONI_CANALE: Final[dict[str, tuple[tuple[int, int], ...]]] = {
     "facebook": ((1, 1), (4, 5)),
     "instagram": ((1, 1), (4, 5)),
@@ -30,6 +39,11 @@ TOLLERANZA_PROPORZIONE: Final[float] = 0.01
 CUTOFF_AUTOCONTRASTO: Final[int] = 2
 MAX_PIXEL_TOTALI: Final[int] = 36_000_000
 
+# Soglie di ritaglio (spec R-42, ADR-119, brief §1.5)
+SOGLIA_TAGLIO_SOGGETTO: Final[float] = 0.35
+SOGLIA_TAGLIO_SENZA_SOGGETTO: Final[float] = 0.10
+TOLLERANZA_TAGLIO: Final[float] = 0.02
+
 
 def _calcola_ratio(larghezza: int, altezza: int) -> float:
     """Calcola il rapporto larghezza / altezza."""
@@ -38,49 +52,66 @@ def _calcola_ratio(larghezza: int, altezza: int) -> float:
     return larghezza / altezza
 
 
-def _trova_proporzione_target(
+def _ratio_target(
     ratio_corrente: float,
     proporzioni_ammesse: tuple[tuple[int, int], ...],
     proporzione_richiesta: str | None = None,
-) -> tuple[int, int] | None:
-    """Verifica se la foto è già conforme a una proporzione ammessa.
+) -> float | None:
+    """Il rapporto a cui portare la foto, o None se non va tagliata.
 
-    Se la foto è già in proporzione (entro tolleranza), restituisce None (nessun ritaglio).
-    Altrimenti restituisce la proporzione target ottimale (quella più vicina
-    che preserva la massima porzione dell'immagine) o quella richiesta.
+    Una proporzione forzata ('1:1' o '4:5') vale come richiesta. Altrimenti una
+    foto dentro l'intervallo da 4:5 a 1,91:1 (entro tolleranza) resta com'è, e
+    una fuori va al bordo più vicino.
     """
-    # Mappa delle proporzioni numeriche
-    ratios_ammessi = {f"{w}:{h}": (w, h, w / h) for (w, h) in proporzioni_ammesse}
-
     if proporzione_richiesta:
+        ratios_ammessi = {f"{w}:{h}": w / h for (w, h) in proporzioni_ammesse}
         if proporzione_richiesta not in ratios_ammessi:
             raise DatiNonValidi(
                 f"Proporzione '{proporzione_richiesta}' non ammessa. "
                 f"Valori validi: {', '.join(ratios_ammessi.keys())}."
             )
-        w, h, target_r = ratios_ammessi[proporzione_richiesta]
-        # Se già conforme alla proporzione richiesta, nessun ritaglio
-        if abs(ratio_corrente - target_r) <= TOLLERANZA_PROPORZIONE:
+        target = ratios_ammessi[proporzione_richiesta]
+        if abs(ratio_corrente - target) <= TOLLERANZA_PROPORZIONE:
             return None
-        return (w, h)
+        return target
 
-    # Verifica se la foto rientra già in una qualsiasi proporzione ammessa
-    for _, (w, h, target_r) in ratios_ammessi.items():
-        if abs(ratio_corrente - target_r) <= TOLLERANZA_PROPORZIONE:
-            return None  # Già conforme!
-
-    # Se fuori da tutte le proporzioni ammesse, sceglie quella con distanza minima
-    # (minimizza i pixel tagliati per conservare al meglio l'inquadratura)
-    proporzione_ottimale = min(
-        ratios_ammessi.values(),
-        key=lambda item: abs(ratio_corrente - item[2]),
-    )
-    return (proporzione_ottimale[0], proporzione_ottimale[1])
+    if ratio_corrente < RATIO_MINIMO - TOLLERANZA_PROPORZIONE:
+        return RATIO_MINIMO
+    if ratio_corrente > RATIO_MASSIMO + TOLLERANZA_PROPORZIONE:
+        return RATIO_MASSIMO
+    return None
 
 
-def _ritaglia_al_centro(img: Image.Image, target_w: int, target_h: int) -> Image.Image:
-    """Esegue un ritaglio al centro per allineare l'immagine alle proporzioni target."""
-    target_ratio = target_w / target_h
+def _valida_soggetto_box(box: Any) -> dict[str, float] | None:
+    """Valida il riquadro del soggetto.
+
+    Deve essere un dizionario con chiavi 'x', 'y', 'larghezza', 'altezza',
+    valori numerici tra 0 e 1, con larghezza e altezza positive.
+    Un riquadro non valido o malformato vale None (R-42, brief §1.4).
+    """
+    if not isinstance(box, dict):
+        return None
+    try:
+        x = float(box["x"])
+        y = float(box["y"])
+        w = float(box["larghezza"])
+        h = float(box["altezza"])
+    except (KeyError, TypeError, ValueError):
+        return None
+    if w <= 0 or h <= 0 or x < 0 or y < 0:
+        return None
+    if x + w > 1.0001 or y + h > 1.0001:
+        return None
+    return {
+        "x": max(0.0, min(1.0, x)),
+        "y": max(0.0, min(1.0, y)),
+        "larghezza": min(1.0, w),
+        "altezza": min(1.0, h),
+    }
+
+
+def _ritaglia_al_centro(img: Image.Image, target_ratio: float) -> Image.Image:
+    """Esegue un ritaglio al centro per allineare l'immagine al rapporto target."""
     current_ratio = img.width / img.height
 
     if current_ratio > target_ratio:
@@ -97,6 +128,98 @@ def _ritaglia_al_centro(img: Image.Image, target_w: int, target_h: int) -> Image
         return img.crop(box)
 
     return img
+
+
+def _adatta_alle_proporzioni(
+    img: Image.Image,
+    target_ratio: float,
+    soggetto_box: dict[str, float] | None = None,
+) -> Image.Image:
+    """Adatta l'immagine al rapporto target secondo R-42 e brief §1.5 (T3-921).
+
+    (a) con soggetto_box che entra nella finestra e il taglio toglie al più il 35% dell'area:
+        ritaglio: la finestra più grande della proporzione che contiene il riquadro,
+        centrata sul suo centro e tenuta dentro la foto;
+    (b) senza riquadro e il taglio toglie al più il 10%:
+        ritaglio al centro come oggi;
+    (c) altrimenti:
+        bordi sfocati: tela della proporzione, sotto la foto stessa ingrandita a coprire,
+        sfocata (GaussianBlur 30) e scurita del 15%, sopra la foto intera centrata.
+    """
+    w, h = img.width, img.height
+    area_orig = w * h
+
+    current_ratio = w / h
+    if current_ratio > target_ratio:
+        # Foto più larga: altezza fissa, larghezza ridotta
+        h_crop = h
+        w_crop = round(h * target_ratio)
+    else:
+        # Foto più alta: larghezza fissa, altezza ridotta
+        w_crop = w
+        h_crop = round(w / target_ratio)
+
+    area_crop = w_crop * h_crop
+    frazione_taglio = max(0.0, (area_orig - area_crop) / area_orig)
+
+    box = _valida_soggetto_box(soggetto_box)
+    if box is not None:
+        box_px_x = box["x"] * w
+        box_px_y = box["y"] * h
+        box_px_w = box["larghezza"] * w
+        box_px_h = box["altezza"] * h
+
+        # (a) Il riquadro entra nella finestra e il taglio toglie al più il 35%
+        entra = box_px_w <= w_crop and box_px_h <= h_crop
+        taglio_ammissibile = frazione_taglio <= (
+            SOGLIA_TAGLIO_SOGGETTO + TOLLERANZA_TAGLIO
+        )
+
+        if entra and taglio_ammissibile:
+            centro_x = box_px_x + box_px_w / 2
+            centro_y = box_px_y + box_px_h / 2
+            crop_x = round(centro_x - w_crop / 2)
+            crop_y = round(centro_y - h_crop / 2)
+            crop_x = max(0, min(crop_x, w - w_crop))
+            crop_y = max(0, min(crop_y, h - h_crop))
+            return img.crop((crop_x, crop_y, crop_x + w_crop, crop_y + h_crop))
+
+    # (b) Senza riquadro e il taglio toglie al più il 10%
+    if box is None and frazione_taglio <= (
+        SOGLIA_TAGLIO_SENZA_SOGGETTO + TOLLERANZA_PROPORZIONE
+    ):
+        return _ritaglia_al_centro(img, target_ratio)
+
+    # (c) Altrimenti bordi sfocati: tela della proporzione
+    if current_ratio < target_ratio:
+        # Foto più stretta/alta della proporzione: l'altezza resta h, la larghezza cresce
+        h_canvas = h
+        w_canvas = round(h * target_ratio)
+    else:
+        # Foto più larga della proporzione: la larghezza resta w, l'altezza cresce
+        w_canvas = w
+        h_canvas = round(w / target_ratio)
+
+    # Sotto: la foto stessa ingrandita a coprire
+    scale = max(w_canvas / w, h_canvas / h)
+    scaled_w = round(w * scale)
+    scaled_h = round(h * scale)
+    bg_scaled = img.resize((scaled_w, scaled_h), Image.Resampling.LANCZOS)
+
+    # Ritaglio al centro per allineare a (w_canvas, h_canvas)
+    bg_x = (scaled_w - w_canvas) // 2
+    bg_y = (scaled_h - h_canvas) // 2
+    bg = bg_scaled.crop((bg_x, bg_y, bg_x + w_canvas, bg_y + h_canvas))
+
+    # Sfocata (GaussianBlur 30) e scurita del 15%
+    bg = bg.filter(ImageFilter.GaussianBlur(30))
+    bg = ImageEnhance.Brightness(bg).enhance(0.85)
+
+    # Sopra: la foto intera centrata
+    pos_x = (w_canvas - w) // 2
+    pos_y = (h_canvas - h) // 2
+    bg.paste(img, (pos_x, pos_y))
+    return bg
 
 
 def _ridimensiona_lato_corto(
@@ -125,13 +248,15 @@ def sistema_foto_buffer(
     dati_foto: bytes,
     canale: str = "instagram",
     proporzione: str | None = None,
+    soggetto_box: dict[str, float] | None = None,
 ) -> bytes:
-    """Elabora e sistema i byte binari di una foto secondo spec R-42.
+    """Elabora e sistema i byte binari di una foto secondo spec R-42 e CA-114 (ADR-119).
 
     Operazioni eseguite su una copia in memoria:
     - Rotazione corretta basata sui metadati EXIF;
     - Rimozione totale di GPS e metadati identificativi;
-    - Ritaglio al centro se la foto non è in 1:1 o 4:5;
+    - Adattamento alle proporzioni ammesse da 4:5 a 1,91:1 con ritaglio sul soggetto,
+      ritaglio al centro o bordi sfocati;
     - Ridimensionamento con lato corto a 1080 px;
     - Autocontrasto leggero;
     - Codifica finale JPEG.
@@ -139,7 +264,8 @@ def sistema_foto_buffer(
     Args:
         dati_foto: Il contenuto binario dell'immagine sorgente (JPEG, PNG o WEBP).
         canale: Canale di destinazione ('facebook' o 'instagram').
-        proporzione: Opzionale stringa di proporzione forzata ('1:1' o '4:5').
+        proporzione: Opzionale proporzione forzata ('1:1' o '4:5').
+        soggetto_box: Opzionale riquadro normalizzato del soggetto dall'analisi AI.
 
     Returns:
         I byte dell'immagine JPEG sistemata.
@@ -194,17 +320,16 @@ def sistema_foto_buffer(
         elif img.mode != "RGB":
             img = img.convert("RGB")
 
-        # 3. Ritaglio al centro solo se fuori dalle proporzioni della scheda del canale (R-21, R-42)
+        # 3. Adattamento alle proporzioni: da 4:5 a 1,91:1 (R-21, R-42, ADR-119)
         ratio_corrente = _calcola_ratio(img.width, img.height)
-        proporzioni_ammesse = PROPORZIONI_CANALE[canale_norm]
-        target_prop = _trova_proporzione_target(
+        target = _ratio_target(
             ratio_corrente=ratio_corrente,
-            proporzioni_ammesse=proporzioni_ammesse,
+            proporzioni_ammesse=PROPORZIONI_CANALE[canale_norm],
             proporzione_richiesta=proporzione,
         )
 
-        if target_prop is not None:
-            img = _ritaglia_al_centro(img, target_prop[0], target_prop[1])
+        if target is not None:
+            img = _adatta_alle_proporzioni(img, target, soggetto_box=soggetto_box)
 
         # 4. Ridimensionamento con lato corto esattamente a 1080 px
         img = _ridimensiona_lato_corto(img, LATO_CORTO_TARGET)

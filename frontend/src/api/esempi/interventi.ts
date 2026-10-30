@@ -16,7 +16,7 @@ import type {
 } from "../revisione";
 import type { ModalitaRigenerazione } from "../interventi";
 import { sessioneEsempio, USA_ESEMPI } from "./accesso";
-import { leggiCampagna, salvaCampagna } from "./campagne";
+import { caricaCampagne, leggiCampagna, salvaCampagna } from "./campagne";
 
 const CHIAVE = "adflow_esempi_revisione";
 const CHIAVE_RICHIESTE = "adflow_esempi_interventi_richieste";
@@ -31,6 +31,7 @@ const AMMESSI: Record<string, Intervento[]> = {
   "in_revisione|da_approvare": [
     "modifica",
     "rigenera",
+    "rigenera_immagine",
     "cambia_foto",
     "sposta",
   ],
@@ -156,7 +157,6 @@ export function interventiAmmessi(
     ammessi = ammessi.filter(
       (i) => i !== "modifica" && i !== "rigenera" && i !== "cambia_foto",
     );
-  if (post.riempitivo) ammessi = ammessi.filter((i) => i !== "cambia_foto");
   if (rigenerazioniFatte(post) >= MAX_RIGENERAZIONI)
     ammessi = ammessi.filter((i) => i !== "rigenera");
   return ammessi;
@@ -178,8 +178,6 @@ function motivoNonAmmesso(
       new Date(post.data_ora).getTime() < adesso + MARGINE_MINUTI * 60 * 1000
     )
       return `Il post esce tra meno di ${MARGINE_MINUTI} minuti: non si tocca più.`;
-    if (intervento === "cambia_foto" && post.riempitivo)
-      return "Un post con un'immagine AI non cambia foto.";
     if (
       intervento === "rigenera" &&
       rigenerazioniFatte(post) >= MAX_RIGENERAZIONI
@@ -496,15 +494,92 @@ export const esempiInterventi = {
     setTimeout(() => completaRigenerazione(postId), ATTESA_RIGENERAZIONE_MS);
   },
 
-  /** CA-71: le foto del gruppo dell'uscita con cui cambiare quella del post. */
+  /** R-49, ADR-119: rigenera l'immagine AI del post (3 per post, solo in revisione). */
+  async rigeneraImmagine(
+    postId: number,
+    nota: string | null = null,
+    riscriviTesto: boolean = false,
+    notaTesto: string | null = null,
+  ): Promise<void> {
+    operatore();
+    const dati = leggi();
+    const { post } = ammesso(dati, postId, "rigenera_immagine");
+    const rigenerazioniImg = post.versioni.filter(
+      (v) => v.tipo_intervento === "rigenera_immagine",
+    ).length;
+    if (rigenerazioniImg >= 3)
+      throw new ApiErrore(
+        409,
+        "Questa immagine è già stata rigenerata 3 volte: scegli una foto con Cambia immagine.",
+      );
+    if (riscriviTesto && rigenerazioniFatte(post) >= MAX_RIGENERAZIONI)
+      throw new ApiErrore(
+        409,
+        "Il testo di questo post non si può più rigenerare: modificalo a mano.",
+      );
+
+    post.intervento_in_corso = "rigenera_immagine";
+    post.intervento_dal = new Date().toISOString();
+    scrivi(dati);
+
+    setTimeout(() => {
+      const d = leggi();
+      let p: PostVista;
+      try {
+        p = trova(d, postId).post;
+      } catch {
+        return;
+      }
+      if (p.intervento_in_corso !== "rigenera_immagine") return;
+      const corrente = p.versione_corrente;
+      if (!corrente) return;
+      const nuovaFotoId = 200000 + (Date.now() % 100000);
+      let testo = corrente.testo;
+      if (!testo.includes("Immagine creata con AI")) {
+        testo = `${testo.trim()}\n\nImmagine creata con AI`;
+      }
+      p.riempitivo = "immagine_ai";
+      // Rimuove eventuale blocco immagine_non_creata
+      const errori = (
+        Array.isArray(corrente.errori_validazione)
+          ? (corrente.errori_validazione as ErroreValidazione[])
+          : []
+      ).filter(
+        (e) => (e as { regola?: string }).regola !== "immagine_non_creata",
+      );
+      nuovaVersione(p, {
+        testo,
+        hashtag: corrente.hashtag,
+        autore_id: null,
+        tipo_intervento: "rigenera_immagine",
+        nota: nota?.trim() || null,
+        errori,
+      });
+      const nuova = p.versione_corrente;
+      if (nuova) {
+        nuova.foto = [{ foto_id: nuovaFotoId, posizione: 0 }];
+      }
+      p.intervento_in_corso = null;
+      p.intervento_dal = null;
+      scrivi(d);
+
+      if (riscriviTesto) {
+        esempiInterventi
+          .rigenera(postId, "totale", null, notaTesto)
+          .catch(() => {});
+      }
+    }, ATTESA_RIGENERAZIONE_MS);
+  },
+
+  /** CA-71: le foto con cui cambiare quella del post da gruppo, campagna e archivio. */
   async fotoPossibili(postId: number): Promise<FotoPossibile[]> {
     operatore();
     const dati = leggi();
     const { campagnaId, post } = ammesso(dati, postId, "cambia_foto");
+    const c = leggiCampagna(campagnaId);
     const uscita = dati[campagnaId].uscite.find((u) => u.post.includes(post));
     const gruppoId = uscita?.gruppo?.id;
-    if (gruppoId == null)
-      throw new ApiErrore(409, "Un post con un'immagine AI non cambia foto.");
+
     const occupate = new Set(
       post.versione_corrente?.foto.map((f) => f.foto_id) ?? [],
     );
@@ -516,23 +591,30 @@ export const esempiInterventi = {
       )
         for (const f of altro.versione_corrente?.foto ?? [])
           occupate.add(f.foto_id);
-    const gruppo = leggiCampagna(campagnaId).gruppi.find(
-      (g) => g.id === gruppoId,
-    );
+
     // Le foto arrivate con una richiesta all'artigiano non hanno analisi (R-46).
     const arrivate = new Set(
-      (leggiCampagna(campagnaId).richiesta?.foto ?? []).flatMap((f) =>
+      (c.richiesta?.foto ?? []).flatMap((f) =>
         f.nuova_foto_id != null ? [f.nuova_foto_id] : [],
       ),
     );
-    return (gruppo?.foto ?? [])
+
+    // 1) Dello stesso gruppo (se il post ha un gruppo associato)
+    const gruppo =
+      gruppoId != null ? c.gruppi.find((g) => g.id === gruppoId) : null;
+    const daGruppo: FotoPossibile[] = (gruppo?.foto ?? [])
       .filter((f) => f.origine === "caricata" && !occupate.has(f.id))
       .map((f, i) => ({
         foto_id: f.id,
         punteggio: arrivate.has(f.id)
           ? null
-          : Math.round((0.9 - 0.05 * i) * 100) / 100,
+          : Math.round((0.95 - 0.05 * i) * 100) / 100,
         analizzata: !arrivate.has(f.id),
+        provenienza: "gruppo" as const,
+        soggetto:
+          (f as { soggetto?: string }).soggetto ??
+          gruppo?.descrizione ??
+          "Dettaglio del prodotto",
       }))
       .sort(
         (a, b) =>
@@ -540,25 +622,112 @@ export const esempiInterventi = {
           (b.punteggio ?? 0) - (a.punteggio ?? 0) ||
           a.foto_id - b.foto_id,
       );
+
+    const viste = new Set(daGruppo.map((f) => f.foto_id));
+
+    // 2) Della campagna (altri gruppi)
+    const altriGruppi = c.gruppi.filter((g) => g.id !== gruppoId);
+    const daCampagna: FotoPossibile[] = altriGruppi
+      .flatMap((g) => g.foto.map((f) => ({ f, desc: g.descrizione })))
+      .filter(
+        ({ f }) =>
+          f.origine === "caricata" && !occupate.has(f.id) && !viste.has(f.id),
+      )
+      .map(({ f, desc }, i) => {
+        viste.add(f.id);
+        return {
+          foto_id: f.id,
+          punteggio: Math.round((0.85 - 0.04 * i) * 100) / 100,
+          analizzata: true,
+          provenienza: "campagna" as const,
+          soggetto:
+            (f as { soggetto?: string }).soggetto ??
+            desc ??
+            "Foto della campagna",
+        };
+      })
+      .sort(
+        (a, b) =>
+          (b.punteggio ?? 0) - (a.punteggio ?? 0) || a.foto_id - b.foto_id,
+      );
+
+    // 3) Dall'archivio della bottega (campagne chiuse dello stesso artigiano)
+    let altreCampagne = caricaCampagne().filter(
+      (altra) =>
+        altra.profilo_id === c.profilo_id &&
+        altra.id !== c.id &&
+        ["conclusa", "annullata", "scaduta", "respinta"].includes(altra.stato),
+    );
+    if (!altreCampagne.length) {
+      altreCampagne = caricaCampagne().filter(
+        (altra) =>
+          altra.id !== c.id &&
+          ["conclusa", "annullata", "scaduta", "respinta"].includes(
+            altra.stato,
+          ),
+      );
+    }
+    const daArchivio: FotoPossibile[] = altreCampagne
+      .flatMap((altra) =>
+        altra.gruppi.flatMap((g) =>
+          g.foto.map((f) => ({ f, desc: g.descrizione })),
+        ),
+      )
+      .filter(
+        ({ f }) =>
+          f.origine === "caricata" && !occupate.has(f.id) && !viste.has(f.id),
+      )
+      .map(({ f, desc }, i) => {
+        viste.add(f.id);
+        return {
+          foto_id: f.id,
+          punteggio: Math.round((0.8 - 0.03 * i) * 100) / 100,
+          analizzata: true,
+          provenienza: "archivio" as const,
+          soggetto:
+            (f as { soggetto?: string }).soggetto ??
+            desc ??
+            "Foto dall'archivio della bottega",
+        };
+      })
+      .sort(
+        (a, b) =>
+          (b.punteggio ?? 0) - (a.punteggio ?? 0) || a.foto_id - b.foto_id,
+      );
+
+    return [...daGruppo, ...daCampagna, ...daArchivio];
   },
 
   /** CA-71: versione `cambio_foto` con lo stesso testo; la foto scelta prende il primo posto. */
-  async cambiaFoto(postId: number, fotoId: number): Promise<void> {
+  async cambiaFoto(
+    postId: number,
+    fotoId: number,
+    riscriviTesto: boolean = false,
+    nota: string | null = null,
+  ): Promise<void> {
     const utente = operatore();
     const possibili = await esempiInterventi.fotoPossibili(postId);
     if (!possibili.some((f) => f.foto_id === fotoId))
       throw new ApiErrore(
         422,
-        "Questa foto non si può usare per il post: deve essere del gruppo dell'uscita, idonea o arrivata con una richiesta, e non già su questo canale.",
+        "Questa foto non si può usare per il post: deve essere del gruppo dell'uscita, della campagna o dell'archivio, e non già su questo canale.",
       );
     const dati = leggi();
-    const { post } = trova(dati, postId);
+    const { campagnaId, post } = trova(dati, postId);
     const corrente = post.versione_corrente;
     if (!corrente) return;
-    const primo = Math.min(...corrente.foto.map((f) => f.posizione));
+    const primo =
+      corrente.foto.length > 0
+        ? Math.min(...corrente.foto.map((f) => f.posizione))
+        : 0;
     const rivedere = post.da_rivedere;
+    let testo = corrente.testo;
+    if (post.riempitivo === "immagine_ai") {
+      testo = testo.replace(/\n\nImmagine creata con AI$/i, "").trim();
+      post.riempitivo = null;
+    }
     nuovaVersione(post, {
-      testo: corrente.testo,
+      testo,
       hashtag: corrente.hashtag,
       autore_id: utente.id,
       tipo_intervento: "cambio_foto",
@@ -569,11 +738,20 @@ export const esempiInterventi = {
     // Cambiare la foto non cambia l'indicatore «da rivedere» (R-36).
     post.da_rivedere = rivedere;
     const nuova = post.versione_corrente;
-    if (nuova)
-      nuova.foto = corrente.foto.map((f) =>
-        f.posizione === primo ? { ...f, foto_id: fotoId } : f,
-      );
+    if (nuova) {
+      if (corrente.foto.length > 0) {
+        nuova.foto = corrente.foto.map((f) =>
+          f.posizione === primo ? { ...f, foto_id: fotoId } : f,
+        );
+      } else {
+        nuova.foto = [{ foto_id: fotoId, posizione: 0 }];
+      }
+    }
     scrivi(dati);
+
+    if (riscriviTesto && leggiCampagna(campagnaId).stato === "in_revisione") {
+      await esempiInterventi.rigenera(postId, "totale", null, nota);
+    }
   },
 
   /** CA-72: nuova data e ora, dentro il periodo, dopo il margine e diversa da quella di prima. */

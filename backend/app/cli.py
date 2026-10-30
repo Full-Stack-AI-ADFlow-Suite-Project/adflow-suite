@@ -6,6 +6,7 @@ Da ``backend/``::
     python -m app.cli crea-utente --email E --nome N --ruolo artigiano|operatore|admin
     python -m app.cli cambia-password --email E
     python -m app.cli prova-ai --campagna ID
+    python -m app.cli prova-prompt --da-campagna ID
     python -m app.cli demo --foto CARTELLA [--quante N]
     python -m app.cli pubblica-ora
 
@@ -14,6 +15,11 @@ La password si chiede a terminale: non passa dagli argomenti né finisce in git.
 ``prova-ai`` genera una campagna `inviata` con il provider scelto in
 ``backend/.env`` (``AI_PROVIDER=litellm`` per quello vero) e stampa cosa ha
 fatto e speso l'AI: è la prova su 10 post di T3-32, da ripetere per ogni modello.
+
+``prova-prompt`` (T3-925) clona una campagna di prova (stessa bottega, canali,
+descrizione, durata, gruppi e foto vere), la invia e la genera come ``prova-ai``,
+poi mette a confronto il suo riepilogo con quello della campagna di partenza.
+Va lanciato a worker fermo: l'invio mette in coda anche il job di generazione.
 
 ``demo`` prepara da database vuoto i dati della demo (T3-06, converge §4): il
 seed, la bottega della demo con il profilo e una campagna in bozza pronta da
@@ -42,6 +48,7 @@ from pydantic import ValidationError
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.adapters.archivio import ottieni_archivio
 from app.core.config import leggi_impostazioni
 from app.core.db import transazione
 from app.core.errori import DatiNonValidi, ErroreDominio, StatoNonValido
@@ -408,6 +415,111 @@ def rapporto_prova_ai(esito: EsitoProva) -> str:
     return "\n".join(righe)
 
 
+@dataclass
+class EsitoClone:
+    """La campagna nuova di ``prova-prompt``: id, foto caricate e foto scartate."""
+
+    campagna_id: int
+    caricate: int = 0
+    scartate: list[tuple[int, str]] = field(default_factory=list)
+
+
+def clona_e_invia(db: Session, da_campagna_id: int, ora: datetime) -> EsitoClone:
+    """Copia una campagna in una bozza nuova, con le foto vere, e la invia (T3-925).
+
+    Stessa bottega, canali, descrizione e durata; inizio tra 4 giorni (uno più
+    dell'anticipo minimo), gruppi con la loro descrizione e le foto caricate,
+    lette dall'archivio. Le immagini AI della campagna di partenza non si
+    copiano: la generazione le rifà. Una foto che non supera i controlli di oggi
+    si scarta con il motivo.
+    """
+    origine = campagne.campagna(db, da_campagna_id)
+    profilo = db.get(ProfiloBottega, origine.profilo_id)
+    anticipo = leggi_impostazioni().anticipo_minimo_giorni
+    inizio = ora.astimezone(ROMA).date() + timedelta(days=anticipo + 1)
+    spostamento = inizio - origine.inizio
+    nuova = campagne.crea_bozza(
+        db,
+        profilo.utente_id,
+        CampagnaCrea(
+            titolo=f"{origine.titolo} · prova prompt"[:200],
+            inizio=inizio,
+            fine=origine.fine + spostamento,
+            descrizione=origine.descrizione,
+            canali=list(origine.canali or []),
+        ),
+        ora,
+    )
+    esito = EsitoClone(campagna_id=nuova.id)
+    archivio = ottieni_archivio()
+    for gruppo in campagne.gruppi_della_campagna(db, origine.id):
+        if not gruppo.foto:
+            continue
+        copia = campagne.crea_gruppo(
+            db,
+            profilo.utente_id,
+            "artigiano",
+            nuova.id,
+            GruppoCrea(
+                descrizione=gruppo.descrizione,
+                da_usare_il=(
+                    gruppo.da_usare_il + spostamento if gruppo.da_usare_il else None
+                ),
+            ),
+        )
+        for foto in gruppo.foto:
+            try:
+                campagne.carica_foto(
+                    db,
+                    profilo.utente_id,
+                    "artigiano",
+                    nuova.id,
+                    archivio.leggi(foto.file),
+                    copia.id,
+                )
+            except DatiNonValidi as errore:
+                esito.scartate.append((foto.id, errore.messaggio))
+            else:
+                esito.caricate += 1
+    campagne.invia_campagna(db, profilo.utente_id, nuova.id, ora, dichiarazione=True)
+    return esito
+
+
+def rapporto_confronto(prima: RiepilogoAI, dopo: RiepilogoAI) -> str:
+    """Due campagne a confronto per tipo di chiamata, da riportare nella PR (T3-925)."""
+
+    def riga(riepilogo: RiepilogoAI, tipo: str):
+        return next((r for r in riepilogo.per_tipo if r.tipo == tipo), None)
+
+    def chiamate(riepilogo: RiepilogoAI, tipo: str) -> int:
+        trovata = riga(riepilogo, tipo)
+        return trovata.chiamate if trovata else 0
+
+    def costo(riepilogo: RiepilogoAI, tipo: str) -> Decimal:
+        trovata = riga(riepilogo, tipo)
+        return trovata.costo_usd if trovata else Decimal(0)
+
+    tipi = sorted({r.tipo for r in prima.per_tipo} | {r.tipo for r in dopo.per_tipo})
+    righe = [
+        f"Confronto · campagna {prima.campagna_id} (prima) e {dopo.campagna_id} (adesso)",
+        f"  {'tipo':<9}{'n prima':>8}{'n adesso':>9}{'costo prima':>14}{'costo adesso':>14}",
+    ]
+    for tipo in tipi:
+        righe.append(
+            f"  {tipo:<9}{chiamate(prima, tipo):>8}{chiamate(dopo, tipo):>9}"
+            f"{_dollari(costo(prima, tipo)):>14}{_dollari(costo(dopo, tipo)):>14}"
+        )
+    righe += [
+        f"  {'totale':<9}{'':>8}{'':>9}"
+        f"{_dollari(prima.costo_totale_usd):>14}{_dollari(dopo.costo_totale_usd):>14}",
+        f"Post:                       {prima.n_post} · {dopo.n_post}",
+        f"Riscritture del piano:      {prima.riscritture_piano} · {dopo.riscritture_piano}",
+        f"Riscritture dei testi:      {prima.riscritture_testi} · {dopo.riscritture_testi}",
+        f"Post con blocchi o avvisi:  {len(prima.post_segnalati)} · {len(dopo.post_segnalati)}",
+    ]
+    return "\n".join(righe)
+
+
 def _chiedi_password(etichetta: str) -> str:
     password = getpass(f"{etichetta}: ")
     if not password:
@@ -438,6 +550,13 @@ def _parser() -> argparse.ArgumentParser:
         "prova-ai", help="genera una campagna inviata e stampa cosa ha speso l'AI"
     )
     prova.add_argument("--campagna", required=True, type=int, help="id della campagna")
+    prompt = comandi.add_parser(
+        "prova-prompt",
+        help="clona una campagna di prova, la genera e la confronta con l'originale",
+    )
+    prompt.add_argument(
+        "--da-campagna", required=True, type=int, help="id della campagna di partenza"
+    )
     demo = comandi.add_parser(
         "demo", help="seed, bottega della demo e campagna in bozza con le foto vere"
     )
@@ -478,6 +597,20 @@ def main(argv: Sequence[str] | None = None) -> int:
         elif argomenti.comando == "prova-ai":
             esito = esegui_prova_ai(argomenti.campagna)
             print(rapporto_prova_ai(esito))
+            return 0 if esito.errore is None else 1
+        elif argomenti.comando == "prova-prompt":
+            with transazione() as db:
+                clone = clona_e_invia(db, argomenti.da_campagna, adesso())
+            print(
+                f"Campagna {clone.campagna_id} inviata: {clone.caricate} foto copiate."
+            )
+            for foto_id, motivo in clone.scartate:
+                print(f"  foto {foto_id} scartata: {motivo}")
+            esito = esegui_prova_ai(clone.campagna_id)
+            print(rapporto_prova_ai(esito))
+            with transazione() as db:
+                prima = riepilogo_ai_della_campagna(db, argomenti.da_campagna)
+            print("\n" + rapporto_confronto(prima, esito.riepilogo))
             return 0 if esito.errore is None else 1
         elif argomenti.comando == "pubblica-ora":
             ora = adesso() + timedelta(days=366)

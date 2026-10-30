@@ -71,12 +71,14 @@ ATTESA_PARTENZA_SECONDI = 3
 GENERA_CAMPAGNA = "genera_campagna"
 TICK_PUBBLICAZIONE = "tick_pubblicazione"
 RIGENERA_POST = "rigenera_post"
+RIGENERA_IMMAGINE = "rigenera_immagine"
 INVIA_NOTIFICA = "invia_notifica"
 
 _NOMI_JOB = {
     GENERA_CAMPAGNA,
     TICK_PUBBLICAZIONE,
     RIGENERA_POST,
+    RIGENERA_IMMAGINE,
     INVIA_NOTIFICA,
 }
 

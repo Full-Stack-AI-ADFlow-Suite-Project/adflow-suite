@@ -1,0 +1,29 @@
+[
+  {
+    "caso": "vuoto (nessuna indicazione, «Parti da questo testo» chiuso)",
+    "richiesta": "POST /api/post/1301/rigenera",
+    "corpo": {
+      "modalita": "totale",
+      "testo_proposto": null,
+      "nota": null
+    }
+  },
+  {
+    "caso": "pieno (indicazione e testo di partenza)",
+    "richiesta": "POST /api/post/1302/rigenera",
+    "corpo": {
+      "modalita": "da_proposta",
+      "testo_proposto": "Un plaid comprato oggi e tramandato domani: lana piena, bordi rifiniti a mano, nessun filo sintetico. Ti aspettiamo sabato in bottega.",
+      "nota": "Più caldo, nomina il sabato."
+    }
+  },
+  {
+    "caso": "aperto ma svuotato",
+    "richiesta": "POST /api/post/1303/rigenera",
+    "corpo": {
+      "modalita": "totale",
+      "testo_proposto": null,
+      "nota": null
+    }
+  }
+]

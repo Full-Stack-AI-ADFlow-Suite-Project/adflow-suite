@@ -179,6 +179,16 @@ def test_ca26_da_zero_nuova_versione_con_le_stesse_foto_validata(db, ai):
     assert prima.testo == "Testo di prova"
 
 
+def test_il_testo_dell_ai_si_salva_senza_caratteri_nulli(db, ai):
+    """T3-906: un NUL nella risposta dell'AI non fa fallire la rigenerazione."""
+    uno = _post_con_intervento(db)
+    ai.comanda_testo("Un testo con un carattere nullo\x00 dentro.", volte=1)
+
+    nuova = interventi.rigenera(db, uno.id, None, None, ADESSO)
+
+    assert nuova.testo == "Un testo con un carattere nullo dentro."
+
+
 def test_r04_le_versioni_rifiutate_arrivano_all_ai_e_non_si_ripetono(db, ai):
     uno = _post_con_intervento(db)
     prima = uno.versione_corrente.testo
@@ -392,3 +402,14 @@ def test_il_job_che_fallisce_torna_in_coda(db, ai, coda, monkeypatch):
     assert job["scheduled_at"] - prima >= timedelta(seconds=29)
     db.expire_all()
     assert uno.intervento_in_corso == "rigenera_totale"
+
+
+def test_ca107_la_rigenerazione_passa_gli_attacchi_degli_altri_post(db, ai):
+    uno = _post_con_intervento(db)
+    post_da_approvare(db, campagna_id=uno.campagna_id)  # stesso canale
+    db.commit()
+
+    interventi.rigenera(db, uno.id, None, None, ADESSO)
+
+    chiamata = [c for c in ai.chiamate if c["operazione"] == "genera_post"][-1]
+    assert chiamata["altri_post"] == ["Testo di prova"]

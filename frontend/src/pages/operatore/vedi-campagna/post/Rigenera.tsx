@@ -1,6 +1,10 @@
-/** Rigenera il testo del post, da zero o da un testo proposto (R-03, R-04, R-31). */
+/**
+ * Rigenera il testo del post (R-03, R-04, R-31): una sola finestra. Con «Parti
+ * da questo testo» vuoto l'AI riscrive da zero, con un testo parte da quello.
+ */
 import {
   Alert,
+  Anchor,
   Button,
   Group,
   Modal,
@@ -12,41 +16,35 @@ import { useState } from "react";
 
 import { ApiErrore } from "../../../../api/http";
 import { rigeneraPost } from "../../../../api/interventi";
-import type { ModalitaRigenerazione } from "../../../../api/interventi";
 import type { PostVista } from "../../../../api/revisione";
 import { NOME_CANALE } from "../../campagna/util";
 
 export function Rigenera({
   post,
-  modalita,
   chiudi,
   fatto,
 }: {
   post: PostVista;
-  /** Null = la finestra è chiusa. */
-  modalita: ModalitaRigenerazione | null;
   chiudi: () => void;
   fatto: () => void;
 }) {
+  const [partiDaTesto, setPartiDaTesto] = useState(false);
   const [proposto, setProposto] = useState("");
   const [nota, setNota] = useState("");
   const [occupato, setOccupato] = useState(false);
   const [errore, setErrore] = useState<string | null>(null);
-  const daProposta = modalita === "da_proposta";
+  const daProposta = partiDaTesto && proposto.trim() !== "";
 
   const invia = async () => {
-    if (!modalita) return;
     setOccupato(true);
     setErrore(null);
     try {
       await rigeneraPost(
         post.post_id,
-        modalita,
+        daProposta ? "da_proposta" : "totale",
         daProposta ? proposto : null,
         nota.trim() || null,
       );
-      setProposto("");
-      setNota("");
       fatto();
     } catch (e) {
       setErrore(
@@ -61,43 +59,52 @@ export function Rigenera({
 
   return (
     <Modal
-      opened={modalita !== null}
+      opened
       onClose={chiudi}
-      title={`${
-        daProposta ? "Rigenera da testo proposto" : "Rigenera da zero"
-      } · ${NOME_CANALE[post.canale] ?? post.canale}`}
+      title={`Rigenera testo · ${NOME_CANALE[post.canale] ?? post.canale}`}
       size="lg"
     >
       <Stack gap="sm">
         <Text size="sm" c="dimmed">
-          {daProposta
-            ? "L'AI riscrive il post partendo dal tuo testo."
-            : "L'AI riscrive il post da capo."}{" "}
-          Le foto restano le stesse e le versioni rifiutate le arrivano come
-          "cosa non rifare". Conta come una delle 3 rigenerazioni del post, e
-          finché lavora non si può toccare il post né approvare la campagna.
+          L'AI riscrive il testo del post. Le foto restano le stesse e le
+          versioni rifiutate le arrivano come "cosa non rifare". Conta come una
+          delle 3 rigenerazioni del post, e finché lavora non si può toccare il
+          post né approvare la campagna.
         </Text>
-        {daProposta && (
-          <Textarea
-            label="Testo proposto"
-            value={proposto}
-            onChange={(e) => setProposto(e.currentTarget.value)}
-            autosize
-            minRows={4}
-            maxRows={12}
-            required
-            data-autofocus
-          />
-        )}
         <Textarea
-          label="Nota per l'AI (facoltativa)"
+          label="Indicazioni per l'AI (facoltative)"
           description="Per esempio: più caldo, meno lungo, nomina il sabato."
           value={nota}
           onChange={(e) => setNota(e.currentTarget.value)}
           autosize
           minRows={2}
           maxRows={5}
+          data-autofocus
         />
+        {partiDaTesto ? (
+          <Textarea
+            label="Parti da questo testo (facoltativo)"
+            description="Se lo svuoti, l'AI riscrive da zero."
+            value={proposto}
+            onChange={(e) => setProposto(e.currentTarget.value)}
+            autosize
+            minRows={4}
+            maxRows={12}
+          />
+        ) : (
+          <Anchor
+            component="button"
+            type="button"
+            size="sm"
+            ta="left"
+            onClick={() => {
+              setProposto(post.versione_corrente?.testo ?? "");
+              setPartiDaTesto(true);
+            }}
+          >
+            Parti da questo testo
+          </Anchor>
+        )}
         {errore && (
           <Alert color="red" variant="light" py="xs">
             {errore}

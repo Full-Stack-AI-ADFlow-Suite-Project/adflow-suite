@@ -529,6 +529,7 @@ def test_valori_di_dominio_nuovi_del_piano():
         "ritocco_foto",
         "scelta_foto",
         "cambio_foto",
+        "rigenera_immagine",
     }
     assert set(contenuti_domain.LIVELLI_VALIDATORE) == {"blocco", "avviso"}
     assert set(contenuti_domain.TIPI_ERRORE_GENERAZIONE) == {
@@ -542,6 +543,7 @@ def test_valori_di_dominio_nuovi_del_piano():
         "rigenera_totale",
         "rigenera_da_proposta",
         "ritocco_foto",
+        "rigenera_immagine",
     }
 
 
@@ -552,7 +554,7 @@ def test_schede_canali_valori_mvp_r21():
         "limite_caratteri": 5000,
         "limite_hashtag": 30,
         "max_foto": 10,
-        "proporzioni": ("1:1", "4:5"),
+        "proporzioni": ("4:5", "1.91:1"),
         "link_cliccabili": True,
     }
     assert contenuti_domain.SCHEDE_CANALE["instagram"] == {
@@ -561,7 +563,7 @@ def test_schede_canali_valori_mvp_r21():
         "limite_caratteri": 2200,
         "limite_hashtag": 30,
         "max_foto": 10,
-        "proporzioni": ("1:1", "4:5"),
+        "proporzioni": ("4:5", "1.91:1"),
         "link_cliccabili": False,
     }
 
