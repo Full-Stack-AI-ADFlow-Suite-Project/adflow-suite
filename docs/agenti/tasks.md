@@ -178,4 +178,4 @@ Ciò che non entra nell'MVP (ritocco delle foto, ingresso dell'operatore, anagra
 
 | Issue | Corsia | Task / fatto quando | Preparato |
 |---|---|---|---|
-| #17 | 0 | Configurazione proxy/cookie documentata e testata localmente con TLS; evidenza nello staging reale da allegare | ☐ |
+| #17 | 0 | Configurazione proxy/cookie documentata e testata localmente con TLS; evidenza nello staging reale da allegare | ☑ |
