@@ -16,7 +16,6 @@ from io import BytesIO
 from pathlib import Path
 import struct
 from unittest.mock import patch
-from uuid import UUID, uuid4
 import zlib
 
 from sqlalchemy import select

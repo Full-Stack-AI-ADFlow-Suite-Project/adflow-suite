@@ -9,7 +9,6 @@ tick che pubblica ciò che resta.
 """
 
 from datetime import datetime, timedelta
-from types import SimpleNamespace
 
 from sqlalchemy import select
 
@@ -21,7 +20,6 @@ from tests.percorsi.test_percorso_base import (
     OPERATORE,
     UNA_SETTIMANA,
     _bozza,
-    _carica,
     _foto_del_post,
     _foto_jpeg,
     _post_per_canale,

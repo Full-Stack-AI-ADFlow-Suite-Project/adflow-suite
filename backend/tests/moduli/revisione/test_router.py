@@ -2,15 +2,13 @@
 
 from datetime import datetime, timedelta, timezone
 
-import pytest
 from sqlalchemy import select
 
 from app.adapters.archivio import ArchivioFinto, usa_archivio
 from app.moduli.campagne.models import DecisioneCampagna
-from app.moduli.contenuti.models import ErroreGenerazione, Post
+from app.moduli.contenuti.models import ErroreGenerazione
 from app.moduli.revisione.models import Approvazione
 from tests.moduli.campagne.fabbrica import (
-    campagna_con_piano_da_rivedere,
     campagna_in_revisione,
     campagna_inviata,
     foto,

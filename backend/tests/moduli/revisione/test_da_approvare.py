@@ -2,7 +2,6 @@
 
 from datetime import date, datetime, timezone
 
-from sqlalchemy import select
 from sqlalchemy.orm import Session
 from starlette.testclient import TestClient
 

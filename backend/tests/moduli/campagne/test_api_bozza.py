@@ -12,7 +12,7 @@ Verifica i criteri di accettazione:
 - Ruoli e permessi: POST riservato ad artigiano (403 ad altri ruoli).
 """
 
-from datetime import date, timedelta
+from datetime import timedelta
 
 from sqlalchemy.orm import Session
 from starlette.testclient import TestClient
@@ -22,7 +22,6 @@ from app.moduli.campagne import domain
 from tests.moduli.artigiani.fabbrica import account_social, profilo
 from tests.moduli.campagne.fabbrica import (
     campagna_in_bozza,
-    campagna_inviata,
     foto,
     gruppo,
 )

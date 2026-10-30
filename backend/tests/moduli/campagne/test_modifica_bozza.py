@@ -12,7 +12,7 @@ Verifica i criteri di accettazione:
 - Modifica sovrapposta ad altra campagna aperta dell'artigiano -> ammessa (ADR-119)
 """
 
-from datetime import date, timedelta
+from datetime import timedelta
 
 from sqlalchemy.orm import Session
 from starlette.testclient import TestClient

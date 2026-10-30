@@ -8,7 +8,6 @@ Raccoglie i controlli sulle funzioni tolte o sostituite nell'MVP:
 - `archivio` e `cartolina` non sono più riempitivi del piano (A6, A10).
 """
 
-from datetime import date, datetime, timezone
 from io import BytesIO
 from pathlib import Path
 

@@ -14,11 +14,9 @@ import pytest
 
 from app.adapters.archivio import (
     DIMENSIONE_MAX_BYTE,
-    ESTENSIONI_AMMESSE,
     ArchivioAdapter,
     ArchivioDisco,
     ArchivioFinto,
-    imposta_archivio,
     ottieni_archivio,
     usa_archivio,
 )

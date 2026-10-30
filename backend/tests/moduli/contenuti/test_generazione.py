@@ -10,7 +10,6 @@ e gli errori tecnici secondo il tipo.
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import date, datetime, timedelta, timezone
-from types import SimpleNamespace
 
 import pytest
 from sqlalchemy import select

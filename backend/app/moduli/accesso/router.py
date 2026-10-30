@@ -13,7 +13,6 @@ from starlette.concurrency import run_in_threadpool
 
 from app.core.db import get_db
 from app.core.orologio import adesso
-from app.core.config import leggi_impostazioni
 from app.core.limite_login import prenota
 from app.core.eventi_sicurezza import registra, id_richiesta
 
