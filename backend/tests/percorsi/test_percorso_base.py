@@ -1,6 +1,6 @@
-"""T1-07: il percorso completo dello sprint 1, dal seed alla campagna conclusa.
+"""Percorso completo di base, dal seed alla campagna conclusa.
 
-Tutto passa dalle API, come nel percorso a mano di converge §3: il login vero
+Tutto passa dalle API: il login vero
 degli utenti del seed, la bozza con le foto, l'invio, il job di generazione
 preso dalla coda, la revisione dell'operatore e il tick di pubblicazione.
 AI, social e archivio sono quelli finti.

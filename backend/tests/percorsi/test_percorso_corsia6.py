@@ -16,7 +16,7 @@ from sqlalchemy import select
 from app import worker
 from app.moduli.campagne.models import Foto
 from app.moduli.revisione.models import Approvazione
-from tests.percorsi.test_percorso_sprint1 import (
+from tests.percorsi.test_percorso_base import (
     ARTIGIANO,
     OPERATORE,
     UNA_SETTIMANA,

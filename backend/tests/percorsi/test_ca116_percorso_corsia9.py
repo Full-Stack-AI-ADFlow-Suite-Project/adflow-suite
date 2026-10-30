@@ -12,7 +12,7 @@ Lo storico dell'AI ha le chiamate di tutte e due le campagne e un voto.
 from app.adapters.ai import AIFinto
 from app.core.coda import RIGENERA_IMMAGINE, RIGENERA_POST
 from app.moduli.contenuti import jobs
-from tests.percorsi.test_percorso_sprint1 import (
+from tests.percorsi.test_percorso_base import (
     ARTIGIANO,
     INIZIO,
     OPERATORE,
