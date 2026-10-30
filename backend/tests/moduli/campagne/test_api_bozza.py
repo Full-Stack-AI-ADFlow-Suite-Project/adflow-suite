@@ -1,4 +1,4 @@
-"""Test per le API di creazione, elenco e dettaglio delle campagne (T1-22).
+"""Test per le API di creazione, elenco e dettaglio delle campagne.
 
 Verifica i criteri di accettazione:
 - CA-04: artigiano accede a campagna o foto altrui -> 404 (non 403)

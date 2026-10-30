@@ -1,5 +1,5 @@
 """Schemi delle risposte di ``GET /campagne/{id}/post`` (plan §3, spec §2.3)
-e dei corpi delle richieste degli interventi sul post (T2b-42)."""
+e dei corpi delle richieste degli interventi sul post."""
 
 from datetime import date, datetime
 from decimal import Decimal

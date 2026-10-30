@@ -1,4 +1,4 @@
-"""T1-13: creazione utenti e CLI reale su adflow_test."""
+"""Creazione utenti e CLI reale su adflow_test."""
 
 from concurrent.futures import ThreadPoolExecutor
 from contextlib import contextmanager

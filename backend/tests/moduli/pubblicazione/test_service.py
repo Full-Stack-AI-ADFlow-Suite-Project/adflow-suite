@@ -1,4 +1,4 @@
-"""Test del service di pubblicazione (T1-43): CA-36…39, CA-52, CA-57, CA-76."""
+"""Test del service di pubblicazione: CA-36…39, CA-52, CA-57, CA-76."""
 
 from collections.abc import Iterator
 from datetime import datetime, timedelta, timezone

@@ -1,4 +1,4 @@
-"""Test degli endpoint di revisione: Vedi campagna e Approva (T1-42)."""
+"""Test degli endpoint di revisione: Vedi campagna e Approva."""
 
 from datetime import datetime, timedelta, timezone
 
@@ -140,7 +140,7 @@ def test_vedi_campagna_mostra_il_riempitivo_archivio(db, client, utente_di_prova
     """Un post con riempitivo ``archivio`` mostra la sua foto d'archivio.
 
     La foto non è della campagna (gruppo senza campagna): il post si vede
-    comunque in Vedi campagna e il file si apre all'operatore (R-27, T2a-41).
+    comunque in Vedi campagna e il file si apre all'operatore (R-27).
     """
     campagna = campagna_in_revisione(db)
     mazzo = gruppo_di_archivio(db, profilo_id=campagna.profilo_id)

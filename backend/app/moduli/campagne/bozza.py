@@ -1,4 +1,4 @@
-"""Logica e regole di modifica della bozza di campagna (T2a-21)."""
+"""Logica e regole di modifica della bozza di campagna."""
 
 from datetime import datetime, timedelta
 
@@ -38,7 +38,7 @@ def modifica_bozza(
     if campagna is None or campagna.profilo_id != profilo.id:
         raise NonTrovato("Campagna non trovata.")
 
-    # Solo in bozza (T2a-21, 409 fuori dalla bozza)
+    # Solo in bozza (409 fuori dalla bozza)
     if campagna.stato != BOZZA:
         raise StatoNonValido(
             "La campagna può essere modificata solo quando è in bozza."
@@ -108,7 +108,7 @@ def modifica_bozza(
     # R-12, CA-12: il periodo può sovrapporsi a un'altra campagna della bottega;
     # il dettaglio lo segnala con l'avviso `campagne_sovrapposte` (R-25, CA-100).
 
-    # R-13, T2a-21: se la data di un gruppo esce dal nuovo periodo -> 422
+    # R-13: se la data di un gruppo esce dal nuovo periodo -> 422
     gruppi = list(
         db.scalars(select(GruppoFoto).where(GruppoFoto.campagna_id == campagna.id))
     )

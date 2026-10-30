@@ -1,4 +1,4 @@
-"""Test completi per l'adattatore archivio foto (Corsia 2 · Task T1-21).
+"""Test completi per l'adattatore archivio foto.
 
 Copre:
 1. Protezione DoS: limite dimensione massima payload (10 MB come da Spec R-13);

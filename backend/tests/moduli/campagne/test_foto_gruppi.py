@@ -1,4 +1,4 @@
-"""Test per il caricamento, gestione gruppi ed eliminazione delle foto (T1-23).
+"""Test per il caricamento, gestione gruppi ed eliminazione delle foto.
 
 Verifica:
 - CA-13, R-13: rifiuto non immagini, file > 10 MB, lato corto < 1080 px -> 422;
@@ -1361,7 +1361,7 @@ def test_ca13_limite_massimo_20_foto_per_gruppo(
 
 
 # ==============================================================================
-# CA-46, CA-47 (T1-23 specifici)
+# CA-46, CA-47
 # ==============================================================================
 
 

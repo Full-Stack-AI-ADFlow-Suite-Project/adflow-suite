@@ -191,7 +191,7 @@ function seed(): CampagnaDettaglio[] {
 }
 
 /**
- * Le altre campagne dell'artigiano di prova (T2b-53): una in corso con un
+ * Le altre campagne dell'artigiano di prova: una in corso con un
  * canale tolto, una in revisione e due chiuse. Con la respinta del primo
  * seme la pagina Campagna ha più campagne: si apre quella in corso, la
  * respinta e le chiuse stanno in "Campagne passate".
@@ -362,7 +362,7 @@ function fotografia(profiloId: number): ProfiloSnapshot {
   };
 }
 
-/** Le campagne delle altre botteghe, per la pagina dell'operatore (T1-53). */
+/** Le campagne delle altre botteghe, per la pagina dell'operatore. */
 function semiOperatore(): CampagnaDettaglio[] {
   const snap = fotografia;
   return [
@@ -869,7 +869,7 @@ export const esempiCampagne = {
       );
     }
 
-    // R-13, T2a-21: se la data di un gruppo esce dal nuovo periodo -> 422
+    // R-13: se la data di un gruppo esce dal nuovo periodo -> 422
     for (const g of c.gruppi) {
       if (g.da_usare_il) {
         if (g.da_usare_il < nuovoInizio || g.da_usare_il > nuovoFine) {

@@ -1,4 +1,4 @@
-"""Test per la modifica della bozza di campagna (T2a-21).
+"""Test per la modifica della bozza di campagna.
 
 Verifica i criteri di accettazione:
 - CA-08: bozza aperta -> modifica e rilettura completa (dati, canali, gruppi, foto)
