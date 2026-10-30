@@ -1,9 +1,9 @@
 # Simulazione di accettazione dell'MVP
 
 > **⚠️ DOCUMENTO PRELIMINARE.**
-> Non cambia il perimetro dell'MVP, i task di `docs/agenti/tasks.md` né le regole di `docs/agenti/`: dove qualcosa non torna valgono quei documenti. Le nove domande hanno una risposta e la corsia 10 è generata (§12); entra in `tasks.md` con T4-100, quando Giovanni la avvia.
+> Non cambia il perimetro dell'MVP, i task di `docs/agenti/tasks.md` né le regole di `docs/agenti/`: dove qualcosa non torna valgono quei documenti. Le nove domande hanno una risposta e la corsia 10 è generata (§12) ed è entrata in `tasks.md` con T4-100: la simulazione è in corso.
 
-**Stato:** domande con risposta, corsia generata, da avviare · **Prima versione:** 24/10/2026 su `6a8e2ed` · **Questa versione:** 30/10/2026 su `main` a `8c01e2b` (sprint 3 chiuso, corsie 8 e 9 comprese) · **Corsia:** 10 · **ADR:** 120 · **Task:** T4-100…T4-108
+**Stato:** corsia 10 in corso, T4-100 fatto · **Prima versione:** 24/10/2026 su `6a8e2ed` · **Questa versione:** 30/10/2026 su `main` a `8c01e2b` (sprint 3 chiuso, corsie 8 e 9 comprese) · **Corsia:** 10 · **ADR:** 120 · **Task:** T4-100…T4-108
 
 I riferimenti a file e righe valgono per il commit `8c01e2b`.
 

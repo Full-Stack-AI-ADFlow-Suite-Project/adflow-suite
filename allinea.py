@@ -2,7 +2,7 @@
 
 Dalla radice del repository:
 
-    uv run python allinea.py 3        la prima volta, con il numero della tua corsia
+    uv run python allinea.py 3        la prima volta, con il numero della tua corsia (da 0 a 10)
     uv run python allinea.py          le volte dopo: la corsia è ricordata
     uv run python allinea.py tutte    lo stato di tutte le corsie
     uv run python allinea.py --stato  solo lo stato dei task, senza toccare nulla
@@ -35,9 +35,13 @@ TASKS = RADICE / "docs" / "agenti" / "tasks.md"
 CHIAVE_CORSIA = "adflow.corsia"
 
 FATTO, DA_FARE = "☑", "☐"
-# T1-23, T2a-11, T2b-41, T3-07: sprint (con la lettera, se c'è), corsia, numero.
-# La corsia 9 (ADR-119) ha più di nove task: T3-901…T3-927.
+# T1-23, T2a-11, T2b-41, T3-07, T4-100: sprint (con la lettera, se c'è), corsia, numero.
+# La corsia 9 (ADR-119) ha più di nove task: T3-901…T3-927; la corsia 10 (ADR-120)
+# è la simulazione di accettazione dello sprint 4: T4-100…T4-108.
 ID_TASK = r"T\d[ab]?-\d\d\d?"
+
+# Le corsie sono numerate da 0 a 10: l'ultima è la simulazione di accettazione.
+CORSIA_MASSIMA = 10
 
 
 # --- lettura di tasks.md -----------------------------------------------------
@@ -86,7 +90,7 @@ def leggi_tasks(testo: str) -> tuple[list[Corsia], list[str]]:
         if titolo_sprint:
             sprint = titolo_sprint.group(1)
             continue
-        intestazione = re.match(r"### Corsia (\d) · (.+?) \((.+)\)\s*$", riga)
+        intestazione = re.match(r"### Corsia (\d+) · (.+?) \((.+)\)\s*$", riga)
         if intestazione:
             numero, nome, chi = intestazione.groups()
             corsie.append(Corsia(int(numero), nome, chi, sprint=sprint))
@@ -363,6 +367,14 @@ def stampa_corsia(corsia: Corsia, manca: dict[str, list[str]], esteso: bool) -> 
             print(f"       branch:       git switch -c {nome_del_branch(task)}")
 
 
+def numero_corsia(scelta: str) -> int | None:
+    """La corsia scelta, se è un numero da 0 a 10; altrimenti None."""
+    if not scelta.isdigit():
+        return None
+    numero = int(scelta)
+    return numero if numero <= CORSIA_MASSIMA else None
+
+
 def corsia_ricordata() -> str:
     codice, valore = git("config", "--local", "--get", CHIAVE_CORSIA)
     return valore if codice == 0 else ""
@@ -375,8 +387,8 @@ def main(argomenti: list[str]) -> int:
     scelta = next((a for a in argomenti if not a.startswith("--")), "")
 
     if scelta and scelta != "tutte":
-        if scelta not in "0123456789" or len(scelta) != 1:
-            print("Corsia non valida: un numero da 0 a 9, oppure `tutte`.")
+        if numero_corsia(scelta) is None:
+            print("Corsia non valida: un numero da 0 a 10, oppure `tutte`.")
             return 2
         git("config", "--local", CHIAVE_CORSIA, scelta)
     elif not scelta:
