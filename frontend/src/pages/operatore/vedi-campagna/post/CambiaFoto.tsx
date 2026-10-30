@@ -2,8 +2,9 @@
  * Cambia immagine (R-36, R-49, ADR-119): la finestra mostra le foto con cui si può sostituire quella
  * del post, divise in tre sezioni: «Dello stesso gruppo», «Della campagna», «Dall'archivio della bottega»,
  * con il soggetto sotto la miniatura.
- * In revisione offre una quarta scelta «Crea una nuova immagine AI» con «Indicazioni per l'immagine» e la spunta
- * «Riscrivi anche il testo per la nuova immagine» (accesa di base, con «Indicazioni per il testo»): è «Rifai il post».
+ * In revisione, in alto, la spunta «Riscrivi anche il testo per la nuova immagine» (accesa di base, con «Indicazioni
+ * per il testo»): vale per ogni scelta, foto esistente o nuova immagine AI, ed è «Rifai il post». Offre anche una
+ * quarta scelta «Crea una nuova immagine AI» con «Indicazioni per l'immagine».
  * Dopo l'approvazione né la quarta scelta né la spunta.
  */
 import {
@@ -162,9 +163,31 @@ export function CambiaFoto({
           </Alert>
         )}
         <Text size="sm" c="dimmed">
-          Il testo non cambia: va ricontrollato dopo la sostituzione. Sono
-          escluse le foto già usate da un altro post dello stesso canale.
+          {!approvata && riscriviTesto
+            ? "Il testo viene riscritto dall'AI per la nuova immagine: va ricontrollato dopo la sostituzione."
+            : "Il testo non cambia: va ricontrollato dopo la sostituzione."}{" "}
+          Sono escluse le foto già usate da un altro post dello stesso canale.
         </Text>
+        {!approvata && (
+          <Stack gap="xs">
+            <Checkbox
+              label="Riscrivi anche il testo per la nuova immagine"
+              checked={riscriviTesto}
+              onChange={(e) => setRiscriviTesto(e.currentTarget.checked)}
+            />
+            {riscriviTesto && (
+              <Textarea
+                label="Indicazioni per il testo"
+                placeholder="Es. Sottolinea l'artigianalità del processo e le novità..."
+                value={notaTesto}
+                onChange={(e) => setNotaTesto(e.currentTarget.value)}
+                maxLength={500}
+                autosize
+                minRows={2}
+              />
+            )}
+          </Stack>
+        )}
         {!foto && !errore && (
           <Center py="md">
             <Loader color="verde" size="sm" />
@@ -263,22 +286,6 @@ export function CambiaFoto({
               autosize
               minRows={2}
             />
-            <Checkbox
-              label="Riscrivi anche il testo per la nuova immagine"
-              checked={riscriviTesto}
-              onChange={(e) => setRiscriviTesto(e.currentTarget.checked)}
-            />
-            {riscriviTesto && (
-              <Textarea
-                label="Indicazioni per il testo"
-                placeholder="Es. Sottolinea l'artigianalità del processo e le novità..."
-                value={notaTesto}
-                onChange={(e) => setNotaTesto(e.currentTarget.value)}
-                maxLength={500}
-                autosize
-                minRows={2}
-              />
-            )}
             <Group justify="flex-end" mt="xs">
               <Button
                 size="xs"

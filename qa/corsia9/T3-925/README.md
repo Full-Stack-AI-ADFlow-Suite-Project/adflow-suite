@@ -34,3 +34,6 @@ Testi (10 di Facebook per versione, prime frasi, voto sulla varietà degli attac
 - Costo e tempi sono in linea con la v2 (+2,6 %); nessun errore; il piano è stato riscritto una volta.
 - Le immagini v3 sono più coerenti con le foto e più varie, ma il vincolo «mai un prodotto finito» va rinforzato nel prompt dell'immagine (`immagine_v3.md`): da fare in un giro successivo, è un cambio di prompt e non l'ho toccato.
 - **Corretta** una svista in `adapters/ai/litellm.py`: la chiamata del piano v3 si registrava nello Storico AI come `piano_v2`. Ora è `piano_v3`. Le due righe di piano della campagna 6 nel database di sviluppo restano con l'etichetta vecchia.
+
+
+**Nota del 30/10/2026.** R-43 è stata precisata (spec, perimetro): le immagini possono essere «di concetto», cioè evocare il tema senza essere un prodotto o un luogo della bottega. Il giudizio «R-43 non rispettato» sui medaglioni, il pannello e il vaso va riletto con questa regola; il prompt `immagine_v3.md` (che oggi vieta ogni prodotto finito) si allinea in un giro successivo.

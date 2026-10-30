@@ -564,18 +564,20 @@ function pannelloCambiaFoto(p, suAI){
   const elenco = sezioni.filter(x => poss[x[0]].length)
     .map(x => `<div><label>${x[1]}</label><div class="choice-grid">${poss[x[0]].map(riga).join('')}</div></div>`).join('');
   const vuoto = elenco ? '' : `<p>${dopo ? 'Nel gruppo non ci sono altre foto adatte.' : 'Nel gruppo non ci sono altre foto adatte: chiedile all’artigiano, oppure respingi.'}</p>`;
+  const spunta = `<div style="display:flex;flex-direction:column;gap:8px">
+      <label class="choice" style="align-self:flex-start"><input type="checkbox" data-rifai="${p.id}" ${rifai ? 'checked' : ''}>Riscrivi anche il testo per la nuova immagine</label>
+        ${rifai ? `<div><label for="nt-${p.id}">Indicazioni per il testo</label>
+          <textarea id="nt-${p.id}" data-campo="nt-${p.id}" placeholder="Es. Parla del gesto, non della qualità.">${esc(ui.campi['nt-' + p.id] || '')}</textarea></div>` : ''}</div>`;
   const ai = dopo ? '' : `<div style="border:${suAI ? '2px solid var(--primary)' : '1px solid var(--border-hairline)'};border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:8px;background:var(--bg-surface-subtle)">
       <b>Crea una nuova immagine AI</b>
       <div><label for="ni-${p.id}">Indicazioni per l'immagine</label>
       <textarea id="ni-${p.id}" data-campo="ni-${p.id}" placeholder="Es. Il banco con i trucioli, luce del mattino.">${esc(ui.campi['ni-' + p.id] || '')}</textarea></div>
-      <label class="choice" style="align-self:flex-start"><input type="checkbox" data-rifai="${p.id}" ${rifai ? 'checked' : ''}>Riscrivi anche il testo per la nuova immagine</label>
-      ${rifai ? `<div><label for="nt-${p.id}">Indicazioni per il testo</label>
-        <textarea id="nt-${p.id}" data-campo="nt-${p.id}" placeholder="Es. Parla del gesto, non della qualità.">${esc(ui.campi['nt-' + p.id] || '')}</textarea></div>` : ''}
       <div class="row"><button type="button" class="btn small primary" data-act="crea-immagine" data-id="${p.id}">Crea una nuova immagine AI</button></div></div>`;
   return `<div class="panel">
     <h4>Cambia immagine · ${NOME[p.canale]}</h4>
     ${dopo ? '<p><b>La campagna è approvata:</b> la versione esce al posto di quella di prima, e la approvi tu.</p>' : ''}
-    <p>Il testo non cambia: va ricontrollato dopo la sostituzione. Sono escluse le foto già usate da un altro post dello stesso canale.</p>
+    <p>${dopo || !rifai ? 'Il testo non cambia: va ricontrollato dopo la sostituzione.' : 'Il testo viene riscritto dall’AI per la nuova immagine: va ricontrollato dopo la sostituzione.'} Sono escluse le foto già usate da un altro post dello stesso canale.</p>
+    ${dopo ? '' : spunta}
     ${vuoto}${elenco}${ai}
     <div class="errore" id="err-cf-${p.id}" hidden></div>
     <div class="row"><button type="button" class="btn small" data-act="chiudi" data-id="${p.id}">Chiudi</button></div>

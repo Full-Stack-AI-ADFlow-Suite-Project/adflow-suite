@@ -1,6 +1,6 @@
 # T3-927 · Prova della corsia 9
 
-**Casella ☑.** CA-116 è verde, il percorso a mano è stato eseguito sull'app vera, il confronto visivo è fatto, le due prove negative mancanti sono fatte e la demo con l'AI vera e Facebook vero è stata eseguita da uno script automatico (`demo_reale.py`, «Demo con AI vera e Facebook vero» più sotto). Decisione di Giovanni del 29/10/2026: la demo si fa **solo su Facebook**; Instagram resta simulato (D1, converge §4 passo 5). Il confronto con le pagine statiche lo ha fatto un agente, non un collega: lo conferma chi rivede la PR #166.
+**Casella ☑.** CA-116 è verde, il percorso a mano è stato eseguito sull'app vera, il confronto visivo è fatto, le due prove negative mancanti sono fatte e la demo con l'AI vera e Facebook vero è stata eseguita da uno script automatico (`demo_reale.py`, «Demo con AI vera e Facebook vero» più sotto). Decisione di Giovanni del 29/10/2026: la demo si fa **solo su Facebook**; Instagram resta simulato (D1, converge §4 passo 5). Il confronto con le pagine statiche lo ha fatto un agente; la conferma è l'approvazione della PR #166.
 
 ## (a) CA-116, test di percorso
 
@@ -47,16 +47,16 @@ Una campagna senza foto, tutta con immagini AI (A5), è stata inviata e generata
 
 ### Confronto visivo con le pagine statiche (converge §4, punto 7)
 
-Fatto il 29/10/2026 da un agente (non da un collega: la persona che lo conferma è chi rivede la PR #166). Le pagine statiche aggiornate di T3-926 aperte in Chromium a 1280 px accanto agli screenshot di questa cartella (`10`, `11`, `34` e gli altri). Corrispondono: le cinque voci della barra dell'operatore (Da approvare, Artigiani, Calendario, Storico AI, Nuovo artigiano), i testi dei filtri e dei numeri dello Storico AI, le etichette degli stati, la barra di avanzamento a cinque passi, i pulsanti di Vedi campagna e il testo del 409. Differenze, tutte volute o già note:
+Fatto il 29/10/2026 da un agente (non da un collega: la conferma è l'approvazione della PR #166). Le pagine statiche aggiornate di T3-926 aperte in Chromium a 1280 px accanto agli screenshot di questa cartella (`10`, `11`, `34` e gli altri). Corrispondono: le cinque voci della barra dell'operatore (Da approvare, Artigiani, Calendario, Storico AI, Nuovo artigiano), i testi dei filtri e dei numeri dello Storico AI, le etichette degli stati, la barra di avanzamento a cinque passi, i pulsanti di Vedi campagna e il testo del 409. Differenze, tutte volute o già note:
 
 | Dove | Pagina statica | App | Giudizio |
 |---|---|---|---|
 | Intestazione | Fascia «Pagina statica · MVP · ADR…», briciole di pane, pulsante «Vista Artigiano» | Nessuna | voluta: sono note per chi legge il prototipo |
 | Barra, fondo | «Mappa Pagine» e «Laura Rossi / Operatore Consorzio» | «Esci» e «Operatore del consorzio» | voluta |
 | Barra, Da approvare | Pallino con 4 | Nessun numero (il database di prova ha due campagne, il numero c'è nell'app solo quando ce ne sono) | da guardare con dati veri |
-| Vedi campagna | Titolo = nome campagna; la decisione sta in una scheda sotto il riquadro di prova; avanzamento senza linee tra i passi; «Da rivedere» senza il pallino | Titolo «Vedi campagna» con il nome sotto; i pulsanti Approva, Chiedi, Respingi a destra della decisione; linee tra i passi; pallino davanti all'etichetta | il pallino è già in «Non simulato»; il resto è impaginazione: da dire ai revisori |
+| Vedi campagna | Titolo = nome campagna; la decisione sta in una scheda sotto il riquadro di prova; avanzamento senza linee tra i passi; «Da rivedere» senza il pallino | Titolo «Vedi campagna» con il nome sotto; i pulsanti Approva, Chiedi, Respingi a destra della decisione; linee tra i passi; pallino davanti all'etichetta | il pallino è già in «Non simulato»; il resto è impaginazione: differenza nota, accettata con l'approvazione della PR |
 | Vedi campagna | Riquadro «Pagina statica interattiva · Prova» con selettore dello stato | Assente | voluta |
-| Vedi campagna | Nessuna scheda «Il piano» | Scheda «Il piano» con l'ordine delle uscite e i conteggi | differenza di contenuto: da dire ai revisori |
+| Vedi campagna | Nessuna scheda «Il piano» | Scheda «Il piano» con l'ordine delle uscite e i conteggi | differenza di contenuto: differenza nota, accettata con l'approvazione della PR |
 | Storico AI | Dati di esempio (120 chiamate, 3,35 $, versioni `analisi_v2`…) e filtri in una scheda | Dati veri del database di prova (22 chiamate, 0 $, versione `finto-1`) e filtri senza scheda | i dati sono diversi per costruzione |
 | Storico AI | Numeri in riquadri pieni | Numeri in riquadri con il bordo | colore, non testo |
 
