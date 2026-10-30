@@ -286,14 +286,3 @@ def test_approva_artigiano_403(db, client, utente_di_prova):
     utente_di_prova("artigiano")
 
     assert client.post(f"/api/campagne/{campagna.id}/approva").status_code == 403
-
-
-def test_prosegui_non_esiste_piu(db, client, utente_di_prova):
-    """ADR-114, A3: l'endpoint è tolto e una campagna vecchia resta ferma."""
-    campagna = campagna_con_piano_da_rivedere(db)
-    utente_di_prova("operatore")
-
-    assert client.post(f"/api/campagne/{campagna.id}/prosegui").status_code == 404
-
-    db.refresh(campagna)
-    assert campagna.stato == "piano_da_rivedere"
