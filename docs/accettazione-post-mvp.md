@@ -1,9 +1,9 @@
 # Simulazione di accettazione dell'MVP
 
-> **⚠️ DOCUMENTO PRELIMINARE, DA VALUTARE.**
-> È una bozza, non è approvata e non fa testo. Non cambia il perimetro dell'MVP, i task di `docs/agenti/tasks.md` né le regole di `docs/agenti/`: dove qualcosa non torna valgono quei documenti. Nessun punto va eseguito finché le domande qui sotto non hanno una risposta e la corsia 10 non è stata generata.
+> **⚠️ DOCUMENTO PRELIMINARE.**
+> Non cambia il perimetro dell'MVP, i task di `docs/agenti/tasks.md` né le regole di `docs/agenti/`: dove qualcosa non torna valgono quei documenti. Le nove domande hanno una risposta e la corsia 10 è generata (§12); entra in `tasks.md` con T4-100, quando Giovanni la avvia.
 
-**Stato:** bozza da discutere · **Prima versione:** 24/10/2026 su `6a8e2ed` · **Questa versione:** 30/10/2026 su `main` a `8c01e2b` (sprint 3 chiuso, corsie 8 e 9 comprese) · **Corsia:** 10 · **ADR:** 120 · **Task:** T4-100…T4-108
+**Stato:** domande con risposta, corsia generata, da avviare · **Prima versione:** 24/10/2026 su `6a8e2ed` · **Questa versione:** 30/10/2026 su `main` a `8c01e2b` (sprint 3 chiuso, corsie 8 e 9 comprese) · **Corsia:** 10 · **ADR:** 120 · **Task:** T4-100…T4-108
 
 I riferimenti a file e righe valgono per il commit `8c01e2b`.
 
@@ -275,7 +275,7 @@ In locale, con i report salvati (domanda 3 per la CI).
    - nomi di prodotti con caratteri di controllo;
    - un «testo di partenza» ostile in Rigenera testo.
 
-   Si verifica che il validatore (§1.6) e l'approvazione umana (§1.1) fermino ogni uscita non voluta, e che **nessun percorso salti l'approvazione**.
+   Si verifica che il validatore (§1.6) e l'approvazione umana (§1.1) fermino ogni uscita non voluta, e che **nessun percorso salti l'approvazione**. Nei test si usa l'adattatore finto. Con l'AI vera si fa una sola prova a mano, con un tetto di 2 € (domanda 6).
 7. **Log.** Traffico con email, password e token riconoscibili, poi ricerca in stderr e nello storico AI: zero occorrenze dei segreti.
 8. **Segreti e server.** Da verificare:
    - permessi di `.env`;
@@ -350,7 +350,7 @@ Se un test fallisce si scrive il rilievo, con la correzione tipica proposta: `wi
 
 ### 7.4 Guasti provocati
 
-Con `monkeypatch` sugli adattatori finti dentro i test, senza modificare l'app. `toxiproxy` solo se c'è il compose.
+Con `monkeypatch` sugli adattatori finti dentro i test, senza modificare l'app. Fuori dai test c'è una sola pubblicazione a mano sulla pagina Meta di prova (domanda 7).
 
 | Guasto | Comportamento atteso |
 |---|---|
@@ -427,12 +427,12 @@ I 17 pacchetti della prima versione (PA-01…PA-17) sono confluiti qui: le corre
 
 | ID | Decisione | Nella simulazione |
 |---|---|---|
-| D-01 | Numeri attesi a 12 mesi e obiettivi di servizio | Domanda 5 |
-| D-02 | Hosting | Domanda 4 |
+| D-01 | Numeri attesi a 12 mesi e obiettivi di servizio | Ipotizzati in T4-105 e dichiarati (domanda 5) |
+| D-02 | Hosting | Processi locali (domanda 4) |
 | D-03 | Referente per la sicurezza e per la privacy | Giovanni, per la simulazione |
 | D-04 | Budget per pentest e consulente | Nessuno: si simula (§5.1) |
 | D-05 | Cancellazione e conservazione rispetto a §1.2, compreso lo storico AI | Proposta in T4-107, decisione dopo |
-| D-06 | Rotte congelate `/api/archivio…` | Domanda 8 |
+| D-06 | Rotte congelate `/api/archivio…` | Provate senza modificarle (domanda 8) |
 | D-07 | Timeout di Meta dopo la pubblicazione | Comportamento attuale osservato in T4-105, decisione dopo |
 
 ## 11. Appendice
@@ -489,12 +489,217 @@ uvx schemathesis run http://localhost:8000/openapi.json --header "Cookie: adflow
 
 ## 12. Corsia 10
 
-*Da generare con le risposte alle nove domande:*
-- *12.1, il blocco per `docs/agenti/tasks.md`;*
-- *12.2, la riga ADR-120;*
-- *12.3, il brief `docs/agenti/brief-accettazione.md`, con file da toccare, file da non toccare e «Fatto quando» di ogni task.*
+Generata il 30/10/2026 con le risposte di Giovanni alle nove domande.
 
-**Nota per T4-100.** `allinea.py` accetta una sola cifra (`"0123456789"`, `allinea.py:378`): la corsia 10 richiede di accettare due cifre e di aggiornare `backend/tests/test_allinea.py`. È un file comune, quindi lo rivede il referente.
+| # | Risposta |
+|---|---|
+| 1 | Tutta la simulazione (T4-100…T4-108). |
+| 2 | Solo il rilievo, con il test in `xfail(strict=True)`; le correzioni dopo, decise in T4-108. |
+| 3 | Strumenti solo in locale, report in `docs/accettazione/report/`; nessun workflow nuovo. |
+| 4 | «Staging» su processi locali: API, worker e proxy TLS temporaneo, come la prova della issue #17. |
+| 5 | Numeri di carico ipotizzati in T4-105 e dichiarati come ipotesi. |
+| 6 | Prompt injection anche con l'AI vera: una prova a mano, fuori dai test, con un tetto di **2 €** e il costo letto dallo storico AI. |
+| 7 | Meta: una prova a mano sulla **pagina di prova**, fuori dai test; nei test solo l'adattatore finto. |
+| 8 | Rotte congelate dentro la matrice e gli attacchi, senza modificarle; un difetto lì è un rilievo `roadmap`. |
+| 9 | Branch preparato subito da `integrazione-166-167`. Avvio in locale e PR (compatibile con le PR #166 e #167) decisi da Giovanni; niente su `main` prima della consegna del 6/11. |
+
+### 12.1 Blocco per `docs/agenti/tasks.md`
+
+Va in fondo agli sprint. `allinea.py` lo legge dopo che T4-100 gli fa accettare la corsia 10.
+
+```markdown
+## Sprint 4 · Simulazione di accettazione dell'MVP
+
+Lo sprint 4 mette alla prova l'MVP come se si dovesse autorizzare la produzione (ADR-120, `docs/accettazione-post-mvp.md`). Non aggiunge funzioni e non corregge: ogni task scrive i suoi rilievi in `docs/accettazione/rilievi.md`, e i difetti restano documentati da test in `xfail(strict=True)`. Le correzioni le decide T4-108.
+
+**Ordine.** Un task alla volta, in ordine di numero, eseguito da un agente guidato da Giovanni. Ogni task su un branch `feature/T4-1xx-<breve>` aperto dal branch della simulazione, e unito lì. Niente su `main` prima del 6/11.
+
+### Corsia 10 · Simulazione di accettazione (Giovanni con gli agenti)
+
+Ogni task ha in `brief-accettazione.md` i file da toccare e da non toccare e il suo "Fatto quando": si legge la sezione del proprio task, non tutto il brief.
+
+| ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
+|---|---|---|---|---|---|
+| T4-100 | **Preparazione della corsia 10**: ADR-120, `brief-accettazione.md`, corsia 10 in questa pagina, `allinea.py` che accetta la corsia 10, registro dei rilievi vuoto | `accettazione-post-mvp.md` §1.2, §12; ADR-114 | T3-07 | `uv run python allinea.py 10` mostra T4-101 tra i pronti; `tests/test_allinea.py` verde con la corsia 10; `docs/accettazione/rilievi.md` con l'intestazione; comandi di converge §1 verdi | ☐ |
+| T4-101 | **Linea di base**: ricostruzione da zero, scansioni di sicurezza, dipendenze, copertura dei rami, tracciabilità dei CA | `brief-accettazione.md` §T4-101; `accettazione-post-mvp.md` §4.1, §4.2, §5.3, §6 | T4-100 | report delle scansioni e della copertura in `docs/accettazione/report/`; matrice requisito → CA → test; rilievi per R-05, R-06, R-07 e per ogni risultato alto; nessuna modifica all'app | ☐ |
+| T4-102 | **Permessi e superficie HTTP**: matrice dei permessi su tutte le operazioni, header, origine, upload, indirizzo pubblico delle foto, BOLA sui nuovi endpoint, limite delle azioni AI | `brief-accettazione.md` §T4-102; `accettazione-post-mvp.md` §5.2, §5.4 punti 1–5; constitution §3 | T4-100 | test della matrice che legge lo schema e fallisce se un'operazione non ha la sua riga; ogni differenza dall'atteso è un rilievo con un test in `xfail(strict=True)`; rilievi per R-01, R-02, R-12, R-15, R-16, R-17 | ☐ |
+| T4-103 | **Concorrenza**: richieste parallele su approvazione, interventi, rigenerazioni, invio, campagne sovrapposte, voto e pubblicazione | `brief-accettazione.md` §T4-103; `accettazione-post-mvp.md` §7.3; constitution §1 e §2 | T4-100 | un test con barriera per ogni scenario di §7.3; quelli verdi ripetuti 50 volte senza fallire, quelli rossi in `xfail(strict=True)` con il rilievo e la correzione proposta; R-03 e R-04 confermati o smentiti | ☐ |
+| T4-104 | **Invarianti e proprietà**: attacchi agli 11 invarianti, macchine a stati, fuzzing dallo schema, test di mutazione | `brief-accettazione.md` §T4-104; `accettazione-post-mvp.md` §4.3, §6 | T4-100 | ogni invariante con almeno un test che prova a violarlo; report di hypothesis (10 000 sequenze), schemathesis e mutmut; ogni controesempio, 500 o mutante significativo è un rilievo | ☐ |
+| T4-105 | **Esercizio, guasti e carico**: guasti provocati, carico sui processi locali, backup e ripristino, osservabilità, una prova sulla pagina Meta di prova | `brief-accettazione.md` §T4-105; `accettazione-post-mvp.md` §6, §7; `docs/sicurezza-accesso.md` | T4-100 | un test per ogni guasto di §7.4; report di carico, picco e durata confrontato con i numeri ipotizzati e dichiarati; ripristino di database e foto cronometrato; rilievi per R-09, R-10, R-11 e per ciò che non si vede | ☐ |
+| T4-106 | **Frontend**: percorso della demo in Playwright a due ruoli da database vuoto, accessibilità, contratto dei tipi con lo schema | `brief-accettazione.md` §T4-106; `accettazione-post-mvp.md` §4.4, §6; converge §4 | T4-100 | lo script E2E gira in locale con video e traccia nel report; report di axe; differenze tra schema e tipi elencate; rilievi per R-08 e per ogni passo che fallisce; build e lint puliti | ☐ |
+| T4-107 | **Analisi a tavolino**: minacce STRIDE, prompt injection (anche con l'AI vera, tetto 2 €), log, segreti, dati personali e AI Act, checklist ASVS L2 | `brief-accettazione.md` §T4-107; `accettazione-post-mvp.md` §5 | T4-100 | modello delle minacce con una difesa o un rilievo per ogni minaccia; report della prova con l'AI vera con il costo; analisi delle lacune GDPR e AI Act; checklist ASVS L2 con una prova o un rilievo per requisito | ☐ |
+| T4-108 | **Sintesi**: criteri di §8 valutati, rilievi classificati, task di correzione proposti, limiti dell'MVP, nuova versione della proposta | `brief-accettazione.md` §T4-108; `accettazione-post-mvp.md` §8 | tutti i task dello sprint | ogni casella di §8 con un esito; ogni rilievo con una classe; `docs/accettazione/sintesi.md` con i task di correzione proposti e i limiti dell'MVP; proposta riscritta con ciò che si è imparato | ☐ |
+
+Riga da aggiungere alla tabella delle aree, in cima a questa pagina:
+
+| 10 · Simulazione di accettazione | Giovanni con gli agenti | ADR-120: l'MVP messo alla prova come prima della produzione; rilievi, non correzioni (`brief-accettazione.md`) |
+```
+
+### 12.2 Riga per `docs/ADR.md`
+
+```markdown
+| 120 | 30/10 | **Sprint 4 · simulazione di accettazione dell'MVP** (corsia 10, T4-100…T4-108, `brief-accettazione.md`). Si mette alla prova l'MVP come se si dovesse autorizzare la produzione: permessi, concorrenza, invarianti, guasti, carico, frontend, dati personali, con i criteri di `docs/accettazione-post-mvp.md` §8. I task producono rilievi in `docs/accettazione/rilievi.md`, non correzioni; i difetti restano documentati da test in `xfail(strict=True)`. Eseguita da agenti guidati da Giovanni; strumenti solo in locale; staging su processi locali; AI vera solo in una prova a mano con un tetto di 2 €; Meta solo sulla pagina di prova, a mano; rotte congelate provate senza modificarle. Le correzioni le decide T4-108. | Conoscere i limiti dell'MVP con prove ripetibili prima di promettere la produzione o lo sviluppo completo | Il piano di accettazione completo della prima versione (6 settimane, cinque persone, esterni); correggere mentre si prova |  |
+```
+
+### 12.3 Brief della corsia, per `docs/agenti/brief-accettazione.md`
+
+#### Brief · Corsia 10 · Simulazione di accettazione (T4-100…T4-108)
+
+Per chi fa un task della corsia 10. Decisione: ADR-120. Leggi prima `constitution.md`, poi **solo** la sezione del tuo task qui sotto e le parti di `docs/accettazione-post-mvp.md` che cita. Dove il codice è diverso da come è descritto qui, è un rilievo, oppure fermati e chiedi.
+
+**Decisioni prese con le domande** (30/10): vedi la tabella in testa a `accettazione-post-mvp.md` §12.
+
+**Regole di lavoro per tutti i task.**
+- **Branch.** Un branch `feature/T4-1xx-<breve>`, aperto dal branch della simulazione e unito lì. Fai solo il tuo task.
+- **Codice dell'app.** Non si tocca (`backend/app/`, `frontend/src/`, `alembic/`). Si aggiungono test, script e report.
+- **Difetti.** Un difetto trovato è un rilievo con il test in `@pytest.mark.xfail(strict=True, reason="RL-0xx: …")`, mai una correzione. `uv run pytest` resta verde.
+- **Strumenti.** Gli strumenti si lanciano con `uvx`, con `uv run --with …` o con `npx`, senza entrare in `backend/requirements.txt`. Una libreria che serve ai test che restano nel repository (per esempio `hypothesis`) va in un `backend/requirements-accettazione.txt` separato, con nome, motivo e licenza nella PR.
+- **Prove automatiche.** Nei test nessuna chiamata reale ad AI, Meta o email. Le uniche prove vere sono quelle a mano di T4-105 (Meta, pagina di prova) e di T4-107 (AI, tetto 2 €).
+- **Database.** Le prove di carico e di guasto girano su un database dedicato (`adflow_accettazione`), mai su `adflow` o `adflow_test`.
+- **Report.** In report, screenshot e log nessun segreto, token, cookie o dato personale vero. I report stanno in `docs/accettazione/report/T4-1xx-<nome>.md` (o `.json`, `.html`).
+- **Registro.** Ogni task aggiunge le sue righe a `docs/accettazione/rilievi.md` nel formato di §1.2, con ID progressivi. Non modifica le righe degli altri.
+- **Fatto quando.** Il «Fatto quando» del task, `uv run pytest` e `uv run black --check .` verdi, e la casella in `tasks.md`.
+
+---
+
+##### T4-100 · Preparazione della corsia 10
+
+**Stima**: 1 sessione · **Dipende da**: T3-07
+
+**File e modifiche**:
+- `docs/ADR.md`: riga 120 (§12.2).
+- `docs/agenti/tasks.md`: sezione «Sprint 4 · Simulazione di accettazione dell'MVP» (§12.1) e riga 10 nella tabella delle aree.
+- `docs/agenti/brief-accettazione.md`: nuovo, con il testo di §12.3.
+- `docs/accettazione/rilievi.md`: nuovo, solo l'intestazione e la tabella vuota di §1.2.
+- `docs/accettazione/report/.gitkeep`: nuovo.
+- `allinea.py`: intestazione della corsia con più cifre (`### Corsia (\d+) · …`, riga 89); scelta della corsia da 0 a 10 (righe 378-379) e il docstring.
+- `backend/tests/test_allinea.py`: un caso con lo sprint 4, la corsia 10 e un task `T4-100`.
+- `docs/accettazione-post-mvp.md`: lo stato passa da «bozza» a «domande con risposta, corsia generata».
+
+**Da non toccare**: codice dell'app; `AGENTS.md` (lo sprint corrente cambia solo quando lo decide il team).
+
+**Fatto quando**: `uv run python allinea.py 10` mostra T4-101 tra i pronti; `tests/test_allinea.py` verde con la corsia 10; comandi di converge §1 verdi.
+
+**Nota**: cambia `allinea.py`, un file comune: va scritto nella PR.
+
+##### T4-101 · Linea di base
+
+**Stima**: 1–2 sessioni · **Dipende da**: T4-100 · **Copre**: §4.1, §4.2, §5.3, §6 (copertura) · R-05, R-06, R-07
+
+**File e modifiche**:
+- `docs/accettazione/report/T4-101-ricostruzione.md`: clone in una cartella pulita, `allinea.py`, migrazioni da vuoto, seed, test, build; tempi e passi non scritti.
+- `docs/accettazione/report/T4-101-scansioni.md`, più i report grezzi: `pip-audit`, `npm audit --omit=dev`, `bandit -ll`, `semgrep`, `gitleaks` su tutta la storia, `mypy` su `domain.py` e `service.py`, `pip-licenses`.
+- `docs/accettazione/report/T4-101-copertura.md`: `pytest --cov=app --cov-branch`, per file, confrontata con le soglie di §6.
+- `docs/accettazione/strumenti/tracciabilita.py`: legge `spec.md` e i nomi dei test e produce `docs/accettazione/report/T4-101-tracciabilita.md`.
+- `docs/accettazione/rilievi.md`: le righe del task.
+
+**Da non toccare**: codice dell'app; `requirements.txt`; `.github/`.
+
+**Fatto quando**: report salvati; tracciabilità generata; un rilievo per R-05, R-06 e R-07, e per ogni risultato alto o critico. Un segreto valido trovato da gitleaks va segnalato **subito** a Giovanni: è un blocco assoluto e non si scrive nel report.
+
+##### T4-102 · Permessi e superficie HTTP
+
+**Stima**: 2 sessioni · **Dipende da**: T4-100 · **Copre**: §5.2, §5.4 punti 1–5 · R-01, R-02, R-12, R-15, R-16, R-17
+
+**File e modifiche**:
+- `backend/tests/accettazione/permessi/matrice.py`: l'esito atteso per operazione × ruolo (anonimo, artigiano A, artigiano B, operatore, admin), 57 operazioni, rotte congelate comprese. L'atteso viene da costituzione §3 e da `spec.md`, non dal comportamento attuale.
+- `backend/tests/accettazione/permessi/test_matrice.py`: legge `app.openapi()`, prova ogni cella, fallisce se un'operazione non ha la sua riga.
+- `backend/tests/accettazione/test_intestazioni.py`, `test_origine.py`, `test_upload_ostili.py`, `test_foto_pubblica_firma.py`, `test_bola_nuovi_endpoint.py` (Cambia foto da campagna e archivio, `foto-possibili`, storico AI), `test_limite_azioni_ai.py`.
+- `docs/accettazione/report/T4-102-permessi.md`: la matrice con gli esiti.
+- `docs/accettazione/rilievi.md`: le righe del task.
+
+**Da non toccare**: codice dell'app; `campagne/archivio.py` (congelato, si prova soltanto).
+
+**Fatto quando**: matrice completa e verde, con le differenze in `xfail(strict=True)`; un rilievo per ognuno di R-01, R-02, R-12, R-15, R-16, R-17, con esito confermato o smentito. Una lettura confermata dei dati di un altro artigiano è un **blocco assoluto**: va segnalata subito a Giovanni.
+
+##### T4-103 · Concorrenza
+
+**Stima**: 1–2 sessioni · **Dipende da**: T4-100 · **Copre**: §7.3 · R-03, R-04
+
+**File e modifiche**:
+- `backend/tests/accettazione/concorrenza/conftest.py`: aiuto con `threading.Barrier`, una sessione e una connessione a PostgreSQL per thread. Il database di test è quello delle fixture di plan §7, con i commit veri che servono alla concorrenza.
+- `backend/tests/accettazione/concorrenza/test_approvazione.py`, `test_interventi.py`, `test_invio.py`, `test_sovrapposte.py`, `test_voto.py`, `test_pubblicazione.py`: gli scenari di §7.3.
+- `docs/accettazione/report/T4-103-concorrenza.md`: scenario, ripetizioni, esito, correzione proposta (blocco della riga, vincolo unico o aggiornamento condizionale), senza applicarla.
+- `docs/accettazione/rilievi.md`: le righe del task.
+
+**Da non toccare**: codice dell'app; `alembic/`.
+
+**Fatto quando**: ogni scenario ha un test. I verdi sono ripetuti 50 volte senza fallire. Un difetto si rende deterministico quando si può (per esempio fermando il primo thread dopo il controllo e prima della scrittura) e allora va in `xfail(strict=True)`. Se resta intermittente va in `xfail(strict=False)`, con il rilievo e la percentuale di fallimenti su 50 ripetizioni. R-03 e R-04 sono confermati o smentiti.
+
+##### T4-104 · Invarianti e proprietà
+
+**Stima**: 2 sessioni · **Dipende da**: T4-100 · **Copre**: §4.3, §6 (mutazioni, macchine a stati, fuzzing)
+
+**File e modifiche**:
+- `backend/requirements-accettazione.txt`: nuovo; `hypothesis` (MPL-2.0), con nome, motivo e licenza nella PR. `schemathesis` e `mutmut` si lanciano con `uvx`.
+- `backend/tests/accettazione/invarianti/`: un file per invariante di costituzione §1, con gli attacchi di §4.3.
+- `backend/tests/accettazione/proprieta/test_macchina_campagna.py`, `test_macchina_post.py`: `RuleBasedStateMachine` con gli invarianti come controlli; saltati se `hypothesis` non è installato.
+- `docs/accettazione/report/T4-104-proprieta.md`: hypothesis (10 000 sequenze, lanciato a parte), schemathesis con i due ruoli, mutmut su `domain.py`, `interventi.py`, `validatore.py`, `foto_pubblica.py` con i mutanti sopravvissuti analizzati.
+- `docs/accettazione/rilievi.md`: le righe del task.
+
+**Da non toccare**: codice dell'app; `test_confini.py` (il controllo su `.stato` di §1.8 va in `tests/accettazione/invarianti/`).
+
+**Fatto quando**: ogni invariante con almeno un test che prova a violarlo; report dei tre strumenti; ogni controesempio, 500 o mutante significativo è un rilievo.
+
+##### T4-105 · Esercizio, guasti e carico
+
+**Stima**: 2 sessioni · **Dipende da**: T4-100 · **Copre**: §6 (backup, documentazione operativa), §7.1, §7.2, §7.4, §7.5 · R-09, R-10, R-11, R-15
+
+**File e modifiche**:
+- `backend/tests/accettazione/guasti/`: un test per ogni riga di §7.4, con `monkeypatch` sugli adattatori finti e l'orologio iniettato; il timeout dopo la pubblicazione (D-07) documentato così com'è oggi.
+- `docs/accettazione/carico/locustfile.py` e `README.md`: dati dalle `fabbrica.py` su `adflow_accettazione`; `locust` lanciato con `uvx`.
+- `docs/accettazione/report/T4-105-carico.md`: i numeri ipotizzati (dichiarati come tali), carico, picco, durata (2–8 ore), upload, worker, storico AI con 100 000 chiamate.
+- `docs/accettazione/report/T4-105-esercizio.md`: avvio su processi locali (API, worker, proxy TLS temporaneo come `test_proxy_http_reale.py`), ZAP baseline su quel proxy, backup e ripristino di database e foto cronometrati, che cosa si vede oggi di latenza, coda, ritardo di pubblicazione e spesa AI.
+- `docs/accettazione/report/T4-105-meta-prova.md`: **una** pubblicazione a mano sulla pagina Meta di prova di un post approvato del seed, con l'esito e i tempi, senza token né id veri nel report.
+- `docs/accettazione/rilievi.md`: le righe del task.
+
+**Da non toccare**: codice dell'app; `adflow` e `adflow_test`; la pagina Meta vera, salvo quella di prova.
+
+**Fatto quando**: test dei guasti presenti, con le differenze in `xfail(strict=True)`; report di carico ed esercizio; ripristino riuscito o rilievo; un rilievo per R-09, R-10, R-11 e per ogni misura che manca.
+
+##### T4-106 · Frontend
+
+**Stima**: 2 sessioni · **Dipende da**: T4-100 · **Copre**: §4.4, §6 (frontend, E2E, accessibilità, contratto) · R-08
+
+**File e modifiche**:
+- `frontend/e2e/percorso-demo.spec.ts` e `frontend/playwright.config.ts`: il percorso della demo di converge §4 a due ruoli, da database vuoto, con `@axe-core/playwright`.
+- `frontend/package.json`: script `test:e2e`; devDependencies `@playwright/test` (Apache-2.0), `@axe-core/playwright` (MPL-2.0), con nome, motivo e licenza nella PR.
+- `docs/accettazione/report/T4-106-frontend.md`: esito del percorso, violazioni di axe, differenze tra i tipi generati con `npx openapi-typescript` e `src/api/*.ts` (il file generato non resta nel repository).
+- `docs/accettazione/rilievi.md`: le righe del task.
+
+**Da non toccare**: `frontend/src/`; `.github/`.
+
+**Fatto quando**: lo script E2E gira in locale con video e traccia nel report; report di axe e del contratto; un rilievo per R-08 e per ogni passo che fallisce; `npm run build` e `npm run lint` puliti.
+
+##### T4-107 · Analisi a tavolino
+
+**Stima**: 2 sessioni · **Dipende da**: T4-100 · **Copre**: §5.1, §5.2, §5.4 punti 6–8, §5.5 · R-13, R-14, R-16
+
+**File e modifiche**:
+- `docs/accettazione/report/T4-107-minacce.md`: flusso dei dati, confini di fiducia, STRIDE di §5.2; per ogni minaccia una difesa che esiste (con il file) o un rilievo.
+- `backend/tests/accettazione/test_prompt_injection.py`: con l'adattatore finto, testi ostili nel profilo, nei nomi e nel testo di partenza; il validatore e l'approvazione fermano ogni uscita.
+- `docs/accettazione/report/T4-107-ai-vera.md`: **una** prova a mano con l'AI vera su una campagna di prova con profilo ostile; tetto di **2 €**, fermarsi prima di superarlo; costo letto dallo storico AI; nessun post approvato né pubblicato.
+- `docs/accettazione/report/T4-107-log-segreti.md`: ricerca di email, password e token riconoscibili in stderr e nello storico AI; permessi di `.env`; `--forwarded-allow-ips`; effetto della rotazione di `login_limite_segreto` (R-13).
+- `docs/accettazione/report/T4-107-dati-personali.md`: analisi delle lacune GDPR (artt. 17, 28, 30, 35, capo V) e AI Act art. 50, con lo storico AI (R-16) e la cifratura dei token futuri (R-14).
+- `docs/accettazione/report/T4-107-asvs-l2.md`: checklist ASVS 5.0 L2, con requisito, prova (file, test o report) ed esito; ciò che non si può provare in locale è `non provato`.
+- `docs/accettazione/rilievi.md`: le righe del task.
+
+**Da non toccare**: codice dell'app; nessuna firma, informativa o ADR «approvato»: sono proposte.
+
+**Fatto quando**: i sei report; ogni minaccia e ogni requisito ASVS con una prova o un rilievo; costo della prova con l'AI vera registrato e sotto i 2 €.
+
+##### T4-108 · Sintesi
+
+**Stima**: 1 sessione · **Dipende da**: tutti i task dello sprint · **Copre**: §8
+
+**File e modifiche**:
+- `docs/accettazione/sintesi.md`: ogni casella di §8 con un esito (soddisfatto, non soddisfatto, non provato) e i rilievi che la giustificano; i blocchi assoluti in cima; i limiti dell'MVP in parole semplici, da usare con il cliente; i task di correzione proposti, in ordine di gravità, ognuno con il rilievo e il test `xfail` che lo chiude.
+- `docs/accettazione/rilievi.md`: classe di ogni rilievo (`correggere`, `limite MVP`, `roadmap`, `proposta`).
+- `docs/accettazione-post-mvp.md`: nuova versione con ciò che la simulazione ha insegnato (stime, strumenti che non sono serviti, rischi mancati).
+
+**Da non toccare**: codice dell'app; `tasks.md` oltre alla propria casella (i task di correzione sono proposte, li inserisce il team).
+
+**Fatto quando**: nessun rilievo senza classe; nessuna casella di §8 senza esito; sintesi rivista da Giovanni.
 
 ---
 
