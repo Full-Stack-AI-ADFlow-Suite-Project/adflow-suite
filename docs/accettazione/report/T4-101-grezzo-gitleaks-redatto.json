@@ -1,0 +1,19 @@
+{
+ "nota": "valori omessi: vedi report T4-101-scansioni.md (falsi positivi, base64 dentro PNG)",
+ "rilevamenti": [
+  {
+   "regola": "easypost-test-api-token",
+   "file": "docs/architettura/AdFlow-diagrammi.html",
+   "righe": "334-334",
+   "commit": "f9780a57dfac",
+   "valore": "OMESSO"
+  },
+  {
+   "regola": "easypost-api-token",
+   "file": "docs/architettura/AdFlow-diagrammi.html",
+   "righe": "555-555",
+   "commit": "ca8410a6c099",
+   "valore": "OMESSO"
+  }
+ ]
+}
