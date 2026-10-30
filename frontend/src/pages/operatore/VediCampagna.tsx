@@ -1,12 +1,12 @@
 /**
- * Vedi campagna (T1-53): la schermata dell'operatore su ogni stato dopo
+ * Vedi campagna: la schermata dell'operatore su ogni stato dopo
  * l'invio. In cima la decisione e il piano, poi le uscite con i post dei
  * canali affiancati, e il pannello Foto e profilo.
  */
 import {
   Alert,
   Anchor,
-  Badge,
+  Box,
   Card,
   Center,
   Loader,
@@ -24,13 +24,15 @@ import { ApiErrore } from "../../api/http";
 import type { VediCampagna as Vista } from "../../api/revisione";
 import { vediCampagna } from "../../api/revisione";
 import { Guscio } from "../../components/Guscio";
+import { StatoBadge } from "../../components/StatoBadge";
+import { AvanzamentoCampagna } from "../../components/AvanzamentoCampagna";
 import { Decidi } from "./campagna/Decidi";
 import { Materiali } from "./campagna/Materiali";
 import { PianoCard } from "./campagna/PianoCard";
 import { UscitaCard } from "./campagna/UscitaCard";
 import { AzioniCampagna } from "./vedi-campagna/decisioni/AzioniCampagna";
 import { CalendarioCampagnaView } from "../../components/CalendarioCampagnaView";
-import { coloreCampagna, data, giorni, NOME_CANALE } from "./campagna/util";
+import { data, giorni, NOME_CANALE } from "./campagna/util";
 
 const BOTTEGA_SCONOSCIUTA = "Bottega";
 
@@ -107,15 +109,15 @@ export function VediCampagna() {
             </Text>
             <Title order={1} size="h2" mt={2}>
               {vista.campagna.titolo}{" "}
-              <Badge
-                color={coloreCampagna(vista.campagna.stato)}
-                variant="light"
-                ff="monospace"
+              <StatoBadge
+                tipo="campagna"
+                stato={vista.campagna.stato}
                 size="lg"
-              >
-                {vista.campagna.stato}
-              </Badge>
+              />
             </Title>
+            <Box mt="xs">
+              <AvanzamentoCampagna stato={vista.campagna.stato} />
+            </Box>
             <Text size="sm" c="dimmed" mt={6}>
               {bottega}
               {citta ? ` · ${citta}` : ""} · {data(vista.campagna.inizio)} →{" "}

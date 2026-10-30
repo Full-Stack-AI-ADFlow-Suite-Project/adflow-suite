@@ -1,4 +1,4 @@
-"""Test di nota interna, respingi e togli il canale (T2b-41).
+"""Test di nota interna, respingi e togli il canale.
 
 Verifica i criteri di accettazione:
 - CA-23: nota interna → stato invariato, decisione `nota`, nessuna email.

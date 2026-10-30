@@ -32,6 +32,18 @@
         <span>Da approvare</span>
         <span class="nav-badge">4</span>
       </a>
+      <a href="AdFlow-operatore-elenco.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        <span>Artigiani</span>
+      </a>
+      <a href="AdFlow-calendario.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        <span>Calendario</span>
+      </a>
+      <a href="AdFlow-operatore-storico-ai.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        <span>Storico AI</span>
+      </a>
       <a href="AdFlow-operatore-nuovo-artigiano.html" class="nav-link">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line></svg>
         <span>Nuovo artigiano</span>
@@ -89,11 +101,11 @@
         </div>
         <div class="page-actions">
           <select class="form-select" style="width: auto; font-size: 13px;" aria-label="Filtra per stato">
-            <option>Stato: tutti (4)</option>
-            <option>in_revisione (2)</option>
-            <option>in_generazione (1)</option>
-            <option>generazione_fallita (1)</option>
-            <option>inviata (0)</option>
+            <option value="">Stato: tutti (4)</option>
+            <option value="inviata">In coda (0)</option>
+            <option value="in_generazione">L'AI la prepara (1)</option>
+            <option value="generazione_fallita">Preparazione non riuscita (1)</option>
+            <option value="in_revisione">Da rivedere (2)</option>
           </select>
         </div>
       </div>
@@ -112,7 +124,7 @@
             </div>
             <div class="titolo">
               <h2>Campagna Ottobre 2026</h2>
-              <span class="status-pill review">in_revisione</span>
+              <span class="status-pill review" title="Piano e post pronti: sistemali, poi approva o respingi.">Da rivedere</span>
               <span class="status-pill fb">Facebook</span>
               <span class="status-pill ig">Instagram</span>
               <span class="status-pill review">Richiesta aperta</span>
@@ -139,7 +151,7 @@
             </div>
             <div class="titolo">
               <h2>Autunno in tavola</h2>
-              <span class="status-pill danger">generazione_fallita</span>
+              <span class="status-pill danger" title="L'AI si è fermata: leggi l'errore e usa Riprova.">Preparazione non riuscita</span>
               <span class="status-pill ig">Instagram</span>
             </div>
             <div class="dati">
@@ -163,7 +175,7 @@
             </div>
             <div class="titolo">
               <h2>Borse d'inverno</h2>
-              <span class="status-pill info">in_generazione</span>
+              <span class="status-pill neutral" title="L'AI analizza le foto e scrive piano e post.">L'AI la prepara</span>
               <span class="status-pill fb">Facebook</span>
               <span class="status-pill ig">Instagram</span>
             </div>
@@ -188,7 +200,7 @@
             </div>
             <div class="titolo">
               <h2>Sciarpe e plaid</h2>
-              <span class="status-pill review">in_revisione</span>
+              <span class="status-pill review" title="Piano e post pronti: sistemali, poi approva o respingi.">Da rivedere</span>
               <span class="status-pill fb">Facebook</span>
               <span class="status-pill success">Risposta arrivata</span>
             </div>
@@ -211,9 +223,10 @@
       <!-- Note della pagina statica: non fanno parte della schermata -->
       <div class="note-pagina">
         <p><strong>Pagina statica, non interattiva.</strong> Le campagne da approvare di tutti gli artigiani, con <code>GET /da-approvare</code> (T2b-45). È la pagina di partenza dell'operatore nell'MVP. Oggi è il 28/09/2026.</p>
-        <p>Stati mostrati: <code>inviata</code>, <code>in_generazione</code>, <code>generazione_fallita</code>, <code>in_revisione</code>. Da ogni riga una sola strada: <strong>Vedi campagna</strong>, dove si decide; anche Riprova sta lì. La riga porta bottega e città dal profilo (ADR-106) e, per i post, quanti hanno un'immagine AI.</p>
+        <p><strong>Stati leggibili (ADR-119, T3-901).</strong> Alla persona si mostrano etichette, non i valori del database; i valori del backend non cambiano e il filtro li usa. Stati mostrati: «In coda» (<code>inviata</code>), «L'AI la prepara» (<code>in_generazione</code>), «Preparazione non riuscita» (<code>generazione_fallita</code>), «Da rivedere» (<code>in_revisione</code>). Il badge è un'etichetta colorata e, al passaggio del mouse, mostra la spiegazione (qui l'attributo <code>title</code>). Tabella completa in <code>brief-richieste.md</code> §1.1. Una campagna di prima dell'MVP ferma in «Piano da rivedere» (<code>piano_da_rivedere</code>) si legge ancora nell'app, nel filtro, con la sua etichetta.</p>
+        <p>Da ogni riga una sola strada: <strong>Vedi campagna</strong>, dove si decide; anche Riprova sta lì. La riga porta bottega e città dal profilo (ADR-106) e, per i post, quanti hanno un'immagine AI.</p>
         <p><strong>Richiesta all'artigiano (ADR-116, spec R-46).</strong> Una campagna con una richiesta aperta porta il segno "Richiesta aperta"; quando l'artigiano ha risposto, "Risposta arrivata": l'operatore la apre in Vedi campagna, usa le foto nuove con Cambia foto e decide. Il segno viene dal campo <code>richiesta</code> di <code>GET /da-approvare</code>; l'ordine resta quello di "entro quando".</p>
-        <p><strong>Cosa cambia con l'MVP (ADR-114).</strong> Tolti: lo stato <code>piano_da_rivedere</code> (A3: il piano è sempre completo; una campagna vecchia ferma lì si legge ancora e si respinge), la nota interna (B4, congelata), il promemoria delle 48 ore (B7), il codice ART e lo storico della bottega (anagrafica, in roadmap), il pulsante Pagina artigiano (pagina in roadmap).</p>
+        <p><strong>Cosa cambia con l'MVP (ADR-114).</strong> Tolti: lo stato <code>piano_da_rivedere</code> nelle campagne nuove (A3: il piano è sempre completo; una campagna vecchia ferma lì si legge ancora e si respinge), la nota interna (B4, congelata), il promemoria delle 48 ore (B7), il codice ART e lo storico della bottega (anagrafica, in roadmap), il pulsante Pagina artigiano (pagina in roadmap).</p>
         <p>"Entro quando" segue la scadenza morbida (ADR-95): con un piano, ogni post da approvare scade quando passa la sua data, e la campagna scade quando ne restano meno della metà; senza piano scade alle 00:00 del giorno di inizio.</p>
         <p>Esempio · pagina vuota: "Nessuna campagna da approvare. Le campagne arrivano qui appena un artigiano le invia."</p>
       </div>

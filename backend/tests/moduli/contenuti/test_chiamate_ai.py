@@ -141,3 +141,87 @@ def test_registra_chiamata_ai_conserva_token_e_immagini(db):
     assert (riga.token_ingresso, riga.token_uscita, riga.n_immagini) == (10, 20, 1)
     assert riga.costo_usd == Decimal("0.04")
     assert registra_chiamata_ai(db, campagna.id, None) is None
+
+
+# --- Storico dell'AI (T3-916, R-50, CA-109) -----------------------------------
+
+
+def _generata(db, ai):
+    bottega = profilo(db, canali=CANALI, frequenza="f3_4")
+    campagna = campagna_inviata(
+        db, profilo_id=bottega.id, inizio=date(2030, 1, 7), fine=date(2030, 1, 20)
+    )
+    db.commit()
+    esecuzioni = []
+    for esecuzione in range(1, 4):
+        esecuzioni.append(esecuzione)
+        if not jobs.esegui_generazione(campagna.id, esecuzione):
+            break
+    return campagna
+
+
+def test_ca109_ogni_chiamata_ha_prompt_richiesta_risposta_esito_e_durata(db, ai):
+    campagna = _generata(db, ai)
+
+    righe = _righe(db, campagna.id)
+    assert len(righe) == len(ai.chiamate) == 16
+    for riga in righe:
+        assert riga.versione_prompt == "finto-1"
+        assert riga.esito == "ok" and riga.errore is None
+        assert riga.durata_ms is not None
+        assert riga.tentativo is not None
+        assert riga.richiesta  # niente byte né chiavi: solo testo e id
+    assert all(r.risposta for r in righe if r.tipo != "immagine")
+    analisi = next(r for r in righe if r.tipo == "analisi")
+    assert all(f.startswith("<foto ") for f in analisi.richiesta["foto"])
+    assert analisi.tentativo == 1
+    assert [r.tentativo for r in righe if r.tipo == "piano"] == [1]
+    assert {r.tentativo for r in righe if r.tipo == "testo"} == {1}
+
+
+def test_ca109_un_errore_temporaneo_sul_piano_resta_dopo_l_annullamento(db, ai):
+    ai.comanda_errore("pianifica_campagna", "temporaneo", volte=None)
+    bottega = profilo(db, canali=CANALI, frequenza="f3_4")
+    campagna = campagna_inviata(
+        db, profilo_id=bottega.id, inizio=date(2030, 1, 7), fine=date(2030, 1, 20)
+    )
+    db.commit()
+
+    assert jobs.esegui_generazione(campagna.id, 1) is True
+
+    fallite = [r for r in _righe(db, campagna.id) if r.esito != "ok"]
+    assert len(fallite) == 1
+    riga = fallite[0]
+    assert (riga.tipo, riga.esito, riga.costo_usd) == ("piano", "temporaneo", 0)
+    assert "temporaneo" in riga.errore and riga.versione_prompt == "finto-1"
+    assert riga.risposta is None and riga.tentativo == 1
+    # l'analisi, salvata da un passo prima, è ancora lì
+    assert [r.tipo for r in _righe(db, campagna.id)].count("analisi") == 1
+
+
+def test_ca109_la_chiamata_fallita_di_una_foto_sola_porta_la_foto(db, ai):
+    bottega = profilo(db, canali=CANALI, frequenza="f3_4")
+    campagna = campagna_inviata(
+        db, profilo_id=bottega.id, inizio=date(2030, 1, 7), fine=date(2030, 1, 20)
+    )
+    db.commit()
+    ids = [f.id for f in campagne.foto_della_campagna(db, campagna.id)]
+    ai.comanda_errore("analizza_gruppo", "richiesta", foto_id=ids[0])
+
+    jobs.esegui_generazione(campagna.id, 1)
+
+    riga = next(r for r in _righe(db, campagna.id) if r.esito == "richiesta")
+    assert (riga.tipo, riga.foto_id) == ("analisi", ids[0])
+
+
+def test_ca109_una_rigenerazione_fallita_lascia_la_sua_chiamata(db, ai):
+    uno = post_da_approvare(db)
+    accendi_intervento(db, uno.id, "rigenera_totale", ADESSO)
+    db.commit()
+    ai.comanda_errore("genera_post", "temporaneo", volte=1)
+
+    assert jobs.esegui_rigenerazione(uno.id, None, None, 1) is True
+
+    (riga,) = _righe(db, uno.campagna_id)
+    assert (riga.esito, riga.post_id, riga.costo_usd) == ("temporaneo", uno.id, 0)
+    assert riga.tentativo == 1 and riga.errore

@@ -49,7 +49,7 @@ Questa pagina dice che cosa entra nell'MVP. Dove `spec.md`, `plan.md` o `tasks.m
 
 In ogni caso il piano esce completo e l'operatore approva o respinge.
 
-**Regola delle immagini AI.** Mostrano ambienti, materiali, attrezzi, lavorazioni, atmosfere e stagioni; mai un prodotto finito come se fosse della bottega, mai persone riconoscibili, testi o marchi. Sono quadrate 1:1, valide su Facebook e Instagram: un'uscita usa la stessa immagine su entrambi i canali. Il post porta l'indicazione "Immagine creata con AI".
+**Regola delle immagini AI.** Mostrano ambienti, materiali, attrezzi, lavorazioni, atmosfere e stagioni; mai un prodotto finito presentato come se fosse della bottega, mai persone riconoscibili, testi o marchi. Alcune possono essere «di concetto» (R-43). Sono quadrate 1:1, valide su Facebook e Instagram: un'uscita usa la stessa immagine su entrambi i canali. Il post porta l'indicazione "Immagine creata con AI".
 
 ## E · Dashboard
 

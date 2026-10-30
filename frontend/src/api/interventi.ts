@@ -1,7 +1,7 @@
 /**
  * Interventi dell'operatore sul singolo post (plan §3, spec §3, R-03, R-16,
  * R-30, R-31, R-36): modifica a mano, spunta "va bene", rigenera, cambia foto,
- * sposta, annulla. Gli endpoint sono di revisione (T2b-42, T3-61, T3-62);
+ * sposta, annulla. Gli endpoint sono di revisione (T3-61, T3-62);
  * con `VITE_USA_ESEMPI=1` le pagine leggono i dati di esempio. Dopo ogni intervento la pagina rilegge Vedi campagna, quindi qui
  * non si legge il corpo della risposta.
  */
@@ -51,6 +51,27 @@ export async function rigeneraPost(
   });
 }
 
+/** POST /post/{id}/rigenera-immagine: accende l'intervento e accoda il job (R-49). */
+export async function rigeneraImmagine(
+  postId: number,
+  nota: string | null = null,
+  riscriviTesto: boolean = false,
+  notaTesto: string | null = null,
+): Promise<void> {
+  if (USA_ESEMPI)
+    return esempiInterventi.rigeneraImmagine(
+      postId,
+      nota,
+      riscriviTesto,
+      notaTesto,
+    );
+  await richiesta<unknown>("POST", `/post/${postId}/rigenera-immagine`, {
+    nota,
+    riscrivi_testo: riscriviTesto,
+    nota_testo: notaTesto,
+  });
+}
+
 /** GET /post/{id}/foto-possibili: le foto con cui cambiare quella del post, la migliore in cima (R-36). */
 export function fotoPossibili(postId: number): Promise<FotoPossibile[]> {
   if (USA_ESEMPI) return esempiInterventi.fotoPossibili(postId);
@@ -61,10 +82,15 @@ export function fotoPossibili(postId: number): Promise<FotoPossibile[]> {
 export async function cambiaFoto(
   postId: number,
   fotoId: number,
+  riscriviTesto: boolean = false,
+  nota: string | null = null,
 ): Promise<void> {
-  if (USA_ESEMPI) return esempiInterventi.cambiaFoto(postId, fotoId);
+  if (USA_ESEMPI)
+    return esempiInterventi.cambiaFoto(postId, fotoId, riscriviTesto, nota);
   await richiesta<unknown>("POST", `/post/${postId}/cambia-foto`, {
     foto_id: fotoId,
+    riscrivi_testo: riscriviTesto,
+    nota,
   });
 }
 

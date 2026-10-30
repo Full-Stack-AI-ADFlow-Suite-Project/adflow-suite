@@ -18,6 +18,8 @@ Il piano è il JSON come lo ha scritto l'AI (``piano.contenuto``):
 
 Un post con `riempitivo` = `immagine_ai` non ha foto: la sua immagine nasce dopo
 il piano (R-28). Gli altri post hanno la loro foto, tra quelle preselezionate.
+La `scena` delle uscite con immagine AI (T3-910) non si controlla: mancante o
+malformata, l'immagine parte dal tema e il piano resta valido.
 """
 
 from collections import Counter

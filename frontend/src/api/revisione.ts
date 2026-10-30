@@ -79,6 +79,7 @@ export type StatoPost =
 export type Intervento =
   | "modifica"
   | "rigenera"
+  | "rigenera_immagine"
   | "cambia_foto"
   | "sposta"
   | "annulla"
@@ -90,6 +91,8 @@ export interface FotoPossibile {
   punteggio: number | null;
   /** Falso: arrivata con una richiesta all'artigiano, senza analisi (R-46). */
   analizzata: boolean;
+  provenienza: "gruppo" | "campagna" | "archivio";
+  soggetto: string | null;
 }
 
 /** PostSchema: riempitivo, versione corrente e storico. */
@@ -193,7 +196,7 @@ export function approva(campagnaId: number): Promise<{ stato: string }> {
   );
 }
 
-/** Riprova da generazione_fallita: torna a inviata e riaccoda il job (T1-24). */
+/** Riprova da generazione_fallita: torna a inviata e riaccoda il job. */
 export function riprova(campagnaId: number): Promise<CampagnaDettaglio> {
   if (USA_ESEMPI) return esempiRevisione.riprova(campagnaId);
   return richiesta<CampagnaDettaglio>(

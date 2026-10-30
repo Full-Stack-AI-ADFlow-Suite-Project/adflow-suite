@@ -5,9 +5,11 @@
 import { Avatar, Burger, Title } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";
 import { Link, useLocation, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 import type { ReactNode } from "react";
 
 import type { Ruolo } from "../api/accesso";
+import { leggiProfilo } from "../api/artigiani";
 import { useAuth } from "../contesto-auth";
 import stile from "./Guscio.module.css";
 
@@ -67,6 +69,11 @@ function vociDelRuolo(ruolo: Ruolo, percorso: string): VoceNav[] {
       attivo: percorso === "/calendario",
     },
     {
+      label: "Storico AI",
+      to: "/storico-ai",
+      attivo: percorso === "/storico-ai" || percorso.startsWith("/storico-ai/"),
+    },
+    {
       label: "Nuovo artigiano",
       to: "/nuovo-artigiano",
       attivo: percorso === "/nuovo-artigiano",
@@ -108,6 +115,12 @@ const ICONE: Record<string, ReactNode> = {
     <>
       <circle cx="9" cy="7" r="4" />
       <path d="M3 21v-2a6 6 0 0 1 12 0v2M19 8v6M16 11h6" />
+    </>
+  ),
+  "Storico AI": (
+    <>
+      <circle cx="12" cy="12" r="9" />
+      <polyline points="12 7 12 12 15 14" />
     </>
   ),
   Ingresso: (
@@ -177,6 +190,19 @@ export function Guscio({
   };
 
   const artigiano = utente?.ruolo === "artigiano";
+  const [bottega, setBottega] = useState<string | null>(null);
+  useEffect(() => {
+    if (!artigiano) return;
+    let attivo = true;
+    leggiProfilo()
+      .then((p) => {
+        if (attivo && p) setBottega(`${p.nome} · ${p.referente}`);
+      })
+      .catch(() => {});
+    return () => {
+      attivo = false;
+    };
+  }, [artigiano, utente?.id]);
   const voci = nav ?? (utente ? vociDelRuolo(utente.ruolo, pathname) : []);
 
   return (
@@ -267,6 +293,9 @@ export function Guscio({
       </aside>
       <main className={stile.contenuto}>
         <div className={stile.pagina} style={{ maxWidth: largo }}>
+          {artigiano && (
+            <div className={stile.bottega}>{bottega ?? utente?.nome}</div>
+          )}
           <Title order={1} mb="md">
             {titolo}
           </Title>

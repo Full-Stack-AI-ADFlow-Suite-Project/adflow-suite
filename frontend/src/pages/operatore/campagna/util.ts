@@ -25,37 +25,7 @@ export function giorni(inizio: string, fine: string): number {
   return Math.round((D(fine).getTime() - D(inizio).getTime()) / 86400000) + 1;
 }
 
-/** Colore del badge per lo stato della campagna (badge dei mockup). */
-export function coloreCampagna(stato: string): string {
-  if (
-    stato === "in_revisione" ||
-    stato === "piano_da_rivedere" ||
-    stato === "sospesa"
-  )
-    return "yellow";
-  if (
-    stato === "generazione_fallita" ||
-    stato === "respinta" ||
-    stato === "scaduta" ||
-    stato === "annullata"
-  )
-    return "red";
-  if (stato === "attiva" || stato === "conclusa") return "verde";
-  return "gray";
-}
-
-/** Colore del badge per lo stato del post. */
-export function colorePost(stato: string): string {
-  if (stato === "approvato" || stato === "pubblicato") return "verde";
-  if (
-    stato === "fallito" ||
-    stato === "scaduto" ||
-    stato === "scartato" ||
-    stato === "annullato"
-  )
-    return "red";
-  return "yellow";
-}
+export { coloreCampagna, colorePost } from "../../../components/stati";
 
 /** Esiti del validatore sulla versione corrente di un post. */
 export function erroriDi(p: {

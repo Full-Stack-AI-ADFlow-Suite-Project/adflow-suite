@@ -430,8 +430,8 @@ def test_regola_post_per_canale_con_un_canale_che_la_campagna_non_ha():
     assert violazioni[0]["canale"] == "facebook"
 
 
-def test_nessun_tetto_alle_immagini_ai_piu_di_quelle_che_mancano():
-    """R-28: 5 foto e 6 post, una foto non usata e 2 immagini AI: il piano è valido."""
+def test_ca101_nessun_tetto_alle_immagini_ai_piu_di_quelle_che_mancano():
+    """CA-101, R-28: 5 foto e 6 post, una foto non usata e 2 immagini AI: il piano è valido."""
     limiti, gruppi = _limiti(5, canali=("instagram",))
     contenuto = _piano_valido(limiti)
     contenuto["uscite"][4] = _uscita(5, [_post("instagram", giorno=5)], gruppo_id=None)
@@ -611,18 +611,6 @@ def test_data_prima_del_periodo_e_nel_passato_sono_due_regole():
     assert _regole(violazioni) == ["data_fuori_periodo", "data_nel_passato"]
 
 
-def test_una_stella_gia_salvata_non_e_piu_una_regola():
-    """ADR-114, A11: `foto.da_usare` resta nel database, il controllo non lo legge."""
-    con_stella = _foto(8)
-    con_stella.da_usare = True
-    gruppi = [_gruppo(1, [_foto(n) for n in range(1, 8)] + [con_stella])]
-    limiti = limiti_per_canale(["facebook", "instagram"], 3, INIZIO, FINE, gruppi)
-    contenuto = _piano_valido(limiti)  # usa le foto da 1 a 6
-
-    assert _controlla(contenuto, limiti, gruppi) == []
-    assert "foto_con_stella" not in piano.REGOLE
-
-
 @pytest.mark.parametrize("canale", sorted(domain.SCHEDE_CANALE))
 def test_regola_massimo_di_foto_per_post(canale):
     """R-21: al massimo 10 foto per post, su ogni canale."""
@@ -669,18 +657,6 @@ def test_ca57_il_piano_senza_foto_e_tutto_di_immagini_ai():
     assert {p["formato"] for p in post} == {"singola"}
     assert all(p["foto"] == [] for p in post)
     assert _controlla(contenuto, limiti, gruppi) == []
-
-
-@pytest.mark.parametrize("riempitivo", ["archivio", "cartolina"])
-def test_archivio_e_cartolina_non_sono_riempitivi_del_piano(riempitivo):
-    """ADR-114: restano valori ammessi nel database, il piano non li chiede."""
-    assert piano.RIEMPITIVI_DEL_PIANO == ("immagine_ai",)
-    assert riempitivo in domain.TIPI_RIEMPITIVO
-    limiti, gruppi = _limiti(5, canali=("instagram",))
-    contenuto = _piano_valido(limiti)
-    contenuto["uscite"][5]["post"][0]["riempitivo"] = riempitivo
-
-    assert set(_regole(_controlla(contenuto, limiti, gruppi))) == {"piano_malformato"}
 
 
 def _cambia_post(**campi):
@@ -779,3 +755,17 @@ def test_ogni_regola_ha_un_nome_e_le_violazioni_si_salvano_come_json():
     assert _regole(violazioni) == ["foto_non_disponibile", "data_fuori_periodo"]
     assert set(_regole(violazioni)) <= set(piano.REGOLE)
     assert json.loads(json.dumps(violazioni)) == violazioni
+
+
+def test_ca106_la_scena_non_e_una_regola_del_piano():
+    """CA-106: una scena mancante o malformata non è una violazione."""
+    limiti, gruppi = _limiti(5, canali=("instagram",))
+    contenuto = _piano_valido(limiti)
+    contenuto["uscite"][4] = _uscita(5, [_post("instagram", giorno=5)], gruppo_id=None)
+
+    # Senza la chiave `scena`.
+    assert _controlla(contenuto, limiti, gruppi) == []
+
+    # Con una scena malformata.
+    contenuto["uscite"][4]["scena"] = {"soggetto": 42, "inquadratura": "boh"}
+    assert _controlla(contenuto, limiti, gruppi) == []

@@ -1,4 +1,4 @@
-"""Autenticazione reale di GET /canali dopo il merge di T1-14."""
+"""Autenticazione reale di GET /canali."""
 
 import pytest
 

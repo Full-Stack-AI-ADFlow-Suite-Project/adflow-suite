@@ -191,7 +191,7 @@ function seed(): CampagnaDettaglio[] {
 }
 
 /**
- * Le altre campagne dell'artigiano di prova (T2b-53): una in corso con un
+ * Le altre campagne dell'artigiano di prova: una in corso con un
  * canale tolto, una in revisione e due chiuse. Con la respinta del primo
  * seme la pagina Campagna ha più campagne: si apre quella in corso, la
  * respinta e le chiuse stanno in "Campagne passate".
@@ -362,7 +362,7 @@ function fotografia(profiloId: number): ProfiloSnapshot {
   };
 }
 
-/** Le campagne delle altre botteghe, per la pagina dell'operatore (T1-53). */
+/** Le campagne delle altre botteghe, per la pagina dell'operatore. */
 function semiOperatore(): CampagnaDettaglio[] {
   const snap = fotografia;
   return [
@@ -412,39 +412,6 @@ function semiOperatore(): CampagnaDettaglio[] {
       post_chiesti_per_canale: {},
       avvisi: [],
       profilo_snapshot: snap(2),
-      decisioni: [],
-    },
-    {
-      id: 11,
-      profilo_id: 3,
-      titolo: "Borse d'inverno",
-      inizio: "2026-10-12",
-      fine: "2026-11-08",
-      descrizione: "Presentare la nuova collezione di borse.",
-      stato: "piano_da_rivedere",
-      canali: ["facebook", "instagram"],
-      canali_tolti: null,
-      frequenza: "f1_2",
-      obiettivo: "Riempire l'agenda ordini",
-      inviata_il: "2026-10-08T15:40:00",
-      chiusa_il: null,
-      gruppi: [
-        {
-          id: 111,
-          origine: "caricate",
-          descrizione: "Le borse della collezione inverno.",
-          da_usare_il: null,
-          n_immagini: null,
-          foto: [
-            f(111, 111, "borsa-cuoio-01.jpg"),
-            f(112, 111, "borsa-nero.jpg"),
-            f(113, 111, "borsa-buia.jpg"),
-          ],
-        },
-      ],
-      post_chiesti_per_canale: {},
-      avvisi: [],
-      profilo_snapshot: snap(3),
       decisioni: [],
     },
     {
@@ -902,7 +869,7 @@ export const esempiCampagne = {
       );
     }
 
-    // R-13, T2a-21: se la data di un gruppo esce dal nuovo periodo -> 422
+    // R-13: se la data di un gruppo esce dal nuovo periodo -> 422
     for (const g of c.gruppi) {
       if (g.da_usare_il) {
         if (g.da_usare_il < nuovoInizio || g.da_usare_il > nuovoFine) {
@@ -1420,6 +1387,10 @@ export const esempiCampagne = {
  */
 export function leggiCampagna(id: number): CampagnaDettaglio {
   return trova(carica(), id);
+}
+
+export function caricaCampagne(): CampagnaDettaglio[] {
+  return carica();
 }
 
 export function salvaCampagna(campagna: CampagnaDettaglio): void {

@@ -127,12 +127,6 @@ function seed(): Record<number, RevisioneRecord> {
       "Tazze decorate a mano e le porte aperte di sabato 21 novembre.",
     da_usare_il: "2026-11-21",
   };
-  const g111 = {
-    id: 111,
-    origine: "caricate",
-    descrizione: "Le borse della collezione inverno.",
-    da_usare_il: null,
-  };
   const g121 = {
     id: 121,
     origine: "caricate",
@@ -337,22 +331,22 @@ function seed(): Record<number, RevisioneRecord> {
             "facebook",
             "2026-11-20T18:30",
             ver(
-              "Un servizio di piatti, un set di tazze con il nome inciso: per averli sotto l'albero gli ordini chiudono il 30 novembre.",
+              "Un servizio di piatti, un set di tazze con il nome inciso: per averli sotto l'albero gli ordini chiudono il 30 novembre.\n\nImmagine creata con AI",
               ["#sumisura", "#natale", "#ceramica"],
               { foto: [{ foto_id: 906, posizione: 0 }] },
             ),
-            { riempitivo: "cartolina" },
+            { riempitivo: "immagine_ai" },
           ),
           pst(
             1012,
             "instagram",
             "2026-11-21T10:00",
             ver(
-              "Per Natale, su misura: gli ordini chiudono il 30 novembre.",
+              "Per Natale, su misura: gli ordini chiudono il 30 novembre.\n\nImmagine creata con AI",
               ["#natale", "#sumisura", "#ceramica"],
               { foto: [{ foto_id: 906, posizione: 0 }] },
             ),
-            { riempitivo: "cartolina" },
+            { riempitivo: "immagine_ai" },
           ),
         ]),
       ],
@@ -367,64 +361,6 @@ function seed(): Record<number, RevisioneRecord> {
               motivo: "Non servita: i temi del piano erano già coperti.",
             },
             { foto_id: 107, motivo: "Sfocata: la decorazione non si legge." },
-          ],
-        },
-      ],
-      ultimo_errore: null,
-    },
-
-    // Pelletteria Ferrero · piano_da_rivedere: piano debole (R-20)
-    11: {
-      piano: {
-        id: 2,
-        numero: 1,
-        strategia:
-          "Quattro temi in quattro settimane: la borsa in cuoio, il laboratorio, la vetrina e gli ordini. Su ogni canale 2 foto disponibili su 8 post chiesti: il piano copre con cartoline.",
-        esito_controllo: [
-          "Post per canale uguali a quelli chiesti",
-          "Riempitivi oltre uno ogni due foto nuove",
-        ],
-        debole: true,
-        creata_il: "2026-10-08T15:52:00",
-      },
-      uscite: [
-        usc(1, "La borsa in cuoio, il pezzo forte", g111, [
-          pst(1101, "facebook", "2026-10-13T18:30", null),
-          pst(1102, "instagram", "2026-10-14T10:00", null),
-        ]),
-        usc(2, "Il laboratorio e le cuciture a mano", g111, [
-          pst(1103, "facebook", "2026-10-20T18:30", null, {
-            riempitivo: "cartolina",
-          }),
-          pst(1104, "instagram", "2026-10-21T10:00", null, {
-            riempitivo: "cartolina",
-          }),
-        ]),
-        usc(3, "La vetrina d'inverno", g111, [
-          pst(1105, "facebook", "2026-10-27T18:30", null),
-          pst(1106, "instagram", "2026-10-28T10:00", null, {
-            riempitivo: "cartolina",
-          }),
-        ]),
-        usc(4, "Ordini e riparazioni", null, [
-          pst(1107, "facebook", "2026-11-03T18:30", null, {
-            riempitivo: "cartolina",
-          }),
-          pst(1108, "instagram", "2026-11-04T10:00", null, {
-            riempitivo: "cartolina",
-          }),
-        ]),
-      ],
-      foto_non_usate: [
-        {
-          gruppo_id: 111,
-          descrizione: "Le borse della collezione inverno.",
-          foto: [
-            {
-              foto_id: 112,
-              motivo: "Troppo scura: la pelle non si distingue dallo sfondo.",
-            },
-            { foto_id: 113, motivo: "Sottoesposta: non idonea." },
           ],
         },
       ],

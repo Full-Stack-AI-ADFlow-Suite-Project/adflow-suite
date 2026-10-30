@@ -31,9 +31,6 @@ from sqlalchemy import delete, select, text
 from sqlalchemy.orm import Session
 
 
-from app import cli
-
-
 from app.core import db as modulo_db
 
 

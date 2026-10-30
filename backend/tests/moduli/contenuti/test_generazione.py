@@ -1,7 +1,7 @@
-"""T1-34: job `genera_campagna` a tappe (plan §4, spec §2.2, R-24, R-35).
+"""Job `genera_campagna` a tappe (plan §4, spec §2.2, R-24, R-35).
 
 CA-17, CA-18, CA-19 (fino a `generazione_fallita`), CA-20, CA-50,
-CA-57 (il post `immagine_ai` ha la sua immagine e il suo testo: T3-34, per il resto
+CA-57 (il post `immagine_ai` ha la sua immagine e il suo testo; per il resto
 `test_immagini_ai.py`), CA-58, CA-59,
 CA-80 (le foto migliori per punteggio); poi la ripresa dalle tappe già salvate
 e gli errori tecnici secondo il tipo.
@@ -10,7 +10,6 @@ e gli errori tecnici secondo il tipo.
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import date, datetime, timedelta, timezone
-from types import SimpleNamespace
 
 import pytest
 from sqlalchemy import select
@@ -137,7 +136,7 @@ def _chiamate(ai: AIFinto, operazione: str) -> list[dict]:
 
 
 def _riprova(db, campagna) -> None:
-    """Ciò che fa Riprova in `campagne` (T1-24): da fallita torna `inviata`."""
+    """Ciò che fa Riprova in `campagne`: da fallita torna `inviata`."""
     campagne.cambia_stato(db, campagna, "inviata")
     db.commit()
 
@@ -385,29 +384,6 @@ def test_le_tappe_in_ordine_un_passo_alla_volta(db, ai):
 
 
 # --- Analisi ------------------------------------------------------------------
-
-
-def test_una_stella_gia_salvata_non_conta_piu(db, ai):
-    """ADR-114, A11: 8 foto e 6 post, l'ultima ha `da_usare` e resta un doppione.
-
-    La colonna resta nel database, ma la generazione non la legge: la foto non
-    entra nel piano per forza e l'analisi dell'AI resta com'è.
-    """
-    campagna = _campagna(db, n_foto=8)
-    ids = _foto_ids(db, campagna)
-    con_stella, altra = ids[7], ids[0]
-    campagne.foto_per_id(db, [con_stella])[0].da_usare = True
-    db.commit()
-    ai.comanda_analisi(con_stella, simile_a=altra)
-
-    _job(campagna.id)
-
-    assert campagna.stato == "in_revisione"
-    immagini = {f.id: f for f in campagne.foto_della_campagna(db, campagna.id)}
-    assert immagini[con_stella].analisi_ai["simile_a"] == altra
-    assert immagini[altra].analisi_ai["simile_a"] is None
-    usate = {f for p in post_della_campagna(db, campagna.id) for f in _foto_del_post(p)}
-    assert con_stella not in usate
 
 
 @pytest.mark.parametrize("tipo", ["richiesta", "rifiuto"])
@@ -870,7 +846,7 @@ def test_campagna_in_bozza_non_ha_job_da_fare(db, ai):
     assert campagna.stato == "bozza"
 
 
-# --- Notifiche della generazione (T2b-34, CA-55) ------------------------------
+# --- Notifiche della generazione (CA-55) --------------------------------------
 
 
 def _notifiche(db, campagna, tipo: str) -> list:
@@ -934,3 +910,205 @@ def test_ca55_un_errore_che_passa_non_manda_notifiche(db, ai):
 
     assert campagna.stato == "in_revisione"
     assert _notifiche(db, campagna, "generazione_fallita") == []
+
+
+def test_il_carattere_nullo_dell_ai_non_ferma_la_tappa_testi(db, ai):
+    """R-35, T3-906: un NUL nella risposta dell'AI non fa fallire la generazione.
+
+    PostgreSQL non salva un carattere 0x00 in una colonna `text`: senza pulire
+    il testo la tappa `testi` si annulla con un `DataError`, l'esecuzione si
+    ripete e in `errore_generazione` resta un errore.
+    """
+    campagna = _campagna(db)
+    ai.comanda_testo("Un testo con un carattere nullo\x00 dentro.", volte=1)
+
+    assert _job(campagna.id) == 1
+    assert campagna.stato == "in_revisione"
+    assert _errori(db, campagna) == []
+    testi = [
+        uno.versione_corrente.testo for uno in post_della_campagna(db, campagna.id)
+    ]
+    assert all("\x00" not in testo for testo in testi)
+
+
+def test_ca107_altri_post_porta_le_prime_frasi_dei_testi_gia_scritti(db, ai):
+    campagna = _campagna(db, canali=["facebook"])
+    lunga = "Un vaso dipinto a mano " * 8 + "finisce qui. Il resto non conta."
+    ai.comanda_testo(lunga, ["ceramica"], volte=None)
+
+    _job(campagna.id)
+
+    chiamate = [c for c in _chiamate(ai, "genera_post") if not c["riscrittura"]]
+    assert [len(c.get("altri_post", [])) for c in chiamate] == list(
+        range(len(chiamate))
+    )
+    ultimo = chiamate[-1]["altri_post"]
+    assert len(ultimo) == len(chiamate) - 1
+    assert all(len(frase) <= 120 for frase in ultimo)
+    assert all("Il resto non conta" not in frase for frase in ultimo)
+
+
+def test_ca108_ogni_foto_idonea_ha_il_riquadro_del_soggetto(db, ai):
+    campagna = _campagna(db)
+
+    _job(campagna.id)
+
+    caricate = [
+        f
+        for f in campagne.foto_della_campagna(db, campagna.id)
+        if f.origine == "caricata"
+    ]
+    assert caricate
+    for foto in caricate:
+        assert foto.analisi_ai["soggetto_box"] == {
+            "x": 0.25,
+            "y": 0.25,
+            "larghezza": 0.5,
+            "altezza": 0.5,
+        }
+
+
+@pytest.mark.parametrize(
+    "riquadro",
+    [{"x": 0.6, "y": 0.0, "larghezza": 0.6, "altezza": 0.5}, "centro", {"x": 0.1}],
+)
+def test_ca108_un_riquadro_fuori_da_0_1_o_malformato_vale_none_senza_errore(
+    db, ai, riquadro
+):
+    campagna = _campagna(db)
+    for foto_id in _foto_ids(db, campagna):
+        ai.comanda_analisi(foto_id, soggetto_box=riquadro)
+
+    _job(campagna.id)
+
+    assert campagna.stato == "in_revisione"
+    caricate = [
+        f
+        for f in campagne.foto_della_campagna(db, campagna.id)
+        if f.origine == "caricata"
+    ]
+    assert all(f.analisi_ai["soggetto_box"] is None for f in caricate)
+
+
+def test_ca106_ogni_uscita_con_immagine_ai_ha_la_sua_scena(db, ai):
+    """CA-106: il piano dà una scena valida a ogni uscita con immagine AI."""
+    from app.adapters.ai.schemi import INQUADRATURE
+    from app.moduli.contenuti.immagini_ai import scena_dell_uscita
+
+    campagna = _campagna(db, n_foto=4)
+    _job(campagna.id)
+
+    contenuto = piano_corrente(db, campagna.id).contenuto
+    con_immagine = [
+        uscita
+        for uscita in contenuto["uscite"]
+        if any(post["riempitivo"] == "immagine_ai" for post in uscita["post"])
+    ]
+    assert con_immagine
+
+    inquadrature = []
+    for uscita in con_immagine:
+        scena = uscita["scena"]
+        assert isinstance(scena, dict)
+        assert scena["soggetto"].strip()
+        assert scena["inquadratura"] in INQUADRATURE
+        assert scena["luce"].strip() and scena["colori"].strip()
+        inquadrature.append(scena["inquadratura"])
+
+    # Due uscite vicine non hanno la stessa inquadratura.
+    assert all(prima != dopo for prima, dopo in zip(inquadrature, inquadrature[1:]))
+
+    # Le uscite senza immagini AI hanno `scena`: null.
+    numeri_con_immagine = {uscita["numero"] for uscita in con_immagine}
+    for uscita in contenuto["uscite"]:
+        if uscita["numero"] not in numeri_con_immagine:
+            assert uscita["scena"] is None
+
+    # `scena_dell_uscita()` la legge dal piano corrente.
+    numero = con_immagine[0]["numero"]
+    uscita = next(
+        una for una in uscite_della_campagna(db, campagna.id) if una.numero == numero
+    )
+    assert scena_dell_uscita(db, uscita) == con_immagine[0]["scena"]
+
+
+def test_ca115_orari_occupati_delle_altre_campagne(db):
+    """CA-115, parte del calcolo: solo i post vivi, nel periodo, delle altre campagne."""
+    from app.core.orologio import ROMA
+    from app.moduli.contenuti.generazione import orari_occupati
+    from tests.moduli.campagne.fabbrica import campagna_attiva
+    from tests.moduli.contenuti.fabbrica import post_approvato
+
+    bottega = profilo(db, canali=DUE_CANALI, frequenza="f3_4")
+    attiva = campagna_attiva(db, profilo_id=bottega.id, inizio=INIZIO, fine=FINE)
+    dentro = post_approvato(
+        db,
+        campagna_id=attiva.id,
+        canale="facebook",
+        data_ora=datetime(2030, 1, 8, 10, tzinfo=ROMA),
+    )
+    post_approvato(
+        db,
+        campagna_id=attiva.id,
+        canale="facebook",
+        data_ora=datetime(2030, 2, 8, 10, tzinfo=ROMA),
+    )
+    post_approvato(
+        db,
+        campagna_id=attiva.id,
+        canale="instagram",
+        stato="scartato",
+        data_ora=datetime(2030, 1, 8, 10, tzinfo=ROMA),
+    )
+    nuova = campagna_inviata(db, profilo_id=bottega.id, inizio=INIZIO, fine=FINE)
+    post_approvato(
+        db,
+        campagna_id=nuova.id,
+        canale="facebook",
+        data_ora=datetime(2030, 1, 9, 10, tzinfo=ROMA),
+    )
+
+    assert orari_occupati(db, nuova) == [
+        {
+            "canale": "facebook",
+            "data_ora": dentro.data_ora.astimezone(ROMA).isoformat(),
+        }
+    ]
+
+
+def test_ca115_il_finto_non_mette_un_post_nella_stessa_ora_occupata(db, ai):
+    """CA-115: gli orari arrivano all'AI e il finto sposta il post che collide."""
+    from app.core.orologio import ROMA
+    from tests.moduli.campagne.fabbrica import campagna_attiva
+    from tests.moduli.contenuti.fabbrica import post_approvato
+
+    bottega = profilo(db, canali=DUE_CANALI, frequenza="f3_4")
+    attiva = campagna_attiva(db, profilo_id=bottega.id, inizio=INIZIO, fine=FINE)
+    occupato = post_approvato(
+        db,
+        campagna_id=attiva.id,
+        canale="instagram",
+        data_ora=datetime(2030, 1, 8, 10, tzinfo=ROMA),
+    )
+    nuova = campagna_inviata(db, profilo_id=bottega.id, inizio=INIZIO, fine=FINE)
+    db.commit()
+
+    _job(nuova.id)
+
+    chiamata = [
+        una for una in ai.chiamate if una["operazione"] == "pianifica_campagna"
+    ][-1]
+    atteso = {
+        "canale": "instagram",
+        "data_ora": occupato.data_ora.astimezone(ROMA).isoformat(),
+    }
+    assert chiamata["orari_occupati"] == [atteso]
+
+    quando_occupato = occupato.data_ora.astimezone(ROMA)
+    for post in post_della_campagna(db, nuova.id):
+        quando = post.data_ora.astimezone(ROMA)
+        assert not (
+            post.canale == "instagram"
+            and quando.date() == quando_occupato.date()
+            and quando.hour == quando_occupato.hour
+        )

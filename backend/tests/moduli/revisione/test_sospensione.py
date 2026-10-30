@@ -1,4 +1,4 @@
-"""Test di sospendi, riattiva e annulla (T2b-43, R-33, CA-32)."""
+"""Test di sospendi, riattiva e annulla (R-33, CA-32)."""
 
 from datetime import datetime, timezone
 

@@ -473,7 +473,7 @@ def foto_per_id(db: Session, ids: Iterable[int]) -> list[Foto]:
     """Le foto con gli id indicati, di qualunque campagna, ordinate per id.
 
     Usata da ``contenuti``, ``revisione`` e ``pubblicazione`` per le foto di
-    una versione (plan §6): dalla 2a un post può avere una foto d'archivio,
+    una versione (plan §6): un post può avere una foto d'archivio,
     che ``foto_della_campagna()`` non restituisce. Un id che non esiste non
     dà errore: la foto manca dall'elenco.
     """
@@ -490,7 +490,8 @@ def campagne_di(
 ) -> list[Campagna]:
     """Le campagne di una bottega, anche in più stati insieme.
 
-    Usata da ``revisione`` per le letture dell'operatore su un artigiano
+    Usata da ``contenuti`` e ``revisione`` per gli orari occupati, il
+    calendario settimanale e le letture dell'operatore su un artigiano
     (plan §6). Ordinate dalla più recente: per ``inizio`` decrescente, poi per
     id decrescente. Con ``stati`` solo quelle in uno di quegli stati; senza,
     tutte, bozza compresa.
@@ -1394,15 +1395,19 @@ def sistema_foto(
     dati: bytes,
     canale: str = "instagram",
     proporzione: str | None = None,
+    soggetto_box: dict[str, float] | None = None,
 ) -> bytes:
-    """Sistemazione locale di una foto (Pillow) secondo spec R-42 e CA-81.
+    """Sistemazione locale di una foto (Pillow) secondo spec R-42, CA-81 e CA-114.
 
     Esegue: rotazione da metadati EXIF, rimozione GPS e metadati identificativi,
-    ritaglio al centro se fuori dalle proporzioni del canale (1:1 o 4:5),
-    ridimensionamento con lato corto esattamente a 1080 px, autocontrasto leggero
-    e salvataggio in formato JPEG. Invariante §1.3: la foto originale resta intatta.
+    adattamento proporzioni da 4:5 a 1,91:1 con ritaglio sul soggetto, al centro
+    o bordi sfocati, ridimensionamento con lato corto esattamente a 1080 px,
+    autocontrasto leggero e salvataggio in formato JPEG. Invariante §1.3: la foto
+    originale resta intatta.
     """
-    return sistema_foto_buffer(dati, canale=canale, proporzione=proporzione)
+    return sistema_foto_buffer(
+        dati, canale=canale, proporzione=proporzione, soggetto_box=soggetto_box
+    )
 
 
 def foto_sistemata(
@@ -1424,7 +1429,17 @@ def foto_sistemata(
     except FileNotFoundError:
         raise NonTrovato("File immagine non trovato nell'archivio.")
 
-    elaborata = sistema_foto_buffer(originale, canale=canale, proporzione=proporzione)
+    soggetto_box = (
+        foto.analisi_ai.get("soggetto_box")
+        if isinstance(foto.analisi_ai, dict)
+        else None
+    )
+    elaborata = sistema_foto_buffer(
+        originale,
+        canale=canale,
+        proporzione=proporzione,
+        soggetto_box=soggetto_box,
+    )
     return elaborata, "image/jpeg"
 
 

@@ -18,6 +18,7 @@ annulla e ``registra_errore()`` decide che cosa succede alla campagna (R-35).
 Si usa sempre la fotografia del profilo, mai il profilo corrente (R-11).
 """
 
+import re
 from collections.abc import Iterator
 from contextlib import contextmanager
 from dataclasses import replace
@@ -36,14 +37,16 @@ from app.adapters.ai import (
     PostAI,
     ottieni_ai,
 )
+from app.adapters.ai.schemi import riquadro_valido
 from app.core.config import leggi_impostazioni
+from app.core.orologio import ROMA
 from app.core.orologio import adesso as ora_di_adesso
 from app.moduli.artigiani import service as artigiani
 from app.moduli.campagne import service as campagne
 from app.moduli.notifiche import service as notifiche
 
 from . import service
-from .domain import DA_APPROVARE, IMMAGINE_AI, SCHEDE_CANALE
+from .domain import APPROVATO, DA_APPROVARE, IMMAGINE_AI, SCHEDE_CANALE
 from .immagini_ai import (
     blocco_immagine_non_creata,
     con_dicitura,
@@ -59,13 +62,16 @@ from .models import (
     VersionePostFoto,
 )
 from .piano import controlla_piano, limiti_per_canale
-from .validatore import BLOCCO, TESTO_VUOTO, valida_testo
+from .validatore import BLOCCO, TESTO_VUOTO, testo_salvabile, valida_testo
 
 # plan §4: il job gira al massimo 3 volte, a 30 secondi una dall'altra.
 ESECUZIONI = 3
 ATTESA_SECONDI = 30
 # R-09: piano e testo si riscrivono al massimo 3 volte.
 RISCRITTURE = 3
+# Gli attacchi degli altri post che l'AI riceve (post v3).
+ATTACCHI_MAX = 10
+ATTACCO_LUNGHEZZA = 120
 # Un passo è un gruppo, il piano o un post: molti più passi sono un errore.
 MAX_PASSI = 1000
 
@@ -84,6 +90,7 @@ _CAMPI_ANALISI = (
     "motivo",
     "soggetto",
     "descrizione",
+    "soggetto_box",
     "persone_riconoscibili",
     "marchi_visibili",
 )
@@ -167,7 +174,9 @@ def prossima_tappa(db: Session, campagna: Any) -> str | None:
     return FINE
 
 
-def passo(db: Session, campagna_id: int, adesso: datetime) -> bool:
+def passo(
+    db: Session, campagna_id: int, adesso: datetime, esecuzione: int | None = None
+) -> bool:
     """Fa la prima cosa che manca; vero se dopo c'è ancora lavoro.
 
     Chi chiama apre una transazione per ogni passo: ciò che un passo ha
@@ -182,13 +191,13 @@ def passo(db: Session, campagna_id: int, adesso: datetime) -> bool:
         return True
     if tappa == ANALISI:
         gruppo, da_fare = _da_analizzare(db, campagna)
-        _analizza(db, campagna.id, gruppo, da_fare)
+        _analizza(db, campagna.id, gruppo, da_fare, esecuzione)
         return True
     if tappa == PIANO:
         _pianifica(db, campagna, adesso)
         return True
     if tappa == TESTI:
-        _scrivi(db, campagna, _post_da_scrivere(db, campagna))
+        _scrivi(db, campagna, _post_da_scrivere(db, campagna), esecuzione)
         return True
     campagne.cambia_stato(db, campagna, "in_revisione")
     notifiche.crea(
@@ -199,6 +208,10 @@ def passo(db: Session, campagna_id: int, adesso: datetime) -> bool:
         contenuto={"titolo": campagna.titolo},
     )
     return False
+
+
+def _senza_campagna(contesto: dict[str, Any]) -> dict[str, Any]:
+    return {chiave: v for chiave, v in contesto.items() if chiave != "campagna_id"}
 
 
 # --- Analisi ------------------------------------------------------------------
@@ -223,7 +236,11 @@ def _non_idonea(motivo: str) -> dict[str, Any]:
 
 
 def _analizza(
-    db: Session, campagna_id: int, gruppo: Any, senza_analisi: list[Any]
+    db: Session,
+    campagna_id: int,
+    gruppo: Any,
+    senza_analisi: list[Any],
+    esecuzione: int | None = None,
 ) -> None:
     """Analizza le foto del gruppo che non hanno ancora un'analisi (R-24).
 
@@ -235,16 +252,30 @@ def _analizza(
     with _nella_tappa(ANALISI):
         ai = ottieni_ai()
         while da_fare:
+            solo = da_fare[0].id if len(da_fare) == 1 else None
             try:
-                risposta = ai.analizza_gruppo(_gruppo_ai(gruppo, da_fare))
+                with service.contesto_chiamata_ai(
+                    campagna_id, foto_id=solo, tentativo=esecuzione
+                ):
+                    risposta = ai.analizza_gruppo(_gruppo_ai(gruppo, da_fare))
             except ErroreAI as errore:
                 ids = {foto.id for foto in da_fare}
                 if errore.tipo in ("richiesta", "rifiuto") and errore.foto_id in ids:
+                    # La tappa continua: la chiamata fallita si scrive qui.
+                    service.registra_chiamata_ai(
+                        db,
+                        campagna_id,
+                        errore.uso,
+                        foto_id=errore.foto_id,
+                        tentativo=esecuzione,
+                    )
                     risultati[errore.foto_id] = _non_idonea(errore.messaggio)
                     da_fare = [f for f in da_fare if f.id != errore.foto_id]
                     continue
                 raise
-            service.registra_chiamata_ai(db, campagna_id, ai.ultimo_uso)
+            service.registra_chiamata_ai(
+                db, campagna_id, ai.ultimo_uso, foto_id=solo, tentativo=esecuzione
+            )
             for foto in da_fare:
                 analisi = risposta.get(foto.id)
                 if not isinstance(analisi, dict) or not isinstance(
@@ -256,6 +287,10 @@ def _analizza(
                         ANALISI,
                     )
                 risultati[foto.id] = {c: analisi.get(c) for c in _CAMPI_ANALISI}
+                # Un riquadro fuori da 0–1 o malformato vale None (CA-108).
+                risultati[foto.id]["soggetto_box"] = riquadro_valido(
+                    analisi.get("soggetto_box")
+                )
             break
 
     for foto in senza_analisi:
@@ -278,6 +313,28 @@ def _campagna_ai(campagna: Any) -> CampagnaAI:
 def _snapshot(campagna: Any) -> dict[str, Any]:
     fotografia = campagna.profilo_snapshot
     return fotografia if isinstance(fotografia, dict) else {}
+
+
+def orari_occupati(db: Session, campagna: Any) -> list[dict[str, str]]:
+    """I post già in programma nelle altre campagne della bottega (R-12, T3-922).
+
+    Sono i post ``da_approvare`` e ``approvato`` delle altre campagne della
+    stessa bottega che cadono nel periodo. I post delle campagne chiuse non
+    sono in questi stati, quindi non entrano. L'elenco va all'AI perché non
+    metta un post nella stessa ora dello stesso canale; il controllo del piano
+    non lo verifica.
+    """
+    orari: list[dict[str, str]] = []
+    for altra in campagne.campagne_di(db, campagna.profilo_id):
+        if altra.id == campagna.id:
+            continue
+        for post in service.post_della_campagna(db, altra.id):
+            if post.stato not in (DA_APPROVARE, APPROVATO):
+                continue
+            quando = post.data_ora.astimezone(ROMA)
+            if campagna.inizio <= quando.date() <= campagna.fine:
+                orari.append({"canale": post.canale, "data_ora": quando.isoformat()})
+    return sorted(orari, key=lambda voce: (voce["data_ora"], voce["canale"]))
 
 
 def _gruppi_preselezionati_ai(
@@ -305,7 +362,8 @@ def _pianifica(db: Session, campagna: Any, adesso: datetime) -> None:
     All'AI vanno solo le foto migliori per punteggio, fino ai post chiesti; i
     post che quelle foto non coprono hanno un'immagine AI (R-05, R-28). Un
     piano che non passa il controllo si fa riscrivere, al massimo 3 volte:
-    dopo vale come errore `risposta` (R-09).
+    dopo vale come errore `risposta` (R-09). La `scena` di ogni uscita con
+    immagine AI (T3-910) resta dentro `piano.contenuto`, com'è uscita.
     """
     gruppi = _caricate(db, campagna.id)
     limiti = limiti_per_canale(
@@ -317,22 +375,27 @@ def _pianifica(db: Session, campagna: Any, adesso: datetime) -> None:
     )
     margine = leggi_impostazioni().margine_slot_minuti
     gruppi_ai = _gruppi_preselezionati_ai(gruppi, limiti)
+    occupati = orari_occupati(db, campagna)
 
     with _nella_tappa(PIANO):
         ai = ottieni_ai()
         precedente, violazioni = None, None
-        for _ in range(1 + RISCRITTURE):
-            scritto = ai.pianifica_campagna(
-                _snapshot(campagna),
-                _campagna_ai(campagna),
-                gruppi_ai,
-                limiti,
-                SCHEDE_CANALE,
-                non_prima_di=adesso + timedelta(minutes=margine),
-                piano_precedente=precedente,
-                violazioni=violazioni,
+        for riscrittura in range(1, 2 + RISCRITTURE):
+            with service.contesto_chiamata_ai(campagna.id, tentativo=riscrittura):
+                scritto = ai.pianifica_campagna(
+                    _snapshot(campagna),
+                    _campagna_ai(campagna),
+                    gruppi_ai,
+                    limiti,
+                    SCHEDE_CANALE,
+                    non_prima_di=adesso + timedelta(minutes=margine),
+                    orari_occupati=occupati,
+                    piano_precedente=precedente,
+                    violazioni=violazioni,
+                )
+            service.registra_chiamata_ai(
+                db, campagna.id, ai.ultimo_uso, tentativo=riscrittura
             )
-            service.registra_chiamata_ai(db, campagna.id, ai.ultimo_uso)
             violazioni = controlla_piano(
                 scritto.contenuto,
                 limiti=limiti,
@@ -418,7 +481,9 @@ def _gruppo_dell_uscita(db: Session, campagna: Any, uscita: Uscita) -> Any | Non
     return None
 
 
-def _scrivi(db: Session, campagna: Any, post: Post) -> None:
+def _scrivi(
+    db: Session, campagna: Any, post: Post, esecuzione: int | None = None
+) -> None:
     """Scrive la versione 1 del post: immagine AI se serve, testo, validatore.
 
     Un post `immagine_ai` ha l'immagine della sua uscita, creata dal primo dei
@@ -440,7 +505,9 @@ def _scrivi(db: Session, campagna: Any, post: Post) -> None:
 
     if post.riempitivo == IMMAGINE_AI:
         with _nella_tappa(IMMAGINI, post.canale):
-            esito = immagine_del_post(db, campagna, ai, post, uscita.tema)
+            esito = immagine_del_post(
+                db, campagna, ai, post, uscita.tema, tentativo=esecuzione
+            )
         foto = [esito.foto] if esito.foto is not None else []
         if esito.errore is not None:
             errori_immagine = [blocco_immagine_non_creata(esito.errore)]
@@ -460,7 +527,7 @@ def _scrivi(db: Session, campagna: Any, post: Post) -> None:
         # Un'immagine AI non è analizzata: all'AI va che cosa le è stato chiesto di mostrare.
         foto=[] if post.riempitivo == IMMAGINE_AI else [_foto_ai(una) for una in foto],
         immagine_ai=(
-            descrizione_immagine(campagna, post, uscita.tema)
+            descrizione_immagine(db, campagna, post, uscita.tema)
             if post.riempitivo == IMMAGINE_AI and foto
             else None
         ),
@@ -482,6 +549,11 @@ def _scrivi(db: Session, campagna: Any, post: Post) -> None:
         except ErroreAI as errore:
             if errore.tipo not in ("richiesta", "rifiuto"):
                 raise
+            # La tappa continua: la chiamata fallita si scrive qui.
+            if errore.contesto:
+                service.registra_chiamata_ai(
+                    db, campagna.id, errore.uso, **_senza_campagna(errore.contesto)
+                )
             testo, hashtag, firma = "", [], (None, None, None)
             errori = [
                 {
@@ -517,6 +589,36 @@ def _scrivi(db: Session, campagna: Any, post: Post) -> None:
     db.flush()
 
 
+def attacchi_degli_altri_post(
+    db: Session, campagna_id: int, canale: str, post_id: int
+) -> list[str]:
+    """La prima frase dei testi già scritti degli altri post dello stesso canale.
+
+    Al massimo ``ATTACCHI_MAX`` frasi di ``ATTACCO_LUNGHEZZA`` caratteri, nell'ordine
+    delle uscite: l'AI non comincia il nuovo testo come loro (post v3).
+    """
+    altri = db.scalars(
+        select(Post)
+        .where(
+            Post.campagna_id == campagna_id,
+            Post.canale == canale,
+            Post.id != post_id,
+        )
+        .order_by(Post.data_ora, Post.id)
+    ).all()
+    attacchi: list[str] = []
+    for altro in altri:
+        corrente = altro.versione_corrente
+        testo = corrente.testo.strip() if corrente is not None else ""
+        if not testo:
+            continue
+        frase = re.split(r"(?<=[.!?])\s|\n", testo, maxsplit=1)[0].strip()
+        attacchi.append(frase[:ATTACCO_LUNGHEZZA])
+        if len(attacchi) == ATTACCHI_MAX:
+            break
+    return attacchi
+
+
 def _testo_validato(
     db: Session,
     ai: AIAdapter,
@@ -533,16 +635,30 @@ def _testo_validato(
     validatore la conta nei caratteri (R-43).
     """
     precedente, errori = None, None
-    for _ in range(1 + RISCRITTURE):
-        scritto = ai.genera_post(
-            snapshot,
-            _campagna_ai(campagna),
-            post,
-            SCHEDE_CANALE[post.canale],
-            testo_precedente=precedente,
-            violazioni=errori,
+    altri = attacchi_degli_altri_post(db, campagna.id, post.canale, post_id)
+    for riscrittura in range(1, 2 + RISCRITTURE):
+        with service.contesto_chiamata_ai(
+            campagna.id, post_id=post_id, tentativo=riscrittura
+        ):
+            scritto = ai.genera_post(
+                snapshot,
+                _campagna_ai(campagna),
+                post,
+                SCHEDE_CANALE[post.canale],
+                testo_precedente=precedente,
+                violazioni=errori,
+                altri_post=altri,
+            )
+        # Un carattere nullo nella risposta dell'AI non si salva: si toglie
+        # prima del validatore e della versione (T3-906).
+        scritto = replace(
+            scritto,
+            testo=testo_salvabile(scritto.testo),
+            hashtag=[testo_salvabile(uno) for uno in scritto.hashtag],
         )
-        service.registra_chiamata_ai(db, campagna.id, ai.ultimo_uso, post_id=post_id)
+        service.registra_chiamata_ai(
+            db, campagna.id, ai.ultimo_uso, post_id=post_id, tentativo=riscrittura
+        )
         scritto_dall_ai = scritto.testo
         if dicitura:
             scritto = replace(scritto, testo=con_dicitura(scritto.testo))
@@ -571,6 +687,8 @@ def registra_errore(
     annullata.
     """
     campagna = campagne.campagna(db, campagna_id)
+    # La chiamata fallita resta anche se la tappa si è annullata (R-50).
+    service.registra_chiamata_fallita(db, errore)
     if isinstance(errore, GenerazioneInterrotta):
         tipo, messaggio = errore.tipo, errore.messaggio
         tappa, canale = errore.tappa, errore.canale

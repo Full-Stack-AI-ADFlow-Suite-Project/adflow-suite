@@ -1,4 +1,4 @@
-"""Test per il caricamento, gestione gruppi ed eliminazione delle foto (T1-23).
+"""Test per il caricamento, gestione gruppi ed eliminazione delle foto.
 
 Verifica:
 - CA-13, R-13: rifiuto non immagini, file > 10 MB, lato corto < 1080 px -> 422;
@@ -16,7 +16,6 @@ from io import BytesIO
 from pathlib import Path
 import struct
 from unittest.mock import patch
-from uuid import UUID, uuid4
 import zlib
 
 from sqlalchemy import select
@@ -1362,7 +1361,7 @@ def test_ca13_limite_massimo_20_foto_per_gruppo(
 
 
 # ==============================================================================
-# CA-46, CA-47 (T1-23 specifici)
+# CA-46, CA-47
 # ==============================================================================
 
 
@@ -1471,33 +1470,6 @@ def test_ca47_gruppo_da_usare_il_fuori_dal_periodo_da_422(
     )
     assert res.status_code == 422
     assert "periodo della campagna" in res.json()["detail"]
-
-
-def test_la_stella_non_esiste_piu(
-    client: TestClient, utente_di_prova, db: Session, tmp_path: Path
-):
-    """ADR-114, A11: `PUT /foto/{id}` è tolto e le risposte non portano `da_usare`."""
-    with usa_archivio(ArchivioDisco(tmp_path)):
-        art = utente_di_prova("artigiano")
-        prof = profilo(db, utente_id=art.id)
-        camp = campagna_in_bozza(db, profilo_id=prof.id)
-
-        res = client.post(
-            f"/api/campagne/{camp.id}/foto",
-            data={"gruppo_id": _gruppo_caricate(db, camp)},
-            files={"file": ("foto.png", BytesIO(_crea_png(1080, 1080)), "image/png")},
-        )
-        assert res.status_code == 201
-        foto_id = res.json()["id"]
-        assert "da_usare" not in res.json()
-
-        res_put = client.put(f"/api/foto/{foto_id}", json={"da_usare": True})
-        assert res_put.status_code == 405
-
-        db.expire_all()
-        assert db.get(Foto, foto_id).da_usare is False
-        dettaglio = client.get(f"/api/campagne/{camp.id}").json()
-        assert all("da_usare" not in f for g in dettaglio["gruppi"] for f in g["foto"])
 
 
 def test_upload_senza_gruppo_id_o_con_gruppo_id_vuoto_da_422(

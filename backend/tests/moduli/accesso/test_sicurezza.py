@@ -11,7 +11,7 @@ from threading import Barrier
 import pytest
 from alembic import command
 from alembic.config import Config
-from fastapi import Depends, FastAPI
+from fastapi import Depends
 from fastapi.testclient import TestClient
 from pydantic import ValidationError
 from sqlalchemy import text

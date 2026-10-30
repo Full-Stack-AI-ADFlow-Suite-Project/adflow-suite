@@ -11,6 +11,8 @@ Nei test ``litellm.completion`` si sostituisce: nessuna rete.
 
 import base64
 import json
+import re
+import time
 from collections.abc import Mapping, Sequence
 from datetime import date, datetime
 from decimal import Decimal
@@ -52,6 +54,9 @@ QUALITA_JPEG = 85
 DETTAGLIO_FOTO = "high"
 # Il job riprova da sé (R-35): LiteLLM non deve moltiplicare i tentativi.
 TIMEOUT_SECONDI = 120
+LUNGHEZZA_ERRORE = 1000
+# Chiavi del provider che un messaggio d'errore potrebbe citare (R-50).
+_SEGRETI = re.compile(r"\b(?:sk|or)-[A-Za-z0-9_-]{8,}")
 # Le immagini AI sono sempre quadrate 1:1, di qualità media (brief-ai T3-34).
 DIMENSIONE_IMMAGINE = "1024x1024"
 QUALITA_IMMAGINE = "medium"
@@ -96,7 +101,7 @@ _FILTRO = ("content_policy", "moderation_blocked", "safety system")
 
 @lru_cache
 def _prompt(nome: str) -> str:
-    """Il testo di ``prompts/<nome>.md``; il nome porta la versione (``piano_v2``)."""
+    """Il testo di ``prompts/<nome>.md``; il nome porta la versione (``piano_v3``)."""
     return (CARTELLA_PROMPT / f"{nome}.md").read_text(encoding="utf-8")
 
 
@@ -256,9 +261,12 @@ class AILiteLLM(AIAdapter):
         messaggi: list[dict[str, Any]],
         schema: type[R],
         *,
+        versione_prompt: str,
         foto_id: int | None = None,
     ) -> R:
         self.ultimo_uso = None
+        richiesta = _richiesta_registrata(messaggi)
+        inizio = time.perf_counter()
         try:
             risposta = litellm.completion(
                 model=modello,
@@ -269,9 +277,79 @@ class AILiteLLM(AIAdapter):
                 num_retries=0,
             )
         except Exception as errore:  # noqa: BLE001 - tradotto o rilanciato sotto
-            raise traduci_errore(errore, foto_id=foto_id) from errore
-        self.ultimo_uso = self._uso(tipo, modello, risposta)
-        return self._leggi(risposta, schema)
+            durata = _millisecondi(inizio)
+            try:
+                tradotto = traduci_errore(errore, foto_id=foto_id)
+            except Exception:  # noqa: BLE001 - imprevisto: si registra e si rilancia
+                self._fallita(
+                    tipo,
+                    modello,
+                    versione_prompt,
+                    richiesta,
+                    durata,
+                    "temporaneo",
+                    errore,
+                )
+                raise
+            self._fallita(
+                tipo, modello, versione_prompt, richiesta, durata, tradotto, errore
+            )
+            raise tradotto from errore
+        uso = self._uso(tipo, modello, risposta)
+        uso.versione_prompt = versione_prompt
+        uso.richiesta = richiesta
+        uso.risposta = _testo_della_risposta(risposta) or None
+        uso.durata_ms = _millisecondi(inizio)
+        self.ultimo_uso = uso
+        try:
+            return self._leggi(risposta, schema)
+        except ErroreAI as errore:
+            self._segna_errore(errore)
+            raise
+
+    def _segna_errore(self, errore: ErroreAI, origine: Exception | None = None) -> None:
+        """L'esito della chiamata già registrata diventa il tipo dell'errore (R-50)."""
+        if self.ultimo_uso is not None:
+            self.ultimo_uso.esito = errore.tipo
+            self.ultimo_uso.errore = self._descrivi(errore, origine)
+            errore.uso = self.ultimo_uso
+
+    def _fallita(
+        self,
+        tipo: str,
+        modello: str,
+        versione_prompt: str | None,
+        richiesta: dict[str, Any] | None,
+        durata_ms: int,
+        errore: ErroreAI | str,
+        origine: Exception | None = None,
+    ) -> None:
+        """``ultimo_uso`` di una chiamata che non ha risposto: costo 0 (R-50)."""
+        esito = errore.tipo if isinstance(errore, ErroreAI) else errore
+        self.ultimo_uso = UsoAI(
+            tipo=tipo,
+            provider=PROVIDER,
+            modello=modello,
+            versione_prompt=versione_prompt,
+            richiesta=richiesta,
+            durata_ms=durata_ms,
+            esito=esito,
+            errore=self._descrivi(errore, origine),
+        )
+        if isinstance(errore, ErroreAI):
+            errore.uso = self.ultimo_uso
+
+    def _descrivi(self, errore: ErroreAI | str, origine: Exception | None) -> str:
+        """Tipo e messaggio dell'eccezione, senza la chiave del provider (R-50)."""
+        if isinstance(errore, ErroreAI):
+            testo = f"{errore.tipo}: {errore.messaggio}"
+        else:
+            testo = str(errore)
+        if origine is not None:
+            testo += f" ({type(origine).__name__}: {origine})"
+        if self._chiave:
+            testo = testo.replace(self._chiave, "***")
+        return _SEGRETI.sub("***", testo)[:LUNGHEZZA_ERRORE]
 
     @staticmethod
     def _leggi(risposta: Any, schema: type[R]) -> R:
@@ -353,19 +431,22 @@ class AILiteLLM(AIAdapter):
             "analisi",
             self._modello_visione,
             [
-                {"role": "system", "content": _prompt("analisi_v2")},
+                {"role": "system", "content": _prompt("analisi_v3")},
                 {"role": "user", "content": contenuto},
             ],
             RispostaAnalisi,
+            versione_prompt="analisi_v3",
             foto_id=gruppo.foto[0].id if len(gruppo.foto) == 1 else None,
         )
 
         ids = [foto.id for foto in gruppo.foto]
         per_id = {voce.foto_id: voce for voce in risposta.foto}
         if len(risposta.foto) != len(ids) or set(per_id) != set(ids):
-            raise ErroreAI(
+            errore = ErroreAI(
                 "risposta", "L'analisi dell'AI non riguarda tutte le foto del gruppo."
             )
+            self._segna_errore(errore)
+            raise errore
         analisi = {}
         for uno in ids:
             voce = per_id[uno]
@@ -378,6 +459,9 @@ class AILiteLLM(AIAdapter):
                 "motivo": voce.motivo if not voce.idonea else None,
                 "soggetto": voce.soggetto,
                 "descrizione": voce.descrizione,
+                "soggetto_box": (
+                    voce.soggetto_box.model_dump() if voce.soggetto_box else None
+                ),
                 "persone_riconoscibili": voce.persone_riconoscibili,
                 "marchi_visibili": voce.marchi_visibili,
             }
@@ -395,6 +479,7 @@ class AILiteLLM(AIAdapter):
         schede: Mapping[str, Mapping[str, Any]],
         *,
         non_prima_di: datetime,
+        orari_occupati: Sequence[Mapping[str, Any]] = (),
         piano_precedente: Mapping[str, Any] | None = None,
         violazioni: Sequence[Mapping[str, Any]] | None = None,
     ) -> PianoAI:
@@ -413,6 +498,7 @@ class AILiteLLM(AIAdapter):
                 "obiettivo": campagna.obiettivo,
             },
             "non_prima_di": non_prima_di,
+            "orari_occupati": [dict(uno) for uno in orari_occupati],
             "canali": {
                 canale: {
                     "post_chiesti": limite["post_chiesti"],
@@ -444,16 +530,17 @@ class AILiteLLM(AIAdapter):
             "piano",
             self._modello_testo,
             [
-                {"role": "system", "content": _prompt("piano_v2")},
+                {"role": "system", "content": _prompt("piano_v3")},
                 {"role": "user", "content": _json(richiesta)},
             ],
             RispostaPiano,
+            versione_prompt="piano_v3",
         )
         return PianoAI(
             contenuto=risposta.model_dump(),
             provider=PROVIDER,
             modello=self._modello_testo,
-            versione_prompt="piano_v2",
+            versione_prompt="piano_v3",
         )
 
     def genera_post(
@@ -468,6 +555,7 @@ class AILiteLLM(AIAdapter):
         versioni_rifiutate: Sequence[str] | None = None,
         testo_proposto: str | None = None,
         nota: str | None = None,
+        altri_post: Sequence[str] | None = None,
     ) -> PostScritto:
         self.ultimo_uso = None
         richiesta: dict[str, Any] = {
@@ -500,14 +588,17 @@ class AILiteLLM(AIAdapter):
             richiesta["testo_proposto"] = testo_proposto
         if nota:
             richiesta["nota"] = nota
+        if altri_post:
+            richiesta["altri_post"] = list(altri_post)
         risposta = self._chiama(
             "testo",
             self._modello_testo,
             [
-                {"role": "system", "content": _prompt("post_v2")},
+                {"role": "system", "content": _prompt("post_v3")},
                 {"role": "user", "content": _json(richiesta)},
             ],
             RispostaPost,
+            versione_prompt="post_v3",
         )
         hashtag = [uno.strip().lstrip("#").strip() for uno in risposta.hashtag]
         return PostScritto(
@@ -515,7 +606,7 @@ class AILiteLLM(AIAdapter):
             hashtag=[uno for uno in hashtag if uno],
             provider=PROVIDER,
             modello=self._modello_testo,
-            versione_prompt="post_v2",
+            versione_prompt="post_v3",
         )
 
     def genera_immagine(self, prompt: str) -> ImmagineAI:
@@ -523,6 +614,8 @@ class AILiteLLM(AIAdapter):
         modello = self._modello_immagini.strip()
         if not modello:
             raise ErroreAI("configurazione", "AI_MODELLO_IMMAGINI non è impostato.")
+        richiesta = {"prompt": prompt}
+        inizio = time.perf_counter()
         try:
             risposta = litellm.image_generation(
                 prompt=prompt,
@@ -534,8 +627,30 @@ class AILiteLLM(AIAdapter):
                 timeout=TIMEOUT_SECONDI,
             )
         except Exception as errore:  # noqa: BLE001 - tradotto o rilanciato sotto
-            raise traduci_errore(errore) from errore
-        immagine = _leggi_immagine(risposta, modello)
+            durata = _millisecondi(inizio)
+            try:
+                tradotto = traduci_errore(errore)
+            except Exception:  # noqa: BLE001 - imprevisto: si registra e si rilancia
+                self._fallita(
+                    "immagine",
+                    modello,
+                    VERSIONE_PROMPT_IMMAGINE,
+                    richiesta,
+                    durata,
+                    "temporaneo",
+                    errore,
+                )
+                raise
+            self._fallita(
+                "immagine",
+                modello,
+                VERSIONE_PROMPT_IMMAGINE,
+                richiesta,
+                durata,
+                tradotto,
+                errore,
+            )
+            raise tradotto from errore
         uso = getattr(risposta, "usage", None)
         self.ultimo_uso = UsoAI(
             tipo="immagine",
@@ -545,8 +660,15 @@ class AILiteLLM(AIAdapter):
             token_uscita=getattr(uso, "output_tokens", None),
             immagini=1,
             costo_usd=self._costo_immagine(modello, risposta),
+            versione_prompt=VERSIONE_PROMPT_IMMAGINE,
+            richiesta=richiesta,
+            durata_ms=_millisecondi(inizio),
         )
-        return immagine
+        try:
+            return _leggi_immagine(risposta, modello)
+        except ErroreAI as errore:
+            self._segna_errore(errore)
+            raise
 
 
 def _leggi_immagine(risposta: Any, modello: str) -> ImmagineAI:
@@ -574,6 +696,43 @@ def _leggi_immagine(risposta: Any, modello: str) -> ImmagineAI:
         modello=modello,
         versione_prompt=VERSIONE_PROMPT_IMMAGINE,
     )
+
+
+def _millisecondi(inizio: float) -> int:
+    return round((time.perf_counter() - inizio) * 1000)
+
+
+def _testo_della_risposta(risposta: Any) -> str:
+    """Il testo che il modello ha scritto, per lo storico (R-50); vuoto se non c'è."""
+    scelte = getattr(risposta, "choices", None) or []
+    messaggio = getattr(scelte[0], "message", None) if scelte else None
+    contenuto = getattr(messaggio, "content", None)
+    return contenuto if isinstance(contenuto, str) else ""
+
+
+def _richiesta_registrata(messaggi: list[dict[str, Any]]) -> dict[str, Any]:
+    """Ciò che va in ``chiamata_ai.richiesta``: il messaggio dell'utente.
+
+    Le immagini sono ``"<foto {id}>"``, mai i byte; il prompt di sistema non si
+    copia (lo dice ``versione_prompt``) e le chiavi non ci sono mai (R-50).
+    """
+    contenuto = next((m["content"] for m in messaggi if m["role"] == "user"), "")
+    if isinstance(contenuto, str):
+        try:
+            letto = json.loads(contenuto)
+        except ValueError:
+            letto = None
+        return letto if isinstance(letto, dict) else {"testo": contenuto}
+    parti: list[str] = []
+    ultimo = ""
+    for parte in contenuto:
+        if parte.get("type") == "text":
+            ultimo = parte["text"]
+            parti.append(ultimo)
+        else:
+            trovato = re.search(r"\d+", ultimo)
+            parti.append(f"<foto {trovato.group()}>" if trovato else "<foto>")
+    return {"parti": parti}
 
 
 def _del_profilo(snapshot: Mapping[str, Any]) -> dict[str, Any]:

@@ -9,19 +9,17 @@ tick che pubblica ciò che resta.
 """
 
 from datetime import datetime, timedelta
-from types import SimpleNamespace
 
 from sqlalchemy import select
 
 from app import worker
 from app.moduli.campagne.models import Foto
 from app.moduli.revisione.models import Approvazione
-from tests.percorsi.test_percorso_sprint1 import (
+from tests.percorsi.test_percorso_base import (
     ARTIGIANO,
     OPERATORE,
     UNA_SETTIMANA,
     _bozza,
-    _carica,
     _foto_del_post,
     _foto_jpeg,
     _post_per_canale,
