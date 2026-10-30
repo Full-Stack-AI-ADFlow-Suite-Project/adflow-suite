@@ -1,11 +1,11 @@
 # Valutazione e piano di sicurezza
 
-**Stato della revisione:** 23 ottobre 2026
+**Stato della revisione:** 30 ottobre 2026
 
-**Ambito:** revisione statica del codice, della configurazione e della documentazione presenti nel repository.
-Documento operativo per decidere e verificare gli interventi; non è una certificazione, un penetration test o una verifica dell'ambiente di staging.
+**Ambito:** revisione statica e dinamica locale del codice, della configurazione e della documentazione presenti nel repository.
+Documento operativo per decidere e verificare gli interventi; non è una certificazione, un penetration test o una verifica di un ambiente di staging remoto.
 
-Per le istruzioni operative già definite per l'accesso, i cookie, il proxy e i log si veda anche [`sicurezza-accesso.md`](sicurezza-accesso.md). La verifica del proxy/TLS nell'ambiente reale è collegata al follow-up #17 in `docs/agenti/tasks.md`.
+Per le istruzioni operative già definite per l'accesso, i cookie, il proxy e i log si veda anche [`sicurezza-accesso.md`](sicurezza-accesso.md). La verifica locale del proxy/TLS con certificato verificato e processo Uvicorn separato è documentata in `qa/issue-17/README.md` (follow-up #17 chiuso per la parte locale).
 
 ## Valutazione sintetica
 
@@ -82,13 +82,12 @@ uv run python scripts/esegui_valutazione_sicurezza.py
 
 Il primo comando esegue solo i probe SAST/DAST locali. Il secondo esegue tutta la suite: la fixture ricrea lo schema di `adflow_test`. Il runner verifica prima che il DB sia esattamente quello locale atteso e imposta entrambi gli URL del processo su tale DB. Il log JSONL si trova in `backend/security-assessment-logs/` e non va committato; non contiene body, query string, header o credenziali.
 
-**Ultima esecuzione locale:** 23 ottobre 2026, Windows.
+**Ultima esecuzione locale:** 30 ottobre 2026, Linux (`adflow_test` su `localhost:5432`).
 
 - Probe SAST/DAST e integrità multiprocesso dei log: **34 passati**.
-- Suite completa, con `DATABASE_URL` e `DATABASE_URL_TEST` entrambi diretti a `adflow_test` su `localhost:5432`: **1.888 passati, 0 falliti, 0 errori, 0 saltati**.
+- Verifica TLS/proxy reale (`tests/moduli/accesso/test_proxy_http_reale.py`): **2 passati** (catena HTTPS con proxy fidato `127.0.0.1` e rifiuto header da proxy non fidato `192.0.2.1`).
+- Suite completa, con `DATABASE_URL` e `DATABASE_URL_TEST` entrambi diretti a `adflow_test` su `localhost:5432`: **1.997 passati, 0 falliti, 0 errori, 0 saltati**.
 - Integrità del log JSONL: **valida**; nessuna riga malformata.
-- Restano due avvisi di deprecazione Python per `WindowsSelectorEventLoopPolicy` nella fixture, non fallimenti di test.
-- Il log completo è `backend/security-assessment-logs/valutazione-20261016T133156Z.jsonl` ed è escluso da Git.
 
 ### P0 — MFA e durata delle sessioni privilegiate
 
