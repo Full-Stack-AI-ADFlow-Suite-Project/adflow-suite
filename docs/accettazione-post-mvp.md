@@ -1,9 +1,9 @@
 # Simulazione di accettazione dell'MVP
 
 > **⚠️ DOCUMENTO PRELIMINARE.**
-> Non cambia il perimetro dell'MVP, i task di `docs/agenti/tasks.md` né le regole di `docs/agenti/`: dove qualcosa non torna valgono quei documenti. Le nove domande hanno una risposta e la corsia 10 è generata (§12) ed è entrata in `tasks.md` con T4-100: la simulazione è in corso.
+> Non cambia il perimetro dell'MVP, i task di `docs/agenti/tasks.md` né le regole di `docs/agenti/`: dove qualcosa non torna valgono quei documenti. La corsia 10 (§12) è stata eseguita per intero: 44 rilievi nel registro, un blocco assoluto (RL-025), la sintesi in `docs/accettazione/sintesi.md` e le lezioni in §13.
 
-**Stato:** corsia 10 in corso, T4-100 fatto · **Prima versione:** 24/10/2026 su `6a8e2ed` · **Questa versione:** 30/10/2026 su `main` a `8c01e2b` (sprint 3 chiuso, corsie 8 e 9 comprese) · **Corsia:** 10 · **ADR:** 120 · **Task:** T4-100…T4-108
+**Stato:** simulazione eseguita (31/10/2026): 44 rilievi, un blocco assoluto · **Prima versione:** 24/10/2026 su `6a8e2ed` · **Questa versione:** 31/10/2026 sul branch della simulazione da `8c01e2b` (sprint 3 chiuso, corsie 8 e 9 comprese) · **Corsia:** 10 · **ADR:** 120 · **Task:** T4-100…T4-108
 
 I riferimenti a file e righe valgono per il commit `8c01e2b`.
 
@@ -704,3 +704,78 @@ Per chi fa un task della corsia 10. Decisione: ADR-120. Leggi prima `constitutio
 ---
 
 *Documento preliminare, da valutare. Prima versione del 24/10/2026 su `6a8e2ed`; riscritto il 30/10/2026 come simulazione su `main` a `8c01e2b`, senza modifiche al codice.*
+
+## 13. Che cosa la simulazione ha insegnato
+
+Scritta alla fine di T4-108, sul registro dei rilievi
+(`docs/accettazione/rilievi.md`), sulla sintesi (`docs/accettazione/sintesi.md`)
+e sui report di `docs/accettazione/report/`.
+
+### Stime
+
+- I nove task sono stati eseguiti in sequenza da un agente, uno per branch,
+  circa **due giornate di lavoro effettivo**: le stime per task (1–2 sessioni)
+  erano giuste una per una, la somma no — un «1–2 sessioni» è una giornata se
+  la sessione è mezza giornata.
+- Le parti che hanno preso più tempo del previsto: **la concorrenza** (fare
+  prove ripetibili con barriere e commit veri), **le macchine a stati**
+  (lentissime: 300 sequenze in 4 minuti) e **mutmut** (396 mutanti, quasi
+  mezz'ora con una selezione mirata; la suite intera avrebbe richiesto ore).
+- La parte più veloce: le scansioni e la ricostruzione da zero (minuti),
+  il backup e il ripristino (secondi su un database di prova).
+
+### Strumenti: quali hanno servito e quali no
+
+- **Serviti bene**: `pip-audit` (pillow, 3 critiche), `gitleaks` (falsi
+  positivi ma la storia è pulita), `schemathesis` (i 500 degli input estremi
+  e il contratto degli errori), le prove con barriera + `hypothesis` (le corse
+  vere), `axe` (le violazioni di contrasto), `openapi-typescript` (contratto
+  dei tipi coerente).
+- **Da usare con giudizio**: `mutmut` va in seriale (`--max-children 1`) o
+  mente con un database condiviso; una corsa sola di `hypothesis` da 10 000
+  sequenze esaurisce i lock di PostgreSQL (meglio in blocchi);
+  l'avviso «Authentication failed» di `schemathesis` è un falso allarme
+  quando il ruolo risponde 403; `playwright install` non supporta l'Ubuntu di
+  questa macchina e ha richiesto il browser in cache con `executablePath`.
+- **Non usati**: ZAP (non installato; la prova va rifatta), `cyclonedx-py`
+  (licenze coperte da `pip-licenses`). Il probe di sicurezza locale che la CI
+  già lancia non sostituisce né bandit né semgrep, ma copre il percorso.
+
+### Rischi mancati nella §3
+
+La tabella «Stato verificato oggi» aveva 17 righe. La simulazione ne ha
+aggiunte altre, che nessuno aveva elencato:
+
+1. **Le immagini AI non escono** con il modello configurato (RL-037): la
+   tappa immagini consuma la chiamata e non restituisce l'immagine.
+2. **litellm riversa `backend/.env` in `os.environ`** all'import (RL-009): la
+   suite perde un test sotto `pytest --cov` e i segreti entrano nell'ambiente
+   del processo.
+3. **pillow 12.3.0 ha 3 vulnerabilità critiche** nella decodifica delle
+   immagini: è il percorso che apre i file caricati (RL-004).
+4. **La demo del pitch dipende da una cartella di foto fuori da git**
+   (RL-014).
+5. **La suite è legata al nome `adflow_test`** (RL-012) e i database non si
+   creano con un comando documentato (RL-013).
+
+### Ipotesi della §3 smentite
+
+- **R-02** (nessun controllo di `Origin`): in produzione c'è, dal T3-09
+  (`ProtezioneCSRF`), ed è provato con un server vero (RL-016).
+- **R-17** (BOLA sui nuovi endpoint): non si materializza; la matrice e i test
+  BOLA sono verdi (RL-020).
+- **R-07** è parziale: la CI ha già un probe SAST/DAST locale; mancano
+  audit delle dipendenze, segreti nella storia, tipi, copertura ed E2E.
+
+### Il metodo, confermato
+
+- **Solo il rilievo, con `xfail(strict=True)`** ha tenuto la suite verde per
+  tutti i nove task: il difetto resta nel repository, il giorno della
+  correzione il test passa e obbliga a togliere il marcatore.
+- **I difetti veri stanno nelle corse e nei guasti**, non nei percorsi scritti
+  a mano: i quattro rilievi più gravi vengono da T4-103 e T4-104.
+- **Una prova con l'AI vera da 5 centesimi** ha trovato un problema che
+  nessuna prova finta avrebbe trovato.
+- **La matrice dei permessi esaustiva** va scritta dall'atteso (costituzione e
+  spec), non dal codice: è l'unico modo perché un'operazione nuova senza riga
+  faccia fallire il test.
