@@ -1,0 +1,12 @@
+{
+ "pagina": "operatore-artigiani",
+ "url": "http://127.0.0.1:5173/artigiani",
+ "violazioni": [
+  {
+   "id": "color-contrast",
+   "impatto": "serious",
+   "descrizione": "Elements must meet minimum color contrast ratio thresholds",
+   "nodi": 2
+  }
+ ]
+}
