@@ -1,0 +1,715 @@
+{
+ "strumento": "pip-audit",
+ "sorgente": "backend/requirements.txt (con dipendenze transitive)",
+ "riepilogo": {
+  "pillow==12.3.0": 39,
+  "black==23.3.0": 5,
+  "filelock==3.32.7": 13
+ },
+ "vulnerabilita": [
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "PYSEC-2026-4327",
+   "alias": [
+    "GHSA-4558-3h8r-v8xp",
+    "CVE-2026-112394"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "Pillow is a Python imaging library. Prior to 13.0.0, Pillow's P;2L and P;4L raw decoders can read past the end of an input buffer. ImagingRawDecode calculates a packed-pixel row size, while the unpack"
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "PYSEC-2026-4328",
+   "alias": [
+    "CVE-2026-112396",
+    "GHSA-4rr5-89j8-mwwm"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "Pillow is a Python imaging library. From 11.3.0 until 13.0.0, Pillow has a heap use-after-free when libtiff rejects a tag while encoding TIFF data to an in-memory buffer. When an application saves att"
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "PYSEC-2026-4326",
+   "alias": [
+    "GHSA-27h8-gf7j-v5hc",
+    "CVE-2026-112392"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "Pillow is a Python imaging library. Prior to 13.0.0, Pillow's rank-based filters can dereference invalid image storage for a zero-size image. ImagingExpand() allocates a non-empty output and then faul"
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "PYSEC-2026-4339",
+   "alias": [
+    "CVE-2026-96639",
+    "GHSA-v9pv-5gc8-w2m6"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "Pillow is a Python imaging library. From 11.0.0 until 13.0.0, multi-frame loaders can retain an ImagingCore allocation created for a narrow frame mode while a later frame of the same dimensions change"
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "PYSEC-2026-4340",
+   "alias": [
+    "CVE-2026-96641",
+    "GHSA-4rm8-3hmm-39fg"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "Pillow is a Python imaging library. Prior to 13.0.0, PILfont text-width accumulation in src/_imaging.c checks positive glyph advances against INT_MAX but does not check negative advances against INT_M"
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "PYSEC-2026-4343",
+   "alias": [
+    "CVE-2026-96644",
+    "GHSA-9v9v-9qvf-h2hj"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "Pillow is a Python imaging library. Prior to 13.0.0 on Windows, src/PIL/WmfImagePlugin.py passes unchecked 32-bit WMF or EMF dimensions to the native drawwmf handler in src/display.c. The handler size"
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "PYSEC-2026-4334",
+   "alias": [
+    "CVE-2026-112896",
+    "GHSA-pchr-8j38-3x4p"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "Pillow is a Python imaging library. Prior to 13.0.0, Pillow's TIFF encoder can read beyond a ColorMap buffer when retained TIFF metadata has a plane size inconsistent with BitsPerSample. A small TIFF "
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "PYSEC-2026-4337",
+   "alias": [
+    "GHSA-p8hx-v2p6-rp84",
+    "CVE-2026-96636"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "Pillow is a Python imaging library. Prior to 13.0.0, MpoImageFile.seek() and DcxImageFile.seek() reparse later MPO or DCX frames and replace self._size without rerunning Image._decompression_bomb_chec"
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "PYSEC-2026-4341",
+   "alias": [
+    "CVE-2026-96642",
+    "GHSA-3j72-p6qg-6xp7"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "Pillow is a Python imaging library. Prior to 13.0.0, the TarIO initializer in src/PIL/TarIO.py accepts a negative octal member size and computes a backward seek that returns to the same 512-byte heade"
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "PYSEC-2026-4330",
+   "alias": [
+    "CVE-2026-112398",
+    "GHSA-5x8w-8jj5-q52h"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "Pillow is a Python imaging library. Prior to 13.0.0, Pillow's FlashPix JPEG-tile decoder can write decoded scanlines beyond the allocated tile buffer. FlashPix (FPX) JPEG decoding selects raw mode LA "
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "PYSEC-2026-4338",
+   "alias": [
+    "CVE-2026-96637",
+    "GHSA-g842-9rc4-69pw"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "Pillow is a Python imaging library. Prior to 13.0.0, SpiderImageFile.seek() in src/PIL/SpiderImagePlugin.py reparses a later SPIDER stack frame and replaces self._size without rerunning Image._decompr"
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "PYSEC-2026-4335",
+   "alias": [
+    "CVE-2026-112901",
+    "GHSA-xgh8-jp6q-p5x8"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "Pillow is a Python imaging library. Prior to 13.0.0, Pillow's XBM header parser is vulnerable to regular-expression denial of service. In XbmImageFile._open, when an application calls Image.open() on "
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "PYSEC-2026-4336",
+   "alias": [
+    "CVE-2026-114501",
+    "GHSA-654x-cwwv-5j9c"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "Pillow is a Python imaging library. From 11.2.1 until 13.0.0, Arrow export assumes that an image's rows are tightly contiguous and exports from im->blocks[0].ptr even when PILLOW_ALIGNMENT makes align"
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "PYSEC-2026-4331",
+   "alias": [
+    "CVE-2026-112402",
+    "GHSA-7mwm-ghpf-9vrm"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "Pillow is a Python imaging library. Prior to 13.0.0, Pillow can double free image memory when ImagingScaleAffine encounters a selective allocation failure. The affected fast path handles Transform.EXT"
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "PYSEC-2026-4332",
+   "alias": [
+    "CVE-2026-112403",
+    "GHSA-8g5g-8vmr-9782"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "Pillow is a Python imaging library. Prior to 13.0.0, Pillow's JPEG decoder can write a full-width scanline into a buffer sized for a requested draft scale. ImagingJpegDecode does not verify libjpeg's "
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "PYSEC-2026-4329",
+   "alias": [
+    "GHSA-58r4-6rv3-gfh8",
+    "CVE-2026-112397"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "Pillow is a Python imaging library. Prior to 13.0.0, Pillow's ImageMorph.MorphOp.apply() can access memory before a row buffer for a zero-width image. PPM and PGM input can create an image with width "
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "PYSEC-2026-4333",
+   "alias": [
+    "CVE-2026-112405",
+    "GHSA-cp9v-662q-vvx9"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "Pillow is a Python imaging library. From 12.0.0 until 13.0.0, Pillow's Image.merge() can dereference a null image8 plane. Validation skips the first input band, allowing a 32-bit integer or floating-p"
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "PYSEC-2026-4342",
+   "alias": [
+    "GHSA-g4qv-2jxx-769h",
+    "CVE-2026-96643"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "Pillow is a Python imaging library. From 11.0.0 until 13.0.0, Exif.load() in src/PIL/Image.py repeatedly slices the remaining EXIF data while it begins with the six-byte Exif header. src/PIL/PngImageP"
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "CVE-2026-112895",
+   "alias": [
+    "GHSA-p4wg-p73j-c528"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "### Summary When an application appends to an existing PDF with `Image.save(..., format=\"PDF\", append=True)`, Pillow parses that file with `PdfParser`. Two recursive parsers have no effective bound. `"
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "CVE-2026-112400",
+   "alias": [
+    "GHSA-65qm-jvmh-6pqg"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "``` ============================================================================ GIF seek keeps rejected size after DecompressionBombError, allowing DoS Location: src/PIL/GifImagePlugin.py:293  in Gif"
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "CVE-2026-112897",
+   "alias": [
+    "GHSA-q45j-58j2-45rg"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "``` ============================================================================ TiffDecode returns uninitialized memory as pixels for short JPEG strips Location: src/libImaging/TiffDecode.c:554  in _"
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "CVE-2026-112395",
+   "alias": [
+    "GHSA-462x-pgg6-55fp"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "### Summary  Pillow's libImaging `_decodeTile` decoder, used to decode tiled TIFF images, allocates a per-tile buffer using `realloc(state->buffer, TIFFTileSize(tiff))`. After each `TIFFReadTile` it t"
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "CVE-2026-112404",
+   "alias": [
+    "GHSA-c6hw-5grf-ff96"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "``` ============================================================================ OOB read in TiffDecode.c tile and RGBA paths leaks heap memory into pixels Location: src/libImaging/TiffDecode.c:483  i"
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "CVE-2026-112899",
+   "alias": [
+    "GHSA-vx6w-vv9f-6gvg"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "``` ============================================================================ EPS load(scale) lets Ghostscript render past the decompression bomb limit Location: src/PIL/EpsImagePlugin.py:92  in Gh"
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "CVE-2026-112900",
+   "alias": [
+    "GHSA-w889-685w-c8fh"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "### Summary `PIL.EpsImagePlugin.Ghostscript()` builds the Ghostscript command line using the input file path (`fp.name`) **without sanitization**, placing it at `-f <infile>`. A filename beginning wit"
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "CVE-2026-112893",
+   "alias": [
+    "GHSA-j4m9-6w36-pw47"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "### Summary When text is drawn with a non-zero stroke width, Pillow creates a FreeType stroker and then loads each glyph. If `FT_Load_Glyph` fails for a glyph, the cleanup path calls `FT_Done_Glyph` o"
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "CVE-2026-112891",
+   "alias": [
+    "GHSA-fc9g-5qg7-mf45"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "On Pillow 12.3.0 and upstream `main` (`ad277e2761b489681e71b51e91367d46b0ceabb9`), a GIF with a long comment makes `_get_global_header()` copy portions of the comment repeatedly when saving, including"
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "CVE-2026-112390",
+   "alias": [
+    "GHSA-22hg-r758-rrw9"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "``` ============================================================================ Infinite loop in MIC n_frames when the embedded TIFF has 3+ IFDs Location: src/PIL/MicImagePlugin.py:86  in MicImageFil"
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "CVE-2026-112401",
+   "alias": [
+    "GHSA-74r2-7ff9-mjj2"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "``` ============================================================================ Quadratic GIF comment concatenation allows DoS in Image.open() Location: src/PIL/GifImagePlugin.py:266  in GifImageFile"
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "CVE-2026-112391",
+   "alias": [
+    "GHSA-254f-3936-288h"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "### Summary `PdfParser`'s `get_value()` can recurse without any limit and crash with an uncaught `RecursionError`. It is reachable through `Image.save(im, fp=<pdf>, format=\"PDF\", append=True)` when th"
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "CVE-2026-112894",
+   "alias": [
+    "GHSA-jg86-v3jv-hrpm"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "``` ============================================================================ Quadratic-time DoS in PDF save_all (PdfParser.next_object_id) Location: src/PIL/PdfParser.py:629  in next_object_id() C"
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "CVE-2026-112406",
+   "alias": [
+    "GHSA-f2g6-542v-9j58"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "``` ============================================================================ Infinite loop in PdfParser.rewrite_pages on page tree Parent cycle Location: src/PIL/PdfParser.py:505  in PdfParser.rew"
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "CVE-2026-112399",
+   "alias": [
+    "GHSA-5xm2-6676-qcp9"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "``` ============================================================================ APNG background disposal allocates full canvas before decompression bomb check Location: src/PIL/PngImagePlugin.py:1000"
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "CVE-2026-112892",
+   "alias": [
+    "GHSA-gg2r-wvfm-q9rx"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "### Summary The MSP RLE decoder expands run-length data into an in-memory buffer with no cap tied to the declared image size. A small file that passes the pixel-count check can force hundreds of megab"
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "CVE-2026-112393",
+   "alias": [
+    "GHSA-332p-7hrc-92wf"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "``` ============================================================================ Heap buffer overflow in _tiffWriteProc when saving TIFF to BytesIO Location: src/libImaging/TiffDecode.c:94  in _tiffWr"
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "CVE-2026-96638",
+   "alias": [
+    "GHSA-24rc-8hj2-v98c"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "## Summary BmpRleDecoder can be forced to allocate gigabytes of memory from a kilobyte-sized crafted BMP file via unbounded growth in the delta escape and absolute mode branches.  ## Affected versions"
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "CVE-2026-96640",
+   "alias": [
+    "GHSA-mrfp-p49p-3hf2"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "### Summary Pillow's documented PDF append path can spend disproportionate CPU time on a compact malformed PDF page tree.  An attacker who can supply an existing PDF to an application that appends an "
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "CVE-2026-96778",
+   "alias": [
+    "GHSA-g7cr-3p24-7wf7"
+   ],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "``` ============================================================================ Heap buffer overflow writing JPEG comment after ICC profile fills buffer Location: src/libImaging/JpegEncode.c:330  in "
+  },
+  {
+   "pacchetto": "pillow",
+   "versione": "12.3.0",
+   "id": "GHSA-78g4-xqwv-q3g8",
+   "alias": [],
+   "fix": [
+    "13.0.0"
+   ],
+   "descrizione": "### Summary  Every Pillow wheel from 11.1.0 onward bundles a libopenjp2 containing a heap-buffer-overflow **write** that is fixed upstream on master but has never appeared in an OpenJPEG release. See "
+  },
+  {
+   "pacchetto": "black",
+   "versione": "23.3.0",
+   "id": "PYSEC-2024-48",
+   "alias": [
+    "CVE-2024-21503",
+    "GHSA-fj7x-q9j7-g6q6"
+   ],
+   "fix": [
+    "24.3.0"
+   ],
+   "descrizione": "Versions of the package black before 24.3.0 are vulnerable to Regular Expression Denial of Service (ReDoS) via the lines_with_leading_tabs_expanded function in the strings.py file. An attacker could e"
+  },
+  {
+   "pacchetto": "black",
+   "versione": "23.3.0",
+   "id": "PYSEC-2024-48",
+   "alias": [
+    "CVE-2024-21503",
+    "GHSA-fj7x-q9j7-g6q6"
+   ],
+   "fix": [
+    "24.3.0"
+   ],
+   "descrizione": "Versions of the package black before 24.3.0 are vulnerable to Regular Expression Denial of Service (ReDoS) via the lines_with_leading_tabs_expanded function in the strings.py file. An attacker could e"
+  },
+  {
+   "pacchetto": "black",
+   "versione": "23.3.0",
+   "id": "PYSEC-2026-2121",
+   "alias": [
+    "GHSA-3936-cmfr-pm3m",
+    "CVE-2026-32274"
+   ],
+   "fix": [
+    "26.3.1"
+   ],
+   "descrizione": "Black is the uncompromising Python code formatter. Prior to 26.3.1, Black writes a cache file, the name of which is computed from various formatting options. The value of the --python-cell-magics opti"
+  },
+  {
+   "pacchetto": "black",
+   "versione": "23.3.0",
+   "id": "PYSEC-2026-2120",
+   "alias": [
+    "CVE-2026-31900",
+    "GHSA-v53h-f6m7-xcgm"
+   ],
+   "fix": [
+    "26.3.0"
+   ],
+   "descrizione": "Black is the uncompromising Python code formatter. Black provides a GitHub action for formatting code. This action supports an option, use_pyproject: true, for reading the version of Black to use from"
+  },
+  {
+   "pacchetto": "black",
+   "versione": "23.3.0",
+   "id": "CVE-2026-114134",
+   "alias": [
+    "GHSA-cg8m-r9f2-5wm2"
+   ],
+   "fix": [
+    "26.10.1"
+   ],
+   "descrizione": "### Summary  The GitHub Action bundled with Black can read the version from `tool.black.required-version` if `use_pyproject` is set to True. This version is not validated and therefore can be used to "
+  },
+  {
+   "pacchetto": "filelock",
+   "versione": "3.32.7",
+   "id": "CVE-2026-112940",
+   "alias": [
+    "GHSA-v4x8-3wr5-3wq8"
+   ],
+   "fix": [
+    "4.2.1"
+   ],
+   "descrizione": "`ReadWriteLock` and `AsyncReadWriteLock` (the SQLite-backed reader/writer lock) hand SQLite a name they do not control. On Linux the lock validates its database through a descriptor (the number the ke"
+  },
+  {
+   "pacchetto": "filelock",
+   "versione": "3.32.7",
+   "id": "CVE-2026-112913",
+   "alias": [
+    "GHSA-9vhv-jxww-xfm5"
+   ],
+   "fix": [
+    "4.2.1"
+   ],
+   "descrizione": "On Windows, `ReadWriteLock` and `AsyncReadWriteLock` (the SQLite-backed reader/writer lock) connect SQLite to the lock database by its path, in every directory. SQLite derives three side files from th"
+  },
+  {
+   "pacchetto": "filelock",
+   "versione": "3.32.7",
+   "id": "CVE-2026-112907",
+   "alias": [
+    "GHSA-567q-5qvw-pf92"
+   ],
+   "fix": [
+    "4.2.1"
+   ],
+   "descrizione": "On Windows the soft locks (`SoftFileLock`, `MarkerSoftFileLock`, `SoftFileLease`, their async forms, and a `FileLock` that fell back to a soft lock) read their marker by path. The marker is the lock f"
+  },
+  {
+   "pacchetto": "filelock",
+   "versione": "3.32.7",
+   "id": "CVE-2026-112938",
+   "alias": [
+    "GHSA-m462-7rxw-wvpg"
+   ],
+   "fix": [
+    "4.2.1"
+   ],
+   "descrizione": "`StrictSoftFileLock` and `AsyncStrictSoftFileLock` check `<path>.filelock` (the coordination directory that holds the lock's state) with one `lstat` call on its name. `lstat` reports what a name is wi"
+  },
+  {
+   "pacchetto": "filelock",
+   "versione": "3.32.7",
+   "id": "CVE-2026-112936",
+   "alias": [
+    "GHSA-j8f7-rjxc-mr56"
+   ],
+   "fix": [
+    "4.0.9"
+   ],
+   "descrizione": "### Summary  `ReadWriteLock` and `AsyncReadWriteLock` resolve the lock path with `pathlib.Path.resolve()` and pass it to `sqlite3.connect()` without refusing a symlink. A local user who can create nam"
+  },
+  {
+   "pacchetto": "filelock",
+   "versione": "3.32.7",
+   "id": "CVE-2026-112910",
+   "alias": [
+    "GHSA-8mx5-7m5m-r77g"
+   ],
+   "fix": [
+    "4.2.1"
+   ],
+   "descrizione": "filelock on Windows ignores the `mode` argument. `FileLock(path, mode=0o600)` creates the same file as `FileLock(path)`: one with no security descriptor of its own (the Windows record that says who ma"
+  },
+  {
+   "pacchetto": "filelock",
+   "versione": "3.32.7",
+   "id": "CVE-2026-112909",
+   "alias": [
+    "GHSA-69hj-f68j-2879"
+   ],
+   "fix": [
+    "4.2.1"
+   ],
+   "descrizione": "`UnixFileLock`, the backend of `FileLock` and `AsyncFileLock` on Unix, empties whatever regular file it finds at the lock path once it holds the `flock` (a kernel lock on an open file). With an explic"
+  },
+  {
+   "pacchetto": "filelock",
+   "versione": "3.32.7",
+   "id": "CVE-2026-112911",
+   "alias": [
+    "GHSA-9c4x-gm8v-wgc4"
+   ],
+   "fix": [
+    "4.2.1"
+   ],
+   "descrizione": "`StrictSoftFileLock`, `AsyncStrictSoftFileLock`, `SoftReadWriteLock` and `AsyncSoftReadWriteLock` keep their whole ownership state as files in a directory derived from the lock path (`<path>.filelock/"
+  },
+  {
+   "pacchetto": "filelock",
+   "versione": "3.32.7",
+   "id": "CVE-2026-112939",
+   "alias": [
+    "GHSA-rfpc-qcw5-3pc4"
+   ],
+   "fix": [
+    "4.2.1"
+   ],
+   "descrizione": "`SoftFileLock`, `MarkerSoftFileLock`, `SoftFileLease`, their async variants and a `FileLock` that has fallen back to a soft lock on `ENOSYS` decide from the record inside the marker file whether its o"
+  },
+  {
+   "pacchetto": "filelock",
+   "versione": "3.32.7",
+   "id": "CVE-2026-112915",
+   "alias": [
+    "GHSA-cwqr-hh33-gh44"
+   ],
+   "fix": [
+    "4.2.1"
+   ],
+   "descrizione": "`ReadWriteLock` and `AsyncReadWriteLock` (the SQLite-backed reader/writer lock) run `PRAGMA journal_mode=MEMORY` on a fresh connection for every acquire. That statement makes SQLite load the whole sch"
+  },
+  {
+   "pacchetto": "filelock",
+   "versione": "3.32.7",
+   "id": "CVE-2026-112935",
+   "alias": [
+    "GHSA-fq56-3cx3-fjxp"
+   ],
+   "fix": [
+    "4.2.1"
+   ],
+   "descrizione": "The stale-lock break shared by `SoftFileLock`, `MarkerSoftFileLock` and `SoftFileLease` (and their async variants, and a `FileLock` that has fallen back to a soft lock on `ENOSYS`, the \"not implemente"
+  },
+  {
+   "pacchetto": "filelock",
+   "versione": "3.32.7",
+   "id": "CVE-2026-112912",
+   "alias": [
+    "GHSA-9j6q-wvj5-jgjg"
+   ],
+   "fix": [
+    "4.2.1"
+   ],
+   "descrizione": "`raise_on_not_writable_file()` is the check that `SoftFileLock` and the locks sharing its acquire path run before every attempt. It looks at the lock path with `os.lstat`, so that it judges a planted "
+  },
+  {
+   "pacchetto": "filelock",
+   "versione": "3.32.7",
+   "id": "CVE-2026-112908",
+   "alias": [
+    "GHSA-6627-m3xw-93mp"
+   ],
+   "fix": [
+    "4.2.1"
+   ],
+   "descrizione": "`StrictSoftFileLock` and `AsyncStrictSoftFileLock` apply the caller's `mode` to the sentinel (the lock file at `<path>`) and to both claim files (the files whose presence says a process wants or holds"
+  }
+ ]
+}

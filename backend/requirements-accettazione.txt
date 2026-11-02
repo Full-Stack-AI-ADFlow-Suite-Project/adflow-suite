@@ -1,0 +1,12 @@
+# Dipendenze dei test di accettazione (corsia 10, ADR-120).
+#
+# Non entrano in requirements.txt: servono solo ai test di proprietà di
+# `backend/tests/accettazione/proprieta/`, che si saltano se hypothesis non è
+# installato.
+# Si installano con: da `backend/`, `uv pip install -r requirements-accettazione.txt`
+# (oppure `uv run --with-requirements requirements-accettazione.txt pytest`).
+#
+# hypothesis 6.170.14 — MPL-2.0 — macchine a stati e generazione casuale per
+#   gli attacchi agli invarianti (T4-104). Motivo: provare sequenze di azioni
+#   che nessun test scritto a mano coprirebbe.
+hypothesis==6.170.14

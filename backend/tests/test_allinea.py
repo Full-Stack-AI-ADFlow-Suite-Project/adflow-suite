@@ -66,6 +66,27 @@ def _per_id(corsie) -> dict:
     return {task.id: task for corsia in corsie for task in corsia.task}
 
 
+PAGINA_SPRINT_4 = """
+## Sprint 3 · MVP
+
+### Corsia 0 · Comune (tutto il team)
+
+| ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
+|---|---|---|---|---|---|
+| T3-07 | **Chiusura**: percorso della demo | converge §4 | tutti i task dello sprint | CA verdi | ☑ |
+
+## Sprint 4 · Simulazione di accettazione dell'MVP
+
+### Corsia 10 · Simulazione di accettazione (Giovanni con gli agenti)
+
+| ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
+|---|---|---|---|---|---|
+| T4-100 | **Preparazione della corsia 10**: ADR-120 e brief | `brief-accettazione.md` | T3-07 | allinea mostra T4-101 | ☑ |
+| T4-101 | **Linea di base**: scansioni e copertura | `brief-accettazione.md` §T4-101 | T4-100 | report salvati | ☐ |
+| T4-108 | **Sintesi**: criteri e classi dei rilievi | `brief-accettazione.md` §T4-108 | tutti i task dello sprint | caselle con esito | ☐ |
+"""
+
+
 def test_legge_corsie_task_e_follow_up_aperti():
     corsie, aperti = allinea.leggi_tasks(PAGINA)
 
@@ -155,24 +176,25 @@ def test_la_pagina_vera_si_legge_per_intero():
 
     sprint = list(dict.fromkeys(c.sprint for c in corsie))
     # gli sprint 1, 2a e 2b sono in docs/archivio/tasks-sprint-1-2.md
-    assert sprint == ["3"]
-    for uno in sprint:
-        # la corsia 6 è nata con ADR-116 (interventi e richiesta all'artigiano),
-        # la 7 con ADR-117 (pagine, archivio foto e calendario),
-        # la 8 con ADR-118 (interfaccia ed esperienza d'uso),
-        # la 9 con ADR-119 (richieste dopo la prova)
-        assert [c.numero for c in corsie if c.sprint == uno] == [
-            0,
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8,
-            9,
-        ]
+    assert sprint == ["3", "4"]
+    # la corsia 6 è nata con ADR-116 (interventi e richiesta all'artigiano),
+    # la 7 con ADR-117 (pagine, archivio foto e calendario),
+    # la 8 con ADR-118 (interfaccia ed esperienza d'uso),
+    # la 9 con ADR-119 (richieste dopo la prova)
+    assert [c.numero for c in corsie if c.sprint == "3"] == [
+        0,
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+    ]
+    # la corsia 10 è la simulazione di accettazione (ADR-120)
+    assert [c.numero for c in corsie if c.sprint == "4"] == [10]
     letti = [t.id for c in corsie for t in c.task]
     scritti = re.findall(r"^\| (T\d[ab]?-\d\d\d?) \|", testo, flags=re.MULTILINE)
     assert letti == scritti
@@ -196,3 +218,37 @@ def test_lo_sprint_si_apre_e_si_chiude_con_la_corsia_0():
     assert task["T3-01"].dipende_da == []
     assert task["T3-07"].tutti
     assert all(voce.startswith("#") for voce in aperti)
+
+
+def test_legge_la_corsia_10_dello_sprint_4():
+    corsie, _ = allinea.leggi_tasks(PAGINA_SPRINT_4)
+
+    corsia = [c for c in corsie if c.numero == 10][0]
+    assert corsia.sprint == "4"
+    assert corsia.nome == "Simulazione di accettazione"
+    assert corsia.chi == "Giovanni con gli agenti"
+    assert [t.id for t in corsia.task] == ["T4-100", "T4-101", "T4-108"]
+    assert corsia.task[0].titolo == "Preparazione della corsia 10"
+    assert corsia.task[1].dipende_da == ["T4-100"]
+
+
+def test_la_corsia_10_diventa_lo_sprint_corrente_e_i_task_sono_pronti():
+    corsie, _ = allinea.leggi_tasks(PAGINA_SPRINT_4)
+
+    # lo sprint 3 è completo: il primo con un task da fare è il 4
+    assert allinea.sprint_corrente(corsie) == "4"
+    manca = allinea.stato_dei_task(corsie)
+    assert manca["T4-101"] == []  # T4-100 è fatto: la linea di base è pronta
+    # la sintesi aspetta tutti gli altri task dello sprint 4, T4-101 compreso
+    assert manca["T4-108"] == ["T4-101"]
+
+
+def test_la_scelta_della_corsia_arriva_fino_a_10():
+    assert allinea.numero_corsia("0") == 0
+    assert allinea.numero_corsia("9") == 9
+    assert allinea.numero_corsia("10") == 10
+    # oltre la 10 o fuori dai numeri: corsia non valida
+    assert allinea.numero_corsia("11") is None
+    assert allinea.numero_corsia("99") is None
+    assert allinea.numero_corsia("1x") is None
+    assert allinea.numero_corsia("") is None

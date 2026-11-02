@@ -16,6 +16,7 @@ Lo sprint di lavoro è lo **Sprint 3 · MVP** (ADR-114, `perimetro-mvp.md`): con
 | 7 · Pagine, archivio foto e calendario | Giovanni | ADR-117: ingresso e campagne dell'artigiano, pagine degli artigiani per l'operatore, archivio foto in sola lettura, calendario settimanale (`brief-pagine.md`); il restyling è passato alla corsia 8 |
 | 8 · Interfaccia ed esperienza d'uso | da assegnare | ADR-118: scelte d'uso e visive fatte da chi sviluppa con la guida di `brief-interfaccia.md`, tema, testi, layout e telefono, prova con due persone, senza cambi di comportamento |
 | 9 · Richieste dopo la prova | Giovanni | ADR-119: stati leggibili, nome della bottega, durata rapida, campagne sovrapposte, Rigenera testo unica, Cambia immagine e Rifai il post, Rigenera immagine, prompt v3, foto nelle proporzioni dei canali, storico dell'AI con numeri e voto (`brief-richieste.md`) |
+| 10 · Simulazione di accettazione | Giovanni con gli agenti | ADR-120: l'MVP messo alla prova come prima della produzione; rilievi, non correzioni (`brief-accettazione.md`) |
 
 Nelle tabelle le aree si chiamano ancora "Corsia", perché `allinea.py` le legge così.
 
@@ -167,6 +168,28 @@ Ogni task ha in `brief-richieste.md` i file da toccare, le firme, i messaggi d'e
 | T3-925 | **Prova dei prompt v3** su una campagna del seed, confronto con v2 e voto | `brief-richieste.md` §T3-925 | T3-910, T3-911, T3-916, T3-920 | tabella e immagini a confronto nella PR | ☑ |
 | T3-926 | **Pagine statiche della corsia 9** | `brief-richieste.md` §T3-926 | T3-901, T3-902, T3-903, T3-915, T3-923, T3-924 | pagine riviste da un collega; mappa aggiornata | ☑ |
 | T3-927 | **Prova della corsia 9**: test di percorso e percorso a mano in due finestre | `brief-richieste.md` §T3-927; converge §4 | T3-901, T3-902, T3-903, T3-904, T3-905, T3-906, T3-907, T3-908, T3-909, T3-910, T3-911, T3-912, T3-913, T3-914, T3-915, T3-916, T3-917, T3-918, T3-919, T3-920, T3-921, T3-922, T3-923, T3-924, T3-925, T3-926 | CA-116 verde; passi della demo di converge §4 senza errori; screenshot nella PR | ☑ |
+
+## Sprint 4 · Simulazione di accettazione dell'MVP
+
+Lo sprint 4 mette alla prova l'MVP come se si dovesse autorizzare la produzione (ADR-120, `docs/accettazione-post-mvp.md`). Non aggiunge funzioni e non corregge: ogni task scrive i suoi rilievi in `docs/accettazione/rilievi.md`, e i difetti restano documentati da test in `xfail(strict=True)`. Le correzioni le decide T4-108.
+
+**Ordine.** Un task alla volta, in ordine di numero, eseguito da un agente guidato da Giovanni. Ogni task su un branch `feature/T4-1xx-<breve>` aperto dal branch della simulazione, e unito lì. Niente su `main` prima del 6/11.
+
+### Corsia 10 · Simulazione di accettazione (Giovanni con gli agenti)
+
+Ogni task ha in `brief-accettazione.md` i file da toccare e da non toccare e il suo "Fatto quando": si legge la sezione del proprio task, non tutto il brief.
+
+| ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
+|---|---|---|---|---|---|
+| T4-100 | **Preparazione della corsia 10**: ADR-120, `brief-accettazione.md`, corsia 10 in questa pagina, `allinea.py` che accetta la corsia 10, registro dei rilievi vuoto | `accettazione-post-mvp.md` §1.2, §12; ADR-114 | T3-07 | `uv run python allinea.py 10` mostra T4-101 tra i pronti; `tests/test_allinea.py` verde con la corsia 10; `docs/accettazione/rilievi.md` con l'intestazione; comandi di converge §1 verdi | ☑ |
+| T4-101 | **Linea di base**: ricostruzione da zero, scansioni di sicurezza, dipendenze, copertura dei rami, tracciabilità dei CA | `brief-accettazione.md` §T4-101; `accettazione-post-mvp.md` §4.1, §4.2, §5.3, §6 | T4-100 | report delle scansioni e della copertura in `docs/accettazione/report/`; matrice requisito → CA → test; rilievi per R-05, R-06, R-07 e per ogni risultato alto; nessuna modifica all'app | ☑ |
+| T4-102 | **Permessi e superficie HTTP**: matrice dei permessi su tutte le operazioni, header, origine, upload, indirizzo pubblico delle foto, BOLA sui nuovi endpoint, limite delle azioni AI | `brief-accettazione.md` §T4-102; `accettazione-post-mvp.md` §5.2, §5.4 punti 1–5; constitution §3 | T4-100 | test della matrice che legge lo schema e fallisce se un'operazione non ha la sua riga; ogni differenza dall'atteso è un rilievo con un test in `xfail(strict=True)`; rilievi per R-01, R-02, R-12, R-15, R-16, R-17 | ☑ |
+| T4-103 | **Concorrenza**: richieste parallele su approvazione, interventi, rigenerazioni, invio, campagne sovrapposte, voto e pubblicazione | `brief-accettazione.md` §T4-103; `accettazione-post-mvp.md` §7.3; constitution §1 e §2 | T4-100 | un test con barriera per ogni scenario di §7.3; quelli verdi ripetuti 50 volte senza fallire, quelli rossi in `xfail(strict=True)` con il rilievo e la correzione proposta; R-03 e R-04 confermati o smentiti | ☑ |
+| T4-104 | **Invarianti e proprietà**: attacchi agli 11 invarianti, macchine a stati, fuzzing dallo schema, test di mutazione | `brief-accettazione.md` §T4-104; `accettazione-post-mvp.md` §4.3, §6 | T4-100 | ogni invariante con almeno un test che prova a violarlo; report di hypothesis (10 000 sequenze), schemathesis e mutmut; ogni controesempio, 500 o mutante significativo è un rilievo | ☑ |
+| T4-105 | **Esercizio, guasti e carico**: guasti provocati, carico sui processi locali, backup e ripristino, osservabilità, una prova sulla pagina Meta di prova | `brief-accettazione.md` §T4-105; `accettazione-post-mvp.md` §6, §7; `docs/sicurezza-accesso.md` | T4-100 | un test per ogni guasto di §7.4; report di carico, picco e durata confrontato con i numeri ipotizzati e dichiarati; ripristino di database e foto cronometrato; rilievi per R-09, R-10, R-11 e per ciò che non si vede |☑ |
+| T4-106 | **Frontend**: percorso della demo in Playwright a due ruoli da database vuoto, accessibilità, contratto dei tipi con lo schema | `brief-accettazione.md` §T4-106; `accettazione-post-mvp.md` §4.4, §6; converge §4 | T4-100 | lo script E2E gira in locale con video e traccia nel report; report di axe; differenze tra schema e tipi elencate; rilievi per R-08 e per ogni passo che fallisce; build e lint puliti |☑ |
+| T4-107 | **Analisi a tavolino**: minacce STRIDE, prompt injection (anche con l'AI vera, tetto 2 €), log, segreti, dati personali e AI Act, checklist ASVS L2 | `brief-accettazione.md` §T4-107; `accettazione-post-mvp.md` §5 | T4-100 | modello delle minacce con una difesa o un rilievo per ogni minaccia; report della prova con l'AI vera con il costo; analisi delle lacune GDPR e AI Act; checklist ASVS L2 con una prova o un rilievo per requisito |☑ |
+| T4-108 | **Sintesi**: criteri di §8 valutati, rilievi classificati, task di correzione proposti, limiti dell'MVP, nuova versione della proposta | `brief-accettazione.md` §T4-108; `accettazione-post-mvp.md` §8 | tutti i task dello sprint | ogni casella di §8 con un esito; ogni rilievo con una classe; `docs/accettazione/sintesi.md` con i task di correzione proposti e i limiti dell'MVP; proposta riscritta con ciò che si è imparato |☑ |
 
 ## Dopo l'MVP
 

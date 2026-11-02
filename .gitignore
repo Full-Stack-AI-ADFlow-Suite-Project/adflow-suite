@@ -233,3 +233,7 @@ Thumbs.db
 CHANGELOG_LOCALE.md
 *_LOCALE.md
 *_LOCALE.log
+
+# Report Playwright della simulazione di accettazione (T4-106)
+frontend/test-results/
+frontend/playwright-report/

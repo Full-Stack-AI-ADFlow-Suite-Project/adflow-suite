@@ -1,0 +1,18 @@
+{
+ "pagina": "artigiano-ingresso",
+ "url": "http://127.0.0.1:5173/ingresso",
+ "violazioni": [
+  {
+   "id": "color-contrast",
+   "impatto": "serious",
+   "descrizione": "Elements must meet minimum color contrast ratio thresholds",
+   "nodi": 7
+  },
+  {
+   "id": "link-in-text-block",
+   "impatto": "serious",
+   "descrizione": "Links must be distinguishable without relying on color",
+   "nodi": 1
+  }
+ ]
+}

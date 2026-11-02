@@ -1,0 +1,32 @@
+T4-104 · hypothesis sulle macchine a stati — evidenza locale (30-31/10/2026)
+==========================================================================
+
+Comando (da backend/, con le dipendenze dei test di accettazione):
+
+    ACCETTAZIONE_SEQUENZE=300 uv run --with-requirements \
+        requirements-accettazione.txt pytest tests/accettazione/proprieta -q
+
+Esito: 2 passed in 228,62 s (≈ 0,76 s per sequenza), nessun controesempio su
+300 sequenze per macchina (600 in tutto).
+
+Che cosa è stato provato prima, e perché la corsa è da 300 e non da 10 000:
+
+1. Una sola corsa con ACCETTAZIONE_SEQUENZE=10000, come chiede la §6 del
+   documento di accettazione: dopo circa 4 minuti PostgreSQL ha risposto
+   «OutOfMemory: out of shared memory» (esaurimento dei lock condivisi). Le due
+   macchine lavorano in un'unica transazione lunga con migliaia di savepoint:
+   è un limite dello strumento in questa configurazione, non del codice. Gli
+   errori a valle (relazioni `utente`/`limite_login` «does not exist») sono la
+   conseguenza dello stesso guasto.
+2. Una campagna di 10 corse da 1 000 sequenze (10 000 in tutto), ognuna in un
+   processo nuovo: la prima corsa non era finita dopo cinque minuti e la
+   campagna è stata fermata per il budget della sessione (≈ 13 minuti per
+   corsa, ≈ 2 ore per le dieci).
+3. La corsa registrata qui, 300 sequenze per macchina: verde.
+
+Per rifare la corsa completa quando c'è tempo: lanciare il comando qui sopra
+con ACCETTAZIONE_SEQUENZE=1000 dieci volte (o alzare
+max_locks_per_transaction di PostgreSQL e usare 10 000 in una volta sola).
+
+I test si saltano da soli se hypothesis non è installato (`pytest.importorskip`),
+quindi `uv run pytest` senza le dipendenze di accettazione resta verde.
