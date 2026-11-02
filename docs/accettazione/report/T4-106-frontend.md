@@ -35,6 +35,8 @@ Evidenza: `T4-106-traccia.zip` (traccia Playwright con screencast passo per
 passo). Il video `.webm` separato non viene prodotto da questa versione di
 Playwright su questa macchina (il browser è quello in cache, usato con
 `executablePath`): lo screencast nella traccia è l'evidenza visiva equivalente.
+Nella traccia i valori delle intestazioni `Cookie` e `Set-Cookie` sono redatti
+(`REDATTO`): gli screenshot e il resto delle richieste sono quelli della corsa.
 
 ## 2. Accessibilità (axe): 4 violazioni gravi (RL-035)
 
