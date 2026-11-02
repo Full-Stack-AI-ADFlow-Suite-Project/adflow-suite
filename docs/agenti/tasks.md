@@ -203,7 +203,7 @@ Tre corsie, una per sviluppatore, 5 ore ciascuna (ADR-121). Ogni task ha in `bri
 | ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
 |---|---|---|---|---|---|
 | T5-111 | **Pubblicazione al massimo una volta**: tentativo confermato prima del social, nessuna ripubblicazione dopo un esito sconosciuto (RL-025) | `brief-corsia-rapida.md` §T5-111; constitution §1.7, §2.6 | T4-108 | RL-025 non è più `xfail`; `alembic downgrade -1` e `upgrade head` funzionano; suite verde | ☐ |
-| T5-112 | **Prova finale del percorso**: converge §4 su `main`, da database vuoto, con AI e Meta veri | `brief-corsia-rapida.md` §T5-112; converge §4 | tutti i task dello sprint | report `T5-112-percorso.md` scritto e nessun punto rotto | ☐ |
+| T5-112 | **Prova finale del percorso**: converge §4 su `main`, da database vuoto, con AI e Meta veri | `brief-corsia-rapida.md` §T5-112; converge §4 | T5-111, T5-121, T5-122, T5-131, T5-133 | report `T5-112-percorso.md` scritto e nessun punto rotto | ☐ |
 
 ### Corsia 12 · Corsia rapida: concorrenza e guasti (Sviluppatore B)
 

@@ -64,9 +64,9 @@ Per chi fa un task delle corsie rapide. Decisione: ADR-121. Leggi prima `constit
 
 ## T5-112 · Prova finale del percorso
 
-**Tetto**: 1,5 ore · **Corsia**: 11 · **Dipende da**: tutti gli altri task dello sprint
+**Tetto**: 1,5 ore · **Corsia**: 11 · **Dipende da**: T5-111, T5-121, T5-122, T5-131, T5-133, cioè le correzioni che toccano il percorso. Sono su `main` entro la quarta ora.
 
-Il percorso di `converge.md` §4, punti 1–6 e 9, su `main` e da database vuoto, con AI vera e Meta sulla pagina di prova. Il tetto di spesa AI è **5 €**. In `docs/accettazione/report/T5-112-percorso.md`: esito per punto, costo letto dallo Storico AI, ciò che si è rotto. Nessun token, id o cookie nel report.
+Il percorso di `converge.md` §4, punti 1–6 e 9, su `main` e da database vuoto, con AI vera e Meta sulla pagina di prova. Il tetto di spesa AI è **5 €**. Prima di chiudere si ripetono i punti 2 e 3 su `main` aggiornato, con ciò che nel frattempo è stato unito. In `docs/accettazione/report/T5-112-percorso.md`: esito per punto, costo letto dallo Storico AI, ciò che si è rotto. Nessun token, id o cookie nel report.
 
 Se un punto è rotto: il task che l'ha rotto lo corregge o la sua PR si annulla con `git revert`. La demo vale più della correzione.
 
