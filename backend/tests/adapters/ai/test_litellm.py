@@ -143,6 +143,7 @@ def _voce(foto_id: int, **campi) -> dict:
         motivo=None,
         punteggio=4,
         simile_a=None,
+        soggetto_box={"x": 0.2, "y": 0.1, "larghezza": 0.6, "altezza": 0.7},
         persone_riconoscibili=False,
         marchi_visibili=False,
     )
@@ -224,7 +225,7 @@ def test_ogni_errore_del_provider_diventa_uno_dei_cinque_tipi(
     with pytest.raises(ErroreAI) as sollevato:
         ai.genera_post(SNAPSHOT, CAMPAGNA, _post(), domain.SCHEDE_CANALE["instagram"])
     assert sollevato.value.tipo == tipo
-    assert ai.ultimo_uso is None
+    assert (ai.ultimo_uso.esito, ai.ultimo_uso.costo_usd) == (tipo, 0)
 
 
 def test_il_messaggio_per_l_operatore_non_riporta_il_testo_del_provider(completion, ai):
@@ -312,7 +313,7 @@ def test_ultimo_uso_ha_modello_token_e_costo_di_litellm(completion, ai):
     assert (scritto.provider, scritto.modello, scritto.versione_prompt) == (
         "litellm",
         "testo-di-prova",
-        "post_v2",
+        "post_v3",
     )
 
 
@@ -340,7 +341,7 @@ def test_un_errore_cancella_l_uso_della_chiamata_di_prima(completion, ai):
     assert ai.ultimo_uso is not None
     with pytest.raises(ErroreAI):
         ai.genera_post(SNAPSHOT, CAMPAGNA, _post(), domain.SCHEDE_CANALE["instagram"])
-    assert ai.ultimo_uso is None
+    assert ai.ultimo_uso.esito == "temporaneo"
 
 
 # --- Chiamata ------------------------------------------------------------------
@@ -428,6 +429,7 @@ def test_analisi_una_chiamata_per_gruppo_con_foto_ridotte_a_1024(
         "motivo": None,
         "soggetto": "Un vaso di terracotta",
         "descrizione": "Un vaso di terracotta rossa su un tavolo di legno chiaro.",
+        "soggetto_box": {"x": 0.2, "y": 0.1, "larghezza": 0.6, "altezza": 0.7},
         "persone_riconoscibili": False,
         "marchi_visibili": False,
     }
@@ -576,6 +578,7 @@ def test_il_piano_arriva_nella_forma_che_il_controllo_si_aspetta(completion, ai)
                 "numero": numero,
                 "tema": f"Tema {numero}",
                 "gruppo_id": 1,
+                "scena": None,
                 "post": [
                     {
                         "canale": "facebook",
@@ -590,6 +593,7 @@ def test_il_piano_arriva_nella_forma_che_il_controllo_si_aspetta(completion, ai)
         ],
     }
     completion.metti(risposta(piano))
+    occupati = [{"canale": "facebook", "data_ora": "2030-01-08T10:00:00+01:00"}]
     scritto = ai.pianifica_campagna(
         SNAPSHOT,
         CAMPAGNA,
@@ -597,11 +601,12 @@ def test_il_piano_arriva_nella_forma_che_il_controllo_si_aspetta(completion, ai)
         limiti,
         domain.SCHEDE_CANALE,
         non_prima_di=ADESSO,
+        orari_occupati=occupati,
     )
     assert (scritto.provider, scritto.modello, scritto.versione_prompt) == (
         "litellm",
         "testo-di-prova",
-        "piano_v2",
+        "piano_v3",
     )
     assert scritto.contenuto == piano
     assert (
@@ -623,6 +628,7 @@ def test_il_piano_arriva_nella_forma_che_il_controllo_si_aspetta(completion, ai)
     assert dati["canali"]["facebook"]["foto_disponibili"] == [1, 2, 3]
     assert "foto_riempitivo" not in dati["canali"]["facebook"]
     assert dati["non_prima_di"] == ADESSO.isoformat()
+    assert dati["orari_occupati"] == occupati
     assert "piano_precedente" not in dati
 
 
@@ -716,7 +722,7 @@ def test_i_tipi_di_foto_dello_schema_sono_quelli_di_campagne():
     assert set(TipoFoto.__args__) == set(TIPI_CONTENUTO)
 
 
-@pytest.mark.parametrize("nome", ["analisi_v2", "piano_v2", "post_v2"])
+@pytest.mark.parametrize("nome", ["analisi_v3", "piano_v3", "post_v3"])
 def test_i_prompt_esistono_e_hanno_la_versione_nel_nome(nome):
     assert modulo._prompt(nome).strip()
 
@@ -767,7 +773,7 @@ def test_l_immagine_si_chiede_quadrata_di_qualita_media_senza_tentativi_di_litel
         "litellm",
         "immagini-di-prova",
     )
-    assert immagine.versione_prompt == "immagine_v2"
+    assert immagine.versione_prompt == "immagine_v3"
     with Image.open(BytesIO(immagine.contenuto)) as aperta:
         assert aperta.size == (1024, 1024)
 
@@ -840,7 +846,7 @@ def test_ogni_errore_dell_immagine_diventa_uno_dei_cinque_tipi(
 
     assert sollevato.value.tipo == tipo
     assert sollevato.value.foto_id is None
-    assert ai.ultimo_uso is None
+    assert (ai.ultimo_uso.esito, ai.ultimo_uso.costo_usd) == (tipo, 0)
     assert "Incorrect API key" not in sollevato.value.messaggio
 
 
@@ -863,7 +869,7 @@ def test_un_immagine_vuota_illeggibile_o_di_un_altro_formato_e_di_tipo_risposta(
         ai.genera_immagine("Un prompt")
 
     assert sollevato.value.tipo == "risposta"
-    assert ai.ultimo_uso is None
+    assert ai.ultimo_uso.esito == "risposta"
 
 
 def test_senza_il_modello_delle_immagini_la_chiamata_e_di_configurazione(
@@ -879,7 +885,7 @@ def test_senza_il_modello_delle_immagini_la_chiamata_e_di_configurazione(
 
 
 def test_il_prompt_dell_immagine_esiste_con_la_versione_nel_nome():
-    assert modulo._prompt("immagine_v2").strip()
+    assert modulo._prompt("immagine_v3").strip()
 
 
 # --- Prompt dell'immagine (R-43) -----------------------------------------------------
@@ -892,19 +898,15 @@ PROFILO = {
 }
 
 
-def test_il_prompt_dell_immagine_e_quello_del_brief():
+def test_il_prompt_dell_immagine_senza_scena_parte_dal_tema():
     prompt = prompt_immagine(PROFILO, "Il tornio al lavoro", date(2030, 1, 7))
 
     assert prompt == (
         "Fotografia realistica, quadrata, per una bottega di ceramica e vetro a Deruta.\n"
         "Soggetto: Il tornio al lavoro, mostrato attraverso ambiente, materiali o "
         "attrezzi della lavorazione.\n"
-        "Inquadratura: un solo soggetto chiaro, ripreso da vicino o a mezza distanza, "
-        "sfondo semplice e leggermente sfocato, come una foto scattata in bottega con "
-        "una buona fotocamera.\n"
         "Stagione: inverno.\n"
         "Tono: caldo, professionale.\n"
-        "Luce naturale, morbida, colori fedeli e caldi, senza effetti artificiali.\n"
         "Vincoli: nessun prodotto finito riconoscibile, nessuna persona riconoscibile, "
         "nessun testo, logo o marchio."
     )
@@ -928,7 +930,6 @@ def test_il_prompt_semplice_non_ha_ne_tono_ne_stagione_ma_tiene_i_vincoli():
 
     assert "Stagione" not in prompt and "Tono" not in prompt
     assert "Soggetto: Tema," in prompt
-    assert "Luce naturale," in prompt
     assert "Vincoli: nessun prodotto finito riconoscibile" in prompt
 
 
@@ -949,4 +950,135 @@ def test_un_tema_lungo_o_su_piu_righe_non_rompe_il_prompt():
 
     soggetto = next(r for r in prompt.splitlines() if r.startswith("Soggetto:"))
     assert len(soggetto) < 400
-    assert len(prompt.splitlines()) == 7
+    assert len(prompt.splitlines()) == 5
+
+
+SCENA = {
+    "soggetto": "argilla sul banco",
+    "inquadratura": "banco_dall_alto",
+    "luce": "luce del mattino",
+    "colori": "terra e ocra",
+}
+CAMPAGNA_IMMAGINE = {
+    "titolo": "Autunno in bottega",
+    "descrizione": "Le lavorazioni di ottobre.",
+    "obiettivo": "notorieta",
+}
+
+
+def test_ca113_il_prompt_parte_dalla_scena_e_dalla_campagna():
+    """CA-113: scena, campagna, stile e nota entrano nel prompt."""
+    prompt = prompt_immagine(
+        PROFILO,
+        "Tema",
+        date(2030, 1, 7),
+        campagna=CAMPAGNA_IMMAGINE,
+        scena=SCENA,
+        stile="fondale chiaro, luce laterale, toni caldi",
+        nota="più luce",
+    )
+
+    for atteso in (
+        "argilla sul banco",
+        "banco_dall_alto",
+        "luce del mattino",
+        "terra e ocra",
+        "Autunno in bottega",
+        "Le lavorazioni di ottobre.",
+        "notorieta",
+        "fondale chiaro, luce laterale, toni caldi",
+        "più luce",
+    ):
+        assert atteso in prompt
+    # Le righe fisse di v2 non ci sono più.
+    assert "sfondo semplice e leggermente sfocato" not in prompt
+    assert "colori fedeli e caldi" not in prompt
+    # Con la scena il soggetto non è più il tema.
+    assert "Soggetto: Tema" not in prompt
+
+
+def test_ca113_due_scene_con_inquadrature_diverse_danno_prompt_diversi():
+    """CA-113: due inquadrature diverse producono due prompt diversi."""
+    prima = prompt_immagine(
+        PROFILO,
+        "Tema",
+        date(2030, 1, 7),
+        scena={**SCENA, "inquadratura": "dettaglio_materia"},
+    )
+    dopo = prompt_immagine(
+        PROFILO,
+        "Tema",
+        date(2030, 1, 7),
+        scena={**SCENA, "inquadratura": "bottega_campo_largo"},
+    )
+
+    assert prima != dopo
+    assert "dettaglio_materia" in prima
+    assert "bottega_campo_largo" in dopo
+
+
+def test_ca113_la_versione_semplice_toglie_stagione_e_tono_ma_tiene_la_scena():
+    """CA-113, R-35: la seconda prova resta senza stagione e tono."""
+    prompt = prompt_immagine(
+        PROFILO,
+        "Tema",
+        date(2030, 1, 7),
+        semplice=True,
+        campagna=CAMPAGNA_IMMAGINE,
+        scena=SCENA,
+        stile="fondale chiaro",
+    )
+
+    assert "Stagione" not in prompt and "Tono" not in prompt
+    assert "argilla sul banco" in prompt
+    assert "Autunno in bottega" in prompt
+    assert "fondale chiaro" in prompt
+
+
+def test_gli_eventi_ricorrenti_entrano_solo_nel_periodo_giusto():
+    """T3-920: gli eventi ricorrenti del mese o della stagione del post."""
+    profilo = {
+        **PROFILO,
+        "eventi_ricorrenti": [
+            {
+                "nome": "Mercatino di Natale",
+                "quando": "dicembre",
+                "tipo": "fiera_mercatino",
+            }
+        ],
+    }
+
+    assert "Mercatino di Natale" in prompt_immagine(profilo, "Tema", date(2030, 12, 1))
+    assert "Mercatino di Natale" not in prompt_immagine(
+        profilo, "Tema", date(2030, 7, 1)
+    )
+
+
+@pytest.mark.parametrize(
+    "riquadro",
+    [
+        {"x": 0.5, "y": 0.1, "larghezza": 0.8, "altezza": 0.5},  # esce a destra
+        {"x": -0.1, "y": 0.1, "larghezza": 0.5, "altezza": 0.5},
+        {"x": 0.1, "y": 0.1, "larghezza": 0, "altezza": 0.5},
+        {"x": 0.1, "y": 0.1, "larghezza": 1.5, "altezza": 0.5},
+        {"x": 0.1, "y": 0.1, "larghezza": 0.5},  # manca un lato
+        {"x": "a", "y": 0.1, "larghezza": 0.5, "altezza": 0.5},
+        {"x": True, "y": 0.1, "larghezza": 0.5, "altezza": 0.5},
+        [0.1, 0.1, 0.5, 0.5],
+        "centro",
+    ],
+)
+def test_ca108_un_riquadro_fuori_misura_o_malformato_vale_none(
+    ai, completion, archivio, riquadro
+):
+    gruppo = _gruppo(archivio, 1)
+    completion.metti(risposta(_analisi_di(_voce(1, soggetto_box=riquadro))))
+
+    assert ai.analizza_gruppo(gruppo)[1]["soggetto_box"] is None
+
+
+def test_ca108_senza_soggetto_chiaro_il_riquadro_e_none(ai, completion, archivio):
+    gruppo = _gruppo(archivio, 1)
+    completion.metti(risposta(_analisi_di(_voce(1, soggetto_box=None))))
+
+    assert ai.analizza_gruppo(gruppo)[1]["soggetto_box"] is None

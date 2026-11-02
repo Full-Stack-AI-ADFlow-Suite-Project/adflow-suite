@@ -177,6 +177,14 @@ a.voce.attiva:hover {
   margin: 0 auto;
 }
 
+/* Nome della bottega e del referente, sopra il titolo (T3-902). */
+.bottega {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
+
 /* Il menu e il piede rimangono nello stesso ordine per entrambi i ruoli. */
 .menu {
   display: flex;

@@ -20,6 +20,8 @@ Regole, tutte obbligatorie:
 8. Se il canale non ammette link cliccabili (`link_cliccabili` è `false`), non scrivere indirizzi web.
 9. Una sola idea, frasi brevi. La prima frase aggancia chi scorre (su Instagram si vede solo quella), poi il racconto, infine un invito discreto (passare in bottega, scrivere, guardare da vicino). Nessun testo in maiuscolo, pochi emoji, nessun cliché come «non perdere» o «affrettati».
 
+10. Se ricevi `altri_post`, sono le prime frasi degli altri post della stessa campagna sullo stesso canale: non cominciare come uno di loro e non ripeterne le immagini o le chiamate all'azione.
+
 Se ricevi `testo_precedente` e `violazioni`, il testo precedente non ha superato il controllo: riscrivilo correggendo ogni violazione.
 Se ricevi `versioni_rifiutate`, sono testi che l'operatore ha già scartato: non ripeterli e non scriverne di quasi uguali.
 Se ricevi `testo_proposto`, parti da quel testo dell'operatore: miglioralo e portalo dentro i limiti, tenendone il senso.

@@ -17,10 +17,11 @@ import {
 import { Link } from "react-router-dom";
 
 import type { PostVista } from "../../../api/revisione";
+import { StatoBadge } from "../../../components/StatoBadge";
 import { AzioniPost } from "../vedi-campagna/post/AzioniPost";
 import { conCancelletto, interventoAttivo } from "../vedi-campagna/post/regole";
 import { StoricoVersioni } from "../vedi-campagna/post/StoricoVersioni";
-import { colorePost, dataOra, erroriDi, NOME_CANALE } from "./util";
+import { dataOra, erroriDi, NOME_CANALE } from "./util";
 
 function AnteprimaPost({
   post,
@@ -161,18 +162,11 @@ export function PostCard({
             <Text size="sm" c="dimmed" ff="monospace">
               {dataOra(post.data_ora)}
             </Text>
-            <Badge
-              color={colorePost(post.stato)}
-              variant="light"
-              ff="monospace"
-            >
-              {post.stato}
-            </Badge>
-            {post.da_rivedere && (
-              <Badge color="red" variant="light">
-                da rivedere
-              </Badge>
-            )}
+            <StatoBadge
+              tipo="post"
+              stato={post.stato}
+              daRivedere={post.da_rivedere}
+            />
             {avvisi.length > 0 && (
               <Badge color="yellow" variant="light">
                 {avvisi.length} avviso{avvisi.length > 1 ? "i" : ""}

@@ -79,6 +79,7 @@ export type StatoPost =
 export type Intervento =
   | "modifica"
   | "rigenera"
+  | "rigenera_immagine"
   | "cambia_foto"
   | "sposta"
   | "annulla"
@@ -90,6 +91,8 @@ export interface FotoPossibile {
   punteggio: number | null;
   /** Falso: arrivata con una richiesta all'artigiano, senza analisi (R-46). */
   analizzata: boolean;
+  provenienza: "gruppo" | "campagna" | "archivio";
+  soggetto: string | null;
 }
 
 /** PostSchema: riempitivo, versione corrente e storico. */

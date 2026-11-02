@@ -13,20 +13,13 @@ import type {
   PostSettimana,
 } from "../api/campagne";
 import stile from "./CalendarioSettimana.module.css";
+import { StatoBadge } from "./StatoBadge";
 
 const GIORNI = ["Dom", "Lun", "Mar", "Mer", "Gio", "Ven", "Sab"];
 
 const CANALE: Record<string, [string, string]> = {
   facebook: ["Facebook", "blue"],
   instagram: ["Instagram", "grape"],
-};
-
-/** Lo stato del post come lo legge chi guarda il calendario. */
-const STATO: Record<string, [string, string]> = {
-  approvato: ["In programma", "blue"],
-  pubblicato: ["Pubblicato", "green"],
-  fallito: ["Non pubblicato", "red"],
-  annullato: ["Non pubblicato", "red"],
 };
 
 /** Oggi nel browser, come AAAA-MM-GG. */
@@ -48,7 +41,6 @@ function Scheda({
   link: string;
 }) {
   const [canale, coloreCanale] = CANALE[post.canale] ?? [post.canale, "gray"];
-  const [stato, coloreStato] = STATO[post.stato] ?? [post.stato, "gray"];
   const foto = post.foto[0];
   return (
     <Link className={stile.post} to={link}>
@@ -63,9 +55,7 @@ function Scheda({
       )}
       <b>{post.campagna_titolo}</b>
       {lato === "operatore" && post.bottega && <span>{post.bottega}</span>}
-      <Badge size="xs" variant="light" color={coloreStato}>
-        {stato}
-      </Badge>
+      <StatoBadge tipo="post" stato={post.stato} ruolo={lato} size="xs" />
     </Link>
   );
 }

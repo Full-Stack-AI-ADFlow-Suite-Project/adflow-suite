@@ -21,6 +21,7 @@ import {
 } from "@mantine/core";
 
 import { ApiErrore } from "../api/http";
+import { StatoBadge } from "./StatoBadge";
 import { calendario, type CalendarioCampagna } from "../api/campagne";
 
 export interface CalendarioCampagnaViewProps {
@@ -341,33 +342,12 @@ export function CalendarioCampagnaView({
                             Instagram
                           </Badge>
                         )}
-                        {ruolo === "operatore" ? (
-                          p.stato === "pubblicato" ? (
-                            <Badge size="xs" color="verde">
-                              pubblicato
-                            </Badge>
-                          ) : p.stato === "approvato" ? (
-                            <Badge size="xs" color="gray" variant="light">
-                              approvato
-                            </Badge>
-                          ) : (
-                            <Badge size="xs" color="red">
-                              {p.stato}
-                            </Badge>
-                          )
-                        ) : p.stato === "pubblicato" ? (
-                          <Badge size="xs" color="verde">
-                            pubblicato
-                          </Badge>
-                        ) : p.stato === "approvato" ? (
-                          <Badge size="xs" color="gray" variant="light">
-                            in programma
-                          </Badge>
-                        ) : (
-                          <Badge size="xs" color="red">
-                            non pubblicato
-                          </Badge>
-                        )}
+                        <StatoBadge
+                          tipo="post"
+                          stato={p.stato}
+                          ruolo={ruolo}
+                          size="xs"
+                        />
                         {isAi && (
                           <Badge
                             size="xs"

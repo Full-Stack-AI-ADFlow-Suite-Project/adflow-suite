@@ -32,6 +32,13 @@ const NOMI_CANALI: Record<string, string> = {
   instagram: "Instagram",
 };
 
+/** Durata in giorni e testo del pulsante (R-08). */
+const DURATE_RAPIDE: [number, string][] = [
+  [7, "1 settimana"],
+  [14, "2 settimane"],
+  [30, "1 mese"],
+];
+
 function dataISO(giorniDaOggi: number): string {
   const d = new Date();
   d.setDate(d.getDate() + giorniDaOggi);
@@ -86,7 +93,9 @@ export function Passo10({
   const scegliDurata = (giorni: number) => {
     const d = new Date(inizio + "T00:00:00");
     d.setDate(d.getDate() + giorni - 1);
-    setFine(d.toISOString().slice(0, 10));
+    // Data locale: toISOString() la porterebbe indietro di un giorno in Italia.
+    const due = (n: number) => String(n).padStart(2, "0");
+    setFine(`${d.getFullYear()}-${due(d.getMonth() + 1)}-${due(d.getDate())}`);
   };
 
   const valida = (): boolean => {
@@ -170,27 +179,16 @@ export function Passo10({
           almeno 7 giorni e al massimo 3 mesi.
         </Text>
         <Group gap="xs">
-          <Chip
-            checked={durata === 14}
-            onChange={() => scegliDurata(14)}
-            color="verde"
-          >
-            2 settimane
-          </Chip>
-          <Chip
-            checked={durata >= 28 && durata <= 31}
-            onChange={() => scegliDurata(31)}
-            color="verde"
-          >
-            1 mese
-          </Chip>
-          <Chip
-            checked={durata >= 59 && durata <= 62}
-            onChange={() => scegliDurata(61)}
-            color="verde"
-          >
-            2 mesi
-          </Chip>
+          {DURATE_RAPIDE.map(([giorni, etichetta]) => (
+            <Chip
+              key={giorni}
+              checked={durata === giorni}
+              onChange={() => scegliDurata(giorni)}
+              color="verde"
+            >
+              {etichetta}
+            </Chip>
+          ))}
         </Group>
         <div>
           <Text size="sm" fw={500} mb={6}>

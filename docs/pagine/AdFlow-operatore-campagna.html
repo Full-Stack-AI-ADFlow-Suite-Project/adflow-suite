@@ -32,6 +32,18 @@
         <span>Da approvare</span>
         <span class="nav-badge">4</span>
       </a>
+      <a href="AdFlow-operatore-elenco.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+        <span>Artigiani</span>
+      </a>
+      <a href="AdFlow-calendario.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        <span>Calendario</span>
+      </a>
+      <a href="AdFlow-operatore-storico-ai.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        <span>Storico AI</span>
+      </a>
       <a href="AdFlow-operatore-nuovo-artigiano.html" class="nav-link">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line></svg>
         <span>Nuovo artigiano</span>
@@ -96,6 +108,9 @@
         </div>
       </div>
 
+      <!-- Avanzamento della campagna (T3-915): cinque passi, a 768 px o meno «3 di 5» -->
+      <div class="avanzamento" id="avanzamento" aria-label="Avanzamento della campagna"></div>
+
       <!-- Dati della campagna -->
       <div class="info-summary-card" id="meta"></div>
 
@@ -104,30 +119,32 @@
         <div style="font-size: 12px; font-weight: 600; text-transform: uppercase; color: var(--text-muted); margin-bottom: 8px;">
           Pagina statica interattiva · prova
         </div>
-        <p class="testo-card" style="font-size: 13px; margin-bottom: 10px;">Dati di esempio, AI simulata, niente si salva. Segue il modello a uscite e le decisioni del 07/10/2026 (ADR-89…101), ridotte all'MVP (ADR-114) e con gli interventi di ADR-116: in revisione un post non si toglie, si sistema con Modifica, Rigenera, Cambia foto o Sposta; ciò che può dare solo l'artigiano si chiede a lui; gli avvisi del controllo non bloccano; la scadenza è morbida; si approva o si respinge. Dopo l'approvazione si interviene sui post che escono tra almeno 15 minuti e si sospende o si annulla la campagna. Nell'esempio oggi è <b id="oggi"></b>.</p>
+        <p class="testo-card" style="font-size: 13px; margin-bottom: 10px;">Dati di esempio, AI simulata, niente si salva. Segue il modello a uscite e le decisioni del 07/10/2026 (ADR-89…101), ridotte all'MVP (ADR-114) e con gli interventi di ADR-116 e di ADR-119: in revisione un post non si toglie, si sistema con Modifica a mano, Rigenera testo, Rigenera immagine, Cambia immagine (con «Rifai il post») o Sposta; ciò che può dare solo l'artigiano si chiede a lui; gli avvisi del controllo non bloccano; la scadenza è morbida; si approva o si respinge. Dopo l'approvazione si interviene sui post che escono tra almeno 15 minuti e si sospende o si annulla la campagna. Nell'esempio oggi è <b id="oggi"></b>.</p>
         <div class="demo">
           <label for="scenario" style="font-size: 13px; font-weight: 600;">La campagna arriva in</label>
           <select id="scenario" data-scen aria-label="Stato di partenza dell'esempio">
-            <option value="in_revisione">in_revisione</option>
-            <option value="generazione_fallita">generazione_fallita (errore su Instagram)</option>
-            <option value="in_generazione">in_generazione (senza piano)</option>
+            <option value="in_revisione">Da rivedere</option>
+            <option value="generazione_fallita">Preparazione non riuscita (errore su Instagram)</option>
+            <option value="in_generazione">L'AI la prepara (senza piano)</option>
           </select>
           <button type="button" class="btn small" data-act="reset">Ricomincia da capo</button>
           <button type="button" class="btn small" data-act="avanza" id="btn-avanza"></button>
         </div>
         <details class="prova"><summary>Da provare</summary>
           <ul>
-            <li>Uscita 5, Facebook: la data è sbagliata (sabato 22 invece di 21). Correggila con <b>Modifica</b>: non consuma cicli.</li>
-            <li>Uscita 3, Instagram: il controllo ha trovato un <b>blocco</b> (un prezzo). Finché resta, la campagna non si approva.</li>
+            <li>Uscita 5, Facebook: la data è sbagliata (sabato 22 invece di 21). Correggila con <b>Modifica a mano</b>: non consuma cicli.</li>
+            <li>Uscita 3, Instagram: il controllo ha trovato un <b>blocco</b> (un prezzo): il post è «Da correggere». Finché resta, la campagna non si approva.</li>
             <li>Uscita 2, Instagram: troppi hashtag. È un <b>avviso</b>: si vede e non blocca.</li>
             <li>Uscita 4, Instagram: i 3 cicli AI sono finiti. Resta la modifica a mano.</li>
             <li>Uscita 6: non c'era una foto, il post ha un'<b>immagine AI</b>, la stessa sui due canali, e il testo lo dice.</li>
-            <li>Uscita 1, Facebook: usa <b>Cambia foto</b> con l'altra foto del tavolo. Nasce una versione con lo stesso testo e la pagina chiede di rileggerlo.</li>
-            <li>Uscita 3: per i taglieri Cambia foto non trova altre foto adatte nel gruppo. <b>Chiedi all'artigiano</b> una foto nuova, poi "Nell'esempio: l'artigiano risponde": la foto nuova è in cima a Cambia foto.</li>
-            <li>Fai riscrivere un post all'AI: il <b>costo AI</b> della campagna, in cima, cresce.</li>
+            <li>Uscita 6: <b>Rigenera immagine</b> con un'indicazione («più luce», «dall'alto»): arriva una nuova immagine, la stessa sui due canali, e la pagina chiede di rileggere il testo. Sono 3 per post. Con la spunta «Riscrivi anche il testo» accesa è <b>Rifai il post</b>: nuova immagine e testo riscritto in un solo passaggio, e conta un ciclo di testo.</li>
+            <li>Uscita 6, Facebook: <b>Cambia immagine</b> con una foto della campagna o dell'archivio della bottega. Il testo perde «Immagine creata con AI» e il post non è più un'immagine AI.</li>
+            <li>Uscita 1, Facebook: <b>Cambia immagine</b>, togli la spunta «Riscrivi anche il testo» e usa l'altra foto del tavolo: nasce una versione con lo stesso testo e la pagina chiede di rileggerlo. Con la spunta accesa, come all'apertura, il testo viene riscritto subito dopo.</li>
+            <li>Uscita 3: per i taglieri nel gruppo non ci sono altre foto adatte, ma Cambia immagine propone anche quelle della campagna e dell'archivio. Per ciò che può dare solo l'artigiano, <b>Chiedi all'artigiano</b> una foto nuova, poi "Nell'esempio: l'artigiano risponde": la foto nuova è in cima a Cambia immagine.</li>
+            <li>Con <b>Rigenera testo</b> o con Rigenera immagine il <b>costo AI</b> della campagna, in cima, cresce.</li>
             <li>Avanza il tempo senza approvare: scadono i singoli post, poi la campagna quando ne restano meno della metà.</li>
             <li>Approva, poi avanza il tempo: il <b>calendario</b> mostra giorno per giorno i post pubblicati; uno fallisce e resta "fallito": <b>Riprogrammalo</b>.</li>
-            <li>Dopo l'approvazione: <b>modifica</b> un post che esce più avanti (la versione nasce approvata da te), <b>spostane</b> un altro, <b>annullane</b> un terzo con la nota; poi <b>Sospendi</b>, avanza il tempo e <b>Riattiva</b> scegliendo quali post in arretrato pubblicare subito.</li>
+            <li>Dopo l'approvazione: <b>modifica a mano</b> un post che esce più avanti (la versione nasce approvata da te), <b>spostane</b> un altro, <b>annullane</b> un terzo con la nota; poi <b>Sospendi</b>, avanza il tempo e <b>Riattiva</b> scegliendo quali post in arretrato pubblicare subito.</li>
           </ul>
         </details>
       </div>
@@ -144,11 +161,11 @@
 
       <section class="pane" id="tab-uscite">
         <div class="legenda">
-          <span><b>Modifica</b>: scrivi tu testo e hashtag. Nasce una versione a tuo nome, ripassa il controllo, non consuma cicli AI.</span>
-          <span><b>Fai riscrivere all'AI</b>: da zero o da un testo proposto, con le stesse foto. 3 cicli per post.</span>
-          <span><b>Immagine AI</b>: il post non aveva una foto della bottega; l'immagine l'ha creata l'AI ed è la stessa sui due canali.</span>
-          <span><b>Cambia foto</b>: un'altra foto del gruppo dell'uscita, idonea o arrivata con una richiesta all'artigiano, non già sullo stesso canale. Il testo resta: rileggilo. <b>Sposta</b>: nuova data dentro il periodo, almeno 15 minuti da adesso.</span>
-          <span><b>Dopo l'approvazione</b>: sui post che escono tra almeno 15 minuti Modifica (la versione nasce approvata da te), Cambia foto, Sposta, <b>Annulla il post</b> con la nota. Niente AI. Un post fallito si <b>riprogramma</b>.</span>
+          <span><b>Modifica a mano</b>: scrivi tu testo e hashtag. Nasce una versione a tuo nome, ripassa il controllo, non consuma cicli AI.</span>
+          <span><b>Rigenera testo</b>: una sola azione, con un'indicazione facoltativa e un testo di partenza facoltativo («Parti da questo testo»), con le stesse foto. 3 cicli per post.</span>
+          <span><b>Immagine AI</b>: il post non aveva una foto della bottega; l'immagine l'ha creata l'AI ed è la stessa sui due canali. <b>Rigenera immagine</b>: una nuova immagine con un'indicazione, 3 per post.</span>
+          <span><b>Cambia immagine</b>: un'altra foto del gruppo dell'uscita, della campagna o dell'archivio della bottega, idonea o arrivata con una richiesta all'artigiano, non già sullo stesso canale; anche sui post con un'immagine AI. In revisione anche «Crea una nuova immagine AI». Il testo resta, salvo la spunta «Riscrivi anche il testo» (<b>Rifai il post</b>): rileggilo. <b>Sposta</b>: nuova data dentro il periodo, almeno 15 minuti da adesso.</span>
+          <span><b>Dopo l'approvazione</b>: sui post che escono tra almeno 15 minuti Modifica a mano (la versione nasce approvata da te), Cambia immagine con una foto, Sposta, <b>Annulla il post</b> con la nota. Niente AI. Un post fallito si <b>riprogramma</b>.</span>
         </div>
         <div class="uscite" id="uscite"></div>
         <p><a href="#decidi">↑ Torna alla decisione sulla campagna</a></p>
@@ -163,9 +180,9 @@
       </section>
 
       <details class="surface-card card sprint">
-        <summary>Che cosa c'è nell'MVP (ADR-114, ADR-116)</summary>
+        <summary>Che cosa c'è nell'MVP (ADR-114, ADR-116, ADR-119)</summary>
         <dl style="margin: 10px 0 0;">
-          <div class="rev-line"><dt>Nell'MVP</dt><dd>Il piano, l'elenco per uscite con i post dei canali affiancati, "Immagine AI" sui post che non hanno una foto, blocchi e avvisi del controllo, Modifica a mano, Rigenera con i suoi cicli, intervento in corso, Approva, Respingi, Riprova con il motivo dell'errore, scadenza morbida, costo AI della campagna (T3-51), calendario per giorno dopo l'approvazione (T3-53), la scheda Foto e profilo. Con ADR-116 (corsia 6): Cambia foto e Sposta (R-36), Chiedi all'artigiano (R-46), interventi sui post dopo l'approvazione (R-16), Sospendi, Riattiva, Annulla, Riprogramma un post fallito (R-33, R-34). I pulsanti di ogni post sono quelli che il server dice ammessi (<code>interventi</code>).</dd></div>
+          <div class="rev-line"><dt>Nell'MVP</dt><dd>Il piano, l'elenco per uscite con i post dei canali affiancati, "Immagine AI" sui post che non hanno una foto, blocchi e avvisi del controllo, Modifica a mano, Rigenera testo con i suoi cicli, intervento in corso, Approva, Respingi, Riprova con il motivo dell'errore, scadenza morbida, costo AI della campagna (T3-51), calendario per giorno dopo l'approvazione (T3-53), la scheda Foto e profilo. Con ADR-116 (corsia 6): Cambia foto, oggi Cambia immagine, e Sposta (R-36), Chiedi all'artigiano (R-46), interventi sui post dopo l'approvazione (R-16), Sospendi, Riattiva, Annulla, Riprogramma un post fallito (R-33, R-34). I pulsanti di ogni post sono quelli che il server dice ammessi (<code>interventi</code>). Con ADR-119 (corsia 9): stati leggibili al posto dei valori del database e barra di avanzamento (J1), Rigenera testo in una sola azione (J4), Cambia immagine con le foto del gruppo, della campagna e dell'archivio, anche sui post con un'immagine AI (J5), Rigenera immagine e Rifai il post (J6).</dd></div>
           <div class="rev-line"><dt>Congelato, nascosto</dt><dd>Spunta "va bene", nota interna, Togli il canale (B4). Il codice resta: si riattivano dopo l'MVP (<code>docs/ROADMAP.md</code>).</dd></div>
           <div class="rev-line"><dt>Tolto o in roadmap</dt><dd>Piano debole e Prosegui (A3), cartoline (A6), stella (A11), ritocco della foto e sue versioni (C4), promemoria 48 ore (B7), email di riepilogo dell'approvazione; per la richiesta all'artigiano: link da telefono senza password, analisi AI della foto nuova, immagine AI sul singolo post.</dd></div>
           <div class="rev-line"><dt>Non esiste</dt><dd>Togliere un post o un'uscita in revisione, una soglia minima di post per approvare (ADR-90), l'AI dopo l'approvazione, un'email per la richiesta all'artigiano.</dd></div>
@@ -219,6 +236,41 @@ const lunga = s => { const x = D(s); return `${x.getDate()} ${MESI[x.getMonth()]
 const piu15 = s => { const x = D(s); x.setMinutes(x.getMinutes() + 15); return iso(x); };
 const righe = t => esc(t).replace(/\n/g, '<br>');
 
+/* ---------- Stati leggibili (T3-901, brief-richieste §1.1) ----------
+   Il valore del backend non cambia: cambiano l'etichetta, la spiegazione (al passaggio del mouse) e il colore. */
+const STATI_CAMP = {
+  bozza:['Bozza', "L'artigiano la sta ancora preparando.", ''],
+  inviata:['In coda', "Inviata dall'artigiano: l'AI la prende tra poco.", ''],
+  in_generazione:["L'AI la prepara", "L'AI analizza le foto e scrive piano e post.", ''],
+  generazione_fallita:['Preparazione non riuscita', "L'AI si è fermata: leggi l'errore e usa Riprova.", 'danger'],
+  piano_da_rivedere:['Piano da rivedere', "Stato delle campagne di prima dell'MVP.", 'warn'],
+  in_revisione:['Da rivedere', 'Piano e post pronti: sistemali, poi approva o respingi.', 'warn'],
+  respinta:['Respinta', "Respinta dal consorzio: l'artigiano ne crea una nuova.", 'danger'],
+  scaduta:['Scaduta', 'Non approvata in tempo.', 'danger'],
+  attiva:['In pubblicazione', 'Approvata: i post escono alla loro data.', 'ok'],
+  sospesa:['Sospesa', 'Le pubblicazioni sono ferme finché non la riattivi.', 'warn'],
+  annullata:['Annullata', 'Chiusa dal consorzio: i post rimasti non escono.', 'danger'],
+  conclusa:['Conclusa', 'Tutti i post sono usciti o chiusi.', 'ok']
+};
+const STATI_POST = {
+  da_approvare:['Da approvare', "Esce con l'approvazione della campagna.", 'warn'],
+  approvato:['In programma', 'Approvato: esce alla sua data.', 'ok'],
+  pubblicato:['Pubblicato', 'Uscito sulla pagina.', 'ok'],
+  fallito:['Non pubblicato', 'La pubblicazione non è riuscita: riprogrammalo.', 'danger'],
+  annullato:['Annullato', 'Annullato dal consorzio: non esce.', 'danger'],
+  scartato:['Scartato', 'Tolto con il suo canale o con la campagna.', 'danger'],
+  scaduto:['Scaduto', "La sua data è passata prima dell'approvazione.", 'danger']
+};
+const DA_CORREGGERE = ['Da correggere', 'Ha un blocco: si sblocca con una versione senza blocchi.', 'danger'];
+const pillola = v => `<span class="badge ${v[2]}" title="${esc(v[1])}">${esc(v[0])}</span>`;
+/* Scene delle immagini AI nuove (Rigenera immagine, Rifai il post): niente prodotti finiti, persone, testi o marchi (R-43). */
+const SCENE_NUOVE = [
+  { cosa:'Il banco da falegname visto dall’alto, con trucioli di rovere e due sgorbie, luce calda del mattino', prompt:'Banco da falegname visto dall’alto: trucioli di rovere, due sgorbie, luce calda del mattino. Nessun prodotto finito, nessuna persona, nessun testo o marchio. Quadrata 1:1.' },
+  { cosa:'Cataste di tavole di rovere a stagionare in un magazzino, in controluce', prompt:'Cataste di tavole di rovere a stagionare in un magazzino, controluce, polvere di legno nell’aria. Nessun prodotto finito, nessuna persona, nessun testo o marchio. Quadrata 1:1.' },
+  { cosa:'Una finestra della bottega con la neve fuori e gli attrezzi in ordine sul muro', prompt:'Finestra di una bottega di falegnameria con la neve fuori, attrezzi appesi in ordine sul muro. Nessun prodotto finito, nessuna persona, nessun testo o marchio. Quadrata 1:1.' }
+];
+let immaginiNuove = 0;
+
 /* ---------- Controllo a regole (simulato): blocchi e avvisi ---------- */
 function controlla(testo, tag, canale){
   const L = LIMITI[canale], err = [];
@@ -243,7 +295,10 @@ const FOTO0 = {
   f4:{ file:'taglieri-01.jpg', src:'assets/img/ig-taglieri.jpg', gruppo:2, cosa:'Quattro taglieri in noce e ciliegio su sfondo chiaro', idonea:true, punteggio:8, motivo:'Composizione ordinata, buona luce.' },
   f5:{ file:'laboratorio-mani-01.jpg', src:'assets/img/fb-falegname.jpg', gruppo:2, cosa:'Mani al lavoro con la sgorbia sul banco', idonea:true, punteggio:6, motivo:'Luce un po’ scarsa, ma il gesto si legge bene.' },
   f6:{ file:'laboratorio-mani-02.jpg', gruppo:2, cosa:'Mani al lavoro, scatto in movimento', idonea:false, punteggio:2, motivo:'Mossa: il soggetto non si legge.' },
-  f7:{ file:'bottega-esterno-01.jpg', gruppo:2, cosa:'La vetrina della bottega con la porta aperta', idonea:true, punteggio:7, motivo:'Luce morbida, insegna leggibile.' }
+  f7:{ file:'bottega-esterno-01.jpg', gruppo:2, cosa:'La vetrina della bottega con la porta aperta', idonea:true, punteggio:7, motivo:'Luce morbida, insegna leggibile.' },
+  /* Archivio della bottega (R-47): foto di campagne di prima, in sola lettura; si propongono in Cambia immagine (J5). */
+  a1:{ file:'archivio-sedie-01.jpg', archivio:true, gruppo:null, cosa:'Sedie in faggio impilate in laboratorio, luce del pomeriggio', idonea:true, punteggio:7, motivo:'Campagna di settembre.' },
+  a2:{ file:'archivio-banco-01.jpg', archivio:true, gruppo:null, cosa:'Il banco di lavoro con i trucioli, visto dall’alto', idonea:true, punteggio:8, motivo:'Campagna di settembre.' }
 };
 const USCITE0 = [
   { n:1, tema:'Il tavolo in rovere, appena uscito dal laboratorio', gruppo:1, foto:'f1' },
@@ -319,7 +374,7 @@ function iniziale(scen){
     S0.uscite.push(u);
     CANALI.forEach((canale, k) => {
       const p = { id:u.n * 2 - 1 + k, uscita:u.n, canale, quando:QUANDO[canale][u.n - 1], foto:u.foto, riempitivo:u.riempitivo || null,
-        stato:'da_approvare', versioni:[], nRig:0, inCorso:null, erroreAI:'', motivo:'', alt:[], fallitoUnaVolta:false };
+        stato:'da_approvare', versioni:[], nRig:0, nImg:0, inCorso:null, erroreAI:'', motivo:'', alt:[], fallitoUnaVolta:false };
       S0.post.push(p);
     });
   });
@@ -333,7 +388,7 @@ const costoTotale = () => S.camp.costi.reduce((t, c) => t + c.usd, 0);
 
 /* ---------- Stato ---------- */
 let S;
-const ui = { pannello:{}, form:null, motivo:'', notaResp:'', errore:'', domanda:'', chieste:[], notaSosp:'', subito:[] };
+const ui = { pannello:{}, form:null, motivo:'', notaResp:'', errore:'', domanda:'', chieste:[], notaSosp:'', subito:[], parti:{}, campi:{}, rifai:{} };
 const cur = p => p.versioni[p.versioni.length - 1];
 const post = id => S.post.find(p => p.id === Number(id));
 const uscita = n => S.uscite.find(u => u.n === n);
@@ -353,24 +408,29 @@ function interventi(p){
   if (p.inCorso) return [];
   if (inRevisione() && p.stato === 'da_approvare'){
     if (!cur(p)) return [];
-    return ['modifica', p.nRig < MAX ? 'rigenera' : '', p.riempitivo ? '' : 'cambia_foto', 'sposta'].filter(Boolean);
+    return ['modifica', p.nRig < MAX ? 'rigenera' : '', p.riempitivo && p.nImg < MAX ? 'rigenera_immagine' : '', 'cambia_foto', 'sposta'].filter(Boolean);
   }
   if (dopoApprovazione() && p.stato === 'approvato'){
     if (p.quando < piu15(S.ora)) return [];
-    return ['modifica', p.riempitivo ? '' : 'cambia_foto', 'sposta', 'annulla'].filter(Boolean);
+    return ['modifica', 'cambia_foto', 'sposta', 'annulla'];
   }
   if (dopoApprovazione() && p.stato === 'fallito') return ['riprogramma'];
   return [];
 }
-/* Le foto con cui si può cambiare quella del post (R-36): prima le nuove dall'artigiano, poi per punteggio. */
+/* Le immagini con cui si può cambiare quella del post (R-36, J5): del gruppo dell'uscita, della campagna e dell'archivio
+   della bottega, anche sui post con un'immagine AI. Prima le nuove dall'artigiano, poi per punteggio. */
 function fotoPossibili(p){
   const u = uscita(p.uscita);
-  if (!u.gruppo || p.riempitivo) return [];
   const occupate = new Set(S.post.filter(x => x !== p && x.canale === p.canale && VIVI.includes(x.stato)).map(x => x.foto));
-  return Object.keys(S.foto)
-    .filter(k => { const f = S.foto[k]; return !f.creataAI && f.gruppo === u.gruppo && k !== p.foto && !occupate.has(k) && (f.nuova || f.idonea); })
-    .sort((a, b) => (S.foto[b].nuova ? 1 : 0) - (S.foto[a].nuova ? 1 : 0) || (S.foto[b].punteggio || 0) - (S.foto[a].punteggio || 0));
+  const ordine = (a, b) => (S.foto[b].nuova ? 1 : 0) - (S.foto[a].nuova ? 1 : 0) || (S.foto[b].punteggio || 0) - (S.foto[a].punteggio || 0);
+  const adatte = Object.keys(S.foto).filter(k => { const f = S.foto[k]; return !f.creataAI && k !== p.foto && !occupate.has(k) && (f.nuova || f.idonea); });
+  return {
+    gruppo: adatte.filter(k => !S.foto[k].archivio && u.gruppo && S.foto[k].gruppo === u.gruppo).sort(ordine),
+    campagna: adatte.filter(k => !S.foto[k].archivio && S.foto[k].gruppo !== u.gruppo).sort(ordine),
+    archivio: adatte.filter(k => S.foto[k].archivio).sort(ordine)
+  };
 }
+const tuttePossibili = p => { const x = fotoPossibili(p); return x.gruppo.concat(x.campagna, x.archivio); };
 const adesso = () => `${p2(D(S.ora).getDate())}/${p2(D(S.ora).getMonth()+1)} ${ora(S.ora)}`;
 
 function aggiungi(p, dati){
@@ -379,7 +439,7 @@ function aggiungi(p, dati){
   if (p.riempitivo === 'immagine_ai' && !v.testo.includes(DIC_AI)) v.testo += '\n\n' + DIC_AI;
   v.err = controlla(v.testo, v.tag, p.canale);
   p.versioni.push(v); p.erroreAI = '';
-  if (v.autore === 'AI') spesa('testo', `uscita ${p.uscita} · ${NOME[p.canale]} · v${v.n}`);
+  if (v.autore === 'AI' && v.tipo !== 'rigenera_immagine') spesa('testo', `uscita ${p.uscita} · ${NOME[p.canale]} · v${v.n}`);
   return v;
 }
 /* Il testo della generazione: quello preparato per l'esempio, oppure uno di servizio se il tema è cambiato. */
@@ -469,30 +529,58 @@ function pannelloModifica(p){
     <button type="button" class="btn small" data-act="chiudi" data-id="${p.id}">Annulla</button></div>
   </div>`;
 }
+/* Rigenera testo (J4): una sola finestra. Con «Parti da questo testo» vuoto o chiuso l'AI riscrive da zero (modalita "totale"),
+   con un testo parte da quello ("da_proposta"). */
 function pannelloAI(p){
   if (p.nRig >= MAX) return `<div class="panel"><p><b>Limite di rigenerazioni raggiunto (${MAX} di ${MAX}).</b> È disponibile la modifica a mano.</p>
     <div class="row"><button type="button" class="btn small primary" data-act="apri" data-pan="modifica" data-id="${p.id}">Modifica a mano</button>
     <button type="button" class="btn small" data-act="chiudi" data-id="${p.id}">Chiudi</button></div></div>`;
   return `<div class="panel">
-    <p>L'AI riscrive il testo con le stesse foto. Cicli usati: ${p.nRig} di ${MAX}; il ciclo si conta quando nasce la versione. Le versioni rifiutate le riceve come "cosa non rifare".</p>
-    <textarea id="nota-ai-${p.id}" placeholder="Nota per l'AI (facoltativa): cosa non va"></textarea>
-    <textarea id="proposto-${p.id}" placeholder="Testo da cui partire (facoltativo): se lo scrivi, l'AI riscrive questo"></textarea>
+    <h4>Rigenera testo · ${NOME[p.canale]}</h4>
+    <p>L'AI riscrive il testo del post. Le foto restano le stesse e le versioni rifiutate le arrivano come "cosa non rifare". Conta come una delle ${MAX} rigenerazioni del post (${p.nRig} fatte), e finché lavora non si può toccare il post né approvare la campagna.</p>
+    <div><label for="nota-ai-${p.id}">Indicazioni per l'AI (facoltative)</label>
+    <span class="hint">Per esempio: più caldo, meno lungo, nomina il sabato.</span>
+    <textarea id="nota-ai-${p.id}" data-campo="na-${p.id}">${esc(ui.campi['na-' + p.id] || '')}</textarea></div>
+    ${ui.parti[p.id]
+      ? `<div><label for="proposto-${p.id}">Parti da questo testo (facoltativo)</label>
+         <span class="hint">Se lo svuoti, l'AI riscrive da zero.</span>
+         <textarea id="proposto-${p.id}" style="min-height:110px;">${esc(cur(p).testo)}</textarea></div>`
+      : `<button type="button" class="link-btn" data-act="parti" data-id="${p.id}">Parti da questo testo</button>`}
     <label class="choice" style="align-self:flex-start"><input type="checkbox" id="guasto-${p.id}">Nell'esempio: simula un errore tecnico dell'AI</label>
-    <div class="row"><button type="button" class="btn small primary" data-act="rigenera" data-id="${p.id}">Fai riscrivere all'AI</button>
-    <button type="button" class="btn small" data-act="chiudi" data-id="${p.id}">Annulla</button></div>
+    <div class="row"><button type="button" class="btn small" data-act="chiudi" data-id="${p.id}">Annulla</button>
+    <button type="button" class="btn small primary" data-act="rigenera" data-id="${p.id}">Rigenera</button></div>
   </div>`;
 }
-function pannelloCambiaFoto(p){
-  const poss = fotoPossibili(p), dopo = dopoApprovazione();
-  if (!poss.length) return `<div class="panel"><p>${dopo ? 'Nel gruppo non ci sono altre foto adatte.' : 'Nel gruppo non ci sono altre foto adatte: chiedile all’artigiano, oppure respingi.'}</p>
-    <div class="row"><button type="button" class="btn small" data-act="chiudi" data-id="${p.id}">Chiudi</button></div></div>`;
+/* Cambia immagine (R-36, J5, J6): le foto in tre sezioni; in revisione anche «Crea una nuova immagine AI» con
+   «Riscrivi anche il testo per la nuova immagine» (accesa di base): è «Rifai il post». Dopo l'approvazione né la
+   quarta scelta né la spunta. «Rigenera immagine» apre la stessa finestra sulla quarta scelta. */
+function pannelloCambiaFoto(p, suAI){
+  const poss = fotoPossibili(p), dopo = dopoApprovazione(), rifai = ui.rifai[p.id] !== false;
+  const sezioni = [['gruppo', 'Dello stesso gruppo'], ['campagna', 'Della campagna'], ['archivio', "Dall'archivio della bottega"]];
+  const riga = k => { const f = S.foto[k];
+    return `<div class="row" style="gap:10px;align-items:center;justify-content:space-between;border:1px solid var(--border-hairline);border-radius:8px;padding:8px 10px;background:var(--bg-surface)">
+      <span><b>${esc(f.file)}</b><br><span style="color:var(--text-secondary)">${esc(f.cosa)}</span><br>${f.nuova ? '<span class="badge warn">Nuova foto dell’artigiano: da controllare</span>' : `<span class="badge">Punteggio ${f.punteggio}/10</span>`}</span>
+      <button type="button" class="btn small primary" data-act="cambia-foto" data-id="${p.id}" data-foto="${k}">Usa questa foto</button></div>`; };
+  const elenco = sezioni.filter(x => poss[x[0]].length)
+    .map(x => `<div><label>${x[1]}</label><div class="choice-grid">${poss[x[0]].map(riga).join('')}</div></div>`).join('');
+  const vuoto = elenco ? '' : `<p>${dopo ? 'Nel gruppo non ci sono altre foto adatte.' : 'Nel gruppo non ci sono altre foto adatte: chiedile all’artigiano, oppure respingi.'}</p>`;
+  const spunta = `<div style="display:flex;flex-direction:column;gap:8px">
+      <label class="choice" style="align-self:flex-start"><input type="checkbox" data-rifai="${p.id}" ${rifai ? 'checked' : ''}>Riscrivi anche il testo per la nuova immagine</label>
+        ${rifai ? `<div><label for="nt-${p.id}">Indicazioni per il testo</label>
+          <textarea id="nt-${p.id}" data-campo="nt-${p.id}" placeholder="Es. Parla del gesto, non della qualità.">${esc(ui.campi['nt-' + p.id] || '')}</textarea></div>` : ''}</div>`;
+  const ai = dopo ? '' : `<div style="border:${suAI ? '2px solid var(--primary)' : '1px solid var(--border-hairline)'};border-radius:8px;padding:10px;display:flex;flex-direction:column;gap:8px;background:var(--bg-surface-subtle)">
+      <b>Crea una nuova immagine AI</b>
+      <div><label for="ni-${p.id}">Indicazioni per l'immagine</label>
+      <textarea id="ni-${p.id}" data-campo="ni-${p.id}" placeholder="Es. Il banco con i trucioli, luce del mattino.">${esc(ui.campi['ni-' + p.id] || '')}</textarea></div>
+      <div class="row"><button type="button" class="btn small primary" data-act="crea-immagine" data-id="${p.id}">Crea una nuova immagine AI</button></div></div>`;
   return `<div class="panel">
-    <p>Scegli un'altra foto del gruppo dell'uscita: idonea, oppure arrivata con una richiesta all'artigiano, e non già in un post ${NOME[p.canale]}. Il testo non cambia: va ricontrollato dopo la sostituzione.${dopo ? ' <b>La campagna è approvata:</b> la versione esce al posto di quella di prima, e la approvi tu.' : ''}</p>
-    <div class="choice-grid">${poss.map(k => { const f = S.foto[k];
-      return `<label class="choice"><input type="radio" name="cf-${p.id}" value="${k}">${esc(f.file)} · ${f.nuova ? 'Nuova foto dell’artigiano: da controllare' : 'punteggio ' + f.punteggio + '/10'}</label>`; }).join('')}</div>
+    <h4>Cambia immagine · ${NOME[p.canale]}</h4>
+    ${dopo ? '<p><b>La campagna è approvata:</b> la versione esce al posto di quella di prima, e la approvi tu.</p>' : ''}
+    <p>${dopo || !rifai ? 'Il testo non cambia: va ricontrollato dopo la sostituzione.' : 'Il testo viene riscritto dall’AI per la nuova immagine: va ricontrollato dopo la sostituzione.'} Sono escluse le foto già usate da un altro post dello stesso canale.</p>
+    ${dopo ? '' : spunta}
+    ${vuoto}${elenco}${ai}
     <div class="errore" id="err-cf-${p.id}" hidden></div>
-    <div class="row"><button type="button" class="btn small primary" data-act="cambia-foto" data-id="${p.id}">Usa questa foto</button>
-    <button type="button" class="btn small" data-act="chiudi" data-id="${p.id}">Annulla</button></div>
+    <div class="row"><button type="button" class="btn small" data-act="chiudi" data-id="${p.id}">Chiudi</button></div>
   </div>`;
 }
 function pannelloSposta(p, riprogramma){
@@ -525,8 +613,8 @@ function storico(p){
   return `<details class="storico"><summary>Storico versioni (${p.versioni.length})</summary>${righeV}</details>`;
 }
 function badgeStato(p){
-  const cls = { approvato:'ok', pubblicato:'ok', scartato:'danger', scaduto:'danger', fallito:'danger', annullato:'danger' }[p.stato] || 'warn';
-  return `<span class="badge ${cls}">${p.stato}</span>`;
+  const x = STATI_POST[p.stato] || [p.stato, '', 'warn'];
+  return pillola(p.stato === 'da_approvare' && blocchi(p).length ? DA_CORREGGERE : x);
 }
 
 /* ---------- Scheda di un post ---------- */
@@ -540,18 +628,20 @@ function scheda(p){
   const ammessi = interventi(p);
   const B = (chiave, testo, extra) => `<button type="button" class="btn ${extra || ''} ${pan === chiave ? 'on' : ''}" data-act="apri" data-pan="${chiave}" data-id="${p.id}">${testo}</button>`;
   if (p.inCorso){
-    azioni = `<div class="attesa"><span class="giro"></span>Intervento in corso (${p.inCorso}): l'AI sta lavorando. Finché non finisce la campagna non si approva.</div>`;
+    azioni = `<div class="attesa"><span class="giro"></span>${p.inCorso === 'rigenera_immagine' ? "Rigenerazione dell'immagine in corso" : 'Rigenerazione del testo in corso'} dalle ${ora(S.ora)}. Finché l'AI lavora il post non si tocca e la campagna non si approva.</div>`;
   } else if (ammessi.length){
     azioni = `<div class="post-actions">
-      ${ammessi.includes('modifica') ? B('modifica', 'Modifica') : ''}
-      ${ammessi.includes('rigenera') ? B('ai', 'Fai riscrivere all’AI') : ''}
-      ${ammessi.includes('cambia_foto') ? B('foto', 'Cambia foto') : ''}
+      ${ammessi.includes('modifica') ? B('modifica', 'Modifica a mano') : ''}
+      ${ammessi.includes('rigenera') ? B('ai', 'Rigenera testo') : ''}
+      ${ammessi.includes('rigenera_immagine') ? B('immagine', 'Rigenera immagine') : ''}
+      ${ammessi.includes('cambia_foto') ? B('foto', 'Cambia immagine') : ''}
       ${ammessi.includes('sposta') ? B('sposta', 'Sposta') : ''}
       ${ammessi.includes('annulla') ? B('annulla', 'Annulla il post', 'danger') : ''}
       ${ammessi.includes('riprogramma') ? B('riprogramma', 'Riprogramma') : ''}
-      ${inRevisione() && p.nRig >= MAX ? '<span style="font-size:12.5px;color:var(--text-secondary)">Cicli AI finiti: resta la modifica a mano.</span>' : ''}
+      ${ammessi.includes('rigenera') ? `<span style="font-size:12.5px;color:var(--text-secondary)">Rigenerazioni: ${p.nRig} di ${MAX}</span>` : ''}
+      ${inRevisione() && p.nRig >= MAX ? '<span style="font-size:12.5px;color:var(--text-secondary)">Limite di 3 rigenerazioni raggiunto. È disponibile la modifica a mano.</span>' : ''}
     </div>`;
-    pannello = pan === 'modifica' ? pannelloModifica(p) : pan === 'ai' ? pannelloAI(p) : pan === 'foto' ? pannelloCambiaFoto(p)
+    pannello = pan === 'modifica' ? pannelloModifica(p) : pan === 'ai' ? pannelloAI(p) : pan === 'foto' || pan === 'immagine' ? pannelloCambiaFoto(p, pan === 'immagine')
       : pan === 'sposta' ? pannelloSposta(p, false) : pan === 'annulla' ? pannelloAnnulla(p) : pan === 'riprogramma' ? pannelloSposta(p, true) : '';
   } else if (dopoApprovazione() && p.stato === 'approvato'){
     azioni = `<div class="avviso quiet">Pubblicazione tra meno di 15 minuti: modifiche non più disponibili.</div>`;
@@ -565,9 +655,8 @@ function scheda(p){
       <span class="when">${breve(p.quando)}</span>
       ${badgeStato(p)}
       ${p.riempitivo === 'immagine_ai' ? '<span class="badge warn">Immagine AI</span>' : ''}
-      ${blk.length ? '<span class="badge danger">da rivedere</span>' : ''}
       ${avv.length ? `<span class="badge warn">${avv.length} ${avv.length === 1 ? 'avviso' : 'avvisi'}</span>` : ''}
-      ${p.inCorso ? '<span class="badge warn">in corso</span>' : ''}
+      ${p.inCorso ? '<span class="badge warn">Intervento in corso</span>' : ''}
     </header>
     ${anteprima(p)}
     ${v ? `<div class="post-meta mono">
@@ -575,12 +664,13 @@ function scheda(p){
       <span class="${v.testo.length > L.caratteri ? 'pieno' : ''}">${v.testo.length}/${L.caratteri} caratteri</span>
       <span class="${v.tag.length > L.hashtag ? 'pieno' : ''}">${v.tag.length}/${L.hashtag} hashtag</span>
       <span class="${p.nRig >= MAX ? 'pieno' : ''}">cicli testo ${p.nRig}/${MAX}</span>
+      ${p.riempitivo ? `<span class="${p.nImg >= MAX ? 'pieno' : ''}">immagine rigenerata ${p.nImg}/${MAX}</span>` : ''}
       <span>${esc(f.file)}${f.creataAI ? ' · creata dall’AI' : f.nuova ? ' · nuova, dall’artigiano' : ` · ${f.punteggio}/10`}</span>
     </div>` : ''}
-    ${v && v.tipo === 'cambio_foto' && ['da_approvare','approvato'].includes(p.stato) ? '<div class="avviso warn"><b>Foto cambiata: rileggi il testo.</b> È quello scritto per la foto di prima.</div>' : ''}
+    ${v && ['cambio_foto','rigenera_immagine'].includes(v.tipo) && ['da_approvare','approvato'].includes(p.stato) ? '<div class="avviso warn"><b>Immagine cambiata: rileggi il testo.</b> È quello scritto per l’immagine di prima.</div>' : ''}
     ${fuori ? `<div class="avviso quiet"><b>${chiusura}.</b> ${esc(p.motivo)}</div>` : ''}
     ${p.stato === 'fallito' ? `<div class="avviso danger"><b>Fallito.</b> ${esc(p.motivo)} Gli operatori hanno ricevuto una notifica.</div>` : ''}
-    ${blk.length ? `<div class="avviso danger"><b>Da rivedere: il controllo a regole ha trovato un blocco.</b> Correggi con Modifica o fai riscrivere all'AI: finché resta, la campagna non si approva.
+    ${blk.length ? `<div class="avviso danger"><b>Da rivedere: il controllo a regole ha trovato un blocco.</b> Correggi con Modifica a mano o con Rigenera testo: finché resta, la campagna non si approva.
         <ul>${blk.map(e => `<li>${esc(e.msg)}</li>`).join('')}</ul></div>` : ''}
     ${avv.length ? `<div class="avviso warn"><b>Avvisi del controllo: non bloccano.</b> Decidi tu se correggere.
         <ul>${avv.map(e => `<li>${esc(e.msg)}</li>`).join('')}</ul></div>` : ''}
@@ -604,17 +694,35 @@ function renderUscite(){
         <span class="num">USCITA ${u.n}</span>
         <h3>${esc(u.tema)}</h3>
         <span class="da">${g ? `gruppo ${u.gruppo}${g.il ? ' · da usare verso ' + giorno(g.il) : ''}` : 'senza gruppo'}</span>
-        ${u.riempitivo ? '<span class="badge warn">Immagine AI · la stessa sui due canali</span>' : ''}
+        ${(() => { const ai = S.post.filter(p => p.uscita === u.n && p.riempitivo === 'immagine_ai').length;
+          return ai === 2 ? '<span class="badge warn">Immagine AI · la stessa sui due canali</span>' : ai === 1 ? '<span class="badge warn">Immagine AI su un solo canale</span>' : ''; })()}
       </header>
       <div class="varianti">${S.post.filter(p => p.uscita === u.n).map(scheda).join('')}</div>
     </article>`; }).join('');
 }
 
+/* ---------- Barra di avanzamento (T3-915, brief-richieste §1.1) ----------
+   Inviata → Preparazione → Revisione → Pubblicazione → Conclusa. generazione_fallita: passo 2 in errore; sospesa: passo 4 in pausa;
+   respinta, scaduta e annullata fermano la barra al passo raggiunto, con l'etichetta dello stato. A 768 px o meno solo «3 di 5». */
+function renderAvanzamento(){
+  const NOMI = ['Inviata', 'Preparazione', 'Revisione', 'Pubblicazione', 'Conclusa'];
+  const st = stato();
+  const dove = { inviata:[1, 'normale'], in_generazione:[2, 'normale'], generazione_fallita:[2, 'errore'], in_revisione:[3, 'normale'], respinta:[3, 'fermato'],
+    scaduta:[3, 'fermato'], attiva:[4, 'normale'], sospesa:[4, 'pausa'], annullata:[4, 'fermato'], conclusa:[5, 'normale'] }[st] || [1, 'normale'];
+  const attivo = dove[0], tipo = dove[1], etichetta = tipo === 'normale' ? '' : STATI_CAMP[st][0];
+  const segno = n => n < attivo || (n === 5 && st === 'conclusa') ? '✓' : n === attivo ? ({ errore:'!', pausa:'⏸', fermato:'✕' }[tipo] || String(n)) : String(n);
+  const classe = n => n < attivo || (n === attivo && tipo === 'normale') ? 'fatto' : n === attivo ? { errore:'fermo', fermato:'fermo', pausa:'ora' }[tipo] : '';
+  const nome = n => n === attivo && etichetta ? etichetta : NOMI[n - 1];
+  const cls = { errore:'errore', fermato:'errore', pausa:'pausa', normale:'' }[tipo];
+  const pill = { errore:'danger', fermato:'danger', pausa:'review', normale:'success' }[tipo];
+  el('avanzamento').innerHTML = `<div class="passi">${NOMI.map((_, i) => `<div class="passo ${classe(i + 1)}"><div class="segno">${segno(i + 1)}</div>${esc(nome(i + 1))}</div>`).join('')}</div>
+    <div class="compatta ${cls}"><b>${attivo} di 5</b><span class="status-pill ${pill}">${esc(nome(attivo))}</span><div class="barra"><span style="width:${attivo * 20}%"></span></div></div>`;
+}
+
 /* ---------- Testata, piano e barra della campagna ---------- */
 function renderTestata(){
   const c = S.camp;
-  const cls = { in_revisione:'warn', in_generazione:'', generazione_fallita:'danger', attiva:'ok', sospesa:'warn', conclusa:'ok', respinta:'danger', scaduta:'danger', annullata:'danger' }[c.stato] || '';
-  el('stato-camp').innerHTML = `<span class="badge ${cls}">${c.stato}</span>`;
+  el('stato-camp').innerHTML = pillola(STATI_CAMP[c.stato] || [c.stato, '', '']);
   const x = D(S.ora);
   el('oggi').textContent = `${GGL[x.getDay()]} ${p2(x.getDate())}/${p2(x.getMonth()+1)}/2026, ore ${ora(S.ora)}`;
   const b = el('btn-avanza'), prossimo = TEMPI[S.tempo + 1];
@@ -650,7 +758,7 @@ function renderPiano(){
   </details>`;
 }
 function formRespingi(){
-  const caricate = Object.keys(S.foto).filter(k => !S.foto[k].creataAI);
+  const caricate = Object.keys(S.foto).filter(k => !S.foto[k].creataAI && !S.foto[k].archivio);
   return `<div class="form"><h3>Respingi la campagna</h3>
     <p class="hint">Solo per ciò che non si può sistemare: foto che non sono della bottega o non pubblicabili, affermazioni non verificabili, richieste fuori contratto (spec §3). La campagna si chiude, i post vengono scartati e l'artigiano riceve un'email. Un testo che non va, invece, si sistema.</p>
     <div><label>Motivo *</label><div class="choice-grid">
@@ -664,7 +772,7 @@ function formRespingi(){
 }
 /* Richiesta all'artigiano (R-46): una domanda e fino a 3 foto da sostituire. */
 function formChiedi(){
-  const caricate = Object.keys(S.foto).filter(k => !S.foto[k].creataAI && !S.foto[k].nuova);
+  const caricate = Object.keys(S.foto).filter(k => !S.foto[k].creataAI && !S.foto[k].nuova && !S.foto[k].archivio);
   return `<div class="form"><h3>Chiedi all'artigiano</h3>
     <p class="hint">Per ciò che può dare solo l'artigiano: una foto da sostituire, fino a 3, o una conferma (un prezzo, una certificazione). La campagna resta in revisione. La richiesta non blocca l’approvazione né il rifiuto. Avvisa tu l'artigiano, a voce o con un messaggio: il sistema non manda email. Lui risponde dalla sua pagina Campagna.</p>
     ${richiestaAperta() ? `<p class="hint" style="color:var(--warning-text)">Sostituisce la richiesta aperta del ${esc(S.camp.richiesta.quando)}.</p>` : ''}
@@ -684,7 +792,7 @@ function richiestaCard(){
   return `<div class="email"><span class="mono">Risposta dell'artigiano · arrivata il ${esc(r.inviata)}</span>
     ${r.risposta ? `<b>"${esc(r.risposta)}"</b>` : ''}
     ${r.foto.map(k => `<span>${esc(S.foto[k].file)} → ${esc(S.foto[r.nuove[k]].file)}</span>`).join('')}
-    <span style="color:var(--text-secondary)">${r.foto.length ? 'Usa Cambia foto sui post che usano la foto vecchia: la nuova è in cima all’elenco.' : 'Con la risposta, correggi il testo con Modifica.'}</span></div>`;
+    <span style="color:var(--text-secondary)">${r.foto.length ? 'Usa Cambia immagine sui post che usano la foto vecchia: la nuova è in cima all’elenco.' : 'Con la risposta, correggi il testo con Modifica.'}</span></div>`;
 }
 function formSospendi(){
   return `<div class="form"><h3>Sospendi la campagna</h3>
@@ -762,13 +870,13 @@ function renderBarra(){
         ${btnRespingi}
       </div></div>
       <div class="blocchi">${[
-        riv.length ? `<span><b>Non si può approvare:</b> ${riv.map(p => `<a href="#post-${p.id}" data-vai="${p.id}">uscita ${p.uscita} · ${NOME[p.canale]}</a>`).join(', ')} da rivedere. Togli il blocco con Modifica o con l'AI.</span>` : '',
+        riv.length ? `<span><b>Non si può approvare:</b> ${riv.map(p => `<a href="#post-${p.id}" data-vai="${p.id}">uscita ${p.uscita} · ${NOME[p.canale]}</a>`).join(', ')} da rivedere. Togli il blocco con Modifica a mano o con Rigenera testo.</span>` : '',
         corso.length ? `<span><b>Non si può approvare:</b> intervento in corso su ${corso.map(p => `uscita ${p.uscita} · ${NOME[p.canale]}`).join(', ')}.</span>` : ''
       ].join('')}</div>
       ${richiestaCard()}`;
     if (ui.form === 'approva' && !blocca){
       h += `<div class="form"><h3>Approvi ${da.length} post?</h3>
-        <p class="hint">La campagna diventa attiva e i post escono da soli alle date stabilite. Dopo, sui post che escono tra almeno 15 minuti puoi ancora modificare, cambiare foto, spostare o annullare.</p>
+        <p class="hint">La campagna diventa attiva e i post escono da soli alle date stabilite. Dopo, sui post che escono tra almeno 15 minuti puoi ancora modificare, cambiare immagine, spostare o annullare.</p>
         ${richiestaAperta() ? '<p class="hint" style="color:var(--warning-text)">La richiesta all’artigiano ancora aperta si chiude: lui non potrà più rispondere.</p>' : ''}
         ${conAvvisi ? `<p class="hint" style="color:var(--warning-text)">${conAvvisi} post hanno avvisi del controllo: escono così come sono.</p>` : ''}
         <div class="row"><button type="button" class="btn primary" data-act="approva">Conferma: approva ${da.length} post</button><button type="button" class="btn" data-act="form" data-form="">Annulla</button></div></div>`;
@@ -780,7 +888,7 @@ function renderBarra(){
     const falliti = S.post.filter(p => p.stato === 'fallito');
     const sosp = c.decisioni.filter(x => x.esito === 'sospesa').pop();
     h = `<div class="decidi-top"><div><h2>${attiva ? 'Campagna attiva' : 'Campagna sospesa'}</h2>
-        <p class="sub">${attiva ? (prossimo ? `Prossima pubblicazione: ${breve(prossimo.quando)} · ${NOME[prossimo.canale]}.` : 'Nessun post in attesa.') : `Nessun post esce finché non la riattivi. L'artigiano vede "Pubblicazioni ferme".${sosp && sosp.nota ? ' Nota interna: "' + esc(sosp.nota) + '".' : ''}`} Sui post che escono tra almeno 15 minuti puoi ancora intervenire: modifica, cambia foto, sposta, annulla. Il calendario per giorno è nella scheda Calendario.</p>${conti()}</div>
+        <p class="sub">${attiva ? (prossimo ? `Prossima pubblicazione: ${breve(prossimo.quando)} · ${NOME[prossimo.canale]}.` : 'Nessun post in attesa.') : `Nessun post esce finché non la riattivi. L'artigiano vede "Pubblicazioni ferme".${sosp && sosp.nota ? ' Nota interna: "' + esc(sosp.nota) + '".' : ''}`} Sui post che escono tra almeno 15 minuti puoi ancora intervenire: modifica a mano, cambia immagine, sposta, annulla. Il calendario per giorno è nella scheda Calendario.</p>${conti()}</div>
       <div class="decidi-btns">
         ${attiva ? '<button type="button" class="btn" data-act="form" data-form="sospendi">Sospendi</button>' : '<button type="button" class="btn primary" data-act="form" data-form="riattiva">Riattiva</button>'}
         <button type="button" class="btn danger" data-act="form" data-form="annulla">Annulla la campagna</button>
@@ -866,7 +974,7 @@ function renderMateriali(){
     <div style="display:flex;flex-direction:column;gap:16px;min-width:0">${gruppi}
       ${c.senzaPiano ? '' : `<div class="card"><div class="tab">Immagini AI</div><h3>${immaginiAI.length} ${immaginiAI.length === 1 ? 'immagine creata' : 'immagini create'} dall'AI</h3>
         <p style="font-size:13px;color:var(--text-secondary)">Coprono i post chiesti che le foto della bottega non coprono. Quadrate 1:1, una per uscita, la stessa sui due canali. Mostrano ambienti, materiali, attrezzi e atmosfere: mai un prodotto finito come se fosse della bottega, persone riconoscibili, testi o marchi (R-43).</p>
-        ${immaginiAI.map(k => `<div class="rev-line"><dt>${esc(S.foto[k].file)}</dt><dd>${esc(S.foto[k].cosa)} · ${usi(k).join(', ')}<br><span style="color:var(--text-secondary)">Istruzioni date all'AI: ${esc(S.foto[k].prompt)}</span></dd></div>`).join('')}</div>`}
+        ${immaginiAI.map(k => `<div class="rev-line"><dt>${esc(S.foto[k].file)}</dt><dd>${esc(S.foto[k].cosa)} · ${usi(k).join(', ') || 'non più usata: resta tra le immagini della campagna'}<br><span style="color:var(--text-secondary)">Istruzioni date all'AI: ${esc(S.foto[k].prompt)}</span></dd></div>`).join('')}</div>`}
       <p class="note">Le foto caricate qui restano solo nel tuo browser e servono a riempire le anteprime. L'anteprima mostra la foto sistemata come uscirà: dritta, senza GPS, nel formato del canale, una sola funzione per anteprima e pubblicazione (R-42).</p>
     </div>
     <div style="display:flex;flex-direction:column;gap:16px;min-width:0">
@@ -893,7 +1001,7 @@ function renderMateriali(){
     </div>`;
 }
 
-function renderTutto(){ renderTestata(); renderBarra(); renderPiano(); renderUscite(); renderCal(); renderMateriali(); }
+function renderTutto(){ renderTestata(); renderAvanzamento(); renderBarra(); renderPiano(); renderUscite(); renderCal(); renderMateriali(); }
 
 /* ---------- Schede ---------- */
 const TAB = ['uscite','calendario','materiali'];
@@ -923,6 +1031,37 @@ function lancia(p, job, contatore, crea, guasto){
       else { p[contatore]++; aggiungi(p, crea()); }
     }
     renderPost(p.id); renderBarra(); renderCal(); renderMateriali();
+  }, 2200);
+}
+/* Rigenera immagine / Rifai il post (R-49, J6), simulato: una nuova immagine AI al posto di quella del post, con un'indicazione;
+   l'immagine AI di un'uscita è condivisa, quindi la prendono anche i post che avevano la stessa. La foto vecchia resta (costituzione §1.2).
+   Con `rifai` segue, nello stesso passaggio, la riscrittura del testo: conta un ciclo di Rigenera testo. */
+function lanciaImmagine(p, nota, rifai, notaTesto){
+  const toccati = p.riempitivo === 'immagine_ai' ? S.post.filter(x => x.uscita === p.uscita && x.foto === p.foto && x.stato === 'da_approvare') : [p];
+  const u = uscita(p.uscita), n = ++immaginiNuove, scena = SCENE_NUOVE[p.nImg % SCENE_NUOVE.length];
+  const gia = Object.keys(S.foto).filter(k => S.foto[k].creataAI && S.foto[k].tema === u.tema).map(k => S.foto[k].cosa);
+  toccati.forEach(x => { ui.pannello[x.id] = null; x.inCorso = 'rigenera_immagine'; x.erroreAI = ''; });
+  renderTutto();
+  setTimeout(() => {
+    if (!toccati.every(x => post(x.id) === x && x.inCorso === 'rigenera_immagine')) return;
+    toccati.forEach(x => { x.inCorso = null; });
+    if (inRevisione() && toccati.every(x => x.stato === 'da_approvare')){
+      const k = `ai${u.n}r${n}`;
+      S.foto[k] = { file:`immagine-ai-${p2(u.n)}-${n + 1}.jpg`, creataAI:true, tema:u.tema, cosa:scena.cosa,
+        prompt:scena.prompt + (nota ? ` Indicazione dell’operatore: ${nota}.` : '') + (gia.length ? ` Da non ripetere: ${gia.join('; ')}.` : '') };
+      spesa('immagine', `uscita ${u.n} · nuova immagine`);
+      toccati.forEach(x => {
+        const base = cur(x);
+        x.foto = k; x.riempitivo = 'immagine_ai'; x.nImg++;
+        aggiungi(x, { tipo:'rigenera_immagine', autore:'AI', testo:base.testo, tag:base.tag.slice(), nota });
+        if (rifai){
+          x.nRig++;
+          aggiungi(x, { tipo:'rigenera_totale', autore:'AI', tag:base.tag.slice(0, LIMITI[x.canale].hashtag), nota:notaTesto,
+            testo: x.alt.shift() || `Nuova stesura di esempio n. ${x.versioni.length + 1}: qui l'AI riscrive il post per la nuova immagine.` });
+        }
+      });
+    }
+    renderTutto();
   }, 2200);
 }
 /* La generazione che riparte (Riprova), simulata: scrive solo i testi che mancano. */
@@ -958,7 +1097,7 @@ function carica(scen){
   if (S) Object.keys(S.foto).forEach(k => { if (S.foto[k].src) src[k] = S.foto[k].src; });
   iniziale(scen);
   Object.keys(src).forEach(k => { if (S.foto[k]) S.foto[k].src = src[k]; });
-  Object.assign(ui, { pannello:{}, form:null, motivo:'', notaResp:'', errore:'', domanda:'', chieste:[], notaSosp:'', subito:[] });
+  Object.assign(ui, { pannello:{}, form:null, motivo:'', notaResp:'', errore:'', domanda:'', chieste:[], notaSosp:'', subito:[], parti:{}, campi:{}, rifai:{} });
   renderTutto();
 }
 
@@ -973,8 +1112,10 @@ const AZIONI = {
   finisci(){ if (stato() === 'in_generazione') finisciGenerazione(); },
   riprova(){ if (stato() === 'generazione_fallita') riparte(); },
 
-  apri(b){ const id = b.dataset.id; ui.pannello[id] = ui.pannello[id] === b.dataset.pan ? null : b.dataset.pan; renderPost(id); },
-  chiudi(b){ ui.pannello[b.dataset.id] = null; renderPost(b.dataset.id); },
+  apri(b){ const id = b.dataset.id; ui.pannello[id] = ui.pannello[id] === b.dataset.pan ? null : b.dataset.pan; ui.parti[id] = false; renderPost(id); },
+  chiudi(b){ ui.pannello[b.dataset.id] = null; ui.parti[b.dataset.id] = false; renderPost(b.dataset.id); },
+  /* «Parti da questo testo»: si apre il campo, con il testo attuale. */
+  parti(b){ const id = b.dataset.id; ui.campi['na-' + id] = val('nota-ai-' + id); ui.parti[id] = true; renderPost(id); },
 
   'salva-modifica'(b){ const p = post(b.dataset.id), base = cur(p);
     if (!interventi(p).includes('modifica')){ mostraErrore('err-mod-' + p.id, '409 · Su questo post la modifica non è ammessa adesso.'); return; }
@@ -988,12 +1129,26 @@ const AZIONI = {
     aggiungi(p, { tipo:'modifica_operatore', autore:IO, testo, tag, approvata:dopoApprovazione() ? IO : '' });
     ui.pannello[p.id] = null; renderPost(p.id); renderBarra(); renderCal(); },
 
-  'cambia-foto'(b){ const p = post(b.dataset.id), scelta = document.querySelector(`input[name="cf-${p.id}"]:checked`);
-    if (!scelta){ mostraErrore('err-cf-' + p.id, 'Scegli una foto.'); return; }
-    if (!interventi(p).includes('cambia_foto') || !fotoPossibili(p).includes(scelta.value)){ mostraErrore('err-cf-' + p.id, '422 · Questa foto non si può usare per il post.'); return; }
-    const base = cur(p); p.foto = scelta.value;
-    aggiungi(p, { tipo:'cambio_foto', autore:IO, testo:base.testo, tag:base.tag.slice(), foto:scelta.value, approvata:dopoApprovazione() ? IO : '' });
-    ui.pannello[p.id] = null; renderTutto(); },
+  /* Cambia immagine con una foto (R-36, J5). In revisione, con la spunta «Riscrivi anche il testo» accesa, il testo viene
+     riscritto subito dopo: è «Rifai il post». Da un'immagine AI a una foto vera il testo perde la dicitura (brief §1.2). */
+  'cambia-foto'(b){ const p = post(b.dataset.id), k = b.dataset.foto, errId = 'err-cf-' + p.id;
+    if (!interventi(p).includes('cambia_foto') || !tuttePossibili(p).includes(k)){ mostraErrore(errId, '422 · Questa foto non si può usare per il post.'); return; }
+    const rifai = inRevisione() && ui.rifai[p.id] !== false, nota = (ui.campi['nt-' + p.id] || '').trim();
+    if (rifai && p.nRig >= MAX){ mostraErrore(errId, '409 · Il testo di questo post non si può più rigenerare: modificalo a mano.'); return; }
+    const base = cur(p), eraAI = p.riempitivo === 'immagine_ai', tag = base.tag.slice();
+    p.foto = k; p.riempitivo = null;
+    aggiungi(p, { tipo:'cambio_foto', autore:IO, testo:eraAI ? base.testo.replace('\n\n' + DIC_AI, '') : base.testo, tag, foto:k, approvata:dopoApprovazione() ? IO : '' });
+    ui.pannello[p.id] = null;
+    if (rifai) lancia(p, 'rigenera_totale', 'nRig', () => ({ tipo:'rigenera_totale', tag:tag.slice(0, LIMITI[p.canale].hashtag), nota,
+      testo: p.alt.shift() || `Nuova stesura di esempio n. ${p.versioni.length + 1}: qui l'AI riscrive il post per la nuova immagine.` }), false);
+    else renderTutto(); },
+  /* Crea una nuova immagine AI: «Rigenera immagine» (R-49), con la spunta è «Rifai il post». Si controlla prima: un 409 lascia il post com'è. */
+  'crea-immagine'(b){ const p = post(b.dataset.id), errId = 'err-cf-' + p.id;
+    if (!inRevisione() || !interventi(p).includes('cambia_foto')){ mostraErrore(errId, '409 · Su questo post l’intervento non è ammesso adesso.'); return; }
+    if (p.nImg >= MAX){ mostraErrore(errId, '409 · Questa immagine è già stata rigenerata 3 volte: scegli una foto con Cambia immagine.'); return; }
+    const rifai = ui.rifai[p.id] !== false;
+    if (rifai && p.nRig >= MAX){ mostraErrore(errId, '409 · Il testo di questo post non si può più rigenerare: modificalo a mano.'); return; }
+    lanciaImmagine(p, (ui.campi['ni-' + p.id] || '').trim(), rifai, (ui.campi['nt-' + p.id] || '').trim()); },
   sposta(b){ spostaORiprogramma(b, false); },
   riprogramma(b){ spostaORiprogramma(b, true); },
   'annulla-post'(b){ const p = post(b.dataset.id), nota = val('an-' + p.id);
@@ -1077,12 +1232,14 @@ document.addEventListener('click', e => {
 document.addEventListener('input', e => {
   const t = e.target;
   if (t.dataset && t.dataset.bozza) ui[t.dataset.bozza] = t.value;
+  if (t.dataset && t.dataset.campo) ui.campi[t.dataset.campo] = t.value;
 });
 document.addEventListener('change', e => {
   const t = e.target;
   if (!t.dataset) return;
   if ('scen' in t.dataset){ carica(t.value); }
   else if (t.name === 'motivo'){ ui.motivo = t.value; ui.errore = ''; renderBarra(); }
+  else if (t.dataset.rifai){ ui.rifai[t.dataset.rifai] = t.checked; renderPost(t.dataset.rifai); }
   else if (t.dataset.segna){ S.foto[t.dataset.segna].segnata = t.checked; }
   else if (t.dataset.chiedi){
     const k = t.dataset.chiedi;

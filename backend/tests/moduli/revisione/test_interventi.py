@@ -481,7 +481,13 @@ def test_vedi_campagna_dice_gli_interventi_ammessi(db, client, utente_di_prova):
         }
 
     [quelli] = interventi(revisione).values()
-    assert quelli == ["modifica", "rigenera", "cambia_foto", "sposta"]
+    assert quelli == [
+        "modifica",
+        "rigenera",
+        "rigenera_immagine",
+        "cambia_foto",
+        "sposta",
+    ]
     per_post = interventi(attiva)
     assert per_post[lontano.id] == ["modifica", "cambia_foto", "sposta", "annulla"]
     assert per_post[vicino.id] == []

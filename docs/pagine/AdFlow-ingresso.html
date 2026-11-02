@@ -86,6 +86,7 @@
         <span class="breadcrumb-sep">/</span>
         <span class="breadcrumb-current">Ingresso</span>
       </nav>
+      <div class="riga-bottega">Falegnameria Bianchi · Mario Bianchi</div>
 
       <div class="page-header">
         <div class="page-title-group">
@@ -135,13 +136,13 @@
             <span class="mono">09:00</span> <span class="status-pill fb piccola">Facebook</span>
             <span class="foto piccola">tavolo noce</span>
             <b>Autunno in bottega</b>
-            <span class="status-pill success piccola">pubblicato</span>
+            <span class="status-pill success piccola">Pubblicato</span>
           </a>
           <a class="cal-post" href="AdFlow-campagna-stati.html">
             <span class="mono">18:30</span> <span class="status-pill ig piccola">Instagram</span>
             <span class="foto piccola">tavolo noce</span>
             <b>Autunno in bottega</b>
-            <span class="status-pill success piccola">pubblicato</span>
+            <span class="status-pill success piccola">Pubblicato</span>
           </a>
         </div>
         <div class="cal-giorno">
@@ -154,13 +155,13 @@
             <span class="mono">09:00</span> <span class="status-pill fb piccola">Facebook</span>
             <span class="foto piccola">sedia</span>
             <b>Autunno in bottega</b>
-            <span class="status-pill danger piccola">non pubblicato</span>
+            <span class="status-pill danger piccola">Non pubblicato</span>
           </a>
           <a class="cal-post" href="AdFlow-campagna-stati.html">
             <span class="mono">17:00</span> <span class="status-pill ig piccola">Instagram</span>
             <span class="foto piccola">Immagine AI</span>
             <b>Autunno in bottega</b>
-            <span class="status-pill info piccola">in programma</span>
+            <span class="status-pill success piccola">In programma</span>
           </a>
         </div>
         <div class="cal-giorno">
@@ -177,13 +178,13 @@
             <span class="mono">10:00</span> <span class="status-pill fb piccola">Facebook</span>
             <span class="foto piccola">laboratorio</span>
             <b>Autunno in bottega</b>
-            <span class="status-pill info piccola">in programma</span>
+            <span class="status-pill success piccola">In programma</span>
           </a>
           <a class="cal-post" href="AdFlow-campagna-stati.html">
             <span class="mono">10:30</span> <span class="status-pill ig piccola">Instagram</span>
             <span class="foto piccola">laboratorio</span>
             <b>Autunno in bottega</b>
-            <span class="status-pill info piccola">in programma</span>
+            <span class="status-pill success piccola">In programma</span>
           </a>
         </div>
         <div class="cal-giorno">
@@ -196,6 +197,7 @@
       <div class="note-pagina">
         <p><strong>Pagina statica, non interattiva.</strong> L'artigiano arriva qui dopo l'accesso (spec R-29, ADR-117). Oggi è mercoledì 21/10/2026. I dati vengono da <code>GET /campagne</code> (con <code>richiesta</code>) e, per Questa settimana, da <code>GET /calendario</code>.</p>
         <p>"Nuova campagna" non c'è se esiste una bozza: al suo posto l'avviso "Hai una campagna in bozza · Continua". La respinta e la scaduta restano finché l'artigiano crea una nuova campagna (spec §4). Un clic su una campagna apre la pagina Campagna su quella (<code>/campagna?id=</code>).</p>
+        <p><strong>Stati dei post (ADR-119, T3-901).</strong> All'artigiano i post si leggono «In programma» (<code>approvato</code>), «Pubblicato» e «Non pubblicato» (<code>fallito</code> e <code>annullato</code>), senza spiegazioni; le etichette delle campagne dell'artigiano restano quelle di prima. Sopra il titolo, in ogni pagina dell'artigiano e anche dal telefono con il menu chiuso, la riga «bottega · referente» (ADR-119, T3-902): senza profilo, o finché si carica, solo il nome dell'utente.</p>
       </div>
 
     </main>

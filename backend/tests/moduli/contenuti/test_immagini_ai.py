@@ -389,3 +389,120 @@ def test_la_rigenerazione_non_toglie_il_blocco_dell_immagine_che_manca(db, ai):
         "immagine_non_creata"
     ]
     assert DICITURA not in nuovo.versione_corrente.testo
+
+
+# --- La scena dell'uscita (T3-910, CA-106) -------------------------------------
+
+
+def _uscita_con_scena(db, scena, *, campagna=None):
+    from tests.moduli.contenuti.fabbrica import piano as fabbrica_piano
+    from tests.moduli.contenuti.fabbrica import uscita as fabbrica_uscita
+
+    campagna = campagna or campagna_inviata(db)
+    uscita = fabbrica_uscita(db, campagna)
+    fabbrica_piano(
+        db,
+        campagna,
+        contenuto={"uscite": [{"numero": uscita.numero, "scena": scena}]},
+    )
+    return uscita
+
+
+def test_ca106_scena_dell_uscita_legge_la_scena_del_piano(db):
+    from app.moduli.contenuti.immagini_ai import scena_dell_uscita
+
+    scena = {
+        "soggetto": "il banco di lavoro con gli attrezzi",
+        "inquadratura": "banco_dall_alto",
+        "luce": "luce del mattino",
+        "colori": "legno e ferro",
+    }
+    uscita = _uscita_con_scena(db, scena)
+    assert scena_dell_uscita(db, uscita) == scena
+
+
+@pytest.mark.parametrize(
+    "scena",
+    [
+        None,
+        {},
+        {"soggetto": 42, "inquadratura": "banco_dall_alto", "luce": "l", "colori": "c"},
+        {
+            "soggetto": "il banco",
+            "inquadratura": "inquadratura_che_non_esiste",
+            "luce": "l",
+            "colori": "c",
+        },
+        {
+            "soggetto": "il banco",
+            "inquadratura": "banco_dall_alto",
+            "luce": "",
+            "colori": "c",
+        },
+    ],
+)
+def test_ca106_scena_mancante_o_malformata_vale_none(db, scena):
+    """CA-106: la scena malformata non è un errore, l'immagine parte dal tema."""
+    from app.moduli.contenuti.immagini_ai import scena_dell_uscita
+
+    uscita = _uscita_con_scena(db, scena)
+    assert scena_dell_uscita(db, uscita) is None
+
+
+def test_ca106_scena_senza_piano_vale_none(db):
+    from app.moduli.contenuti.immagini_ai import scena_dell_uscita
+    from tests.moduli.contenuti.fabbrica import uscita as fabbrica_uscita
+
+    campagna = campagna_inviata(db)
+    uscita = fabbrica_uscita(db, campagna)
+    assert scena_dell_uscita(db, uscita) is None
+
+
+# --- Prompt v3: scena, campagna e stile (T3-920, CA-113) -----------------------
+
+
+def test_ca113_lo_stile_viene_dalle_descrizioni_delle_foto_vere(db):
+    from app.moduli.contenuti.immagini_ai import stile_delle_foto
+
+    campagna = _campagna(db)
+    vere = [
+        una
+        for una in campagne.foto_della_campagna(db, campagna.id)
+        if una.origine == "caricata"
+    ]
+    assert len(vere) == 4
+    for numero, foto in enumerate(vere, start=1):
+        foto.analisi_ai = {
+            **(foto.analisi_ai or {}),
+            "descrizione": f"Descrizione {numero}: luce laterale, fondo chiaro.",
+        }
+    db.flush()
+
+    stile = stile_delle_foto(db, campagna.id)
+
+    assert stile is not None
+    assert "Descrizione 1" in stile and "Descrizione 4" in stile
+    assert len(stile) <= 400
+
+
+def test_ca113_senza_foto_vere_analizzate_non_c_e_stile(db):
+    from app.moduli.contenuti.immagini_ai import stile_delle_foto
+
+    campagna = _campagna(db)
+    assert stile_delle_foto(db, campagna.id) is None
+
+
+def test_ca113_il_prompt_della_generazione_ha_scena_campagna_e_stile(db, ai):
+    """CA-113: la generazione passa all'AI scena, campagna e stile delle foto vere."""
+    campagna = _campagna(db)
+
+    _job(campagna.id)
+
+    prompt = _chiamate(ai, "genera_immagine")[0]["prompt"]
+    assert "Campagna: Campagna di prova" in prompt
+    assert "Obiettivo della campagna: notorieta" in prompt
+    assert "Stile delle foto vere della bottega:" in prompt
+    assert "la materia prima sul banco" in prompt
+    assert "Stagione: inverno." in prompt
+    assert "sfondo semplice e leggermente sfocato" not in prompt
+    assert "colori fedeli e caldi" not in prompt

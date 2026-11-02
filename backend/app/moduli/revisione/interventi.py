@@ -11,7 +11,7 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from app.core.coda import RIGENERA_POST, accoda
+from app.core.coda import RIGENERA_IMMAGINE, RIGENERA_POST, accoda
 from app.core.errori import DatiNonValidi
 from app.core.orologio import ROMA
 from app.moduli.accesso import service as accesso
@@ -69,13 +69,17 @@ def foto_possibili(db: Session, post_id: int, adesso: datetime) -> list[FotoPoss
     """Le foto con cui si può cambiare quella del post, la migliore in cima (R-36, CA-71).
 
     L'elenco e i controlli (409) sono in ``contenuti.foto_possibili()``;
-    ``analizzata`` è falso per le foto arrivate con una richiesta (R-46).
+    ``analizzata`` è falso per le foto arrivate con una richiesta (R-46);
+    ``provenienza`` dice se la foto viene dal gruppo dell'uscita, dalla
+    campagna o dall'archivio della bottega (R-27).
     """
     return [
         FotoPossibile(
-            foto_id=una.id,
-            punteggio=(una.analisi_ai or {}).get("punteggio"),
-            analizzata=una.analisi_ai is not None,
+            foto_id=una.foto.id,
+            punteggio=(una.foto.analisi_ai or {}).get("punteggio"),
+            analizzata=una.foto.analisi_ai is not None,
+            provenienza=una.provenienza,
+            soggetto=(una.foto.analisi_ai or {}).get("soggetto"),
         )
         for una in contenuti.foto_possibili(db, post_id, adesso)
     ]
@@ -87,14 +91,27 @@ def cambia_foto(
     foto_id: int,
     utente: accesso.Utente,
     adesso: datetime,
+    riscrivi_testo: bool = False,
+    nota: str | None = None,
 ):
     """Cambia la foto del post: nasce una versione ``cambio_foto`` (R-36, CA-71).
 
-    I controlli sono in ``contenuti.cambia_foto()``. Dopo l'approvazione la
-    versione nuova ha subito la riga ``approvazione`` di chi la scrive.
+    I controlli sono in ``contenuti.cambia_foto()``. Con ``riscrivi_testo``,
+    in revisione, l'intervento ``rigenera_totale`` è già acceso: qui si accoda
+    ``rigenera_post`` con la nota, per un ciclo di R-03 (CA-105). Dopo
+    l'approvazione la versione nuova ha subito la riga ``approvazione``.
     """
-    nuova = contenuti.cambia_foto(db, post_id, foto_id, utente.id, adesso)
+    nuova = contenuti.cambia_foto(
+        db, post_id, foto_id, utente.id, adesso, riscrivi_testo
+    )
     _approva_se_approvata(db, nuova, utente)
+    if riscrivi_testo:
+        accoda(
+            RIGENERA_POST,
+            post_id=post_id,
+            testo_proposto=None,
+            nota=(nota or "").strip() or None,
+        )
     return nuova
 
 
@@ -190,6 +207,33 @@ def rigenera(
         post_id=post_id,
         testo_proposto=proposto,
         nota=(nota or "").strip() or None,
+    )
+
+
+def rigenera_immagine(
+    db: Session,
+    post_id: int,
+    nota: str | None,
+    riscrivi_testo: bool,
+    nota_testo: str | None,
+    adesso: datetime,
+) -> None:
+    """Accende ``rigenera_immagine`` e accoda il job omonimo (R-49, R-31).
+
+    ``contenuti.accendi_rigenerazione_immagine()`` fa i controlli (R-16, R-31,
+    R-49 e, con ``riscrivi_testo``, R-03) prima di cambiare qualcosa: un 409
+    lascia i post com'è. Nota e nota del testo viaggiano negli argomenti del
+    job.
+    """
+    contenuti.accendi_rigenerazione_immagine(
+        db, post_id, riscrivi_testo, nota_testo, adesso
+    )
+    accoda(
+        RIGENERA_IMMAGINE,
+        post_id=post_id,
+        nota=(nota or "").strip() or None,
+        riscrivi_testo=riscrivi_testo,
+        nota_testo=(nota_testo or "").strip() or None,
     )
 
 

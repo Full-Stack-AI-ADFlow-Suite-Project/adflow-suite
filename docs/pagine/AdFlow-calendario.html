@@ -32,6 +32,10 @@
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
         <span>Calendario</span>
       </a>
+      <a href="AdFlow-operatore-storico-ai.html" class="nav-link">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+        <span>Storico AI</span>
+      </a>
       <a href="AdFlow-operatore-nuovo-artigiano.html" class="nav-link">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><line x1="19" y1="8" x2="19" y2="14"></line><line x1="22" y1="11" x2="16" y2="11"></line></svg>
         <span>Nuovo artigiano</span>
@@ -113,13 +117,13 @@
             <span class="mono">09:00</span> <span class="status-pill fb piccola">Facebook</span>
             <span class="foto piccola">tavolo noce</span>
             <b>Autunno in bottega</b><span class="sotto">Falegnameria Bianchi</span>
-            <span class="status-pill success piccola">pubblicato</span>
+            <span class="status-pill success piccola" title="Uscito sulla pagina.">Pubblicato</span>
           </a>
           <a class="cal-post" href="AdFlow-operatore-campagna.html">
             <span class="mono">18:30</span> <span class="status-pill ig piccola">Instagram</span>
             <span class="foto piccola">tavolo noce</span>
             <b>Autunno in bottega</b><span class="sotto">Falegnameria Bianchi</span>
-            <span class="status-pill success piccola">pubblicato</span>
+            <span class="status-pill success piccola" title="Uscito sulla pagina.">Pubblicato</span>
           </a>
         </div>
         <div class="cal-giorno">
@@ -128,7 +132,7 @@
             <span class="mono">12:00</span> <span class="status-pill ig piccola">Instagram</span>
             <span class="foto piccola">vaso blu</span>
             <b>Vasi d'ottobre</b><span class="sotto">Ceramiche Olivero</span>
-            <span class="status-pill success piccola">pubblicato</span>
+            <span class="status-pill success piccola" title="Uscito sulla pagina.">Pubblicato</span>
           </a>
         </div>
         <div class="cal-giorno oggi">
@@ -137,13 +141,13 @@
             <span class="mono">09:00</span> <span class="status-pill fb piccola">Facebook</span>
             <span class="foto piccola">sedia</span>
             <b>Autunno in bottega</b><span class="sotto">Falegnameria Bianchi</span>
-            <span class="status-pill danger piccola">non pubblicato</span>
+            <span class="status-pill danger piccola" title="La pubblicazione non è riuscita: riprogrammalo.">Non pubblicato</span>
           </a>
           <a class="cal-post" href="AdFlow-operatore-campagna.html">
             <span class="mono">17:00</span> <span class="status-pill ig piccola">Instagram</span>
             <span class="foto piccola">Immagine AI</span>
             <b>Autunno in bottega</b><span class="sotto">Falegnameria Bianchi</span>
-            <span class="status-pill info piccola">in programma</span>
+            <span class="status-pill success piccola" title="Approvato: esce alla sua data.">In programma</span>
           </a>
         </div>
         <div class="cal-giorno">
@@ -152,7 +156,7 @@
             <span class="mono">11:00</span> <span class="status-pill fb piccola">Facebook</span>
             <span class="foto piccola">tornio</span>
             <b>Vasi d'ottobre</b><span class="sotto">Ceramiche Olivero</span>
-            <span class="status-pill info piccola">in programma</span>
+            <span class="status-pill success piccola" title="Approvato: esce alla sua data.">In programma</span>
           </a>
         </div>
         <div class="cal-giorno">
@@ -161,7 +165,7 @@
             <span class="mono">18:00</span> <span class="status-pill ig piccola">Instagram</span>
             <span class="foto piccola">borsa</span>
             <b>Borse per le feste</b><span class="sotto">Pelletteria Ferrero</span>
-            <span class="status-pill info piccola">in programma</span>
+            <span class="status-pill success piccola" title="Approvato: esce alla sua data.">In programma</span>
           </a>
         </div>
         <div class="cal-giorno">
@@ -170,13 +174,13 @@
             <span class="mono">10:00</span> <span class="status-pill fb piccola">Facebook</span>
             <span class="foto piccola">laboratorio</span>
             <b>Autunno in bottega</b><span class="sotto">Falegnameria Bianchi</span>
-            <span class="status-pill info piccola">in programma</span>
+            <span class="status-pill success piccola" title="Approvato: esce alla sua data.">In programma</span>
           </a>
           <a class="cal-post" href="AdFlow-operatore-campagna.html">
             <span class="mono">10:30</span> <span class="status-pill ig piccola">Instagram</span>
             <span class="foto piccola">laboratorio</span>
             <b>Autunno in bottega</b><span class="sotto">Falegnameria Bianchi</span>
-            <span class="status-pill info piccola">in programma</span>
+            <span class="status-pill success piccola" title="Approvato: esce alla sua data.">In programma</span>
           </a>
         </div>
         <div class="cal-giorno">
@@ -186,14 +190,16 @@
       </div>
 
       <div class="legenda-riga">
-        <span><span class="status-pill info piccola">in programma</span> approvato</span>
-        <span><span class="status-pill success piccola">pubblicato</span></span>
-        <span><span class="status-pill danger piccola">non pubblicato</span> fallito o annullato</span>
+        <span><span class="status-pill success piccola" title="Approvato: esce alla sua data.">In programma</span> approvato</span>
+        <span><span class="status-pill success piccola" title="Uscito sulla pagina.">Pubblicato</span></span>
+        <span><span class="status-pill danger piccola" title="La pubblicazione non è riuscita: riprogrammalo.">Non pubblicato</span> fallito</span>
+        <span><span class="status-pill danger piccola" title="Annullato dal consorzio: non esce.">Annullato</span> annullato dal consorzio (solo l'operatore)</span>
       </div>
 
       <!-- Note della pagina statica: non fanno parte della schermata -->
       <div class="note-pagina">
         <p><strong>Pagina statica, non interattiva.</strong> Dati da <code>GET /calendario?dal=2026-10-19</code> (spec R-48): sempre 7 giorni, da lunedì a domenica, in Europe/Rome; solo post approvati, pubblicati, falliti o annullati. Griglia fatta a mano, senza librerie (E1); sotto i 768 px le colonne diventano un elenco per giorno.</p>
+        <p><strong>Stati leggibili (ADR-119, T3-901).</strong> Ogni post porta un'etichetta con la spiegazione al passaggio del mouse (qui l'attributo <code>title</code>), non il valore del database: «In programma» (<code>approvato</code>), «Pubblicato» (<code>pubblicato</code>), «Non pubblicato» (<code>fallito</code>), «Annullato» (<code>annullato</code>). All'artigiano i post <code>fallito</code> e <code>annullato</code> si leggono entrambi «Non pubblicato» (spec §4). Tabella completa in <code>brief-richieste.md</code> §1.1.</p>
         <p><strong>Artigiano</strong> (<code>/calendario</code> e la sezione Questa settimana dell'<a href="AdFlow-ingresso.html">Ingresso</a>): solo i suoi post, senza il filtro per bottega; un clic apre la pagina Campagna su quella campagna. Il calendario della singola campagna resta l'elenco per giorno di Vedi campagna e della pagina Campagna (R-45).</p>
       </div>
 

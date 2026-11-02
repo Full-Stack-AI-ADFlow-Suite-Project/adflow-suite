@@ -1,5 +1,6 @@
 """Provider AI finto per sviluppo e test: risposte prevedibili, nessuna rete."""
 
+import json
 from collections.abc import Mapping, Sequence
 from dataclasses import dataclass
 from datetime import date, datetime, time, timedelta
@@ -24,10 +25,47 @@ from .base import (
     ImmagineAI,
     UsoAI,
 )
+from .schemi import INQUADRATURE
 
 PROVIDER = "finto"
 MODELLO = "finto"
 VERSIONE_PROMPT = "finto-1"
+
+# La scena di un'uscita con immagine AI (T3-910): concreta e fotografabile,
+# una per inquadratura. Il finto le gira in ordine, così due uscite vicine
+# non hanno mai la stessa inquadratura.
+SCENE_DEL_FINTO: dict[str, tuple[str, str, str]] = {
+    "dettaglio_materia": (
+        "la materia prima sul banco, vista da vicino",
+        "luce morbida del mattino",
+        "terra, ocra e grigio",
+    ),
+    "banco_dall_alto": (
+        "il banco di lavoro visto dall'alto, con gli attrezzi in ordine",
+        "luce chiara e uniforme",
+        "legno, ferro e bianco",
+    ),
+    "attrezzi_still_life": (
+        "gli attrezzi della bottega appoggiati sul tavolo",
+        "luce laterale del pomeriggio",
+        "ferro scuro e legno caldo",
+    ),
+    "bottega_campo_largo": (
+        "l'interno della bottega con il banco e le mensole",
+        "luce naturale dalle finestre",
+        "legno, terra e verde",
+    ),
+    "materie_prime": (
+        "i sacchi di materia prima accanto al piano di lavoro",
+        "luce soffusa del mattino",
+        "beige, ruggine e grigio",
+    ),
+    "atmosfera_stagione": (
+        "la luce della stagione sulla parete della bottega",
+        "luce calda che entra da una porta aperta",
+        "ambra, rame e ombre morbide",
+    ),
+}
 
 OPERAZIONI = ("analizza_gruppo", "pianifica_campagna", "genera_post", "genera_immagine")
 ORA_DI_USCITA = time(10, 0)
@@ -67,6 +105,22 @@ class _Testo:
     hashtag: list[str]
     volte: int | None
     canale: str | None
+
+
+def _slot(quando: Any) -> tuple[date, int] | None:
+    """Giorno e ora (a Roma) di un ``data_ora`` ISO o datetime; ``None`` se non si legge."""
+    if isinstance(quando, datetime):
+        momento = quando
+    elif isinstance(quando, str):
+        try:
+            momento = datetime.fromisoformat(quando)
+        except ValueError:
+            return None
+    else:
+        return None
+    if momento.tzinfo is not None:
+        momento = momento.astimezone(ROMA)
+    return momento.date(), momento.hour
 
 
 class AIFinto(AIAdapter):
@@ -138,18 +192,36 @@ class AIFinto(AIAdapter):
         """Fa scrivere questo testo: vuoto, troppo lungo o con parole vietate."""
         self._testi.append(_Testo(testo, list(hashtag), volte, canale))
 
-    def _uso(self, tipo: str, *, immagini: int | None = None) -> UsoAI:
+    def _uso(
+        self,
+        tipo: str,
+        richiesta: Mapping[str, Any],
+        risposta: Any = None,
+        *,
+        immagini: int | None = None,
+    ) -> UsoAI:
+        """L'uso di una chiamata riuscita, con lo storico di R-50 (durata 0)."""
         return UsoAI(
             tipo,
             PROVIDER,
             MODELLO,
             immagini=immagini,
             costo_usd=self.costo_chiamata,
+            versione_prompt=VERSIONE_PROMPT,
+            richiesta=dict(richiesta),
+            risposta=(
+                None
+                if risposta is None
+                else json.dumps(risposta, ensure_ascii=False, default=str)
+            ),
+            durata_ms=0,
         )
 
     def _solleva(
         self,
         operazione: str,
+        tipo_uso: str,
+        richiesta: Mapping[str, Any],
         *,
         foto: Sequence[int] = (),
         canale: str | None = None,
@@ -163,17 +235,34 @@ class AIFinto(AIAdapter):
                 continue
             if errore.volte is not None:
                 errore.volte -= 1
-            raise ErroreAI(errore.tipo, MESSAGGI[errore.tipo], foto_id=errore.foto_id)
+            sollevato = ErroreAI(
+                errore.tipo, MESSAGGI[errore.tipo], foto_id=errore.foto_id
+            )
+            # Come l'adattatore vero: l'uso della chiamata fallita, prima dell'errore.
+            sollevato.uso = self.ultimo_uso = UsoAI(
+                tipo_uso,
+                PROVIDER,
+                MODELLO,
+                versione_prompt=VERSIONE_PROMPT,
+                richiesta=dict(richiesta),
+                durata_ms=0,
+                esito=errore.tipo,
+                errore=f"{errore.tipo}: {MESSAGGI[errore.tipo]}",
+            )
+            raise sollevato
 
     # --- interfaccia -----------------------------------------------------
 
     def analizza_gruppo(self, gruppo: GruppoAI) -> dict[int, dict[str, Any]]:
         self.ultimo_uso = None
         ids = [foto.id for foto in gruppo.foto]
-        self.chiamate.append(
-            {"operazione": "analizza_gruppo", "gruppo": gruppo.id, "foto": ids}
-        )
-        self._solleva("analizza_gruppo", foto=ids)
+        chiamata = {"operazione": "analizza_gruppo", "gruppo": gruppo.id, "foto": ids}
+        self.chiamate.append(chiamata)
+        richiesta = {
+            "descrizione_del_gruppo": gruppo.descrizione,
+            "foto": [f"<foto {uno}>" for uno in ids],
+        }
+        self._solleva("analizza_gruppo", "analisi", richiesta, foto=ids)
         risultato = {}
         for foto in gruppo.foto:
             analisi = {
@@ -184,10 +273,17 @@ class AIFinto(AIAdapter):
                 "motivo": None,
                 "soggetto": gruppo.descrizione or "Foto della bottega",
                 "descrizione": gruppo.descrizione or "Foto della bottega",
+                # Un riquadro al centro, metà della foto.
+                "soggetto_box": {
+                    "x": 0.25,
+                    "y": 0.25,
+                    "larghezza": 0.5,
+                    "altezza": 0.5,
+                },
             }
             analisi.update(self._analisi.get(foto.id, {}))
             risultato[foto.id] = analisi
-        self.ultimo_uso = self._uso("analisi")
+        self.ultimo_uso = self._uso("analisi", richiesta, risultato)
         return risultato
 
     def pianifica_campagna(
@@ -199,17 +295,18 @@ class AIFinto(AIAdapter):
         schede: Mapping[str, Mapping[str, Any]],
         *,
         non_prima_di: datetime,
+        orari_occupati: Sequence[Mapping[str, Any]] = (),
         piano_precedente: Mapping[str, Any] | None = None,
         violazioni: Sequence[Mapping[str, Any]] | None = None,
     ) -> PianoAI:
         self.ultimo_uso = None
-        self.chiamate.append(
-            {
-                "operazione": "pianifica_campagna",
-                "riscrittura": piano_precedente is not None,
-            }
-        )
-        self._solleva("pianifica_campagna")
+        chiamata = {
+            "operazione": "pianifica_campagna",
+            "riscrittura": piano_precedente is not None,
+            "orari_occupati": [dict(uno) for uno in orari_occupati],
+        }
+        self.chiamate.append(chiamata)
+        self._solleva("pianifica_campagna", "piano", chiamata)
 
         gruppo_della_foto = {
             foto.id: gruppo for gruppo in gruppi for foto in gruppo.foto
@@ -222,8 +319,15 @@ class AIFinto(AIAdapter):
         n_uscite = max(
             (limite["post_chiesti"] for limite in limiti.values()), default=0
         )
+        occupati = {
+            (voce["canale"], slot)
+            for voce in orari_occupati
+            if isinstance(voce.get("canale"), str)
+            and (slot := _slot(voce.get("data_ora"))) is not None
+        }
 
         uscite = []
+        n_scene = 0
         for indice in range(n_uscite):
             post = []
             gruppo = None
@@ -249,9 +353,17 @@ class AIFinto(AIAdapter):
                 if foto and gruppo is None:
                     gruppo = gruppo_della_foto.get(foto[0])
                 sfasamento = 1 if canale == "instagram" and "facebook" in limiti else 0
-                giorno = giorni[
-                    min(indice * len(giorni) // n_uscite + sfasamento, len(giorni) - 1)
-                ]
+                base = min(
+                    indice * len(giorni) // n_uscite + sfasamento, len(giorni) - 1
+                )
+                giorno = giorni[base]
+                # R-12, T3-922: niente stessa ora dello stesso canale di un
+                # post già in programma; si sposta al primo giorno libero.
+                for scatto in range(len(giorni)):
+                    candidato = giorni[(base + scatto) % len(giorni)]
+                    if (canale, (candidato, ORA_DI_USCITA.hour)) not in occupati:
+                        giorno = candidato
+                        break
                 post.append(
                     {
                         "canale": canale,
@@ -267,11 +379,23 @@ class AIFinto(AIAdapter):
                 tema = gruppo.descrizione or "Le creazioni della bottega"
             else:
                 tema = TEMI_DEI_RIEMPITIVI[indice % len(TEMI_DEI_RIEMPITIVI)]
+            scena = None
+            if any(uno["riempitivo"] == "immagine_ai" for uno in post):
+                inquadratura = INQUADRATURE[n_scene % len(INQUADRATURE)]
+                soggetto, luce, colori = SCENE_DEL_FINTO[inquadratura]
+                scena = {
+                    "soggetto": soggetto,
+                    "inquadratura": inquadratura,
+                    "luce": luce,
+                    "colori": colori,
+                }
+                n_scene += 1
             uscite.append(
                 {
                     "numero": indice + 1,
                     "tema": tema,
                     "gruppo_id": gruppo.id if gruppo is not None else None,
+                    "scena": scena,
                     "post": post,
                 }
             )
@@ -284,7 +408,9 @@ class AIFinto(AIAdapter):
             f"Raccontare {nome} con {n_uscite} uscite distribuite sul periodo: "
             f"prima le foto scelte dall'artigiano, poi le altre."
         )
-        self.ultimo_uso = self._uso("piano")
+        self.ultimo_uso = self._uso(
+            "piano", chiamata, {"strategia": strategia, "uscite": uscite}
+        )
         return PianoAI(
             contenuto={"strategia": strategia, "uscite": uscite},
             provider=PROVIDER,
@@ -304,6 +430,7 @@ class AIFinto(AIAdapter):
         versioni_rifiutate: Sequence[str] | None = None,
         testo_proposto: str | None = None,
         nota: str | None = None,
+        altri_post: Sequence[str] | None = None,
     ) -> PostScritto:
         self.ultimo_uso = None
         chiamata = {
@@ -321,9 +448,15 @@ class AIFinto(AIAdapter):
             chiamata["testo_proposto"] = testo_proposto
         if nota:
             chiamata["nota"] = nota
+        if altri_post:
+            chiamata["altri_post"] = list(altri_post)
         self.chiamate.append(chiamata)
         self._solleva(
-            "genera_post", foto=[foto.id for foto in post.foto], canale=post.canale
+            "genera_post",
+            "testo",
+            chiamata,
+            foto=[foto.id for foto in post.foto],
+            canale=post.canale,
         )
         nome = snapshot.get("nome") or "La bottega"
         rifiutate = {uno.strip() for uno in versioni_rifiutate or []}
@@ -346,7 +479,9 @@ class AIFinto(AIAdapter):
                 comandato.volte -= 1
             testo, hashtag = comandato.testo, list(comandato.hashtag)
             break
-        self.ultimo_uso = self._uso("testo")
+        self.ultimo_uso = self._uso(
+            "testo", chiamata, {"testo": testo, "hashtag": hashtag}
+        )
         return PostScritto(
             testo=testo,
             hashtag=hashtag,
@@ -357,9 +492,10 @@ class AIFinto(AIAdapter):
 
     def genera_immagine(self, prompt: str) -> ImmagineAI:
         self.ultimo_uso = None
-        self.chiamate.append({"operazione": "genera_immagine", "prompt": prompt})
-        self._solleva("genera_immagine")
-        self.ultimo_uso = self._uso("immagine", immagini=1)
+        chiamata = {"operazione": "genera_immagine", "prompt": prompt}
+        self.chiamate.append(chiamata)
+        self._solleva("genera_immagine", "immagine", chiamata)
+        self.ultimo_uso = self._uso("immagine", chiamata, immagini=1)
         return ImmagineAI(
             contenuto=_immagine_fissa(),
             mime="image/png",

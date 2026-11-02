@@ -5,7 +5,7 @@ import pytest
 
 from app.core.errori import StatoNonValido
 from app.moduli.contenuti.interventi import verifica_intervento
-from app.moduli.contenuti.models import VersionePostFoto
+from app.moduli.contenuti.models import VersionePost, VersionePostFoto
 from app.moduli.contenuti.service import interventi_ammessi
 from tests.moduli.campagne.fabbrica import campagna_attiva, campagna_sospesa
 from tests.moduli.contenuti.fabbrica import (
@@ -18,11 +18,12 @@ from tests.moduli.contenuti.fabbrica import (
 ADESSO = datetime(2030, 1, 5, 9, tzinfo=timezone.utc)
 
 
-def test_in_revisione_quattro_interventi(db):
+def test_in_revisione_cinque_interventi(db):
     uno = post_da_approvare(db)
     assert interventi_ammessi(uno, "in_revisione", ADESSO) == [
         "modifica",
         "rigenera",
+        "rigenera_immagine",
         "cambia_foto",
         "sposta",
     ]
@@ -59,7 +60,7 @@ def test_con_un_intervento_in_corso_nessuno(db):
         verifica_intervento(db, uno, "sposta", ADESSO)
     # Dopo 10 minuti vale come fallito (R-31).
     uno.intervento_dal = ADESSO - timedelta(minutes=11)
-    assert len(interventi_ammessi(uno, "in_revisione", ADESSO)) == 4
+    assert len(interventi_ammessi(uno, "in_revisione", ADESSO)) == 5
 
 
 def test_fallito_solo_riprogramma(db):
@@ -69,26 +70,49 @@ def test_fallito_solo_riprogramma(db):
     assert interventi_ammessi(sospeso, "sospesa", ADESSO) == ["riprogramma"]
 
 
-def test_immagine_ai_senza_cambia_foto(db):
+def test_immagine_ai_ammette_cambia_foto(db):
+    """ADR-119: anche un post con un'immagine AI cambia immagine."""
     uno = post_da_approvare(db, riempitivo="immagine_ai")
     assert interventi_ammessi(uno, "in_revisione", ADESSO) == [
         "modifica",
         "rigenera",
+        "rigenera_immagine",
+        "cambia_foto",
         "sposta",
     ]
-    with pytest.raises(StatoNonValido, match="immagine AI non cambia foto"):
-        verifica_intervento(db, uno, "cambia_foto", ADESSO)
 
 
 def test_rigenerazioni_finite_senza_rigenera(db):
     uno = post_da_approvare(db, n_rigenerazioni_testo=3)
     assert interventi_ammessi(uno, "in_revisione", ADESSO) == [
         "modifica",
+        "rigenera_immagine",
         "cambia_foto",
         "sposta",
     ]
     with pytest.raises(StatoNonValido, match="Le 3 rigenerazioni"):
         verifica_intervento(db, uno, "rigenera", ADESSO)
+
+
+def test_tre_rigenerazioni_dell_immagine_senza_rigenera_immagine(db):
+    """R-49: alla quarta rigenerazione dell'immagine l'intervento non c'è più."""
+    uno = post_da_approvare(db)
+    for numero in range(2, 5):
+        db.add(
+            VersionePost(
+                post_id=uno.id,
+                numero=numero,
+                testo="Testo di prova",
+                hashtag=["artigianato"],
+                tipo_intervento="rigenera_immagine",
+            )
+        )
+    db.flush()
+    db.expire(uno, ["versioni"])
+
+    assert "rigenera_immagine" not in interventi_ammessi(uno, "in_revisione", ADESSO)
+    with pytest.raises(StatoNonValido, match="già stata rigenerata 3 volte"):
+        verifica_intervento(db, uno, "rigenera_immagine", ADESSO)
 
 
 def test_senza_versione_solo_sposta(db):

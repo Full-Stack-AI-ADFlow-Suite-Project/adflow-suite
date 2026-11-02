@@ -3058,3 +3058,60 @@ textarea.form-input {
     white-space: normal;
   }
 }
+
+/* Barra di avanzamento della campagna in Vedi campagna (ADR-119, T3-915).
+   Cinque passi; a 768 px o meno resta il passo corrente con «3 di 5». */
+.avanzamento {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-hairline);
+  border-radius: var(--radius-md);
+  padding: 4px 14px;
+  margin-bottom: 16px;
+}
+.avanzamento .passi {
+  margin: 14px 0;
+}
+.avanzamento .compatta {
+  display: none;
+}
+.avanzamento .compatta .barra {
+  flex-basis: 100%;
+  height: 6px;
+  border-radius: 6px;
+  background: #ddd6c7;
+  overflow: hidden;
+}
+.avanzamento .compatta .barra span {
+  display: block;
+  height: 100%;
+  background: var(--primary);
+}
+.avanzamento .compatta.errore .barra span {
+  background: var(--danger-text);
+}
+.avanzamento .compatta.pausa .barra span {
+  background: var(--warning-text);
+}
+@media (max-width: 768px) {
+  .avanzamento .passi {
+    display: none;
+  }
+  .avanzamento .compatta {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+    padding: 10px 0;
+    font-size: 12px;
+  }
+}
+
+/* Nome della bottega e del referente sopra il titolo, in ogni pagina dell'artigiano, anche a 375 px
+   e con il menu chiuso (ADR-119, T3-902). */
+.riga-bottega {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  margin-bottom: 4px;
+}
