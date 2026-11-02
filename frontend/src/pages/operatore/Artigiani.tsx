@@ -14,6 +14,7 @@ import {
   Center,
   Group,
   Loader,
+  Stack,
   Table,
   Text,
   TextInput,
@@ -85,22 +86,25 @@ export function Artigiani() {
       )}
 
       {lista && (
-        <Card withBorder radius="md" p={0}>
-          <Group justify="space-between" p="md">
-            <TextInput
-              type="search"
-              aria-label="Cerca"
-              placeholder="Cerca per bottega, referente, città o email"
-              value={testo}
-              onChange={(e) => setTesto(e.currentTarget.value)}
-              w={420}
-              maw="100%"
-            />
-            <Text size="sm" c="dimmed">
-              {visibili.length} di {lista.length}
-            </Text>
-          </Group>
-          <Box style={{ maxHeight: "60vh", overflow: "auto" }}>
+        <>
+          <Card withBorder radius="md" p="md" mb="md">
+            <Group justify="space-between">
+              <TextInput
+                type="search"
+                aria-label="Cerca"
+                placeholder="Cerca per bottega, referente, città o email"
+                value={testo}
+                onChange={(e) => setTesto(e.currentTarget.value)}
+                w={420}
+                maw="100%"
+              />
+              <Text size="sm" c="dimmed">
+                {visibili.length} di {lista.length}
+              </Text>
+            </Group>
+          </Card>
+          <Card withBorder radius="md" p={0} visibleFrom="sm">
+            <Box style={{ maxHeight: "60vh", overflow: "auto" }}>
             <Table stickyHeader highlightOnHover verticalSpacing="xs">
               <Table.Thead>
                 <Table.Tr>
@@ -195,7 +199,86 @@ export function Artigiani() {
               </Table.Tbody>
             </Table>
           </Box>
-        </Card>
+          </Card>
+          {/* Su schermi piccoli le 7 colonne non ci stanno: una card per
+              artigiano, stesso clic sulla pagina dell'artigiano. */}
+          <Stack gap="xs" hiddenFrom="sm">
+            {visibili.map((a) => (
+              <Card
+                key={a.id}
+                withBorder
+                radius="md"
+                p="md"
+                style={{ cursor: "pointer" }}
+                onClick={() => naviga(`/artigiani/${a.id}`)}
+              >
+                <Anchor
+                  component={Link}
+                  to={`/artigiani/${a.id}`}
+                  fw={600}
+                  c="inherit"
+                  onClick={(e) => e.stopPropagation()}
+                >
+                  {a.bottega ?? a.nome}
+                </Anchor>
+                {a.bottega === null && (
+                  <Text size="xs" c="dimmed">
+                    Profilo da compilare
+                  </Text>
+                )}
+                {!a.attivo && (
+                  <Badge color="gray" variant="light" size="xs" ml={6}>
+                    account non attivo
+                  </Badge>
+                )}
+                <Text size="sm" c="dimmed" mt={2}>
+                  {[a.referente, a.citta].filter(Boolean).join(" · ") || "—"}
+                </Text>
+                <Group gap={4} mt="xs">
+                  {a.canali_collegati.length ? (
+                    a.canali_collegati.map((c) => (
+                      <Badge key={c} color="green" variant="light" size="sm">
+                        {NOME_CANALE[c] ?? c}
+                      </Badge>
+                    ))
+                  ) : (
+                    <Text size="xs" c="dimmed">
+                      nessun canale collegato
+                    </Text>
+                  )}
+                </Group>
+                <Group gap="md" mt="sm">
+                  <Text size="sm">
+                    Da approvare:{" "}
+                    {a.n_da_approvare > 0 ? (
+                      <Badge color="yellow" variant="light">
+                        {a.n_da_approvare}
+                      </Badge>
+                    ) : (
+                      0
+                    )}
+                  </Text>
+                  <Text size="sm">In corso: {a.n_in_corso}</Text>
+                  <Text size="sm">
+                    Scadenza:{" "}
+                    {a.prossima_scadenza ? (
+                      <b>{scadenza(a.prossima_scadenza)}</b>
+                    ) : (
+                      "—"
+                    )}
+                  </Text>
+                </Group>
+              </Card>
+            ))}
+            {visibili.length === 0 && (
+              <Card withBorder radius="md" p="md">
+                <Text c="dimmed" size="sm" ta="center">
+                  Nessun artigiano corrisponde alla ricerca.
+                </Text>
+              </Card>
+            )}
+          </Stack>
+        </>
       )}
     </Guscio>
   );

@@ -1,0 +1,75 @@
+/* Pagina di accesso: card su sfondo ricco. I colori sono quelli della
+   palette di tema.ts (blu = verde del consorzio), più scuri del fondo
+   dell'app per dare profondità senza uscire dal marchio. */
+.pagina {
+  position: relative;
+  min-height: 100dvh;
+  display: grid;
+  place-items: center;
+  padding: var(--mantine-spacing-xl) var(--mantine-spacing-md);
+  overflow: hidden;
+  background:
+    linear-gradient(180deg, rgba(21, 30, 25, 0.72) 0%, rgba(21, 30, 25, 0.55) 45%, rgba(21, 30, 25, 0.78) 100%),
+    url("/vetrina-hero-4k.jpg") center / cover no-repeat;
+}
+
+.tornaHome {
+  position: absolute;
+  top: 18px;
+  left: clamp(20px, 5vw, 56px);
+  z-index: 1;
+}
+
+.contenuto {
+  position: relative;
+  width: 100%;
+  max-width: 400px;
+}
+
+.card {
+  backdrop-filter: blur(6px);
+}
+
+.sottotitolo {
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--mantine-color-gray-6);
+}
+
+/* Altezza riservata fin dal primo render: il testo dei contatti arriva
+   dopo (GET /api/consorzio) e non deve spostare la card. */
+.piede {
+  margin-top: var(--mantine-spacing-lg);
+  padding-top: var(--mantine-spacing-md);
+  border-top: 1px solid var(--mantine-color-default-border);
+  min-height: calc(2 * 1.5em + var(--mantine-spacing-md));
+  display: block;
+}
+
+.didascalia {
+  margin-top: var(--mantine-spacing-md);
+  text-align: center;
+  font-size: 12.5px;
+  color: rgba(255, 255, 255, 0.62);
+}
+
+.linkChiaro {
+  color: inherit;
+}
+
+.linkChiaro:hover {
+  color: var(--mantine-color-white);
+}
+
+@media (max-width: 47.99em) {
+  .pagina {
+    /* In alto resta lo spazio del pulsante «Torna alla home»; la card
+       si centra in quel che resta. */
+    padding: 76px var(--mantine-spacing-md) var(--mantine-spacing-xl);
+  }
+  .contenuto {
+    margin-top: 0;
+  }
+}

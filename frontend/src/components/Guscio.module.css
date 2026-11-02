@@ -25,29 +25,10 @@
   text-decoration: none;
 }
 
-.marcaIcona {
-  width: 36px;
-  height: 36px;
-  border-radius: var(--mantine-radius-md);
-  flex: none;
-  background: linear-gradient(
-    135deg,
-    var(--mantine-color-blu-5) 0%,
-    var(--mantine-color-blu-7) 100%
-  );
-  color: var(--mantine-color-white);
+.marcaTesto {
   display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 2px 4px rgba(47, 93, 70, 0.22);
-}
-
-.marcaTesto b {
-  display: block;
-  font-size: 17px;
-  font-weight: 700;
-  line-height: 1.2;
-  color: var(--text-main);
+  flex-direction: column;
+  gap: 2px;
 }
 
 .marcaTesto span {

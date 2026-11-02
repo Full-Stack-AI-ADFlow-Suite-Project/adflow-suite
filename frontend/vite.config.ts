@@ -5,6 +5,9 @@ import { defineConfig } from "vite";
 export default defineConfig({
   plugins: [react()],
   server: {
+    // Tunnel cloudflared per far vedere il sito fuori dalla rete locale
+    // (cloudflared tunnel --url http://localhost:5173).
+    allowedHosts: [".trycloudflare.com"],
     proxy: {
       "/api": {
         target: "http://localhost:8000",

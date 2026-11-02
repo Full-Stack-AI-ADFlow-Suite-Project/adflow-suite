@@ -1,0 +1,24 @@
+.wordmark {
+  font-family: "Inter Tight", var(--mantine-font-family);
+  font-weight: 800;
+  letter-spacing: -0.045em;
+  color: var(--text-main);
+  line-height: 1;
+}
+
+.wordmark em {
+  font-family: "Instrument Serif", serif;
+  font-style: italic;
+  font-weight: 400;
+  font-size: 1.08em;
+  letter-spacing: -0.01em;
+  color: var(--mantine-color-blu-6);
+}
+
+.chiaro {
+  color: var(--mantine-color-white);
+}
+
+.chiaro em {
+  color: var(--mantine-color-blu-3);
+}

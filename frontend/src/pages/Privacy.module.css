@@ -1,0 +1,22 @@
+.pagina {
+  min-height: 100dvh;
+  background: var(--bg-app);
+  color: var(--text-main);
+}
+
+.titolo {
+  font-size: 30px;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.sezione {
+  margin-bottom: var(--mantine-spacing-xl);
+  line-height: 1.6;
+}
+
+.titoloSezione {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: 6px;
+}
