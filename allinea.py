@@ -2,7 +2,7 @@
 
 Dalla radice del repository:
 
-    uv run python allinea.py 3        la prima volta, con il numero della tua corsia (da 0 a 10)
+    uv run python allinea.py 3        la prima volta, con il numero della tua corsia (da 0 a 13)
     uv run python allinea.py          le volte dopo: la corsia è ricordata
     uv run python allinea.py tutte    lo stato di tutte le corsie
     uv run python allinea.py --stato  solo lo stato dei task, senza toccare nulla
@@ -37,11 +37,12 @@ CHIAVE_CORSIA = "adflow.corsia"
 FATTO, DA_FARE = "☑", "☐"
 # T1-23, T2a-11, T2b-41, T3-07, T4-100: sprint (con la lettera, se c'è), corsia, numero.
 # La corsia 9 (ADR-119) ha più di nove task: T3-901…T3-927; la corsia 10 (ADR-120)
-# è la simulazione di accettazione dello sprint 4: T4-100…T4-108.
+# è la simulazione di accettazione dello sprint 4: T4-100…T4-108; le corsie 11, 12
+# e 13 (ADR-121) sono la corsia rapida dello sprint 5: T5-111…T5-136.
 ID_TASK = r"T\d[ab]?-\d\d\d?"
 
-# Le corsie sono numerate da 0 a 10: l'ultima è la simulazione di accettazione.
-CORSIA_MASSIMA = 10
+# Le corsie sono numerate da 0 a 13: le ultime tre sono la corsia rapida.
+CORSIA_MASSIMA = 13
 
 
 # --- lettura di tasks.md -----------------------------------------------------
@@ -368,7 +369,7 @@ def stampa_corsia(corsia: Corsia, manca: dict[str, list[str]], esteso: bool) -> 
 
 
 def numero_corsia(scelta: str) -> int | None:
-    """La corsia scelta, se è un numero da 0 a 10; altrimenti None."""
+    """La corsia scelta, se è un numero da 0 a 13; altrimenti None."""
     if not scelta.isdigit():
         return None
     numero = int(scelta)
@@ -388,7 +389,7 @@ def main(argomenti: list[str]) -> int:
 
     if scelta and scelta != "tutte":
         if numero_corsia(scelta) is None:
-            print("Corsia non valida: un numero da 0 a 10, oppure `tutte`.")
+            print("Corsia non valida: un numero da 0 a 13, oppure `tutte`.")
             return 2
         git("config", "--local", CHIAVE_CORSIA, scelta)
     elif not scelta:

@@ -176,7 +176,7 @@ def test_la_pagina_vera_si_legge_per_intero():
 
     sprint = list(dict.fromkeys(c.sprint for c in corsie))
     # gli sprint 1, 2a e 2b sono in docs/archivio/tasks-sprint-1-2.md
-    assert sprint == ["3", "4"]
+    assert sprint == ["3", "4", "5"]
     # la corsia 6 è nata con ADR-116 (interventi e richiesta all'artigiano),
     # la 7 con ADR-117 (pagine, archivio foto e calendario),
     # la 8 con ADR-118 (interfaccia ed esperienza d'uso),
@@ -195,6 +195,8 @@ def test_la_pagina_vera_si_legge_per_intero():
     ]
     # la corsia 10 è la simulazione di accettazione (ADR-120)
     assert [c.numero for c in corsie if c.sprint == "4"] == [10]
+    # le corsie 11, 12 e 13 sono la corsia rapida (ADR-121)
+    assert [c.numero for c in corsie if c.sprint == "5"] == [11, 12, 13]
     letti = [t.id for c in corsie for t in c.task]
     scritti = re.findall(r"^\| (T\d[ab]?-\d\d\d?) \|", testo, flags=re.MULTILINE)
     assert letti == scritti
@@ -243,12 +245,13 @@ def test_la_corsia_10_diventa_lo_sprint_corrente_e_i_task_sono_pronti():
     assert manca["T4-108"] == ["T4-101"]
 
 
-def test_la_scelta_della_corsia_arriva_fino_a_10():
+def test_la_scelta_della_corsia_arriva_fino_a_13():
     assert allinea.numero_corsia("0") == 0
     assert allinea.numero_corsia("9") == 9
     assert allinea.numero_corsia("10") == 10
-    # oltre la 10 o fuori dai numeri: corsia non valida
-    assert allinea.numero_corsia("11") is None
+    assert allinea.numero_corsia("13") == 13
+    # oltre la 13 o fuori dai numeri: corsia non valida
+    assert allinea.numero_corsia("14") is None
     assert allinea.numero_corsia("99") is None
     assert allinea.numero_corsia("1x") is None
     assert allinea.numero_corsia("") is None

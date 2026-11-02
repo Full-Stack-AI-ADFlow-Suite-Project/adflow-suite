@@ -1,6 +1,6 @@
 # Tasks
 
-Lo sprint di lavoro è lo **Sprint 3 · MVP** (ADR-114, `perimetro-mvp.md`): consegna e pitch il 6 novembre, codice bloccato il 30 ottobre. Gli sprint 1, 2a e 2b sono chiusi: i loro task sono in `docs/archivio/tasks-sprint-1-2.md`. Ciò che non entra nell'MVP è in `docs/ROADMAP.md`.
+Lo sprint di lavoro è lo **Sprint 5 · Corsia rapida** (ADR-121, `brief-corsia-rapida.md`): tre sviluppatori correggono i difetti trovati dalla simulazione. Il blocco del codice dello Sprint 3 (ADR-114) vale ancora per tutto ciò che non è in questi task. Gli sprint 1, 2a e 2b sono chiusi: i loro task sono in `docs/archivio/tasks-sprint-1-2.md`. Ciò che non entra nell'MVP è in `docs/ROADMAP.md`.
 
 **Da dove riparto?** Dalla radice: `uv run python allinea.py <area>`. Allinea la tua copia a `main` e legge questa pagina per te: stampa i task pronti della tua area (quelli con le dipendenze già ☑), cosa leggere e il branch da aprire. Le caselle di questa pagina sono l'unica fonte dello stato: non tenere elenchi a parte.
 
@@ -17,6 +17,9 @@ Lo sprint di lavoro è lo **Sprint 3 · MVP** (ADR-114, `perimetro-mvp.md`): con
 | 8 · Interfaccia ed esperienza d'uso | da assegnare | ADR-118: scelte d'uso e visive fatte da chi sviluppa con la guida di `brief-interfaccia.md`, tema, testi, layout e telefono, prova con due persone, senza cambi di comportamento |
 | 9 · Richieste dopo la prova | Giovanni | ADR-119: stati leggibili, nome della bottega, durata rapida, campagne sovrapposte, Rigenera testo unica, Cambia immagine e Rifai il post, Rigenera immagine, prompt v3, foto nelle proporzioni dei canali, storico dell'AI con numeri e voto (`brief-richieste.md`) |
 | 10 · Simulazione di accettazione | Giovanni con gli agenti | ADR-120: l'MVP messo alla prova come prima della produzione; rilievi, non correzioni (`brief-accettazione.md`) |
+| 11 · Corsia rapida: pubblicazione | Sviluppatore A | ADR-121: blocco assoluto RL-025 e prova finale del percorso (`brief-corsia-rapida.md`) |
+| 12 · Corsia rapida: concorrenza e guasti | Sviluppatore B | ADR-121: corse tra operatori, guasti ordinati, limite delle azioni AI (`brief-corsia-rapida.md`) |
+| 13 · Corsia rapida: demo e sicurezza | Sviluppatore C | ADR-121: immagini AI, foto della demo, dipendenze, intestazioni, input estremi, contrasto (`brief-corsia-rapida.md`) |
 
 Nelle tabelle le aree si chiamano ancora "Corsia", perché `allinea.py` le legge così.
 
@@ -190,6 +193,37 @@ Ogni task ha in `brief-accettazione.md` i file da toccare e da non toccare e il 
 | T4-106 | **Frontend**: percorso della demo in Playwright a due ruoli da database vuoto, accessibilità, contratto dei tipi con lo schema | `brief-accettazione.md` §T4-106; `accettazione-post-mvp.md` §4.4, §6; converge §4 | T4-100 | lo script E2E gira in locale con video e traccia nel report; report di axe; differenze tra schema e tipi elencate; rilievi per R-08 e per ogni passo che fallisce; build e lint puliti |☑ |
 | T4-107 | **Analisi a tavolino**: minacce STRIDE, prompt injection (anche con l'AI vera, tetto 2 €), log, segreti, dati personali e AI Act, checklist ASVS L2 | `brief-accettazione.md` §T4-107; `accettazione-post-mvp.md` §5 | T4-100 | modello delle minacce con una difesa o un rilievo per ogni minaccia; report della prova con l'AI vera con il costo; analisi delle lacune GDPR e AI Act; checklist ASVS L2 con una prova o un rilievo per requisito |☑ |
 | T4-108 | **Sintesi**: criteri di §8 valutati, rilievi classificati, task di correzione proposti, limiti dell'MVP, nuova versione della proposta | `brief-accettazione.md` §T4-108; `accettazione-post-mvp.md` §8 | tutti i task dello sprint | ogni casella di §8 con un esito; ogni rilievo con una classe; `docs/accettazione/sintesi.md` con i task di correzione proposti e i limiti dell'MVP; proposta riscritta con ciò che si è imparato |☑ |
+
+## Sprint 5 · Corsia rapida
+
+Tre corsie, una per sviluppatore, 5 ore ciascuna (ADR-121). Ogni task ha in `brief-corsia-rapida.md` il tetto di ore, come si fa e il suo "Fatto quando": si legge la sezione del proprio task, non tutto il brief.
+
+### Corsia 11 · Corsia rapida: pubblicazione (Sviluppatore A)
+
+| ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
+|---|---|---|---|---|---|
+| T5-111 | **Pubblicazione al massimo una volta**: tentativo confermato prima del social, nessuna ripubblicazione dopo un esito sconosciuto (RL-025) | `brief-corsia-rapida.md` §T5-111; constitution §1.7, §2.6 | T4-108 | RL-025 non è più `xfail`; `alembic downgrade -1` e `upgrade head` funzionano; suite verde | ☐ |
+| T5-112 | **Prova finale del percorso**: converge §4 su `main`, da database vuoto, con AI e Meta veri | `brief-corsia-rapida.md` §T5-112; converge §4 | T5-111, T5-121, T5-122, T5-131, T5-133 | report `T5-112-percorso.md` scritto e nessun punto rotto | ☐ |
+
+### Corsia 12 · Corsia rapida: concorrenza e guasti (Sviluppatore B)
+
+| ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
+|---|---|---|---|---|---|
+| T5-121 | **Approva e respingi atomiche**: blocco della riga della campagna (RL-021, RL-022) | `brief-corsia-rapida.md` §T5-121; plan §6 | T4-108 | i due test senza marcatore e 50 volte verdi; suite verde | ☐ |
+| T5-122 | **Una foto una volta e interventi atomici**: blocchi in Cambia foto e nelle rigenerazioni (RL-023, RL-024) | `brief-corsia-rapida.md` §T5-122; constitution §1.9 | T5-121 | i due test senza marcatore e 50 volte verdi; suite verde | ☐ |
+| T5-123 | **Guasti ordinati**: 503 con il database giù e con il disco pieno (RL-028, RL-029) | `brief-corsia-rapida.md` §T5-123 | T4-108 | i due test senza marcatore; suite verde | ☐ |
+| T5-124 | **Limite delle azioni AI**: 429 per utente su rigenerazioni e invio (RL-018) | `brief-corsia-rapida.md` §T5-124 | T4-108 | il test senza marcatore; variabili in `.env.example`; suite verde | ☐ |
+
+### Corsia 13 · Corsia rapida: demo e sicurezza (Sviluppatore C)
+
+| ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
+|---|---|---|---|---|---|
+| T5-131 | **Immagini AI che escono**: il modello restituisce l'immagine (RL-037) | `brief-corsia-rapida.md` §T5-131; `T4-107-ai-vera.md` | T4-108 | una campagna senza foto sufficienti arriva a `in_revisione` con l'immagine AI; costo sotto i 2 € nel report | ☐ |
+| T5-132 | **Foto della demo e passi non scritti**: README e cartella al sicuro (RL-012, RL-013, RL-014) | `brief-corsia-rapida.md` §T5-132 | T4-108 | un clone nuovo arriva alla demo seguendo il README | ☐ |
+| T5-133 | **Dipendenze**: pillow, httpx, filelock (RL-001, RL-004, RL-005) | `brief-corsia-rapida.md` §T5-133 | T4-108 | pip-audit pulito sul runtime, o l'elenco di ciò che resta con il motivo; suite verde | ☐ |
+| T5-134 | **Intestazioni di sicurezza** sulle risposte di `/api` (RL-015) | `brief-corsia-rapida.md` §T5-134 | T4-108 | il test senza marcatore; foto visibili nel frontend; suite verde | ☐ |
+| T5-135 | **Input estremi**: 422 al posto dei 500 (RL-026) | `brief-corsia-rapida.md` §T5-135 | T4-108 | i test senza marcatore; suite verde | ☐ |
+| T5-136 | **Contrasto**: le quattro violazioni serie di axe (RL-035) | `brief-corsia-rapida.md` §T5-136 | T4-108 | axe senza violazioni serie sulle tre pagine | ☐ |
 
 ## Dopo l'MVP
 
