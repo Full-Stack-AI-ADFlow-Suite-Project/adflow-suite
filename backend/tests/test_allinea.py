@@ -176,7 +176,7 @@ def test_la_pagina_vera_si_legge_per_intero():
 
     sprint = list(dict.fromkeys(c.sprint for c in corsie))
     # gli sprint 1, 2a e 2b sono in docs/archivio/tasks-sprint-1-2.md
-    assert sprint == ["3", "4"]
+    assert sprint == ["3", "4", "5"]
     # la corsia 6 è nata con ADR-116 (interventi e richiesta all'artigiano),
     # la 7 con ADR-117 (pagine, archivio foto e calendario),
     # la 8 con ADR-118 (interfaccia ed esperienza d'uso),
@@ -195,6 +195,8 @@ def test_la_pagina_vera_si_legge_per_intero():
     ]
     # la corsia 10 è la simulazione di accettazione (ADR-120)
     assert [c.numero for c in corsie if c.sprint == "4"] == [10]
+    # le corsie 11, 12 e 13 sono la corsia rapida (ADR-121)
+    assert [c.numero for c in corsie if c.sprint == "5"] == [11, 12, 13]
     letti = [t.id for c in corsie for t in c.task]
     scritti = re.findall(r"^\| (T\d[ab]?-\d\d\d?) \|", testo, flags=re.MULTILINE)
     assert letti == scritti
