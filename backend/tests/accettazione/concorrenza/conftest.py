@@ -30,8 +30,12 @@ SECONDI_TIMEOUT = 60
 
 
 @pytest.fixture(scope="module")
-def motore_concorrenza() -> Engine:
-    """Un motore suo su adflow_test: ogni thread apre e chiude la sua sessione."""
+def motore_concorrenza(motore_test: Engine) -> Engine:
+    """Un motore suo su adflow_test: ogni thread apre e chiude la sua sessione.
+
+    `motore_test` porta il database all'ultima migrazione: su una macchina pulita
+    le tabelle non ci sono ancora.
+    """
     motore = crea_motore(leggi_impostazioni().database_url_test)
     yield motore
     motore.dispose()
