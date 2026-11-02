@@ -1,6 +1,6 @@
-"""T1-31: adattatore AI e provider finto, senza nessuna chiamata di rete.
+"""Adattatore AI e provider finto, senza nessuna chiamata di rete.
 
-- Il piano del provider finto passa il controllo di T1-32.
+- Il piano del provider finto passa il controllo del piano.
 - Un test per tipo di errore di R-35, su ogni operazione.
 """
 
@@ -66,7 +66,7 @@ def _gruppo(n_foto: int, *, id: int = 1, da: int = 1, punteggi=None) -> GruppoAI
 
 
 def _come_li_vede_il_controllo(gruppi: list[GruppoAI]) -> list:
-    """Gli stessi gruppi con i nomi dei campi di ``campagne`` (T1-32)."""
+    """Gli stessi gruppi con i nomi dei campi di ``campagne``."""
     return [
         SimpleNamespace(
             id=gruppo.id,
@@ -85,7 +85,7 @@ def _pianifica(
     adesso=ADESSO,
     **altro,
 ):
-    """Piano del provider finto e violazioni trovate dal controllo di T1-32."""
+    """Piano del provider finto e violazioni trovate dal controllo del piano."""
     visti = _come_li_vede_il_controllo(gruppi)
     limiti = limiti_per_canale(canali, 3, INIZIO, FINE, visti)
     piano = finto.pianifica_campagna(

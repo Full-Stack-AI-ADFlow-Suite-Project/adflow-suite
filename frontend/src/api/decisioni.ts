@@ -1,9 +1,7 @@
 /**
  * Decisioni dell'operatore sulla campagna (plan §3, spec §2.3, R-18, R-32,
- * R-33, R-34) e pagina Campagne da approvare (R-38). Gli endpoint sono di
- * revisione (T2b-41, -43, -45); finché non sono su main le pagine leggono i
- * dati di esempio. Dopo ogni decisione la pagina rilegge Vedi campagna, quindi
- * qui non si legge il corpo delle risposte.
+ * R-33, R-34) e pagina Campagne da approvare (R-38). Dopo ogni decisione la
+ * pagina rilegge Vedi campagna, quindi qui non si legge il corpo delle risposte.
  */
 import type { CampagnaElencoItem } from "./campagne";
 import { richiesta } from "./http";

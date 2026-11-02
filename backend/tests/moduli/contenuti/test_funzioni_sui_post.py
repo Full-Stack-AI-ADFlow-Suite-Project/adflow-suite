@@ -1,4 +1,4 @@
-"""T2b-31: scarto, scadenza, annullamento, riprogrammazione, spunta e arresto della generazione."""
+"""Scarto, scadenza, annullamento, riprogrammazione, spunta e arresto della generazione."""
 from datetime import datetime, timedelta, timezone
 
 import pytest

@@ -1,4 +1,4 @@
-"""Test per la modifica della bozza di campagna (T2a-21).
+"""Test per la modifica della bozza di campagna.
 
 Verifica i criteri di accettazione:
 - CA-08: bozza aperta -> modifica e rilettura completa (dati, canali, gruppi, foto)
@@ -12,7 +12,7 @@ Verifica i criteri di accettazione:
 - Modifica sovrapposta ad altra campagna aperta dell'artigiano -> ammessa (ADR-119)
 """
 
-from datetime import date, timedelta
+from datetime import timedelta
 
 from sqlalchemy.orm import Session
 from starlette.testclient import TestClient

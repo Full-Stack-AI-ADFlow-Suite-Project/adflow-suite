@@ -196,7 +196,7 @@ export function approva(campagnaId: number): Promise<{ stato: string }> {
   );
 }
 
-/** Riprova da generazione_fallita: torna a inviata e riaccoda il job (T1-24). */
+/** Riprova da generazione_fallita: torna a inviata e riaccoda il job. */
 export function riprova(campagnaId: number): Promise<CampagnaDettaglio> {
   if (USA_ESEMPI) return esempiRevisione.riprova(campagnaId);
   return richiesta<CampagnaDettaglio>(

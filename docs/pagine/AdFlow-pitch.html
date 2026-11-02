@@ -1,0 +1,535 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AdFlow Suite · Pitch MVP (10 minuti)</title>
+  <link rel="stylesheet" href="assets/adflow.css">
+  <style>
+    .pitch-shell {
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      background: var(--bg-app);
+      color: var(--text-primary);
+    }
+    .pitch-topbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 28px;
+      background: var(--bg-surface);
+      border-bottom: 1px solid var(--border-subtle);
+      gap: 16px;
+      flex-wrap: wrap;
+    }
+    .pitch-brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      font-weight: 700;
+    }
+    .pitch-controls {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    .pitch-timer {
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      padding: 4px 10px;
+      border-radius: 6px;
+      background: var(--bg-subtle);
+      border: 1px solid var(--border-subtle);
+    }
+    .pitch-stage {
+      flex: 1;
+      max-width: 1180px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 32px 24px 48px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+    .pitch-slide {
+      display: none;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: 14px;
+      padding: 36px 40px;
+      box-shadow: var(--shadow-sm);
+    }
+    .pitch-slide.active {
+      display: block;
+    }
+    .slide-meta {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 10px;
+    }
+    .slide-title {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      line-height: 1.2;
+      margin: 0 0 12px;
+      color: var(--text-primary);
+    }
+    .slide-subtitle {
+      font-size: 1.1rem;
+      color: var(--text-secondary);
+      margin-bottom: 24px;
+    }
+    .pitch-grid-2 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+      gap: 20px;
+      margin-top: 16px;
+    }
+    .pitch-grid-3 {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-top: 16px;
+    }
+    .pitch-box {
+      background: var(--bg-app);
+      border: 1px solid var(--border-subtle);
+      border-radius: 10px;
+      padding: 18px 20px;
+    }
+    .pitch-box h3 {
+      margin: 0 0 8px;
+      font-size: 1.05rem;
+    }
+    .pitch-kpi {
+      font-family: var(--font-display);
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--brand-primary);
+      margin-bottom: 4px;
+    }
+    .pitch-list {
+      margin: 0;
+      padding-left: 20px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      line-height: 1.5;
+    }
+    .pitch-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      max-width: 1180px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 0 24px 28px;
+      color: var(--text-secondary);
+      font-size: 0.85rem;
+    }
+  </style>
+</head>
+<body>
+<div class="pitch-shell">
+  <header class="pitch-topbar">
+    <div class="pitch-brand">
+      <a href="index.html" class="btn btn-secondary btn-sm">← Mappa pagine</a>
+      <span>AdFlow Suite · Pitch MVP (6 novembre 2026)</span>
+    </div>
+    <div class="pitch-controls">
+      <span id="slideCounter" class="status-pill neutral">Slide 1 / 10</span>
+      <span id="timerDisplay" class="pitch-timer">00:00 / 10:00</span>
+      <button type="button" class="btn btn-secondary btn-sm" id="timerBtn">Avvia timer</button>
+      <button type="button" class="btn btn-secondary btn-sm" id="prevBtn">← Precedente</button>
+      <button type="button" class="btn btn-primary btn-sm" id="nextBtn">Successiva →</button>
+    </div>
+  </header>
+
+  <main class="pitch-stage">
+    <!-- SLIDE 1 -->
+    <section class="pitch-slide active" data-slide="1">
+      <div class="slide-meta">
+        <span>00:00 – 00:25 · Apertura</span>
+        <span>Relatrice: Silvia · Team AdFlow</span>
+      </div>
+      <h1 class="slide-title">AdFlow Suite</h1>
+      <p class="slide-subtitle">La voce della bottega artigiana, ogni settimana sui social, con la cura del consorzio.</p>
+      <div class="pitch-grid-3">
+        <div class="pitch-box">
+          <div class="pitch-kpi">9 passi</div>
+          <h3>Il racconto della bottega</h3>
+          <p>Compilato una sola volta dall'artigiano e confermato a ogni nuova campagna.</p>
+        </div>
+        <div class="pitch-box">
+          <div class="pitch-kpi">~5 min</div>
+          <h3>Revisione del consorzio</h3>
+          <p>L'AI prepara analisi foto, piano, immagini di rimpiazzo e testi; l'operatore controlla e approva.</p>
+        </div>
+        <div class="pitch-box">
+          <div class="pitch-kpi">&lt; 0,80 €</div>
+          <h3>Costo vivo al mese per bottega</h3>
+          <p>Infrastruttura europea + chiamate AI tracciate al centesimo su un solo database PostgreSQL.</p>
+        </div>
+      </div>
+      <p style="margin-top: 24px; color: var(--text-secondary);">
+        <strong>Team AdFlow</strong>: Gianluca · Silvia · Giovanni · Nilton · Angelo — Consegna MVP · 6 novembre 2026
+      </p>
+    </section>
+
+    <!-- SLIDE 2 -->
+    <section class="pitch-slide" data-slide="2">
+      <div class="slide-meta">
+        <span>00:25 – 00:50 · Il problema e l'obiettivo</span>
+        <span>Relatrice: Silvia</span>
+      </div>
+      <h2 class="slide-title">Perché le pagine delle botteghe restano ferme</h2>
+      <p class="slide-subtitle">Un artigiano sa raccontare il suo mestiere a voce, ma non può fare il social media manager.</p>
+      <div class="pitch-grid-2">
+        <div class="pitch-box">
+          <h3>Oggi nelle botteghe e nel consorzio</h3>
+          <ul class="pitch-list">
+            <li>Pagine Facebook e Instagram ferme per settimane, poi tre post nello stesso giorno.</li>
+            <li>Foto scattate al banco di lavoro ma mai pubblicate o tagliate male dai social.</li>
+            <li>Scrivere a mano i post per 50 botteghe del consorzio non è sostenibile.</li>
+          </ul>
+        </div>
+        <div class="pitch-box">
+          <h3>Con AdFlow Suite</h3>
+          <ul class="pitch-list">
+            <li><strong>L'artigiano</strong> mette solo date, canali e le foto che ha (o quelle già nel suo Archivio foto).</li>
+            <li><strong>L'AI</strong> seleziona le foto migliori, crea il piano, genera immagini dove mancano foto e scrive testi distinti per canale.</li>
+            <li><strong>L'operatore</strong> rivede tutto affiancato, sistema in pochi clic e approva; il worker pubblica alla data prevista.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 3 -->
+    <section class="pitch-slide" data-slide="3">
+      <div class="slide-meta">
+        <span>00:50 – 01:45 · Il flusso in 4 passi</span>
+        <span>Relatore: Gianluca</span>
+      </div>
+      <h2 class="slide-title">Dalla bottega alla pagina social in 4 passi</h2>
+      <p class="slide-subtitle">Separazione netta dei ruoli: l'artigiano non vede bozze intermedie, il consorzio mantiene il controllo editoriale.</p>
+      <div class="pitch-grid-2">
+        <div class="pitch-box">
+          <h3>1. Profilo e Bozza (Artigiano)</h3>
+          <ul class="pitch-list">
+            <li>Profilo in 9 passi confermato con <em>Bentornato</em>; fotografia del profilo fissata all'invio.</li>
+            <li>Foto caricate a gruppi o scelte dall'<strong>Archivio foto</strong>; scelta se consentire immagini AI; dichiarazione legale obbligatoria.</li>
+          </ul>
+        </div>
+        <div class="pitch-box">
+          <h3>2. Generazione a 4 tappe (Worker + AI)</h3>
+          <ul class="pitch-list">
+            <li>Barra di avanzamento in tempo reale: <em>Analisi foto → Piano → Immagini → Testi dei post</em>.</li>
+            <li>Prompt versionati (<code>v3</code>), validatore a regole su prezzi, parole vietate e limiti dei canali.</li>
+          </ul>
+        </div>
+        <div class="pitch-box">
+          <h3>3. Revisione e Interventi (Operatore)</h3>
+          <ul class="pitch-list">
+            <li>Post affiancati Facebook / Instagram, stati leggibili con spiegazione e costo AI della campagna.</li>
+            <li>Modifica a mano, rigenera su uno o tutti i canali, cambia foto, scegli tra <em>ritaglio centrato</em> e <em>bordi sfocati</em>, o chiedi fino a 3 foto all'artigiano.</li>
+          </ul>
+        </div>
+        <div class="pitch-box">
+          <h3>4. Pubblicazione e Controllo continuo</h3>
+          <ul class="pitch-list">
+            <li>Uscita automatica idempotente alla data prevista con GPS rimosso dalle foto.</li>
+            <li>Anche dopo l'approvazione l'operatore può correggere, spostare o annullare un post fino a 15 minuti prima dell'uscita.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 4 -->
+    <section class="pitch-slide" data-slide="4">
+      <div class="slide-meta">
+        <span>01:45 – 05:30 · Demo dal vivo (3 min 45 s)</span>
+        <span>Relatori: Giovanni (voce) e Angelo (tastiera)</span>
+      </div>
+      <h2 class="slide-title">Demo dal vivo · Mosaici d'Arte (Ravenna)</h2>
+      <p class="slide-subtitle">Campagna «Collezione d'autunno» · 7 giorni · Facebook + Instagram · AI e Facebook reali.</p>
+      <div class="pitch-grid-3">
+        <div class="pitch-box">
+          <h3>Atto 1 · L'Artigiano (1:10)</h3>
+          <ul class="pitch-list">
+            <li>Accesso come <code>mosaici@esempio.it</code>.</li>
+            <li>Conferma <em>Bentornato</em> sul profilo della bottega.</li>
+            <li>Riepilogo della bozza con avviso trasparente sulle immagini AI di rimpiazzo.</li>
+            <li>Spunta della dichiarazione sulle foto e invio della campagna.</li>
+          </ul>
+        </div>
+        <div class="pitch-box">
+          <h3>Atto 2 · L'Operatore (1:35)</h3>
+          <ul class="pitch-list">
+            <li>Avanzamento delle 4 tappe e apertura in <strong>Vedi campagna</strong>.</li>
+            <li>Esito dell'analisi foto (punteggio e scarto foto sfocata), immagine AI creata e costo (<code>0,0781 $</code>).</li>
+            <li>Rigenerazione testo, anteprima con <strong>bordi sfocati</strong> e approvazione in blocco.</li>
+          </ul>
+        </div>
+        <div class="pitch-box">
+          <h3>Atto 3 · Calendario e Social (1:00)</h3>
+          <ul class="pitch-list">
+            <li>Calendario dei post approvati lato artigiano e lato operatore.</li>
+            <li>Ispezione di prompt/risposta e voto 5★ nella pagina <strong>Storico AI</strong>.</li>
+            <li>Pubblicazione reale del post sulla Pagina Facebook di prova del consorzio.</li>
+          </ul>
+        </div>
+      </div>
+      <div style="margin-top: 20px; display: flex; gap: 12px; flex-wrap: wrap;">
+        <a href="AdFlow-campagna.html" class="btn btn-secondary btn-sm">Apri vista Artigiano →</a>
+        <a href="AdFlow-operatore-campagna.html" class="btn btn-primary btn-sm">Apri Vedi campagna →</a>
+        <a href="AdFlow-operatore-storico-ai.html" class="btn btn-secondary btn-sm">Apri Storico AI →</a>
+      </div>
+    </section>
+
+    <!-- SLIDE 5 -->
+    <section class="pitch-slide" data-slide="5">
+      <div class="slide-meta">
+        <span>05:30 – 06:05 · Architettura e qualità</span>
+        <span>Relatore: Nilton</span>
+      </div>
+      <h2 class="slide-title">Architettura semplice, confini verificati</h2>
+      <p class="slide-subtitle">Un monolite modulare con worker su un solo database PostgreSQL: nessun servizio superfluo da gestire.</p>
+      <div class="pitch-grid-3">
+        <div class="pitch-box">
+          <div class="pitch-kpi">1 DB</div>
+          <h3>PostgreSQL 16 + Procrastinate</h3>
+          <p>Dati, JSON, contatori di sicurezza e coda dei job in un unico database con 13 migrazioni Alembic versionate.</p>
+        </div>
+        <div class="pitch-box">
+          <div class="pitch-kpi">7 moduli</div>
+          <h3>Confini controllati dai test</h3>
+          <p><code>accesso → notifiche → artigiani → campagne → contenuti → revisione → pubblicazione</code> verificati da <code>test_confini.py</code>.</p>
+        </div>
+        <div class="pitch-box">
+          <div class="pitch-kpi">1.997 test</div>
+          <h3>Suite su PostgreSQL reale</h3>
+          <p>Tutti i 116 criteri di accettazione coperti da test automatici senza mai chiamare AI, Meta o email reali nei test.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 6 -->
+    <section class="pitch-slide" data-slide="6">
+      <div class="slide-meta">
+        <span>06:05 – 06:35 · Sicurezza e osservabilità AI</span>
+        <span>Relatore: Nilton</span>
+      </div>
+      <h2 class="slide-title">Sicurezza, tutela legale e Storico AI</h2>
+      <p class="slide-subtitle">Ogni decisione, versione del testo e chiamata all'AI è tracciata senza mai esporre segreti o dati personali nei log.</p>
+      <div class="pitch-grid-2">
+        <div class="pitch-box">
+          <h3>Sicurezza e Privacy (T3-09, #17)</h3>
+          <ul class="pitch-list">
+            <li>Password con <code>scrypt</code>; sessioni hashate in cookie <code>HttpOnly</code>, <code>SameSite=Lax</code>, <code>Secure</code>.</li>
+            <li>Limite di 5 tentativi di login ogni 15 minuti per IP e account su PostgreSQL; protezione CSRF same-origin.</li>
+            <li>Metadati EXIF e posizione GPS rimossi da ogni foto prima della pubblicazione (CA-81).</li>
+            <li>Link delle foto per Instagram firmati con HMAC a scadenza e validazione HTTPS.</li>
+          </ul>
+        </div>
+        <div class="pitch-box">
+          <h3>Osservabilità in Storico AI (R-44, R-50)</h3>
+          <ul class="pitch-list">
+            <li>Ogni chiamata registra tipo, modello, versione del prompt (<code>v3</code>), durata, token, costo ed esito.</li>
+            <li>Prompt e risposte salvati nel database per l'ispezione dell'operatore e <strong>mai nei log</strong>.</li>
+            <li>Riepilogo dei numeri per versione del prompt e valutazione da 1 a 5 stelle con difetti riscontrati.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 7 -->
+    <section class="pitch-slide" data-slide="7">
+      <div class="slide-meta">
+        <span>06:35 – 07:35 · Piano, tempi e costi</span>
+        <span>Relatore: Giovanni</span>
+      </div>
+      <h2 class="slide-title">Tempi di realizzazione e sostenibilità economica</h2>
+      <p class="slide-subtitle">Costi di sviluppo certi e costi vivi d'esercizio misurati sulle chiamate reali.</p>
+      <div class="pitch-grid-2">
+        <div class="pitch-box">
+          <h3>Sviluppo dell'MVP (6 settimane)</h3>
+          <ul class="pitch-list">
+            <li><strong>5 sviluppatori</strong> · 25 settembre – 6 novembre 2026.</li>
+            <li><strong>143 task completati</strong> in 3 sprint (76 nello Sprint 3 · MVP).</li>
+            <li><strong>1.110 ore complessive</strong> (222 ore a componente).</li>
+            <li><strong>Costo di sviluppo MVP</strong>: <strong>33.500 €</strong> (1.110 h × 30 €/ora + 150 € strumenti AI + 50 € budget AI di test).</li>
+          </ul>
+        </div>
+        <div class="pitch-box">
+          <h3>Costi vivi di esercizio (per 50 botteghe)</h3>
+          <ul class="pitch-list">
+            <li><strong>Demo reale (6 post + 1 rigenerazione + 1 immagine AI)</strong>: <strong>0,0781 $</strong> (~0,07 €) in ~46 secondi.</li>
+            <li><strong>Campagna di 10 post con 9 foto nuove</strong>: <strong>≈ 0,13 $</strong> (~0,12 €).</li>
+            <li><strong>Hosting europeo</strong> (VPS 2 vCPU / 4 GB RAM + backup + HTTPS + SMTP): <strong>16 €/mese</strong>.</li>
+            <li><strong>Totale per 50 botteghe attive</strong>: <strong>25–40 €/mese tutto compreso</strong> (<strong>&lt; 0,80 €/mese per bottega</strong>).</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 8 -->
+    <section class="pitch-slide" data-slide="8">
+      <div class="slide-meta">
+        <span>07:35 – 08:25 · Anteprima Metriche</span>
+        <span>Relatore: Angelo</span>
+      </div>
+      <h2 class="slide-title">Anteprima Post-MVP · La pagina Metriche</h2>
+      <p class="slide-subtitle">Come vanno i post pubblicati: vista per intero consorzio, singola bottega o singola campagna.</p>
+      <div class="pitch-grid-2">
+        <div class="pitch-box">
+          <h3>Cosa mostra la pagina progettata</h3>
+          <ul class="pitch-list">
+            <li><strong>Selettore a 3 livelli</strong>: Tutto il consorzio (18 botteghe) · Bottega (<em>Mosaici d'Arte</em>) · Campagna.</li>
+            <li><strong>Numeri chiave</strong>: post pubblicati, persone raggiunte (38.400), interazioni (2.690, media 22 per post) e andamento settimana per settimana.</li>
+            <li><strong>Confronto canali e post migliori</strong>: Instagram porta più commenti e salvataggi, Facebook più clic; le foto del lavoro dal vivo superano le immagini di rimpiazzo.</li>
+          </ul>
+          <div style="margin-top: 16px;">
+            <a href="AdFlow-operatore-metriche.html" target="_blank" class="btn btn-primary btn-sm">Apri l'anteprima interattiva Metriche →</a>
+          </div>
+        </div>
+        <div class="pitch-box" style="padding: 0; overflow: hidden;">
+          <iframe src="AdFlow-operatore-metriche.html" title="Anteprima pagina Metriche" style="width: 100%; height: 340px; border: 0;"></iframe>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 9 -->
+    <section class="pitch-slide" data-slide="9">
+      <div class="slide-meta">
+        <span>08:25 – 09:15 · Roadmap del prodotto</span>
+        <span>Relatore: Gianluca</span>
+      </div>
+      <h2 class="slide-title">Roadmap · Dove può arrivare AdFlow Suite</h2>
+      <p class="slide-subtitle">Una parte importante è già scritta, testata e pronta da riattivare (ADR-114).</p>
+      <div class="pitch-grid-3">
+        <div class="pitch-box">
+          <h3>1. Già scritto · Da riattivare</h3>
+          <ul class="pitch-list">
+            <li>Spunta «va bene», nota interna per post e rimozione di un singolo canale.</li>
+            <li><strong>Caroselli</strong> con più foto in un unico post.</li>
+            <li>Suggerimento automatico di foto dall'archivio della bottega prima dell'immagine AI.</li>
+          </ul>
+        </div>
+        <div class="pitch-box">
+          <h3>2. Evoluzione per il consorzio</h3>
+          <ul class="pitch-list">
+            <li><strong>Metriche giornaliere</strong> da Meta Insights, report settimanale e orari scelti dai dati.</li>
+            <li><strong>Collegamento OAuth</strong> degli account social di ogni bottega con App Review Meta.</li>
+            <li><strong>Link da telefono senza password</strong> per la richiesta di foto sostitutive all'artigiano.</li>
+            <li><strong>Ritocco AI</strong> di luce e sfondo senza alterare il prodotto.</li>
+          </ul>
+        </div>
+        <div class="pitch-box">
+          <h3>3. Prodotto e Business</h3>
+          <ul class="pitch-list">
+            <li>Abbonamenti a fasce (<em>Bottega</em>, <em>Vetrina</em>, <em>Quotidiano</em>) e pacchetti crediti immagine.</li>
+            <li>Approvazione facoltativa dei post da parte dell'artigiano.</li>
+            <li>Apertura a più consorzi, altri canali (LinkedIn, TikTok) e formato video/Reel.</li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- SLIDE 10 -->
+    <section class="pitch-slide" data-slide="10">
+      <div class="slide-meta">
+        <span>09:15 – 09:30 · Chiusura e Domande</span>
+        <span>Relatori: Tutto il team</span>
+      </div>
+      <h2 class="slide-title">Pronti per le botteghe del consorzio</h2>
+      <p class="slide-subtitle">Un sistema concreto, verificato end-to-end e sostenibile dal primo giorno.</p>
+      <div class="pitch-grid-3">
+        <div class="pitch-box">
+          <div class="pitch-kpi">100% MVP</div>
+          <h3>Percorso completo dal vivo</h3>
+          <p>Profilo, archivio foto, generazione AI a 4 tappe, revisione, storico AI e pubblicazione reale su Meta.</p>
+        </div>
+        <div class="pitch-box">
+          <div class="pitch-kpi">0,07 €</div>
+          <h3>Costo AI per campagna</h3>
+          <p>Misurato dal vivo con GPT-4o e immagini AI: meno di 0,80 €/mese per bottega tutto incluso.</p>
+        </div>
+        <div class="pitch-box">
+          <div class="pitch-kpi">1.997</div>
+          <h3>Test verdi su PostgreSQL</h3>
+          <p>116 criteri di accettazione verificati, sicurezza testata e codice congelato pronto per il dopo-MVP.</p>
+        </div>
+      </div>
+      <p style="margin-top: 28px; font-size: 1.1rem; font-weight: 600;">
+        Grazie per l'attenzione · Siamo a disposizione per le vostre domande.
+      </p>
+    </section>
+  </main>
+
+  <footer class="pitch-footer">
+    <span>Usa le frecce <code>←</code> / <code>→</code> o la barra spaziatrice per cambiare slide</span>
+    <span>Documenti correlati: <code>docs/proposta-tecnica.md</code> (v1.0) · <code>docs/pitch.md</code> · <code>docs/ROADMAP.md</code></span>
+  </footer>
+</div>
+
+<script>
+  (function () {
+    const slides = Array.from(document.querySelectorAll('.pitch-slide'));
+    const counter = document.getElementById('slideCounter');
+    const prevBtn = document.getElementById('prevBtn');
+    const nextBtn = document.getElementById('nextBtn');
+    const timerBtn = document.getElementById('timerBtn');
+    const timerDisplay = document.getElementById('timerDisplay');
+    let current = 0;
+    let timerId = null;
+    let elapsed = 0;
+
+    function showSlide(index) {
+      current = Math.max(0, Math.min(slides.length - 1, index));
+      slides.forEach((s, i) => s.classList.toggle('active', i === current));
+      counter.textContent = 'Slide ' + (current + 1) + ' / ' + slides.length;
+    }
+
+    prevBtn.addEventListener('click', () => showSlide(current - 1));
+    nextBtn.addEventListener('click', () => showSlide(current + 1));
+
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'ArrowRight' || e.key === ' ') {
+        e.preventDefault();
+        showSlide(current + 1);
+      } else if (e.key === 'ArrowLeft') {
+        e.preventDefault();
+        showSlide(current - 1);
+      }
+    });
+
+    function formatTime(sec) {
+      const m = String(Math.floor(sec / 60)).padStart(2, '0');
+      const s = String(sec % 60).padStart(2, '0');
+      return m + ':' + s + ' / 10:00';
+    }
+
+    timerBtn.addEventListener('click', () => {
+      if (timerId) {
+        clearInterval(timerId);
+        timerId = null;
+        timerBtn.textContent = 'Riprendi timer';
+      } else {
+        timerId = setInterval(() => {
+          elapsed += 1;
+          timerDisplay.textContent = formatTime(elapsed);
+        }, 1000);
+        timerBtn.textContent = 'Pausa timer';
+      }
+    });
+  })();
+</script>
+</body>
+</html>

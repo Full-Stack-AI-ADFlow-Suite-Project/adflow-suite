@@ -1,4 +1,4 @@
-"""T1-14: canali MVP, isolamento dell'artigiano e autorizzazione."""
+"""Canali MVP, isolamento dell'artigiano e autorizzazione."""
 
 from datetime import datetime, timezone
 

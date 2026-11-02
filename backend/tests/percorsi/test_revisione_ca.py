@@ -1,6 +1,6 @@
-"""T2b-07: API vere, login del seed, worker e notifiche con adattatori finti.
+"""Test di percorso per i criteri di accettazione di revisione, notifiche e scadenze.
 
-Il percorso usa le stesse fixture della chiusura 1: ora iniettata, PostgreSQL
+Il percorso usa le stesse fixture del percorso base: ora iniettata, PostgreSQL
 adflow_test, commit per richiesta/job. Nessuna email o chiamata esterna reale.
 """
 
@@ -23,7 +23,7 @@ from app.moduli.contenuti import jobs, service as contenuti
 from app.moduli.notifiche import jobs as posta
 from app.moduli.notifiche.models import Notifica
 from tests.moduli.accesso.fabbrica import utente
-from tests.percorsi.test_percorso_sprint1 import (
+from tests.percorsi.test_percorso_base import (
     ADMIN,
     ARTIGIANO,
     INIZIO,

@@ -166,7 +166,9 @@ uvicorn.run('app.main:app',host='127.0.0.1',port=int(sys.argv[1]),
                 data=json.dumps(dati).encode(),
                 headers={
                     "Content-Type": "application/json",
-                    "X-Forwarded-Proto": "https",
+                    "X-Forwarded-Proto": "http" if via_proxy else "https",
+                    "X-Forwarded-For": "203.0.113.99",
+                    "X-Request-ID": "0" * 32,
                 },
                 method="POST",
             )
@@ -177,7 +179,9 @@ uvicorn.run('app.main:app',host='127.0.0.1',port=int(sys.argv[1]),
                 assert all(
                     flag in cookie for flag in ["HttpOnly", "SameSite=lax", "Path=/"]
                 )
+                assert "domain=" not in cookie.lower()
                 assert len(r.headers["X-Request-ID"]) == 32
+                assert r.headers["X-Request-ID"] != "0" * 32
     finally:
         if proxy:
             proxy.shutdown()

@@ -1,4 +1,4 @@
-"""T1-04: stati, transizioni e funzioni comuni del modulo campagne."""
+"""Stati, transizioni e funzioni comuni del modulo campagne."""
 from datetime import date, timedelta
 from itertools import product
 

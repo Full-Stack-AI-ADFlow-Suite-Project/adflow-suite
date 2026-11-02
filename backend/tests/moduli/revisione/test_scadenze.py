@@ -1,4 +1,4 @@
-"""Test del tick delle scadenze: R-06, R-35, CA-30, CA-68 (T2b-44).
+"""Test del tick delle scadenze: R-06, R-35, CA-30, CA-68.
 
 ``revisione.scadenze(db, adesso)`` è la funzione di plan §6 che il worker
 chiama ogni minuto prima di ``pubblica_dovuti()``: qui si prova il suo corpo

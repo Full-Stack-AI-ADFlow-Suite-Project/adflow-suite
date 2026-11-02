@@ -1,4 +1,4 @@
-"""T2b-33: rigenera il testo di un post, da zero o da un testo proposto (plan §4, R-03, R-04, R-31).
+"""Rigenera il testo di un post, da zero o da un testo proposto (plan §4, R-03, R-04, R-31).
 
 CA-26, CA-27, CA-28, CA-66 (funzioni e job).
 """

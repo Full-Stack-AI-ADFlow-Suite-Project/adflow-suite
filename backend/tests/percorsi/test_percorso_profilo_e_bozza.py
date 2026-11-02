@@ -1,4 +1,4 @@
-"""T2a-07: il percorso completo dello sprint 2a, come descritto in converge.md §4.
+"""Percorso completo di profilo, bozza, archivio e pubblicazione attraverso le API.
 
 Verifica l'intero flusso attraverso le API:
 1. Artigiano nuovo (senza profilo) -> 404, obbligatorio vuoto -> 422, salvataggio completo (CA-05, CA-07);
@@ -220,10 +220,10 @@ def _account(db, piattaforma: str) -> AccountSocial:
     )
 
 
-def test_percorso_completo_sprint2a(
+def test_percorso_profilo_bozza_e_archivio(
     api, client, entra, lavora, orologio, finti, db, coda
 ):
-    """Converge §4, passi 1–7: test completo del percorso dello Sprint 2a."""
+    """Test completo del percorso di profilo, bozza, archivio e pubblicazione."""
 
     # =========================================================================
     # 1. Artigiano nuovo (crea-utente, senza profilo) -> CA-05, CA-07
@@ -612,7 +612,7 @@ def test_percorso_completo_sprint2a(
         assert not set(foto_usate) & {foto_arc_1, foto_arc_2}
 
     # =========================================================================
-    # 7. Prove negative dello Sprint 2a
+    # 7. Prove negative
     # =========================================================================
     assert entra(ARTIGIANO)["ruolo"] == "artigiano"
 
@@ -643,8 +643,8 @@ def test_percorso_completo_sprint2a(
     assert r_del_foto_altrui.status_code == 404
 
 
-def test_prove_negative_del_percorso_sprint2a(api, entra, lavora, db, finti):
-    """Converge §4 passo 7 e §3 passo 6: ogni rifiuto ha il suo codice e un messaggio in italiano."""
+def test_prove_negative_profilo_e_bozza(api, entra, lavora, db, finti):
+    """Ogni rifiuto ha il suo codice e un messaggio in italiano."""
     assert entra(ARTIGIANO)["ruolo"] == "artigiano"
 
     def crea(inizio: date, fine: date):

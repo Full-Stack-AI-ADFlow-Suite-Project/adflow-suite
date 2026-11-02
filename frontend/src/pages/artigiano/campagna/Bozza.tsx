@@ -1,6 +1,6 @@
 /**
  * Bozza: i passi 10 (durata e canali), 11 (foto a gruppi) e 12 (riepilogo
- * e invio). La bozza si crea alla fine del passo 10 o si modifica con PATCH (T2a-21/T2a-53).
+ * e invio). La bozza si crea alla fine del passo 10 o si modifica con PATCH.
  * CA-08: bozza aperta → rientra → pagina Campagna dal passo 10 con dati, canali, gruppi e foto.
  */
 import { useState } from "react";

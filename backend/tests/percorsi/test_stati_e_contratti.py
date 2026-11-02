@@ -33,7 +33,6 @@ from tests.moduli.campagne.fabbrica import (
     campagna_in_bozza,
     campagna_in_revisione,
     campagna_inviata,
-    foto,
     gruppo,
 )
 from tests.moduli.contenuti.fabbrica import piano, post_da_approvare, uscita

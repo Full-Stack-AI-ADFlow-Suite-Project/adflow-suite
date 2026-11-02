@@ -1,6 +1,6 @@
 /**
  * Dati di esempio con la forma delle API di plan §3: servono per lavorare a
- * una pagina senza il backend. Da T1-07 le pagine usano le API vere; gli
+ * una pagina senza il backend. Le pagine usano le API vere; gli
  * esempi si accendono con VITE_USA_ESEMPI=1. La sessione finta vive in
  * localStorage, così un ricaricamento non butta fuori.
  */

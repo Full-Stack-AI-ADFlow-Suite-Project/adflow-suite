@@ -1,4 +1,4 @@
-"""T2b-32: la modifica a mano di un post è una versione `modifica_operatore`."""
+"""La modifica a mano di un post è una versione `modifica_operatore`."""
 from datetime import datetime, timedelta, timezone
 
 import pytest

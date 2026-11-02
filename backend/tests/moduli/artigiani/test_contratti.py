@@ -1,4 +1,4 @@
-"""T1-04: valori ammessi e letture comuni del modulo artigiani."""
+"""Valori ammessi e letture comuni del modulo artigiani."""
 from app.moduli.artigiani import domain, service
 from app.moduli.artigiani.models import ProfiloBottega
 from app.moduli.artigiani.service import profilo_di

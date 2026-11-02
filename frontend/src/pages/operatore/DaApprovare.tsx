@@ -1,5 +1,5 @@
 /**
- * Campagne da approvare (T1-53): tutti gli artigiani, da GET /campagne con lo
+ * Campagne da approvare: tutti gli artigiani, da GET /campagne con lo
  * stato ripetuto. Ordinata per urgenza; la decisione si prende in Vedi campagna.
  */
 import {

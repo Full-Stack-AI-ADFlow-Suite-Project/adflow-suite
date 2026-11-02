@@ -1,5 +1,5 @@
 /**
- * Dati e comportamenti di esempio per l'archivio della bottega (T2a-52).
+ * Dati e comportamenti di esempio per l'archivio della bottega.
  * Simula le operazioni di backend in localStorage rispettando i vincoli di R-13.
  */
 import { ApiErrore } from "../http";

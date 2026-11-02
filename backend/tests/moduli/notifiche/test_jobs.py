@@ -1,4 +1,4 @@
-"""T2b-12: il job ``invia_notifica`` compone e manda l'email della notifica."""
+"""Il job ``invia_notifica`` compone e manda l'email della notifica."""
 
 import logging
 from contextlib import contextmanager

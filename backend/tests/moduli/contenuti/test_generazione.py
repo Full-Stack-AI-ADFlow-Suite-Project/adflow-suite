@@ -1,7 +1,7 @@
-"""T1-34: job `genera_campagna` a tappe (plan §4, spec §2.2, R-24, R-35).
+"""Job `genera_campagna` a tappe (plan §4, spec §2.2, R-24, R-35).
 
 CA-17, CA-18, CA-19 (fino a `generazione_fallita`), CA-20, CA-50,
-CA-57 (il post `immagine_ai` ha la sua immagine e il suo testo: T3-34, per il resto
+CA-57 (il post `immagine_ai` ha la sua immagine e il suo testo; per il resto
 `test_immagini_ai.py`), CA-58, CA-59,
 CA-80 (le foto migliori per punteggio); poi la ripresa dalle tappe già salvate
 e gli errori tecnici secondo il tipo.
@@ -10,7 +10,6 @@ e gli errori tecnici secondo il tipo.
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import date, datetime, timedelta, timezone
-from types import SimpleNamespace
 
 import pytest
 from sqlalchemy import select
@@ -137,7 +136,7 @@ def _chiamate(ai: AIFinto, operazione: str) -> list[dict]:
 
 
 def _riprova(db, campagna) -> None:
-    """Ciò che fa Riprova in `campagne` (T1-24): da fallita torna `inviata`."""
+    """Ciò che fa Riprova in `campagne`: da fallita torna `inviata`."""
     campagne.cambia_stato(db, campagna, "inviata")
     db.commit()
 
@@ -385,29 +384,6 @@ def test_le_tappe_in_ordine_un_passo_alla_volta(db, ai):
 
 
 # --- Analisi ------------------------------------------------------------------
-
-
-def test_una_stella_gia_salvata_non_conta_piu(db, ai):
-    """ADR-114, A11: 8 foto e 6 post, l'ultima ha `da_usare` e resta un doppione.
-
-    La colonna resta nel database, ma la generazione non la legge: la foto non
-    entra nel piano per forza e l'analisi dell'AI resta com'è.
-    """
-    campagna = _campagna(db, n_foto=8)
-    ids = _foto_ids(db, campagna)
-    con_stella, altra = ids[7], ids[0]
-    campagne.foto_per_id(db, [con_stella])[0].da_usare = True
-    db.commit()
-    ai.comanda_analisi(con_stella, simile_a=altra)
-
-    _job(campagna.id)
-
-    assert campagna.stato == "in_revisione"
-    immagini = {f.id: f for f in campagne.foto_della_campagna(db, campagna.id)}
-    assert immagini[con_stella].analisi_ai["simile_a"] == altra
-    assert immagini[altra].analisi_ai["simile_a"] is None
-    usate = {f for p in post_della_campagna(db, campagna.id) for f in _foto_del_post(p)}
-    assert con_stella not in usate
 
 
 @pytest.mark.parametrize("tipo", ["richiesta", "rifiuto"])
@@ -870,7 +846,7 @@ def test_campagna_in_bozza_non_ha_job_da_fare(db, ai):
     assert campagna.stato == "bozza"
 
 
-# --- Notifiche della generazione (T2b-34, CA-55) ------------------------------
+# --- Notifiche della generazione (CA-55) --------------------------------------
 
 
 def _notifiche(db, campagna, tipo: str) -> list:

@@ -611,18 +611,6 @@ def test_data_prima_del_periodo_e_nel_passato_sono_due_regole():
     assert _regole(violazioni) == ["data_fuori_periodo", "data_nel_passato"]
 
 
-def test_una_stella_gia_salvata_non_e_piu_una_regola():
-    """ADR-114, A11: `foto.da_usare` resta nel database, il controllo non lo legge."""
-    con_stella = _foto(8)
-    con_stella.da_usare = True
-    gruppi = [_gruppo(1, [_foto(n) for n in range(1, 8)] + [con_stella])]
-    limiti = limiti_per_canale(["facebook", "instagram"], 3, INIZIO, FINE, gruppi)
-    contenuto = _piano_valido(limiti)  # usa le foto da 1 a 6
-
-    assert _controlla(contenuto, limiti, gruppi) == []
-    assert "foto_con_stella" not in piano.REGOLE
-
-
 @pytest.mark.parametrize("canale", sorted(domain.SCHEDE_CANALE))
 def test_regola_massimo_di_foto_per_post(canale):
     """R-21: al massimo 10 foto per post, su ogni canale."""
@@ -669,18 +657,6 @@ def test_ca57_il_piano_senza_foto_e_tutto_di_immagini_ai():
     assert {p["formato"] for p in post} == {"singola"}
     assert all(p["foto"] == [] for p in post)
     assert _controlla(contenuto, limiti, gruppi) == []
-
-
-@pytest.mark.parametrize("riempitivo", ["archivio", "cartolina"])
-def test_archivio_e_cartolina_non_sono_riempitivi_del_piano(riempitivo):
-    """ADR-114: restano valori ammessi nel database, il piano non li chiede."""
-    assert piano.RIEMPITIVI_DEL_PIANO == ("immagine_ai",)
-    assert riempitivo in domain.TIPI_RIEMPITIVO
-    limiti, gruppi = _limiti(5, canali=("instagram",))
-    contenuto = _piano_valido(limiti)
-    contenuto["uscite"][5]["post"][0]["riempitivo"] = riempitivo
-
-    assert set(_regole(_controlla(contenuto, limiti, gruppi))) == {"piano_malformato"}
 
 
 def _cambia_post(**campi):

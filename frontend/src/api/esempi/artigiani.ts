@@ -92,7 +92,7 @@ export const profiliEsempio: Record<number, BottegaEsempio> = {
   },
 };
 
-/** Archivio locale del profilo completo, separato per utente. T2a-07 collega le API. */
+/** Archivio locale del profilo completo, separato per utente. */
 const PROFILO_BASE: ProfiloPubblico = {
   id: 1,
   nome: "Falegnameria Bianchi",

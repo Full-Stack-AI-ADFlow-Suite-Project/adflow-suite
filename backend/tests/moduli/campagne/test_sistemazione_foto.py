@@ -22,11 +22,8 @@ import pytest
 from app.adapters.archivio import ottieni_archivio
 from app.core.errori import DatiNonValidi, NonTrovato
 from app.moduli.campagne import service
-from app.moduli.campagne.models import Foto, GruppoFoto
-from app.moduli.campagne.sistemazione_foto import (
-    LATO_CORTO_TARGET,
-    sistema_foto_buffer,
-)
+from app.moduli.campagne.models import Foto
+from app.moduli.campagne.sistemazione_foto import LATO_CORTO_TARGET
 
 
 def _crea_immagine_png_con_exif_e_gps(

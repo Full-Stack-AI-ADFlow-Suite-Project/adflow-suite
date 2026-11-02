@@ -1,7 +1,7 @@
 /**
  * Interventi dell'operatore sul singolo post (plan §3, spec §3, R-03, R-16,
  * R-30, R-31, R-36): modifica a mano, spunta "va bene", rigenera, cambia foto,
- * sposta, annulla. Gli endpoint sono di revisione (T2b-42, T3-61, T3-62);
+ * sposta, annulla. Gli endpoint sono di revisione (T3-61, T3-62);
  * con `VITE_USA_ESEMPI=1` le pagine leggono i dati di esempio. Dopo ogni intervento la pagina rilegge Vedi campagna, quindi qui
  * non si legge il corpo della risposta.
  */

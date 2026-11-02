@@ -1,4 +1,4 @@
-"""Test per l'archivio della bottega e le funzioni di archivio (T2a-22, spec R-13, R-27, CA-76).
+"""Test per l'archivio della bottega e le funzioni di archivio (spec R-13, R-27, CA-76).
 
 Copre:
 - `foto_di_archivio()` secondo R-27 e CA-76 con ogni singola esclusione/inclusione;

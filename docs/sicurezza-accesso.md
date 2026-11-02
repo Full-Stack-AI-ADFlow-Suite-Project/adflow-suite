@@ -44,7 +44,7 @@ Cosa fa il codice per proteggere l'accesso e cosa deve fare chi installa AdFlow 
   }
   ```
 
-**Prova nell'ambiente reale (issue #17, ancora aperta).** I test provano in locale HTTPS con certificato verificato, un proxy TLS temporaneo e un processo Uvicorn separato. Prima del rilascio si allega alla issue #17 l'evidenza dell'ambiente reale: HTTPS attraverso il proxy; cookie Secure, HttpOnly, `SameSite=Lax`, `Path=/` al login e al logout; header contraffatti sovrascritti; backend non raggiungibile direttamente. Senza cookie, credenziali o chiavi private nell'evidenza.
+**Prova locale con TLS e proxy (issue #17, parte locale chiusa).** `tests/moduli/accesso/test_proxy_http_reale.py` prova in locale HTTPS con certificato X.509 verificato, un proxy TLS temporaneo e un processo Uvicorn separato (`--proxy-headers --forwarded-allow-ips 127.0.0.1`), verificando: cookie `Secure`, `HttpOnly`, `SameSite=Lax`, `Path=/` e assenza di `Domain` al login e al logout; sovrascrittura degli header contraffatti (`X-Forwarded-Proto`, `X-Forwarded-For`, `X-Request-ID`); rifiuto degli header inoltrati quando la richiesta arriva da un indirizzo non fidato (`192.0.2.1`). Evidenza registrata in `qa/issue-17/README.md` (senza cookie, credenziali o chiavi private). Per un futuro ambiente di staging pubblico si ripete la stessa verifica sul reverse proxy esterno.
 
 ## Eventi di sicurezza
 

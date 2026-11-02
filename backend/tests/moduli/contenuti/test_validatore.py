@@ -1,4 +1,4 @@
-"""T1-33: validatore a regole, a due livelli (spec R-09, R-21).
+"""Validatore a regole, a due livelli (spec R-09, R-21).
 
 Un test per regola e per canale, con il suo livello: i blocchi (testo vuoto,
 limiti della piattaforma, parole vietate, cose da non dire, prezzi o premi) e
@@ -351,7 +351,7 @@ def test_blocchi_e_avvisi_insieme_e_salvabili_come_json():
 
 
 def test_il_testo_del_provider_finto_passa_il_validatore():
-    """Il testo di `AIFinto` (T1-31) non ha blocchi né avvisi, su ogni canale."""
+    """Il testo di `AIFinto` non ha blocchi né avvisi, su ogni canale."""
     campagna = CampagnaAI(
         titolo="Prova", inizio=date(2030, 1, 7), fine=date(2030, 1, 20)
     )

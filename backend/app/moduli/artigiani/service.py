@@ -15,7 +15,7 @@ from .profilo_schemas import ProfiloPubblico, ProfiloScrittura
 
 
 def stato_canali(db: Session, utente_id: int) -> list[CanaleCollegato]:
-    """Stato di ogni canale MVP del solo utente autenticato (T1-14, R-22)."""
+    """Stato di ogni canale MVP del solo utente autenticato (spec R-22)."""
     profilo = profilo_di(db, utente_id)
     collegati = set(canali_collegati(db, profilo.id)) if profilo else set()
     return [

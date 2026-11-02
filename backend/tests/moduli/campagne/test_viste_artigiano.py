@@ -1,4 +1,4 @@
-"""T2b-22: le viste della campagna per l'artigiano (spec §4).
+"""Le viste della campagna per l'artigiano (spec §4).
 
 Verifica i criteri di accettazione:
 - CA-31: campagna respinta → l'artigiano vede motivo, nota e foto da rifare.

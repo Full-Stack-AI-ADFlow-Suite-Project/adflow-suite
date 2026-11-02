@@ -1,5 +1,5 @@
 /**
- * Vedi campagna (T1-53): la schermata dell'operatore su ogni stato dopo
+ * Vedi campagna: la schermata dell'operatore su ogni stato dopo
  * l'invio. In cima la decisione e il piano, poi le uscite con i post dei
  * canali affiancati, e il pannello Foto e profilo.
  */

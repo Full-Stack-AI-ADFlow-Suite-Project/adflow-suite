@@ -1,4 +1,4 @@
-"""Login e sessioni reali sulle API di revisione entrate in main (T1-42)."""
+"""Login e sessioni reali sulle API di revisione."""
 
 from datetime import datetime, timedelta, timezone
 

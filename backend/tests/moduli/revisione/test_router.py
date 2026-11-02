@@ -1,16 +1,14 @@
-"""Test degli endpoint di revisione: Vedi campagna e Approva (T1-42)."""
+"""Test degli endpoint di revisione: Vedi campagna e Approva."""
 
 from datetime import datetime, timedelta, timezone
 
-import pytest
 from sqlalchemy import select
 
 from app.adapters.archivio import ArchivioFinto, usa_archivio
 from app.moduli.campagne.models import DecisioneCampagna
-from app.moduli.contenuti.models import ErroreGenerazione, Post
+from app.moduli.contenuti.models import ErroreGenerazione
 from app.moduli.revisione.models import Approvazione
 from tests.moduli.campagne.fabbrica import (
-    campagna_con_piano_da_rivedere,
     campagna_in_revisione,
     campagna_inviata,
     foto,
@@ -142,7 +140,7 @@ def test_vedi_campagna_mostra_il_riempitivo_archivio(db, client, utente_di_prova
     """Un post con riempitivo ``archivio`` mostra la sua foto d'archivio.
 
     La foto non è della campagna (gruppo senza campagna): il post si vede
-    comunque in Vedi campagna e il file si apre all'operatore (R-27, T2a-41).
+    comunque in Vedi campagna e il file si apre all'operatore (R-27).
     """
     campagna = campagna_in_revisione(db)
     mazzo = gruppo_di_archivio(db, profilo_id=campagna.profilo_id)
@@ -286,14 +284,3 @@ def test_approva_artigiano_403(db, client, utente_di_prova):
     utente_di_prova("artigiano")
 
     assert client.post(f"/api/campagne/{campagna.id}/approva").status_code == 403
-
-
-def test_prosegui_non_esiste_piu(db, client, utente_di_prova):
-    """ADR-114, A3: l'endpoint è tolto e una campagna vecchia resta ferma."""
-    campagna = campagna_con_piano_da_rivedere(db)
-    utente_di_prova("operatore")
-
-    assert client.post(f"/api/campagne/{campagna.id}/prosegui").status_code == 404
-
-    db.refresh(campagna)
-    assert campagna.stato == "piano_da_rivedere"

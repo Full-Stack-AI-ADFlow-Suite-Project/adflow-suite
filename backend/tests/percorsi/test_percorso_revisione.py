@@ -1,6 +1,6 @@
-"""T2b-07: il percorso completo dello sprint 2b, come descritto in converge.md §4.
+"""Percorso completo di revisione, notifiche e scadenze attraverso le API.
 
-Riparte dal percorso della 2a e ci aggiunge la revisione, le notifiche e le
+Verifica la revisione, le notifiche e le
 scadenze, tutto attraverso le API con AI, social, archivio ed email finti:
 
 1. campagna A a `in_revisione`: notifica `campagna_pronta` una per operatore,
@@ -277,10 +277,10 @@ def _decisioni(db, campagna_id: int) -> list[DecisioneCampagna]:
     )
 
 
-def test_percorso_completo_sprint2b(
+def test_percorso_completo_revisione(
     api, client, entra, lavora, orologio, finti, db, coda
 ):
-    """Converge §4, passi 1–8 dello sprint 2b."""
+    """Test completo del percorso di revisione, notifiche e scadenze."""
 
     # =========================================================================
     # 1. Campagna A a in_revisione: notifiche e vista artigiano (CA-31, CA-55)
@@ -814,7 +814,7 @@ def test_percorso_completo_sprint2b(
     assert db.scalar(select(func.count(Notifica.id))) == n_notifiche
 
     # =========================================================================
-    # 8. Prove negative dello sprint 2b
+    # 8. Prove negative di revisione
     # =========================================================================
     assert entra(ARTIGIANO)
     # Ogni intervento di revisione fatto da un artigiano → 403.

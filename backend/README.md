@@ -54,7 +54,7 @@ Le foto passano per gli stessi controlli del caricamento (JPEG, PNG o WebP; lato
 
 ## Pubblicazione reale su Meta (pagina di prova)
 
-Di default l'adattatore social è finto (`SOCIAL_PROVIDER=finto`): nessuna chiamata di rete e nessun post pubblicato davvero. Per la pubblicazione reale tutti gli artigiani dell'MVP usano **una sola Pagina Facebook di prova del team** con il suo account Instagram professionale (perimetro-mvp.md, D1). Configurazione da fare una volta sola; i dettagli sono in `docs/agenti/brief-meta.md`:
+Di default l'adattatore social è finto (`SOCIAL_PROVIDER=finto`): nessuna chiamata di rete e nessun post pubblicato davvero. Per la pubblicazione reale tutti gli artigiani dell'MVP usano **una sola Pagina Facebook di prova del team** con il suo account Instagram professionale (perimetro-mvp.md, D1). Configurazione da fare una volta sola; i dettagli sono in `docs/archivio/brief-meta.md`:
 
 1. Da un account Facebook personale del team crea una **Pagina di prova** e collegale un **account Instagram professionale** (Impostazioni della Pagina → Account collegati). Chi configura deve esserne amministratore.
 2. Su [developers.facebook.com](https://developers.facebook.com) crea un'app di tipo **Business** con il caso d'uso per gestire una Pagina e quello per l'API di Instagram, nella strada **Instagram API with Facebook Login**. Con lo Standard Access l'app agisce solo sulle risorse di chi la sviluppa: niente App Review né verifica aziendale.

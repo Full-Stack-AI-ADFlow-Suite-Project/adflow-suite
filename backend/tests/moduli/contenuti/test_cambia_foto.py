@@ -10,7 +10,6 @@ from sqlalchemy import select
 
 from app.core.coda import RIGENERA_POST
 from app.core.errori import DatiNonValidi, StatoNonValido
-from app.moduli.campagne import service as campagne
 from app.moduli.campagne.models import Foto
 from app.moduli.contenuti import interventi
 from app.moduli.contenuti.domain import DICITURA_IMMAGINE_AI
