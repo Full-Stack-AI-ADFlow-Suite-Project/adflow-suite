@@ -2,7 +2,7 @@
 
 Monorepo: `backend/` (FastAPI + worker Procrastinate, PostgreSQL), `frontend/` (React + Vite + Mantine), `docs/`.
 
-Siamo nello **sprint 3 · MVP** (ADR-114): consegna il 6 novembre 2026, codice bloccato il 30 ottobre. Che cosa entra nell'MVP lo dice `docs/agenti/perimetro-mvp.md`.
+Siamo nello **sprint 5 · Corsia rapida** (ADR-121, `docs/agenti/brief-corsia-rapida.md`): tre sviluppatori correggono i difetti trovati dalla simulazione, corsie 11, 12 e 13. Il blocco del codice dell'MVP (ADR-114) vale per tutto il resto. Che cosa entra nell'MVP lo dice `docs/agenti/perimetro-mvp.md`.
 
 ## Si parte da qui
 
@@ -17,7 +17,7 @@ Aggiorna `main`, le dipendenze e il database senza toccare il lavoro in corso, p
 ## Cosa leggere
 
 1. `docs/agenti/constitution.md` e `docs/agenti/perimetro-mvp.md`: sempre, prima di tutto.
-2. La riga del tuo task in `docs/agenti/tasks.md` e il brief che cita, se c'è (`brief-interventi.md`, `brief-pagine.md`, `brief-interfaccia.md`, `brief-richieste.md`).
+2. La riga del tuo task in `docs/agenti/tasks.md` e il brief che cita, se c'è (`brief-interventi.md`, `brief-pagine.md`, `brief-interfaccia.md`, `brief-richieste.md`, `brief-corsia-rapida.md`).
 3. **Solo** le sezioni di `docs/agenti/spec.md` e `docs/agenti/plan.md` citate dal task.
 4. Se scrivi codice del backend: `docs/agenti/plan.md` §7 (cosa offre già `core/` e come si usano le fixture dei test).
 5. Prima della PR: `docs/agenti/converge.md`.

@@ -243,12 +243,13 @@ def test_la_corsia_10_diventa_lo_sprint_corrente_e_i_task_sono_pronti():
     assert manca["T4-108"] == ["T4-101"]
 
 
-def test_la_scelta_della_corsia_arriva_fino_a_10():
+def test_la_scelta_della_corsia_arriva_fino_a_13():
     assert allinea.numero_corsia("0") == 0
     assert allinea.numero_corsia("9") == 9
     assert allinea.numero_corsia("10") == 10
-    # oltre la 10 o fuori dai numeri: corsia non valida
-    assert allinea.numero_corsia("11") is None
+    assert allinea.numero_corsia("13") == 13
+    # oltre la 13 o fuori dai numeri: corsia non valida
+    assert allinea.numero_corsia("14") is None
     assert allinea.numero_corsia("99") is None
     assert allinea.numero_corsia("1x") is None
     assert allinea.numero_corsia("") is None
