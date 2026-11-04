@@ -9,6 +9,7 @@ from sqlalchemy.orm import Session
 from app.adapters.archivio import DIMENSIONE_MAX_BYTE
 from app.core.db import get_db
 from app.core.errori import DatiNonValidi, NonTrovato
+from app.core.limite_login import prenota_azione_ai
 from app.core.orologio import adesso
 from app.moduli.accesso.service import richiede_ruolo, utente_corrente
 
@@ -294,6 +295,7 @@ def invia_campagna(
     ora: Annotated[datetime, Depends(adesso)],
     dati: CampagnaInvia | None = None,
 ) -> CampagnaDettaglio:
+    prenota_azione_ai(utente.id, ora)
     service.invia_campagna(
         db, utente.id, id, ora, dichiarazione=dati.dichiarazione if dati else False
     )
