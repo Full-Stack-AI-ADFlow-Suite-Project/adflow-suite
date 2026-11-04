@@ -8,7 +8,7 @@ web
 
 ## Users
 
-- **Artigiano** (utente primario): titolare di una bottega artigiana del consorzio. Non tecnico, usa il prodotto soprattutto dal telefono. Compila il profilo della bottega una volta, crea le campagne, risponde alle richieste del consorzio, legge il piano approvato.
+- **Artigiano** (utente primario): titolare di una bottega artigiana del consorzio. Non tecnico: entra dal telefono e dal PC, e il telefono resta lo scenario critico (375 px). Compila il profilo della bottega una volta, crea le campagne, risponde alle richieste del consorzio, legge il piano approvato.
 - **Operatore** del consorzio: revisiona e sistema le campagne da scrivania, chiede all'artigiano ciò che serve, approva o respinge, crea i nuovi artigiani.
 - **Admin**: vale come un operatore nelle pagine. **Sistema**: genera, pubblica, controlla le scadenze.
 - Un solo consorzio. Canali: Facebook e Instagram, solo foto.
@@ -23,7 +23,7 @@ Un "ufficio stampa del consorzio": l'artigiano dà solo le foto e i dati della b
 
 ## Operating Context
 
-- L'artigiano lavora da telefono, in bottega, tra un lavoro e l'altro: i percorsi devono essere comprensibili a 375 px e con il menu chiuso (il nome della bottega resta visibile).
+- L'artigiano entra dal telefono in bottega e dal PC a casa o in ufficio: i percorsi devono essere comprensibili a 375 px e con il menu chiuso (il nome della bottega resta visibile), e restare comodi anche sullo schermo largo.
 - L'operatore lavora da scrivania su elenchi e dettagli (Vedi campagna): densità e leggibilità contano più dell'effetto.
 - La demo è dal vivo, sul percorso dell'artigiano (pitch del 6 novembre 2026). I dati di esempio in `frontend/src/api/esempi/` alimentano le pagine finché l'endpoint non è su `main`.
 - Le pagine statiche di `docs/pagine/` sono il riferimento concordato dell'interfaccia dell'MVP.

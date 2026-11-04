@@ -149,7 +149,7 @@ La palette è piccola e dichiarata: un verde, una scala di caldi neutri di carta
 - Cornice con barra laterale fissa di **250 px**, bordo destro hairline, marchio in testa, voci in colonna, piede con l'utente su fondo Carta Calda.
 - Il contenuto respira su Carta Calda; le superfici che portano azione o contenuto sono Bianco Foglio separate da hairline.
 - Densità da strumento: spaziature su scala Mantine (md 16 px di base), pagine dell'operatore più dense di quelle dell'artigiano.
-- **Il percorso dell'artigiano nasce a 375 px**: la barra si chiude su telefono e il nome della bottega resta visibile anche a menu chiuso; i target di tocco seguono le linee guida AA.
+- **Il percorso dell'artigiano nasce a 375 px ma vive anche sul PC**: la barra si chiude su telefono e il nome della bottega resta visibile anche a menu chiuso; i target di tocco seguono le linee guida AA. Sullo schermo largo lo stesso percorso resta leggibile senza colonne vuote o testo che si allunga troppo.
 - La pagina di accesso è l'unica eccezione "vetrina": fotografia a tutto schermo con velatura scura e card con `backdrop-filter: blur(6px)`.
 
 ## Elevation & Depth
