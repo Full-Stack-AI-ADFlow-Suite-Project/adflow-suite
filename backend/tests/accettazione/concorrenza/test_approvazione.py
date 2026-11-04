@@ -9,8 +9,6 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-import pytest
-
 from app.moduli.revisione import service
 from tests.accettazione.concorrenza.conftest import crea_con_commit, esegui_in_parallelo
 from tests.moduli.campagne.fabbrica import campagna_in_revisione
@@ -28,13 +26,6 @@ def _campagna_pronta(motore, bottega) -> dict:
     return crea_con_commit(motore, costruisci)
 
 
-@pytest.mark.xfail(
-    strict=False,
-    reason="RL-021 (R-03): due approvazioni in parallelo passano entrambe in "
-    "49/50 ripetizioni; la campagna prende due decisioni `approvata` e i post "
-    "due approvazioni. Correzione proposta: blocco della riga o UPDATE "
-    "condizionale (WHERE stato = 'in_revisione')",
-)
 def test_due_operatori_approvano_insieme(motore_concorrenza, mondo_concorrenza):
     """50 volte, due operatori approvano insieme: mai due esiti positivi (R-03)."""
     doppie = 0

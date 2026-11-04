@@ -7,7 +7,9 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
+from app.core.limite_login import prenota_azione_ai
 from app.core.orologio import adesso
+from app.core.percorsi import IdPercorso
 from app.moduli.accesso import service as accesso
 
 from . import decisioni, interventi, letture, service, sospensione
@@ -54,7 +56,7 @@ def elenco_artigiani(
 
 @router.get("/campagne/{campagna_id}/post", response_model=VediCampagnaSchema)
 def vedi_campagna(
-    campagna_id: int,
+    campagna_id: IdPercorso,
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
     ora: Annotated[datetime, Depends(adesso)],
@@ -66,7 +68,7 @@ def vedi_campagna(
 
 @router.post("/campagne/{campagna_id}/approva")
 def approva_campagna(
-    campagna_id: int,
+    campagna_id: IdPercorso,
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
     ora: Annotated[datetime, Depends(adesso)],
@@ -78,7 +80,7 @@ def approva_campagna(
 
 @router.post("/campagne/{campagna_id}/sospendi")
 def sospendi_campagna(
-    campagna_id: int,
+    campagna_id: IdPercorso,
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
     corpo: CampagnaSospendi | None = None,
@@ -91,7 +93,7 @@ def sospendi_campagna(
 
 @router.post("/campagne/{campagna_id}/riattiva")
 def riattiva_campagna(
-    campagna_id: int,
+    campagna_id: IdPercorso,
     corpo: CampagnaRiattiva,
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
@@ -105,7 +107,7 @@ def riattiva_campagna(
 
 @router.post("/campagne/{campagna_id}/annulla")
 def annulla_campagna(
-    campagna_id: int,
+    campagna_id: IdPercorso,
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
     ora: Annotated[datetime, Depends(adesso)],
@@ -131,7 +133,7 @@ def nota_interna(
 
 @router.post("/campagne/{campagna_id}/respingi")
 def respingi_campagna(
-    campagna_id: int,
+    campagna_id: IdPercorso,
     corpo: CampagnaRespingi,
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
@@ -162,7 +164,7 @@ def togli_canale_campagna(
 
 @router.post("/post/{post_id}/modifica")
 def modifica_post(
-    post_id: int,
+    post_id: IdPercorso,
     corpo: PostModifica,
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
@@ -189,13 +191,14 @@ def controllato_post(
 
 @router.post("/post/{post_id}/rigenera")
 def rigenera_post(
-    post_id: int,
+    post_id: IdPercorso,
     corpo: PostRigenera,
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
     ora: Annotated[datetime, Depends(adesso)],
 ) -> dict[str, str]:
     """Accende l'intervento e accoda il job `rigenera_post` (R-03, R-31)."""
+    prenota_azione_ai(utente.id, ora)
     interventi.rigenera(
         db, post_id, corpo.modalita, corpo.testo_proposto, corpo.nota, ora
     )
@@ -204,13 +207,14 @@ def rigenera_post(
 
 @router.post("/post/{post_id}/rigenera-immagine")
 def rigenera_immagine_post(
-    post_id: int,
+    post_id: IdPercorso,
     corpo: PostRigeneraImmagine,
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
     ora: Annotated[datetime, Depends(adesso)],
 ) -> dict[str, str]:
     """Accende l'intervento e accoda il job `rigenera_immagine` (R-49, R-31)."""
+    prenota_azione_ai(utente.id, ora)
     interventi.rigenera_immagine(
         db, post_id, corpo.nota, corpo.riscrivi_testo, corpo.nota_testo, ora
     )
@@ -219,7 +223,7 @@ def rigenera_immagine_post(
 
 @router.post("/post/{post_id}/riprogramma")
 def riprogramma_post(
-    post_id: int,
+    post_id: IdPercorso,
     corpo: PostRiprogramma,
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
@@ -233,7 +237,7 @@ def riprogramma_post(
 # Corsia 6 (ADR-116): interventi dopo l'approvazione e sposta.
 @router.post("/post/{post_id}/sposta")
 def sposta_post(
-    post_id: int,
+    post_id: IdPercorso,
     corpo: PostSposta,
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
@@ -247,7 +251,7 @@ def sposta_post(
 
 @router.post("/post/{post_id}/annulla")
 def annulla_post(
-    post_id: int,
+    post_id: IdPercorso,
     corpo: PostAnnulla,
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
@@ -261,7 +265,7 @@ def annulla_post(
 
 @router.get("/post/{post_id}/foto-possibili", response_model=list[FotoPossibile])
 def foto_possibili_post(
-    post_id: int,
+    post_id: IdPercorso,
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
     ora: Annotated[datetime, Depends(adesso)],
@@ -272,7 +276,7 @@ def foto_possibili_post(
 
 @router.post("/post/{post_id}/cambia-foto")
 def cambia_foto_post(
-    post_id: int,
+    post_id: IdPercorso,
     corpo: PostCambiaFoto,
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],

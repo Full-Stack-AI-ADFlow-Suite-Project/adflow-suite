@@ -9,7 +9,9 @@ from sqlalchemy.orm import Session
 from app.adapters.archivio import DIMENSIONE_MAX_BYTE
 from app.core.db import get_db
 from app.core.errori import DatiNonValidi, NonTrovato
+from app.core.limite_login import prenota_azione_ai
 from app.core.orologio import adesso
+from app.core.percorsi import LIMITE_INTERO_PG, IdPercorso, IdQueryOpzionale
 from app.moduli.accesso.service import richiede_ruolo, utente_corrente
 
 from . import archivio, archivio_foto, bozza, service, viste
@@ -69,7 +71,7 @@ def crea_campagna(
 
 @router.patch("/campagne/{id}", response_model=CampagnaDettaglio)
 def modifica_campagna(
-    id: int,
+    id: IdPercorso,
     dati: CampagnaModifica,
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
@@ -85,7 +87,7 @@ def elenca_campagne(
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[Any, Depends(utente_corrente)],
     stato: Annotated[list[str] | None, Query()] = None,
-    artigiano: Annotated[int | None, Query()] = None,
+    artigiano: IdQueryOpzionale = None,
 ) -> list[CampagnaElencoItem]:
     """Elenca le campagne accessibili all'utente (l'artigiano vede solo le sue, operatore/admin tutte con bottega e città).
 
@@ -99,7 +101,7 @@ def elenca_campagne(
 
 @router.get("/campagne/{id}", response_model=CampagnaDettaglio)
 def dettaglio_campagna(
-    id: int,
+    id: IdPercorso,
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[Any, Depends(utente_corrente)],
 ) -> CampagnaDettaglio:
@@ -111,7 +113,7 @@ def dettaglio_campagna(
 
 @router.post("/campagne/{id}/gruppi", response_model=GruppoDettaglio, status_code=201)
 def crea_gruppo(
-    id: int,
+    id: IdPercorso,
     payload: GruppoCrea,
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
@@ -131,8 +133,8 @@ def crea_gruppo(
     "/campagne/{id}/gruppi/{gruppo_id}", response_model=GruppoDettaglio, status_code=200
 )
 def aggiorna_gruppo(
-    id: int,
-    gruppo_id: int,
+    id: IdPercorso,
+    gruppo_id: IdPercorso,
     payload: GruppoAggiorna,
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
@@ -151,8 +153,8 @@ def aggiorna_gruppo(
 
 @router.delete("/campagne/{id}/gruppi/{gruppo_id}", status_code=204)
 def elimina_gruppo(
-    id: int,
-    gruppo_id: int,
+    id: IdPercorso,
+    gruppo_id: IdPercorso,
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
 ) -> Response:
@@ -169,7 +171,7 @@ def elimina_gruppo(
 
 @router.post("/campagne/{id}/foto", response_model=FotoDettaglio, status_code=201)
 def carica_foto(
-    id: int,
+    id: IdPercorso,
     file: Annotated[UploadFile, File(...)],
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
@@ -181,6 +183,8 @@ def carica_foto(
     try:
         gruppo = int(gruppo_id)
     except ValueError:
+        raise DatiNonValidi("ID gruppo non valido.")
+    if gruppo > LIMITE_INTERO_PG:
         raise DatiNonValidi("ID gruppo non valido.")
 
     contenuto = _leggi_file(file)
@@ -198,7 +202,7 @@ def carica_foto(
 
 @router.delete("/foto/{id}", status_code=204)
 def elimina_foto(
-    id: int,
+    id: IdPercorso,
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
 ) -> Response:
@@ -211,7 +215,7 @@ def elimina_foto(
 def leggi_archivio_foto(
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[Any, Depends(richiede_ruolo("artigiano", "operatore"))],
-    artigiano: Annotated[int | None, Query()] = None,
+    artigiano: IdQueryOpzionale = None,
 ) -> list[BloccoArchivio]:
     """L'archivio foto in sola lettura, a blocchi per campagna (R-47, CA-95, CA-96).
 
@@ -222,7 +226,7 @@ def leggi_archivio_foto(
 
 @router.get("/foto/{id}/file")
 def scarica_file_foto(
-    id: int,
+    id: IdPercorso,
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[Any, Depends(utente_corrente)],
 ) -> Response:
@@ -288,12 +292,13 @@ def scarica_foto_pubblica(
 
 @router.post("/campagne/{id}/invia", response_model=CampagnaDettaglio)
 def invia_campagna(
-    id: int,
+    id: IdPercorso,
     db: Annotated[Session, Depends(get_db, scope="function")],
     utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
     ora: Annotated[datetime, Depends(adesso)],
     dati: CampagnaInvia | None = None,
 ) -> CampagnaDettaglio:
+    prenota_azione_ai(utente.id, ora)
     service.invia_campagna(
         db, utente.id, id, ora, dichiarazione=dati.dichiarazione if dati else False
     )
@@ -302,7 +307,7 @@ def invia_campagna(
 
 @router.post("/campagne/{id}/riprova", response_model=CampagnaDettaglio)
 def riprova_campagna(
-    id: int,
+    id: IdPercorso,
     db: Annotated[Session, Depends(get_db, scope="function")],
     utente: Annotated[Any, Depends(richiede_ruolo("operatore"))],
     ora: Annotated[datetime, Depends(adesso)],
@@ -397,7 +402,7 @@ def elimina_gruppo_archivio(
     "/campagne/{id}/richiesta", response_model=RichiestaArtigiano, status_code=201
 )
 def chiedi_all_artigiano(
-    id: int,
+    id: IdPercorso,
     dati: RichiestaCrea,
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[Any, Depends(richiede_ruolo("operatore"))],
@@ -410,7 +415,7 @@ def chiedi_all_artigiano(
     "/campagne/{id}/richiesta/foto", response_model=FotoDettaglio, status_code=201
 )
 def carica_foto_richiesta(
-    id: int,
+    id: IdPercorso,
     file: Annotated[UploadFile, File(...)],
     foto_id: Annotated[int, Form()],
     db: Annotated[Session, Depends(get_db)],
@@ -427,7 +432,7 @@ def carica_foto_richiesta(
 
 @router.post("/campagne/{id}/richiesta/invia", response_model=RichiestaArtigiano)
 def invia_risposta(
-    id: int,
+    id: IdPercorso,
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[Any, Depends(richiede_ruolo("artigiano"))],
     dati: RichiestaInvia | None = None,

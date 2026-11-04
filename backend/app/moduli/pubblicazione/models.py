@@ -39,3 +39,8 @@ class Pubblicazione(Base):
         nullable=False,
         server_default=text("CURRENT_TIMESTAMP"),
     )
+    # Istante in cui è partita la chiamata al social, confermato prima della
+    # chiamata; si azzera con ogni esito ricevuto (RL-025, ADR-121).
+    chiamata_il: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True), nullable=True
+    )

@@ -12,6 +12,7 @@ from sqlalchemy.orm import Session
 
 from app.core.db import get_db
 from app.core.orologio import adesso
+from app.core.percorsi import IdPercorso
 from app.moduli.accesso.service import richiede_ruolo
 
 from . import service
@@ -85,7 +86,7 @@ router.include_router(profili)
 
 @router.get("/artigiani/{utente_id}", response_model=SchedaArtigiano)
 def scheda_artigiano(
-    utente_id: int,
+    utente_id: IdPercorso,
     db: Annotated[Session, Depends(get_db, scope="function")],
     operatore: Annotated[Any, Depends(richiede_ruolo("operatore"))],
     response: Response,

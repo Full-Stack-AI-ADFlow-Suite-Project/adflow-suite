@@ -70,7 +70,7 @@ def respingi(
         DatiNonValidi: motivo o nota mancanti, oppure foto segnate che non
             sono della campagna (422).
     """
-    record = campagne.campagna(db, campagna_id)
+    record = campagne.campagna_bloccata(db, campagna_id)
     if record.stato not in ("in_revisione", "piano_da_rivedere"):
         raise StatoNonValido(
             "Si respinge solo una campagna in revisione o con un piano da rivedere."

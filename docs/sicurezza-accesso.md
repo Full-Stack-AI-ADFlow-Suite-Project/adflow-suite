@@ -41,8 +41,24 @@ Cosa fa il codice per proteggere l'accesso e cosa deve fare chi installa AdFlow 
       proxy_set_header X-Forwarded-Proto $scheme;
       proxy_set_header X-Forwarded-For $remote_addr;
       access_log off;
+      # RL-015: le cinque intestazioni di sicurezza solo sull'API. Il backend
+      # le manda già (core/intestazioni_sicurezza.py): qui si nascondono e si
+      # ridicono, per non farle arrivare doppie, e "always" le tiene anche
+      # sulle risposte di errore.
+      proxy_hide_header Content-Security-Policy;
+      proxy_hide_header Strict-Transport-Security;
+      proxy_hide_header X-Content-Type-Options;
+      proxy_hide_header Referrer-Policy;
+      proxy_hide_header X-Frame-Options;
+      add_header Content-Security-Policy "default-src 'none'; frame-ancestors 'none'" always;
+      add_header Strict-Transport-Security "max-age=31536000" always;
+      add_header X-Content-Type-Options "nosniff" always;
+      add_header Referrer-Policy "no-referrer" always;
+      add_header X-Frame-Options "DENY" always;
   }
   ```
+
+  Fuori da `/api/` nessuna di queste intestazioni: una CSP così stretta romperebbe `/docs` e il frontend, che prende le sue da sé.
 
 **Prova locale con TLS e proxy (issue #17, parte locale chiusa).** `tests/moduli/accesso/test_proxy_http_reale.py` prova in locale HTTPS con certificato X.509 verificato, un proxy TLS temporaneo e un processo Uvicorn separato (`--proxy-headers --forwarded-allow-ips 127.0.0.1`), verificando: cookie `Secure`, `HttpOnly`, `SameSite=Lax`, `Path=/` e assenza di `Domain` al login e al logout; sovrascrittura degli header contraffatti (`X-Forwarded-Proto`, `X-Forwarded-For`, `X-Request-ID`); rifiuto degli header inoltrati quando la richiesta arriva da un indirizzo non fidato (`192.0.2.1`). Evidenza registrata in `qa/issue-17/README.md` (senza cookie, credenziali o chiavi private). Per un futuro ambiente di staging pubblico si ripete la stessa verifica sul reverse proxy esterno.
 

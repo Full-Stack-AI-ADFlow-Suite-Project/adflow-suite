@@ -12,6 +12,7 @@ from contextlib import contextmanager
 from datetime import datetime, timedelta, timezone
 
 import pytest
+from fastapi.testclient import TestClient
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -188,14 +189,20 @@ def test_i_caratteri_di_controllo_nei_nomi_non_rompono_la_generazione(
     )
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="RL-026 (input estremi): un nome con il byte NUL (\\u0000) arriva fino "
-    "al database e lo fa fallire (DataError) invece di essere rifiutato con 422",
-)
-def test_un_byte_nul_nel_nome_non_fa_fallire_il_database(db, utente_di_prova):
-    """PostgreSQL non accetta \\x00 nei testi: l'app deve fermarlo prima, con 422."""
-    artigiano = utente_di_prova("artigiano")
-    bottega = profilo(db, utente_id=artigiano.id, nome="Bottega\x00")
-    db.flush()  # qui oggi arriva il DataError del database
-    assert bottega.nome == "Bottega\x00"
+def test_un_byte_nul_nel_nome_non_fa_fallire_il_database(
+    client: TestClient, utente_di_prova
+):
+    """PostgreSQL non accetta \\x00 nei testi: l'app lo ferma prima, con 422."""
+    utente_di_prova("artigiano")
+    dati = {
+        "nome": "Bottega\x00",
+        "referente": "Referente",
+        "citta": "Roma",
+        "tipo_prodotto": "ceramica_vetro",
+        "clienti_ideali": "Clienti locali",
+        "obiettivo": "notorieta",
+        "canali": ["instagram"],
+        "frequenza": "f1_2",
+    }
+    risposta = client.put("/api/profilo", json=dati)
+    assert risposta.status_code == 422, f"risposta {risposta.status_code}"

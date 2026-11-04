@@ -32,6 +32,10 @@ class DatiNonValidi(ErroreDominio):
     status_code = 422
 
 
+class ServizioNonDisponibile(ErroreDominio):
+    status_code = 503
+
+
 def frase_di_validazione(errori: Iterable[Mapping[str, Any]]) -> str:
     """La frase in italiano per un 422 dello schema (constitution §4).
 

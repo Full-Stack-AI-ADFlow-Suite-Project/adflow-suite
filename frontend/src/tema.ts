@@ -1,4 +1,4 @@
-import { Button, Card, createTheme, Paper, rem } from "@mantine/core";
+import { Anchor, Button, Card, createTheme, Paper, rem } from "@mantine/core";
 import type { CSSVariablesResolver, MantineColorsTuple } from "@mantine/core";
 
 // Palette e caratteri del foglio di stile delle pagine statiche
@@ -23,7 +23,7 @@ const gray: MantineColorsTuple = [
   "#e6e0d4",
   "#ddd6c7", // --border-hairline
   "#c7bfb0", // --border-strong
-  "#8c8578", // --text-faint
+  "#6b655a", // --text-faint (più scuro del foglio statico: contrasto 4,5:1, RL-035)
   "#635d52", // --text-muted
   "#474239", // --text-secondary
   "#2c352f",
@@ -58,6 +58,8 @@ export const tema = createTheme({
     xl: "0 20px 25px -5px rgba(31, 42, 36, 0.05)",
   },
   components: {
+    // Un link dentro un testo non si riconosce solo dal colore (WCAG 1.4.1, RL-035).
+    Anchor: Anchor.extend({ defaultProps: { underline: "always" } }),
     Button: Button.extend({ defaultProps: { radius: "md" } }),
     Card: Card.extend({ defaultProps: { radius: "lg", shadow: "xs" } }),
     Paper: Paper.extend({ defaultProps: { radius: "lg", shadow: "xs" } }),
@@ -71,6 +73,9 @@ export const variabili: CSSVariablesResolver = () => ({
   light: {
     "--mantine-color-default-border": "var(--mantine-color-gray-3)",
     "--mantine-color-default-hover": "var(--mantine-color-gray-1)",
+    // Testo dei badge verdi (variante light): #2b8a3e su #d3f9d8 era 3,8:1,
+    // questo è 5,8:1 (RL-035).
+    "--mantine-color-green-light-color": "#1f6a2f",
   },
   dark: {},
 });
