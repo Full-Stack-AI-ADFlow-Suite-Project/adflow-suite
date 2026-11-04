@@ -187,6 +187,7 @@ Le sole funzioni di `moduli/<modulo>/service.py` che un altro modulo può chiama
 | artigiani | `canali_collegati(profilo_id)` → canali con account `collegato` | campagne, pubblicazione |
 | artigiani | `post_a_settimana(frequenza)` → post alla settimana per canale (senza frequenza vale `decidete_voi`); funzione pura | campagne, contenuti |
 | campagne | `campagna(id)` · `foto_della_campagna(id)` · `campagne_in_stato(stati)` · `campagne_di(profilo_id, stati=None)` | contenuti, revisione, pubblicazione |
+| campagne | `campagna_bloccata(id)` → come `campagna()`, con `with_for_update()`: la riga resta bloccata fino alla fine della transazione | revisione |
 | campagne | `gruppi_della_campagna(id)` (gruppi con le loro foto) | contenuti, revisione |
 | campagne | `cambia_stato(campagna, nuovo)` | contenuti, revisione, pubblicazione |
 | campagne | `registra_decisione(campagna, utente_id, esito, motivo, nota, foto_segnate, canale=None, post_id=None)` · `ultima_nota(campagna_id)` · `togli_canale(campagna, canale)` | revisione |
