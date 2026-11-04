@@ -100,6 +100,40 @@ def campagna(
     return trovata
 
 
+def campagna_bloccata(
+    db: Session,
+    id: int,
+) -> Campagna:
+    """Restituisce la campagna con l'id indicato, bloccandone la riga.
+
+    Come ``campagna()``, con ``with_for_update()``: chi arriva dopo aspetta
+    che la transazione del primo sia chiusa e legge lo stato aggiornato. La
+    riga si rilegge sempre, anche se la campagna è già nella sessione
+    (``populate_existing=True``).
+
+    Usata da ``revisione`` per approvare, respingere e intervenire sui post.
+
+    Args:
+        db: sessione del database (aperta e chiusa dal chiamante).
+        id: chiave primaria della campagna.
+
+    Returns:
+        Il record ``Campagna`` corrispondente, con la riga bloccata.
+
+    Raises:
+        NonTrovato: se non esiste nessuna campagna con quell'id.
+    """
+    trovata = db.scalars(
+        select(Campagna)
+        .where(Campagna.id == id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    ).one_or_none()
+    if trovata is None:
+        raise NonTrovato("Campagna non trovata.")
+    return trovata
+
+
 def foto_della_campagna(
     db: Session,
     id: int,

@@ -166,7 +166,7 @@ def approva(
         StatoNonValido: campagna non in revisione, post da rivedere o con un
             intervento in corso, nessun post da approvare (409, CA-22).
     """
-    record = campagne.campagna(db, campagna_id)
+    record = campagne.campagna_bloccata(db, campagna_id)
     if record.stato != "in_revisione":
         raise StatoNonValido("La campagna non è in revisione.")
     for versione in contenuti.approva_post(db, campagna_id, adesso):

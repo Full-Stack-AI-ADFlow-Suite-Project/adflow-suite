@@ -202,15 +202,15 @@ Tre corsie, una per sviluppatore, 5 ore ciascuna (ADR-121). Ogni task ha in `bri
 
 | ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
 |---|---|---|---|---|---|
-| T5-111 | **Pubblicazione al massimo una volta**: tentativo confermato prima del social, nessuna ripubblicazione dopo un esito sconosciuto (RL-025) | `brief-corsia-rapida.md` §T5-111; constitution §1.7, §2.6 | T4-108 | RL-025 non è più `xfail`; `alembic downgrade -1` e `upgrade head` funzionano; suite verde | ☐ |
+| T5-111 | **Pubblicazione al massimo una volta**: tentativo confermato prima del social, nessuna ripubblicazione dopo un esito sconosciuto (RL-025) | `brief-corsia-rapida.md` §T5-111; constitution §1.7, §2.6 | T4-108 | RL-025 non è più `xfail`; `alembic downgrade -1` e `upgrade head` funzionano; suite verde | ☑ |
 | T5-112 | **Prova finale del percorso**: converge §4 su `main`, da database vuoto, con AI e Meta veri | `brief-corsia-rapida.md` §T5-112; converge §4 | T5-111, T5-121, T5-122, T5-131, T5-133 | report `T5-112-percorso.md` scritto e nessun punto rotto | ☐ |
 
 ### Corsia 12 · Corsia rapida: concorrenza e guasti (Sviluppatore B)
 
 | ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
 |---|---|---|---|---|---|
-| T5-121 | **Approva e respingi atomiche**: blocco della riga della campagna (RL-021, RL-022) | `brief-corsia-rapida.md` §T5-121; plan §6 | T4-108 | i due test senza marcatore e 50 volte verdi; suite verde | ☐ |
-| T5-122 | **Una foto una volta e interventi atomici**: blocchi in Cambia foto e nelle rigenerazioni (RL-023, RL-024) | `brief-corsia-rapida.md` §T5-122; constitution §1.9 | T5-121 | i due test senza marcatore e 50 volte verdi; suite verde | ☐ |
+| T5-121 | **Approva e respingi atomiche**: blocco della riga della campagna (RL-021, RL-022) | `brief-corsia-rapida.md` §T5-121; plan §6 | T4-108 | i due test senza marcatore e 50 volte verdi; suite verde | ☑ |
+| T5-122 | **Una foto una volta e interventi atomici**: blocchi in Cambia foto e nelle rigenerazioni (RL-023, RL-024) | `brief-corsia-rapida.md` §T5-122; constitution §1.9 | T5-121 | i due test senza marcatore e 50 volte verdi; suite verde | ☑ |
 | T5-123 | **Guasti ordinati**: 503 con il database giù e con il disco pieno (RL-028, RL-029) | `brief-corsia-rapida.md` §T5-123 | T4-108 | i due test senza marcatore; suite verde | ☑ |
 | T5-124 | **Limite delle azioni AI**: 429 per utente su rigenerazioni e invio (RL-018) | `brief-corsia-rapida.md` §T5-124 | T4-108 | il test senza marcatore; variabili in `.env.example`; suite verde | ☐ |
 
