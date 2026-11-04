@@ -21,6 +21,8 @@ Le versioni stanno in `requirements.txt`. Una libreria nuova entra in `requireme
 Da questa cartella, con `uv run` davanti (usa `.venv` della radice senza attivarlo), uno alla volta:
 
 ```bash
+createdb adflow                                                           # database dell'applicazione, come in DATABASE_URL (una volta sola)
+createdb adflow_test                                                      # database dei test, come in DATABASE_URL_TEST (una volta sola)
 uv run alembic upgrade head                                               # database all'ultima migrazione
 uv run uvicorn app.main:app --reload                                      # API su http://localhost:8000
 uv run python -m procrastinate -a app.worker.app worker --concurrency 1   # worker, con il tick di pubblicazione ogni minuto
@@ -29,16 +31,20 @@ uv run pytest                                                             # test
 uv run black --check .                                                    # formattazione
 ```
 
-Il tick di pubblicazione è registrato nel worker: non serve nessun cron esterno. I test svuotano `adflow_test` a ogni esecuzione e lo portano all'ultima migrazione.
+I due database si creano una volta sola, con l'utente del tuo PostgreSQL che metti in `DATABASE_URL` e `DATABASE_URL_TEST` (se `createdb` non c'è, installa il client di PostgreSQL, per esempio `postgresql-client`). Su una macchina nuova è questo l'ordine: `createdb`, poi `allinea.py` o `alembic upgrade head`.
+
+**Il nome `adflow_test` e la porta 5432 sono un vincolo, non un'opzione** (RL-012): le fixture dei test verificano di essere collegati proprio a quel database, su quella porta (danno per scontato `DATABASE_URL_TEST` su `localhost:5432/adflow_test`); con un nome o una porta diversi la suite non parte. Lo svuotano e lo riportano all'ultima migrazione a ogni esecuzione: non metterci dati da conservare.
 
 ## Dati della demo
 
-Da database vuoto (dopo `alembic upgrade head`) un solo comando prepara la demo di `docs/agenti/converge.md` §4: gli utenti del seed, la bottega della demo (`demo@example.com`, profilo completo) e una campagna in bozza su Facebook e Instagram che inizia tra 4 giorni e dura 7, con le foto vere prese da una cartella qualsiasi. La password, la stessa per tutti gli utenti, si chiede a terminale; le foto restano fuori da git.
+Da database vuoto (dopo `alembic upgrade head`) un solo comando prepara la demo di `docs/agenti/converge.md` §4: gli utenti del seed, la bottega della demo (`demo@example.com`, profilo completo) e una campagna in bozza su Facebook e Instagram che inizia tra 4 giorni e dura 7, con le foto vere prese da una cartella qualsiasi. La password, la stessa per tutti gli utenti, si chiede a terminale (due volte); le foto restano fuori da git.
 
 ```bash
-uv run python -m app.cli demo --foto CARTELLA              # tutte le foto valide della cartella
-uv run python -m app.cli demo --foto CARTELLA --quante 3   # solo le prime 3: le altre posizioni sono immagini AI
+uv run python -m app.cli demo --foto CARTELLA_FOTO              # tutte le foto valide della cartella
+uv run python -m app.cli demo --foto CARTELLA_FOTO --quante 3   # solo le prime 3: le altre posizioni sono immagini AI
 ```
+
+**La cartella delle foto della demo non sta in git**: sta in un posto condiviso dal team (chiedere al team dove si trova e come copiarla) e ognuno passa il proprio percorso al comando al posto di `CARTELLA_FOTO`. La cartella attuale ha 13 foto di mosaici (`mosaico-01.jpg` … `mosaico-13.jpg`), già deduplicate e tutte dentro i requisiti di caricamento (lato corto da 1080 px, foto fino a 10 MB, al massimo 36 megapixel); chi le ha scelte lo conferma nella PR. Con `--quante 3`: verificato sul serio (3 caricate, 0 scartate).
 
 Senza altro, la bottega ha il profilo del seed e testi generici. Per provare la propria bottega si mette nella cartella delle foto un `demo.json` con i campi da cambiare (quelli del profilo sono i campi di plan §2):
 

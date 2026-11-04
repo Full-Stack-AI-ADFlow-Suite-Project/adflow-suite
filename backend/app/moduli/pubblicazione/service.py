@@ -1,11 +1,13 @@
 """Logica del modulo pubblicazione: l'unica parte che gli altri moduli possono importare."""
 
+from dataclasses import dataclass
 from datetime import datetime
 
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
 from app.adapters.social import ottieni_social
+from app.adapters.social.base import EsitoPubblicazione
 from app.core.errori import DatiNonValidi, NonTrovato
 from app.moduli.artigiani import service as artigiani
 from app.moduli.campagne import service as campagne
@@ -36,79 +38,96 @@ def _notifica_post_fallito(db: Session, post, adesso: datetime) -> None:
     )
 
 
-def pubblica_dovuti(
-    db: Session,
-    adesso: datetime,
-) -> None:
-    """Pubblica sui social tutti i post approvati con data raggiunta.
+ERRORE_ESITO_SCONOSCIUTO = (
+    "Esito della pubblicazione sconosciuto: controlla la pagina prima di riprogrammare."
+)
 
-    Chiamata da ``tick_pubblicazione`` in ``worker.py`` ogni minuto.
-    Per ogni post dovuto (da ``contenuti.post_dovuti``):
-    1. registra il tentativo di pubblicazione *prima* di chiamare il social
-       (idempotenza — constitution §1.7);
-    2. chiama l'adattatore social con canale, testo, hashtag e tutte le foto
-       della versione corrente — i byte della foto **sistemata** per il
-       canale (R-42) e il suo indirizzo pubblico firmato (T3-23) — nell'ordine
-       di ``versione_post_foto.posizione`` (per una cartolina la sua immagine);
-    3. registra l'esito: errore ``temporaneo`` lascia il tentativo
-       ``in_corso`` per il tick successivo, fino a ``TENTATIVI_MAX``;
-       dopo un ``ok`` segna su ogni foto ``caricata`` del post il canale e
-       l'istante (``campagne.segna_pubblicata``, spec R-27) — le cartoline
-       non si segnano;
-    4. alla fine, ogni campagna ``attiva`` con tutti i post chiusi passa a
-       ``conclusa`` (R-34, tramite ``campagne.cambia_stato``).
 
-    Riceve ``adesso`` come argomento e non chiama ``datetime.now()``
-    internamente per permettere l'iniezione dell'ora nei test
-    (plan §7, ``core/orologio.py``).
+@dataclass(frozen=True)
+class RichiestaSocial:
+    """Tutto ciò che serve a chiamare il social, letto prima e senza più la sessione."""
 
-    Args:
-        db: sessione del database (aperta e chiusa dal chiamante).
-        adesso: istante di riferimento in UTC.
+    tentativo_id: int
+    canale: str
+    testo: str
+    hashtag: list[str]
+    byte_foto: list[bytes]
+    url_foto: list[str]
+
+
+def prepara_tentativi(db: Session, adesso: datetime) -> list[int]:
+    """Prima fase: registra i tentativi dei post dovuti e ne torna gli id.
+
+    Il chiamante fa commit subito dopo (constitution §2.6): da qui in poi il
+    tentativo esiste nel database, qualunque cosa succeda al processo.
+    Un tentativo ``in_corso`` con ``chiamata_il`` valorizzato e senza esito è
+    di un processo morto a metà: la risposta del social non si conosce, quindi
+    il post diventa ``fallito`` e **non si richiama il social** (RL-025,
+    ADR-121: meglio un post non uscito che uscito due volte).
     """
+    ids: list[int] = []
     for post in contenuti.post_dovuti(db, adesso):
-        _pubblica_post(db, post, adesso)
+        gia_ok = db.scalar(
+            select(Pubblicazione.id)
+            .where(Pubblicazione.post_id == post.id, Pubblicazione.stato == "ok")
+            .limit(1)
+        )
+        if gia_ok is not None:
+            continue
 
-    # La chiusura riguarda ogni campagna attiva, non solo quelle toccate in
-    # questo tick: con un post fallito la conclusione arriva a periodo
-    # finito, quando non c'è più niente di dovuto (R-34).
-    for campagna in campagne.campagne_in_stato(db, ["attiva"]):
-        if contenuti.tutti_chiusi(db, campagna.id, adesso):
-            campagne.cambia_stato(db, campagna, "conclusa", ora=adesso)
+        versione = post.versione_corrente
+        if versione is None:
+            contenuti.segna_esito(db, post, "fallito")
+            _notifica_post_fallito(db, post, adesso)
+            continue
+
+        sconosciuto = db.scalar(
+            select(Pubblicazione)
+            .where(
+                Pubblicazione.post_id == post.id,
+                Pubblicazione.stato == "in_corso",
+                Pubblicazione.chiamata_il.is_not(None),
+            )
+            .with_for_update()
+        )
+        if sconosciuto is not None:
+            _segna_errore(db, post, sconosciuto, ERRORE_ESITO_SCONOSCIUTO, adesso)
+            continue
+
+        ids.append(_registra_tentativo(db, post, versione.id, adesso).id)
+    return ids
 
 
-def _pubblica_post(db: Session, post, adesso: datetime) -> None:
-    """Un tentativo di pubblicazione per il singolo post."""
-    gia_ok = db.scalar(
-        select(Pubblicazione.id)
-        .where(Pubblicazione.post_id == post.id, Pubblicazione.stato == "ok")
-        .limit(1)
+def avvia_chiamata(
+    db: Session, tentativo_id: int, adesso: datetime
+) -> RichiestaSocial | None:
+    """Seconda fase, parte 1: scrive ``chiamata_il`` e prepara la richiesta.
+
+    Il chiamante fa commit **prima** di chiamare il social: se il processo
+    muore dopo, il tentativo porta ``chiamata_il`` e il tick successivo lo
+    segnala invece di ripubblicare. Torna ``None`` se non c'è nulla da
+    chiamare (controlli falliti, post non più dovuto, tentativo già preso da
+    un altro tick: la riga è bloccata con ``FOR UPDATE``).
+    """
+    tentativo = db.scalar(
+        select(Pubblicazione).where(Pubblicazione.id == tentativo_id).with_for_update()
     )
-    if gia_ok is not None:
-        return
-
+    if (
+        tentativo is None
+        or tentativo.stato != "in_corso"
+        or tentativo.chiamata_il is not None
+    ):
+        return None
+    post = contenuti.post_per_id(db, tentativo.post_id)
     versione = post.versione_corrente
-    if versione is None:
-        contenuti.segna_esito(db, post, "fallito")
-        _notifica_post_fallito(db, post, adesso)
-        return
-
-    tentativo = _registra_tentativo(db, post, versione.id, adesso)
+    if post.stato != "approvato" or versione is None:
+        return None
 
     problema = _verifica_pubblicabile(db, post, versione)
     if problema is not None:
         _segna_errore(db, post, tentativo, problema, adesso)
-        return
+        return None
 
-    # Le foto di una versione possono venire dall'archivio della bottega
-    # (foto d'archivio e riempitivi ``archivio``, R-27/R-28):
-    # ``foto_della_campagna`` non le restituirebbe (plan §6).
-    foto_della_versione = {
-        una.id: una
-        for una in campagne.foto_per_id(
-            db, [legame.foto_id for legame in versione.legami_foto]
-        )
-    }
     try:
         # Congelato per l'MVP, ADR-114: non estendere. Nell'MVP un post ha
         # una foto sola; la pubblicazione con più foto (caroselli, A8) resta.
@@ -130,25 +149,99 @@ def _pubblica_post(db: Session, post, adesso: datetime) -> None:
             "File della foto non trovato o non processabile.",
             adesso,
         )
-        return
+        return None
 
-    esito = ottieni_social().pubblica(
-        post.canale, versione.testo, list(versione.hashtag), byte_foto, url_foto
+    tentativo.chiamata_il = adesso
+    db.flush()
+    return RichiestaSocial(
+        tentativo_id=tentativo.id,
+        canale=post.canale,
+        testo=versione.testo,
+        hashtag=list(versione.hashtag),
+        byte_foto=byte_foto,
+        url_foto=url_foto,
     )
+
+
+def chiama_social(richiesta: RichiestaSocial) -> EsitoPubblicazione:
+    """Seconda fase, parte 2: la chiamata al social, senza sessione né transazione."""
+    return ottieni_social().pubblica(
+        richiesta.canale,
+        richiesta.testo,
+        richiesta.hashtag,
+        richiesta.byte_foto,
+        richiesta.url_foto,
+    )
+
+
+def registra_esito(
+    db: Session, tentativo_id: int, esito: EsitoPubblicazione, adesso: datetime
+) -> None:
+    """Seconda fase, parte 3: registra la risposta del social e azzera ``chiamata_il``.
+
+    Un esito ricevuto, anche temporaneo, chiude la «chiamata in volo»: l'errore
+    temporaneo lascia il tentativo ``in_corso`` e il tick dopo riprova, fino a
+    ``TENTATIVI_MAX``. Dopo un ``ok`` segna su ogni foto ``caricata`` il canale
+    e l'istante (``campagne.segna_pubblicata``, R-27).
+    """
+    tentativo = db.scalar(
+        select(Pubblicazione).where(Pubblicazione.id == tentativo_id).with_for_update()
+    )
+    post = contenuti.post_per_id(db, tentativo.post_id)
+    versione = post.versione_corrente
+    tentativo.chiamata_il = None
     if esito.ok:
         tentativo.stato = "ok"
         tentativo.id_esterno = esito.id_esterno
+        foto_della_versione = {
+            una.id: una
+            for una in campagne.foto_per_id(
+                db, [legame.foto_id for legame in versione.legami_foto]
+            )
+        }
         for legame in versione.legami_foto:
             immagine = foto_della_versione[legame.foto_id]
             if immagine.origine == "caricata":
                 campagne.segna_pubblicata(db, immagine.id, post.canale, adesso)
         contenuti.segna_esito(db, post, "pubblicato")
     elif esito.tipo_errore == "temporaneo" and tentativo.n_tentativo < TENTATIVI_MAX:
-        pass  # resta in_corso: il prossimo tick riprova
+        db.flush()  # resta in_corso: il prossimo tick riprova
     else:
         _segna_errore(
             db, post, tentativo, esito.errore or "Pubblicazione non riuscita.", adesso
         )
+
+
+def chiudi_campagne(db: Session, adesso: datetime) -> None:
+    """Ogni campagna ``attiva`` con tutti i post chiusi passa a ``conclusa`` (R-34)."""
+    # La chiusura riguarda ogni campagna attiva, non solo quelle toccate in
+    # questo tick: con un post fallito la conclusione arriva a periodo
+    # finito, quando non c'è più niente di dovuto (R-34).
+    for campagna in campagne.campagne_in_stato(db, ["attiva"]):
+        if contenuti.tutti_chiusi(db, campagna.id, adesso):
+            campagne.cambia_stato(db, campagna, "conclusa", ora=adesso)
+
+
+def pubblica_dovuti(
+    db: Session,
+    adesso: datetime,
+) -> None:
+    """Pubblica sui social tutti i post approvati con data raggiunta, in una sessione sola.
+
+    Compone le fasi senza commit, come i service (constitution §2.6): serve ai
+    test e a chi ha già una transazione. Il worker (``tick_pubblicazione``)
+    invece apre una transazione per fase, perché il tentativo e ``chiamata_il``
+    siano confermati **prima** della chiamata al social (RL-025):
+    1. ``prepara_tentativi`` · 2. per ogni tentativo ``avvia_chiamata``,
+    ``chiama_social``, ``registra_esito`` · 3. ``chiudi_campagne``.
+
+    Riceve ``adesso`` come argomento (plan §7, ``core/orologio.py``).
+    """
+    for tentativo_id in prepara_tentativi(db, adesso):
+        richiesta = avvia_chiamata(db, tentativo_id, adesso)
+        if richiesta is not None:
+            registra_esito(db, tentativo_id, chiama_social(richiesta), adesso)
+    chiudi_campagne(db, adesso)
 
 
 def _registra_tentativo(
@@ -162,9 +255,9 @@ def _registra_tentativo(
     tentativo prosegue dopo un post riprogrammato (R-34).
     """
     in_corso = db.scalar(
-        select(Pubblicazione).where(
-            Pubblicazione.post_id == post.id, Pubblicazione.stato == "in_corso"
-        )
+        select(Pubblicazione)
+        .where(Pubblicazione.post_id == post.id, Pubblicazione.stato == "in_corso")
+        .with_for_update()
     )
     if in_corso is not None:
         in_corso.n_tentativo += 1

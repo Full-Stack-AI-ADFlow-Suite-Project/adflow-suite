@@ -3,6 +3,7 @@
 from collections.abc import Callable, Iterable
 from copy import deepcopy
 from datetime import date, datetime, timedelta, timezone
+import errno
 import json
 import logging
 from typing import Any, NamedTuple
@@ -13,7 +14,13 @@ from sqlalchemy.orm import Session, selectinload
 from app.adapters.archivio import ottieni_archivio
 from app.core import coda, orologio
 from app.core.config import leggi_impostazioni
-from app.core.errori import DatiNonValidi, NonPermesso, NonTrovato, StatoNonValido
+from app.core.errori import (
+    DatiNonValidi,
+    NonPermesso,
+    NonTrovato,
+    ServizioNonDisponibile,
+    StatoNonValido,
+)
 from app.core.orologio import ROMA
 from app.core.transizioni import verifica_transizione
 from app.moduli.accesso import service as accesso_service
@@ -88,6 +95,40 @@ def campagna(
         NonTrovato: se non esiste nessuna campagna con quell'id.
     """
     trovata = db.get(Campagna, id)
+    if trovata is None:
+        raise NonTrovato("Campagna non trovata.")
+    return trovata
+
+
+def campagna_bloccata(
+    db: Session,
+    id: int,
+) -> Campagna:
+    """Restituisce la campagna con l'id indicato, bloccandone la riga.
+
+    Come ``campagna()``, con ``with_for_update()``: chi arriva dopo aspetta
+    che la transazione del primo sia chiusa e legge lo stato aggiornato. La
+    riga si rilegge sempre, anche se la campagna è già nella sessione
+    (``populate_existing=True``).
+
+    Usata da ``revisione`` per approvare, respingere e intervenire sui post.
+
+    Args:
+        db: sessione del database (aperta e chiusa dal chiamante).
+        id: chiave primaria della campagna.
+
+    Returns:
+        Il record ``Campagna`` corrispondente, con la riga bloccata.
+
+    Raises:
+        NonTrovato: se non esiste nessuna campagna con quell'id.
+    """
+    trovata = db.scalars(
+        select(Campagna)
+        .where(Campagna.id == id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    ).one_or_none()
     if trovata is None:
         raise NonTrovato("Campagna non trovata.")
     return trovata
@@ -1147,7 +1188,15 @@ def _salva_foto_caricata(
     info = analizza_e_valida_immagine(contenuto)
 
     archivio = ottieni_archivio()
-    nome_file = archivio.salva(contenuto, info.estensione)
+    try:
+        nome_file = archivio.salva(contenuto, info.estensione)
+    except OSError as errore:
+        if errore.errno == errno.ENOSPC:
+            raise ServizioNonDisponibile(
+                "Spazio esaurito sul server: la foto non è stata salvata. "
+                "Riprova più tardi."
+            ) from errore
+        raise
 
     _al_termine_transazione(db, su_rollback=lambda: archivio.elimina(nome_file))
 

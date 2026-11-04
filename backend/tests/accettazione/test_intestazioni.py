@@ -28,15 +28,8 @@ INTESTAZIONI = (
 )
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="RL-015 (R-01): l'app non imposta le intestazioni di sicurezza "
-    "globali: nessuna CSP, nessun HSTS, nessun Referrer-Policy, nessun "
-    "X-Frame-Options e X-Content-Type-Options manca su tutte le risposte "
-    "che non sono file di foto",
-)
 def test_le_risposte_api_portano_le_intestazioni_di_sicurezza(client: TestClient):
-    """Cinque intestazioni attese su ogni risposta dell'API (T4-102)."""
+    """Cinque intestazioni attese su ogni risposta dell'API (T4-102, RL-015)."""
     mancanti = {}
     for percorso in ("/api/health", "/api/consorzio", "/api/campagne"):
         risposta = client.get(percorso)
@@ -44,6 +37,25 @@ def test_le_risposte_api_portano_le_intestazioni_di_sicurezza(client: TestClient
         if assenti:
             mancanti[f"{percorso} ({risposta.status_code})"] = assenti
     assert not mancanti, f"intestazioni di sicurezza assenti: {mancanti}"
+
+
+def test_le_risposte_di_errore_dell_api_portano_le_intestazioni(client: TestClient):
+    """Anche un 401 senza sessione e un 404 sconosciuto le portano (RL-015)."""
+    for percorso, atteso in (
+        ("/api/campagne", 401),
+        ("/api/percorso-che-non-esiste", 404),
+    ):
+        risposta = client.get(percorso)
+        assert risposta.status_code == atteso
+        assenti = [h for h in INTESTAZIONI if not risposta.headers.get(h)]
+        assert not assenti, f"{percorso}: intestazioni assenti: {assenti}"
+
+
+def test_la_documentazione_non_riceve_la_csp(client: TestClient):
+    """La CSP stretta romperebbe /docs: fuori da /api nessuna intestazione (RL-015)."""
+    risposta = client.get("/docs")
+    assert risposta.status_code == 200
+    assert not risposta.headers.get("content-security-policy")
 
 
 def test_le_risposte_di_errore_hanno_id_e_niente_cache(client: TestClient):

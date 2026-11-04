@@ -10,7 +10,6 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy import make_url
 from sqlalchemy.orm import Session, sessionmaker
@@ -23,11 +22,6 @@ from app.main import app
 from tests.moduli.accesso.fabbrica import utente
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="RL-028: con PostgreSQL irraggiungibile l'API risponde 500 dal "
-    "gestore generico, non il 503 ordinato che chiede §7.4",
-)
 def test_database_fermo_dà_503(client: TestClient, db, utente_di_prova):
     utente_di_prova("operatore")
     url = make_url(leggi_impostazioni().database_url_test).set(port=1)
