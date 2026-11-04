@@ -1,10 +1,11 @@
 """Endpoint del modulo contenuti: chiamano service.py, senza logica di business."""
 from datetime import date, datetime
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, Query, Response
 from sqlalchemy.orm import Session
 
+from app.adapters.ai.base import TIPI_USO
 from app.core.db import get_db
 from app.core.orologio import adesso
 from app.core.percorsi import IdPercorso
@@ -22,6 +23,9 @@ from .schemas import (
 )
 
 router = APIRouter(tags=["contenuti"])
+
+# I tipi di chiamata che lo storico sa filtrare (``adapters/ai/base.py``).
+TipoChiamataAI = Literal[*TIPI_USO]
 
 
 @router.get("/calendario", response_model=CalendarioSettimana)
@@ -57,7 +61,7 @@ def storico_ai(
     _: Annotated[Any, Depends(richiede_ruolo("operatore"))],
     response: Response,
     campagna_id: Annotated[int | None, Query()] = None,
-    tipo: Annotated[str | None, Query()] = None,
+    tipo: Annotated[TipoChiamataAI | None, Query()] = None,
     modello: Annotated[str | None, Query()] = None,
     versione_prompt: Annotated[str | None, Query()] = None,
     esito: Annotated[str | None, Query()] = None,
@@ -87,7 +91,7 @@ def numeri_ai(
     _: Annotated[Any, Depends(richiede_ruolo("operatore"))],
     response: Response,
     campagna_id: Annotated[int | None, Query()] = None,
-    tipo: Annotated[str | None, Query()] = None,
+    tipo: Annotated[TipoChiamataAI | None, Query()] = None,
     modello: Annotated[str | None, Query()] = None,
     versione_prompt: Annotated[str | None, Query()] = None,
     esito: Annotated[str | None, Query()] = None,

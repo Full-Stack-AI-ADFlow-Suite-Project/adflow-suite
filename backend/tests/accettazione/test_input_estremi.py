@@ -17,7 +17,6 @@ Il 500 è la risposta sbagliata: l'atteso è 404 (id che non esiste) o 422
 
 from __future__ import annotations
 
-import pytest
 from fastapi.testclient import TestClient
 
 from tests.moduli.artigiani.fabbrica import profilo
@@ -32,11 +31,6 @@ def test_un_id_di_percorso_enorme_non_fa_500(client: TestClient, db, utente_di_p
     assert risposta.status_code in (404, 422), f"risposta {risposta.status_code}"
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="RL-026: `GET /api/storico-ai?tipo=<valore non ammesso>` va in "
-    "InternalError sul confronto con la colonna enum: atteso 422",
-)
 def test_un_tipo_di_chiamata_non_ammesso_non_fa_500(
     client: TestClient, utente_di_prova
 ):
