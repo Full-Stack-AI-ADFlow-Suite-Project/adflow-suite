@@ -15,7 +15,6 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -109,13 +108,6 @@ def test_approva_mentre_l_operatore_chiede_all_artigiano(
         assert stato == mondo["post"][0], "la campagna approvata ha perso i post"
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="RL-023 (costituzione §1.9): la stessa foto finisce su due post "
-    "dello stesso canale nella stessa campagna in 50/50 ripetizioni. "
-    "Correzione proposta: controllo e scrittura sotto blocco della foto o "
-    "vincolo che escluda la stessa foto su due versioni correnti dello stesso canale",
-)
 def test_cambia_foto_insieme_sulla_stessa_foto(motore_concorrenza, mondo_concorrenza):
     """§1.9: la stessa foto non può finire su due post dello stesso canale.
 
@@ -166,13 +158,6 @@ def test_cambia_foto_insieme_sulla_stessa_foto(motore_concorrenza, mondo_concorr
     )
 
 
-@pytest.mark.xfail(
-    strict=False,
-    reason="RL-024 (R-04, R-31): due rigenerazioni dello stesso post partono "
-    "insieme in 49/50 ripetizioni; il contatore resta sotto il limite solo "
-    "perché il job non gira. Correzione proposta: blocco della riga del post "
-    "all'accensione dell'intervento",
-)
 def test_rigenerazioni_insieme_col_limite_a_tre(motore_concorrenza, mondo_concorrenza):
     """R-04, R-31: post a due rigenerazioni su tre, due accensioni in parallelo.
 
@@ -217,4 +202,58 @@ def test_rigenerazioni_insieme_col_limite_a_tre(motore_concorrenza, mondo_concor
     assert doppie == 0, (
         f"due rigenerazioni partono insieme in {doppie}/{RIPETIZIONI} ripetizioni "
         "(R-31 e R-04)"
+    )
+
+
+def test_approva_e_rigenera_insieme_sullo_stesso_post(
+    motore_concorrenza, mondo_concorrenza
+):
+    """R-14, R-31: approvazione e Rigenera insieme: un solo esito, mai un post
+    ``approvato`` con un intervento in corso.
+
+    Senza il blocco della campagna, ``approva()`` supera il controllo degli
+    interventi mentre Rigenera scrive ``intervento_in_corso`` sullo stesso post:
+    il job di rigenerazione partirebbe su un post già approvato.
+    """
+    doppie = 0
+    for _ in range(RIPETIZIONI):
+
+        def costruisci(sessione):
+            campagna = campagna_in_revisione(
+                sessione, profilo_id=mondo_concorrenza["bottega"].id
+            )
+            post = post_da_approvare(sessione, campagna_id=campagna.id)
+            return {"campagna": campagna.id, "post": post.id}
+
+        mondo = crea_con_commit(motore_concorrenza, costruisci)
+        adesso = datetime.now(timezone.utc)
+        _, errori = esegui_in_parallelo(
+            motore_concorrenza,
+            [
+                lambda s: service.approva(
+                    s, mondo["campagna"], mondo_concorrenza["operatore"], adesso
+                ),
+                lambda s: interventi.rigenera(
+                    s, mondo["post"], "totale", None, None, adesso
+                ),
+            ],
+        )
+        if errori == [None, None]:
+            doppie += 1
+        stato, in_corso = crea_con_commit(
+            motore_concorrenza,
+            lambda s: (
+                s.scalar(select(Post.stato).where(Post.id == mondo["post"])),
+                s.scalar(
+                    select(Post.intervento_in_corso).where(Post.id == mondo["post"])
+                ),
+            ),
+        )
+        assert not (stato == "approvato" and in_corso is not None), (
+            f"post approvato con l'intervento {in_corso!r} in corso: "
+            "il job di rigenerazione partirebbe dopo l'approvazione"
+        )
+    assert doppie == 0, (
+        f"approvazione e rigenerazione passano entrambe in {doppie}/{RIPETIZIONI} "
+        "ripetizioni (R-14, R-31)"
     )
