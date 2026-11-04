@@ -15,7 +15,6 @@ from __future__ import annotations
 
 from datetime import datetime, timezone
 
-import pytest
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
@@ -109,13 +108,6 @@ def test_approva_mentre_l_operatore_chiede_all_artigiano(
         assert stato == mondo["post"][0], "la campagna approvata ha perso i post"
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="RL-023 (costituzione §1.9): la stessa foto finisce su due post "
-    "dello stesso canale nella stessa campagna in 50/50 ripetizioni. "
-    "Correzione proposta: controllo e scrittura sotto blocco della foto o "
-    "vincolo che escluda la stessa foto su due versioni correnti dello stesso canale",
-)
 def test_cambia_foto_insieme_sulla_stessa_foto(motore_concorrenza, mondo_concorrenza):
     """§1.9: la stessa foto non può finire su due post dello stesso canale.
 
@@ -166,13 +158,6 @@ def test_cambia_foto_insieme_sulla_stessa_foto(motore_concorrenza, mondo_concorr
     )
 
 
-@pytest.mark.xfail(
-    strict=False,
-    reason="RL-024 (R-04, R-31): due rigenerazioni dello stesso post partono "
-    "insieme in 49/50 ripetizioni; il contatore resta sotto il limite solo "
-    "perché il job non gira. Correzione proposta: blocco della riga del post "
-    "all'accensione dell'intervento",
-)
 def test_rigenerazioni_insieme_col_limite_a_tre(motore_concorrenza, mondo_concorrenza):
     """R-04, R-31: post a due rigenerazioni su tre, due accensioni in parallelo.
 
