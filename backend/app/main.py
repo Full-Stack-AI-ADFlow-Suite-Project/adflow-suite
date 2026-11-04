@@ -3,6 +3,7 @@
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from sqlalchemy.exc import OperationalError
 
 from app.core.config import leggi_impostazioni
 from app.core.errori import (
@@ -72,6 +73,20 @@ def errore_dominio(request: Request, errore: ErroreDominio) -> JSONResponse:
         status_code=errore.status_code,
         content={"detail": errore.messaggio},
         headers=headers,
+    )
+
+
+@app.exception_handler(OperationalError)
+def database_non_disponibile(
+    request: Request, errore: OperationalError
+) -> JSONResponse:
+    """PostgreSQL irraggiungibile: 503 ordinato, il client può riprovare (RL-028)."""
+    return JSONResponse(
+        status_code=503,
+        content={
+            "detail": "Servizio momentaneamente non disponibile. Riprova tra poco."
+        },
+        headers={"Retry-After": "5"},
     )
 
 
