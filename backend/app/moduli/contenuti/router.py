@@ -7,6 +7,7 @@ from sqlalchemy.orm import Session
 
 from app.core.db import get_db
 from app.core.orologio import adesso
+from app.core.percorsi import IdPercorso
 from app.moduli.accesso.service import richiede_ruolo
 
 from . import service, settimana
@@ -38,7 +39,7 @@ def calendario_settimanale(
 
 @router.get("/campagne/{id}/calendario", response_model=CalendarioCampagna)
 def calendario(
-    id: int,
+    id: IdPercorso,
     db: Annotated[Session, Depends(get_db, scope="function")],
     utente: Annotated[Any, Depends(richiede_ruolo("artigiano", "operatore"))],
     response: Response,
@@ -108,7 +109,7 @@ def numeri_ai(
 
 @router.get("/storico-ai/{id}", response_model=ChiamataAIDettaglio)
 def chiamata_ai(
-    id: int,
+    id: IdPercorso,
     db: Annotated[Session, Depends(get_db, scope="function")],
     _: Annotated[Any, Depends(richiede_ruolo("operatore"))],
     response: Response,
@@ -120,7 +121,7 @@ def chiamata_ai(
 
 @router.post("/storico-ai/{id}/voto", response_model=ValutazioneAISchema)
 def vota_chiamata_ai(
-    id: int,
+    id: IdPercorso,
     dati: VotoAI,
     db: Annotated[Session, Depends(get_db, scope="function")],
     utente: Annotated[Any, Depends(richiede_ruolo("operatore"))],

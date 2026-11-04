@@ -12,7 +12,7 @@ mano:
    invece del 404 documentato arriva un 500.
 
 Il 500 è la risposta sbagliata: l'atteso è 404 (id che non esiste) o 422
-(valore non ammesso). I test restano in `xfail(strict=True)` con RL-026.
+(valore non ammesso). RL-026 è corretto.
 """
 
 from __future__ import annotations
@@ -25,11 +25,6 @@ from tests.moduli.artigiani.fabbrica import profilo
 ID_OLTRE_IL_LIMITE = 9_999_999_999_999
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="RL-026: un id di percorso oltre int4 fa andare il database in "
-    "InternalError e l'API risponde 500 invece di 404",
-)
 def test_un_id_di_percorso_enorme_non_fa_500(client: TestClient, db, utente_di_prova):
     artigiano = utente_di_prova("artigiano")
     profilo(db, utente_id=artigiano.id)
