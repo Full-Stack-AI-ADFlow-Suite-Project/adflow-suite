@@ -645,7 +645,7 @@ def accendi_intervento(db: Session, post_id: int, tipo: str, adesso: datetime) -
     if tipo not in TIPI_INTERVENTO_IN_CORSO:
         raise DatiNonValidi("Tipo di intervento non valido.")
     record = _post(db, post_id)
-    campagna = campagne.campagna(db, record.campagna_id)
+    campagna = campagne.campagna_bloccata(db, record.campagna_id)
     record = db.scalars(
         select(Post)
         .where(Post.id == post_id)
@@ -653,7 +653,7 @@ def accendi_intervento(db: Session, post_id: int, tipo: str, adesso: datetime) -
         .execution_options(populate_existing=True)
     ).one()
     if tipo in RIGENERAZIONI:
-        if not puo_rigenerare(db, post_id, adesso):
+        if RIGENERA not in interventi_ammessi(record, campagna.stato, adesso):
             raise StatoNonValido(
                 "Il post non si può rigenerare: campagna non in revisione, post non "
                 "da approvare, intervento già in corso o 3 rigenerazioni già fatte."

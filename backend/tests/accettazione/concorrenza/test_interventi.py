@@ -203,3 +203,57 @@ def test_rigenerazioni_insieme_col_limite_a_tre(motore_concorrenza, mondo_concor
         f"due rigenerazioni partono insieme in {doppie}/{RIPETIZIONI} ripetizioni "
         "(R-31 e R-04)"
     )
+
+
+def test_approva_e_rigenera_insieme_sullo_stesso_post(
+    motore_concorrenza, mondo_concorrenza
+):
+    """R-14, R-31: approvazione e Rigenera insieme: un solo esito, mai un post
+    ``approvato`` con un intervento in corso.
+
+    Senza il blocco della campagna, ``approva()`` supera il controllo degli
+    interventi mentre Rigenera scrive ``intervento_in_corso`` sullo stesso post:
+    il job di rigenerazione partirebbe su un post già approvato.
+    """
+    doppie = 0
+    for _ in range(RIPETIZIONI):
+
+        def costruisci(sessione):
+            campagna = campagna_in_revisione(
+                sessione, profilo_id=mondo_concorrenza["bottega"].id
+            )
+            post = post_da_approvare(sessione, campagna_id=campagna.id)
+            return {"campagna": campagna.id, "post": post.id}
+
+        mondo = crea_con_commit(motore_concorrenza, costruisci)
+        adesso = datetime.now(timezone.utc)
+        _, errori = esegui_in_parallelo(
+            motore_concorrenza,
+            [
+                lambda s: service.approva(
+                    s, mondo["campagna"], mondo_concorrenza["operatore"], adesso
+                ),
+                lambda s: interventi.rigenera(
+                    s, mondo["post"], "totale", None, None, adesso
+                ),
+            ],
+        )
+        if errori == [None, None]:
+            doppie += 1
+        stato, in_corso = crea_con_commit(
+            motore_concorrenza,
+            lambda s: (
+                s.scalar(select(Post.stato).where(Post.id == mondo["post"])),
+                s.scalar(
+                    select(Post.intervento_in_corso).where(Post.id == mondo["post"])
+                ),
+            ),
+        )
+        assert not (stato == "approvato" and in_corso is not None), (
+            f"post approvato con l'intervento {in_corso!r} in corso: "
+            "il job di rigenerazione partirebbe dopo l'approvazione"
+        )
+    assert doppie == 0, (
+        f"approvazione e rigenerazione passano entrambe in {doppie}/{RIPETIZIONI} "
+        "ripetizioni (R-14, R-31)"
+    )
