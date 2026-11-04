@@ -15,6 +15,12 @@ from types import SimpleNamespace
 import httpx
 import litellm
 import pytest
+from litellm.types.utils import (
+    ImageObject,
+    ImageResponse,
+    ImageUsage,
+    ImageUsageInputTokensDetails,
+)
 from PIL import Image
 
 import app.adapters.ai.litellm as modulo
@@ -815,6 +821,90 @@ def test_senza_il_prezzo_di_litellm_l_immagine_costa_quanto_dice_la_configurazio
 
     assert ai.ultimo_uso.costo_usd == Decimal("0.04")
     assert (ai.ultimo_uso.token_ingresso, ai.ultimo_uso.token_uscita) == (None, None)
+
+
+def _risposta_openrouter(codificata: str):
+    """La risposta vera di litellm per un modello di immagini via OpenRouter (T5-131).
+
+    ``image_generation`` passa dal chat-completions di OpenRouter e litellm
+    riempie ``data[0].b64_json`` con l'immagine; l'``usage`` ha i soli
+    ``input_tokens``, ``output_tokens`` e ``total_tokens``.
+    """
+    return ImageResponse(
+        created=1790000000,
+        data=[ImageObject(b64_json=codificata, url=None, revised_prompt=None)],
+        usage=ImageUsage(
+            input_tokens=2593,
+            input_tokens_details=ImageUsageInputTokensDetails(
+                image_tokens=0, text_tokens=2593
+            ),
+            output_tokens=4175,
+            total_tokens=7747,
+        ),
+    )
+
+
+def test_la_risposta_osservata_via_openrouter_si_legge_e_costa_la_configurazione(
+    generazione, ai, monkeypatch
+):
+    """T5-131: la forma osservata nella prova a mano con gpt-5-image-mini.
+
+    LiteLLM non sa il prezzo del modello: il costo è ``AI_PREZZO_IMMAGINE``
+    e i token dell'``usage`` finiscono nello storico (R-44, R-50).
+    """
+
+    def sconosciuto(**_):
+        raise litellm.NotFoundError(message="senza prezzo", **ARGOMENTI)
+
+    monkeypatch.setattr(litellm, "completion_cost", sconosciuto)
+    generazione.metti(_risposta_openrouter(_png()))
+
+    immagine = ai.genera_immagine("Un prompt")
+
+    with Image.open(BytesIO(immagine.contenuto)) as aperta:
+        assert aperta.format == "PNG"
+        assert aperta.size == (1024, 1024)
+    uso = ai.ultimo_uso
+    assert (uso.esito, uso.immagini) == ("ok", 1)
+    assert (uso.token_ingresso, uso.token_uscita) == (2593, 4175)
+    assert uso.costo_usd == Decimal("0.04")
+
+
+def test_la_risposta_chat_senza_immagini_in_data_resta_un_errore_risposta(
+    generazione, ai
+):
+    """T5-131: la forma del difetto RL-037, se litellm non riempie ``data``.
+
+    L'immagine arriva (se arriva) in ``choices[0].message.images`` e ``data``
+    resta vuota: l'adattatore non crasha e non perde silenziosamente la
+    chiamata: solleva l'errore di tipo ``risposta`` per l'operatore.
+    """
+    chat = SimpleNamespace(
+        choices=[
+            SimpleNamespace(
+                finish_reason="stop",
+                message=SimpleNamespace(
+                    content="Ecco l'immagine.",
+                    images=[
+                        {
+                            "image_url": {"url": "data:image/png;base64," + _png()},
+                            "index": 0,
+                            "type": "image_url",
+                        }
+                    ],
+                ),
+            )
+        ],
+        usage=SimpleNamespace(input_tokens=2593, output_tokens=4175, total_tokens=7747),
+    )
+    generazione.metti(chat)
+
+    with pytest.raises(ErroreAI) as sollevato:
+        ai.genera_immagine("Un prompt")
+
+    assert sollevato.value.tipo == "risposta"
+    assert sollevato.value.messaggio == "L'AI non ha restituito nessuna immagine."
+    assert ai.ultimo_uso.esito == "risposta"
 
 
 @pytest.mark.parametrize(

@@ -202,26 +202,26 @@ Tre corsie, una per sviluppatore, 5 ore ciascuna (ADR-121). Ogni task ha in `bri
 
 | ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
 |---|---|---|---|---|---|
-| T5-111 | **Pubblicazione al massimo una volta**: tentativo confermato prima del social, nessuna ripubblicazione dopo un esito sconosciuto (RL-025) | `brief-corsia-rapida.md` §T5-111; constitution §1.7, §2.6 | T4-108 | RL-025 non è più `xfail`; `alembic downgrade -1` e `upgrade head` funzionano; suite verde | ☐ |
+| T5-111 | **Pubblicazione al massimo una volta**: tentativo confermato prima del social, nessuna ripubblicazione dopo un esito sconosciuto (RL-025) | `brief-corsia-rapida.md` §T5-111; constitution §1.7, §2.6 | T4-108 | RL-025 non è più `xfail`; `alembic downgrade -1` e `upgrade head` funzionano; suite verde | ☑ |
 | T5-112 | **Prova finale del percorso**: converge §4 su `main`, da database vuoto, con AI e Meta veri | `brief-corsia-rapida.md` §T5-112; converge §4 | T5-111, T5-121, T5-122, T5-131, T5-133 | report `T5-112-percorso.md` scritto e nessun punto rotto | ☐ |
 
 ### Corsia 12 · Corsia rapida: concorrenza e guasti (Sviluppatore B)
 
 | ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
 |---|---|---|---|---|---|
-| T5-121 | **Approva e respingi atomiche**: blocco della riga della campagna (RL-021, RL-022) | `brief-corsia-rapida.md` §T5-121; plan §6 | T4-108 | i due test senza marcatore e 50 volte verdi; suite verde | ☐ |
-| T5-122 | **Una foto una volta e interventi atomici**: blocchi in Cambia foto e nelle rigenerazioni (RL-023, RL-024) | `brief-corsia-rapida.md` §T5-122; constitution §1.9 | T5-121 | i due test senza marcatore e 50 volte verdi; suite verde | ☐ |
-| T5-123 | **Guasti ordinati**: 503 con il database giù e con il disco pieno (RL-028, RL-029) | `brief-corsia-rapida.md` §T5-123 | T4-108 | i due test senza marcatore; suite verde | ☐ |
+| T5-121 | **Approva e respingi atomiche**: blocco della riga della campagna (RL-021, RL-022) | `brief-corsia-rapida.md` §T5-121; plan §6 | T4-108 | i due test senza marcatore e 50 volte verdi; suite verde | ☑ |
+| T5-122 | **Una foto una volta e interventi atomici**: blocchi in Cambia foto e nelle rigenerazioni (RL-023, RL-024) | `brief-corsia-rapida.md` §T5-122; constitution §1.9 | T5-121 | i due test senza marcatore e 50 volte verdi; suite verde | ☑ |
+| T5-123 | **Guasti ordinati**: 503 con il database giù e con il disco pieno (RL-028, RL-029) | `brief-corsia-rapida.md` §T5-123 | T4-108 | i due test senza marcatore; suite verde | ☑ |
 | T5-124 | **Limite delle azioni AI**: 429 per utente su rigenerazioni e invio (RL-018) | `brief-corsia-rapida.md` §T5-124 | T4-108 | il test senza marcatore; variabili in `.env.example`; suite verde | ☐ |
 
 ### Corsia 13 · Corsia rapida: demo e sicurezza (Sviluppatore C)
 
 | ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
 |---|---|---|---|---|---|
-| T5-131 | **Immagini AI che escono**: il modello restituisce l'immagine (RL-037) | `brief-corsia-rapida.md` §T5-131; `T4-107-ai-vera.md` | T4-108 | una campagna senza foto sufficienti arriva a `in_revisione` con l'immagine AI; costo sotto i 2 € nel report | ☐ |
+| T5-131 | **Immagini AI che escono**: il modello restituisce l'immagine (RL-037) | `brief-corsia-rapida.md` §T5-131; `T4-107-ai-vera.md` | T4-108 | una campagna senza foto sufficienti arriva a `in_revisione` con l'immagine AI; costo sotto i 2 € nel report | ☑ |
 | T5-132 | **Foto della demo e passi non scritti**: README e cartella al sicuro (RL-012, RL-013, RL-014) | `brief-corsia-rapida.md` §T5-132 | T4-108 | un clone nuovo arriva alla demo seguendo il README | ☐ |
 | T5-133 | **Dipendenze**: pillow, httpx, filelock (RL-001, RL-004, RL-005) | `brief-corsia-rapida.md` §T5-133 | T4-108 | pip-audit pulito sul runtime, o l'elenco di ciò che resta con il motivo; suite verde | ☑ |
-| T5-134 | **Intestazioni di sicurezza** sulle risposte di `/api` (RL-015) | `brief-corsia-rapida.md` §T5-134 | T4-108 | il test senza marcatore; foto visibili nel frontend; suite verde | ☐ |
+| T5-134 | **Intestazioni di sicurezza** sulle risposte di `/api` (RL-015) | `brief-corsia-rapida.md` §T5-134 | T4-108 | il test senza marcatore; foto visibili nel frontend; suite verde | ☑ |
 | T5-135 | **Input estremi**: 422 al posto dei 500 (RL-026) | `brief-corsia-rapida.md` §T5-135 | T4-108 | i test senza marcatore; suite verde | ☐ |
 | T5-136 | **Contrasto**: le quattro violazioni serie di axe (RL-035) | `brief-corsia-rapida.md` §T5-136 | T4-108 | axe senza violazioni serie sulle tre pagine | ☐ |
 

@@ -8,7 +8,6 @@ from __future__ import annotations
 import errno
 import io
 
-import pytest
 from fastapi.testclient import TestClient
 from PIL import Image
 from sqlalchemy import func, select
@@ -20,11 +19,6 @@ from tests.moduli.artigiani.fabbrica import profilo
 from tests.moduli.campagne.fabbrica import campagna_in_bozza, gruppo
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="RL-029: con il disco pieno l'upload risponde 500 generico invece di "
-    "un errore chiaro (413/503) come chiede §7.4",
-)
 def test_disco_pieno_durante_un_upload(
     db: Session, client: TestClient, utente_di_prova, tmp_path, monkeypatch
 ):
