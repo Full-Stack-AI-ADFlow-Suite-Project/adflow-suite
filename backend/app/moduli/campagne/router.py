@@ -10,7 +10,7 @@ from app.adapters.archivio import DIMENSIONE_MAX_BYTE
 from app.core.db import get_db
 from app.core.errori import DatiNonValidi, NonTrovato
 from app.core.orologio import adesso
-from app.core.percorsi import IdPercorso
+from app.core.percorsi import LIMITE_INTERO_PG, IdPercorso, IdQueryOpzionale
 from app.moduli.accesso.service import richiede_ruolo, utente_corrente
 
 from . import archivio, archivio_foto, bozza, service, viste
@@ -86,7 +86,7 @@ def elenca_campagne(
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[Any, Depends(utente_corrente)],
     stato: Annotated[list[str] | None, Query()] = None,
-    artigiano: Annotated[int | None, Query()] = None,
+    artigiano: IdQueryOpzionale = None,
 ) -> list[CampagnaElencoItem]:
     """Elenca le campagne accessibili all'utente (l'artigiano vede solo le sue, operatore/admin tutte con bottega e città).
 
@@ -183,6 +183,8 @@ def carica_foto(
         gruppo = int(gruppo_id)
     except ValueError:
         raise DatiNonValidi("ID gruppo non valido.")
+    if gruppo > LIMITE_INTERO_PG:
+        raise DatiNonValidi("ID gruppo non valido.")
 
     contenuto = _leggi_file(file)
 
@@ -212,7 +214,7 @@ def elimina_foto(
 def leggi_archivio_foto(
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[Any, Depends(richiede_ruolo("artigiano", "operatore"))],
-    artigiano: Annotated[int | None, Query()] = None,
+    artigiano: IdQueryOpzionale = None,
 ) -> list[BloccoArchivio]:
     """L'archivio foto in sola lettura, a blocchi per campagna (R-47, CA-95, CA-96).
 

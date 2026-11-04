@@ -120,7 +120,7 @@ def annulla_campagna(
 # Congelato per l'MVP, ADR-114: non estendere.
 @router.post("/campagne/{campagna_id}/nota")
 def nota_interna(
-    campagna_id: IdPercorso,
+    campagna_id: int,
     corpo: CampagnaNota,
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
@@ -148,7 +148,7 @@ def respingi_campagna(
 # Congelato per l'MVP, ADR-114: non estendere.
 @router.post("/campagne/{campagna_id}/togli-canale")
 def togli_canale_campagna(
-    campagna_id: IdPercorso,
+    campagna_id: int,
     corpo: CampagnaTogliCanale,
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
@@ -177,7 +177,7 @@ def modifica_post(
 # Congelato per l'MVP, ADR-114: non estendere.
 @router.post("/post/{post_id}/controllato")
 def controllato_post(
-    post_id: IdPercorso,
+    post_id: int,
     corpo: PostControllato,
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],

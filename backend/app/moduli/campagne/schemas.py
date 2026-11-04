@@ -5,6 +5,7 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.core.percorsi import IdCampo
 from app.core.testi import verifica_testi
 
 
@@ -177,7 +178,7 @@ class RichiestaCrea(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     domanda: str
-    foto: list[int] = []
+    foto: list[IdCampo] = []
 
     @field_validator("domanda")
     @classmethod

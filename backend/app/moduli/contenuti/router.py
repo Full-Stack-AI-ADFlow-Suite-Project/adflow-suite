@@ -8,7 +8,7 @@ from sqlalchemy.orm import Session
 from app.adapters.ai.base import TIPI_USO
 from app.core.db import get_db
 from app.core.orologio import adesso
-from app.core.percorsi import IdPercorso
+from app.core.percorsi import IdPercorso, IdQueryOpzionale
 from app.moduli.accesso.service import richiede_ruolo
 
 from . import service, settimana
@@ -60,7 +60,7 @@ def storico_ai(
     db: Annotated[Session, Depends(get_db, scope="function")],
     _: Annotated[Any, Depends(richiede_ruolo("operatore"))],
     response: Response,
-    campagna_id: Annotated[int | None, Query()] = None,
+    campagna_id: IdQueryOpzionale = None,
     tipo: Annotated[TipoChiamataAI | None, Query()] = None,
     modello: Annotated[str | None, Query()] = None,
     versione_prompt: Annotated[str | None, Query()] = None,
@@ -90,7 +90,7 @@ def numeri_ai(
     db: Annotated[Session, Depends(get_db, scope="function")],
     _: Annotated[Any, Depends(richiede_ruolo("operatore"))],
     response: Response,
-    campagna_id: Annotated[int | None, Query()] = None,
+    campagna_id: IdQueryOpzionale = None,
     tipo: Annotated[TipoChiamataAI | None, Query()] = None,
     modello: Annotated[str | None, Query()] = None,
     versione_prompt: Annotated[str | None, Query()] = None,

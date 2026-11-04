@@ -293,7 +293,7 @@ class ArtigianoElenco(BaseModel):
     prossima_scadenza: datetime | None = None
 
 
-class CampagnaNota(_TestiSicuri):
+class CampagnaNota(BaseModel):
     """Corpo di ``POST /campagne/{id}/nota``: la nota interna (R-32)."""
 
     model_config = ConfigDict(extra="forbid")
@@ -311,7 +311,7 @@ class CampagnaRespingi(_TestiSicuri):
     foto_segnate: list[int] = []
 
 
-class CampagnaTogliCanale(_TestiSicuri):
+class CampagnaTogliCanale(BaseModel):
     """Corpo di ``POST /campagne/{id}/togli-canale`` (CA-53)."""
 
     model_config = ConfigDict(extra="forbid")
