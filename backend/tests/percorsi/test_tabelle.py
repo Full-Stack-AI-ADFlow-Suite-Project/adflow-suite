@@ -87,6 +87,12 @@ def test_upgrade_downgrade_completo_e_ultimo_passaggio(motore_test):
     command.upgrade(config, "head")
     command.downgrade(config, "-1")
     with motore_test.connect() as conn:
+        assert "chiamata_il" not in {
+            c["name"] for c in inspect(conn).get_columns("pubblicazione")
+        }
+        assert "valutazione_ai" in inspect(conn).get_table_names()
+    command.downgrade(config, "-1")
+    with motore_test.connect() as conn:
         assert "valutazione_ai" not in inspect(conn).get_table_names()
         assert "chiamata_ai" in inspect(conn).get_table_names()
         assert "versione_prompt" not in {
