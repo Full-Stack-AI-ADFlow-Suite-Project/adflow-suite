@@ -44,7 +44,7 @@ uv run python -m app.cli demo --foto CARTELLA_FOTO              # tutte le foto 
 uv run python -m app.cli demo --foto CARTELLA_FOTO --quante 3   # solo le prime 3: le altre posizioni sono immagini AI
 ```
 
-**La cartella delle foto della demo non sta in git**: sta in un posto condiviso dal team (chiedere al team dove si trova e come copiarla) e ognuno passa il proprio percorso al comando al posto di `CARTELLA_FOTO`. La cartella attuale ha 13 foto di mosaici (`mosaico-01.jpg` … `mosaico-13.jpg`), già deduplicate e tutte dentro i requisiti di caricamento (lato corto da 1080 px, al massimo 36 megapixel, richieste fino a 12 MiB); chi le ha scelte lo conferma nella PR. Con `--quante 3`: verificato sul serio (3 caricate, 0 scartate).
+**La cartella delle foto della demo non sta in git**: sta in un posto condiviso dal team (chiedere al team dove si trova e come copiarla) e ognuno passa il proprio percorso al comando al posto di `CARTELLA_FOTO`. La cartella attuale ha 13 foto di mosaici (`mosaico-01.jpg` … `mosaico-13.jpg`), già deduplicate e tutte dentro i requisiti di caricamento (lato corto da 1080 px, foto fino a 10 MB, al massimo 36 megapixel); chi le ha scelte lo conferma nella PR. Con `--quante 3`: verificato sul serio (3 caricate, 0 scartate).
 
 Senza altro, la bottega ha il profilo del seed e testi generici. Per provare la propria bottega si mette nella cartella delle foto un `demo.json` con i campi da cambiare (quelli del profilo sono i campi di plan §2):
 
