@@ -5,6 +5,8 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.core.testi import verifica_testi
+
 
 def testo_valido(testo: str, *, campo_postgres: bool = True) -> bool:
     """Verifica che il testo sia UTF-8 valido e senza byte NUL per PostgreSQL."""
@@ -177,6 +179,12 @@ class RichiestaCrea(BaseModel):
     domanda: str
     foto: list[int] = []
 
+    @field_validator("domanda")
+    @classmethod
+    def domanda_sicura(cls, valore: str) -> str:
+        verifica_testi(valore)
+        return valore
+
 
 class RichiestaInvia(BaseModel):
     """Corpo facoltativo di ``POST /campagne/{id}/richiesta/invia`` (R-46)."""
@@ -184,6 +192,13 @@ class RichiestaInvia(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     risposta: str | None = None
+
+    @field_validator("risposta")
+    @classmethod
+    def risposta_sicura(cls, valore: str | None) -> str | None:
+        if valore is not None:
+            verifica_testi(valore)
+        return valore
 
 
 class FotoDaSostituire(BaseModel):

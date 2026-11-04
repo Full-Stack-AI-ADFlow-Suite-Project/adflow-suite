@@ -5,10 +5,22 @@ from datetime import date, datetime
 from decimal import Decimal
 from typing import Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from app.core.testi import verifica_testi
 
 
-class PostModifica(BaseModel):
+class _TestiSicuri(BaseModel):
+    """Corpi delle richieste: i testi non portano il byte NUL (RL-026)."""
+
+    @field_validator("*", mode="before")
+    @classmethod
+    def testi_sicuri(cls, valore: Any) -> Any:
+        verifica_testi(valore)
+        return valore
+
+
+class PostModifica(_TestiSicuri):
     """Corpo di ``POST /post/{id}/modifica`` (R-30): testo e hashtag nuovi."""
 
     testo: str
@@ -21,7 +33,7 @@ class PostControllato(BaseModel):
     valore: bool
 
 
-class PostRigenera(BaseModel):
+class PostRigenera(_TestiSicuri):
     """Corpo di ``POST /post/{id}/rigenera`` (R-03, R-31).
 
     ``totale`` riscrive da zero; ``da_proposta`` parte dal testo scritto
@@ -33,7 +45,7 @@ class PostRigenera(BaseModel):
     nota: str | None = None
 
 
-class PostRigeneraImmagine(BaseModel):
+class PostRigeneraImmagine(_TestiSicuri):
     """Corpo di ``POST /post/{id}/rigenera-immagine`` (R-49, ADR-119).
 
     ``nota`` è l'indicazione per l'immagine; con ``riscrivi_testo`` il job
@@ -61,7 +73,7 @@ class PostSposta(BaseModel):
     data_ora: datetime
 
 
-class PostAnnulla(BaseModel):
+class PostAnnulla(_TestiSicuri):
     """Corpo di ``POST /post/{id}/annulla`` (R-36): la nota è obbligatoria."""
 
     model_config = ConfigDict(extra="forbid")
@@ -69,7 +81,7 @@ class PostAnnulla(BaseModel):
     nota: str = Field(min_length=1)
 
 
-class PostCambiaFoto(BaseModel):
+class PostCambiaFoto(_TestiSicuri):
     """Corpo di ``POST /post/{id}/cambia-foto`` (R-36, ADR-119).
 
     ``riscrivi_testo`` è «Riscrivi anche il testo»: solo in revisione, fa
@@ -281,7 +293,7 @@ class ArtigianoElenco(BaseModel):
     prossima_scadenza: datetime | None = None
 
 
-class CampagnaNota(BaseModel):
+class CampagnaNota(_TestiSicuri):
     """Corpo di ``POST /campagne/{id}/nota``: la nota interna (R-32)."""
 
     model_config = ConfigDict(extra="forbid")
@@ -289,7 +301,7 @@ class CampagnaNota(BaseModel):
     nota: str = Field(min_length=1)
 
 
-class CampagnaRespingi(BaseModel):
+class CampagnaRespingi(_TestiSicuri):
     """Corpo di ``POST /campagne/{id}/respingi`` (R-18, CA-24, CA-25)."""
 
     model_config = ConfigDict(extra="forbid")
@@ -299,7 +311,7 @@ class CampagnaRespingi(BaseModel):
     foto_segnate: list[int] = []
 
 
-class CampagnaTogliCanale(BaseModel):
+class CampagnaTogliCanale(_TestiSicuri):
     """Corpo di ``POST /campagne/{id}/togli-canale`` (CA-53)."""
 
     model_config = ConfigDict(extra="forbid")
@@ -308,7 +320,7 @@ class CampagnaTogliCanale(BaseModel):
     nota: str = Field(min_length=1)
 
 
-class CampagnaSospendi(BaseModel):
+class CampagnaSospendi(_TestiSicuri):
     """Corpo facoltativo di ``POST /campagne/{id}/sospendi``: la nota (R-33)."""
 
     model_config = ConfigDict(extra="forbid")

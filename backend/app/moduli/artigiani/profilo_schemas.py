@@ -1,30 +1,12 @@
 """Dati del profilo: valori del dominio, nessun identificativo scrivibile."""
 from datetime import datetime
-from math import isfinite
 from typing import Any
 
 from pydantic import BaseModel, ConfigDict, JsonValue, ValidationInfo, field_validator
 
+from app.core.testi import verifica_testi
+
 from . import domain
-
-
-def verifica_testi(valore: Any) -> None:
-    if isinstance(valore, str):
-        if "\x00" in valore:
-            raise ValueError("Caratteri non validi.")
-        try:
-            valore.encode("utf-8")
-        except UnicodeEncodeError:
-            raise ValueError("Caratteri non validi.") from None
-    elif isinstance(valore, float) and not isfinite(valore):
-        raise ValueError("Numero non valido.")
-    elif isinstance(valore, dict):
-        for chiave, elemento in valore.items():
-            verifica_testi(chiave)
-            verifica_testi(elemento)
-    elif isinstance(valore, list):
-        for elemento in valore:
-            verifica_testi(elemento)
 
 
 class DatiProfilo(BaseModel):
