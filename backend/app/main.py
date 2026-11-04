@@ -3,6 +3,7 @@
 from fastapi import FastAPI, Request
 from fastapi.exceptions import RequestValidationError
 from fastapi.responses import JSONResponse
+from sqlalchemy.exc import OperationalError
 
 from app.core.config import leggi_impostazioni
 from app.core.errori import (
@@ -12,6 +13,7 @@ from app.core.errori import (
     frase_di_validazione,
 )
 from app.core.eventi_sicurezza import CorrelazioneRichieste, registra, id_richiesta
+from app.core.intestazioni_sicurezza import IntestazioniSicurezza
 from app.core.limite_login import TroppiTentativi, LimiteNonDisponibile
 from app.core.limite_richiesta import LimiteRichiesta
 from app.core.protezione_csrf import ProtezioneCSRF
@@ -35,6 +37,10 @@ app.add_middleware(LimiteRichiesta, massimo=leggi_impostazioni().richiesta_max_b
 app.add_middleware(TracciamentoRichieste)
 # L'ultimo aggiunto è il più esterno: anche un 413 porta X-Request-ID.
 app.add_middleware(CorrelazioneRichieste)
+# RL-015: le cinque intestazioni di sicurezza sull'API, errori compresi, e
+# solo lì: la CSP stretta romperebbe /docs (il frontend le prende dal proxy,
+# docs/sicurezza-accesso.md). Ultimo, perché il più esterno di tutti.
+app.add_middleware(IntestazioniSicurezza)
 
 for _router in (
     accesso,
@@ -72,6 +78,20 @@ def errore_dominio(request: Request, errore: ErroreDominio) -> JSONResponse:
         status_code=errore.status_code,
         content={"detail": errore.messaggio},
         headers=headers,
+    )
+
+
+@app.exception_handler(OperationalError)
+def database_non_disponibile(
+    request: Request, errore: OperationalError
+) -> JSONResponse:
+    """PostgreSQL irraggiungibile: 503 ordinato, il client può riprovare (RL-028)."""
+    return JSONResponse(
+        status_code=503,
+        content={
+            "detail": "Servizio momentaneamente non disponibile. Riprova tra poco."
+        },
+        headers={"Retry-After": "5"},
     )
 
 

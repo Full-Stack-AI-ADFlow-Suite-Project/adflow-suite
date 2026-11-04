@@ -71,3 +71,42 @@ Dettaglio delle chiamate (dallo storico AI):
 - La prova non copre le immagini vere che funzionano: quella parte è coperta
   dai test con l'adattatore finto e, per il provider vero, da T3-34/T3-925 nel
   loro momento. Oggi il modello di immagini non risponde come atteso (RL-037).
+
+## Nuovo esito · T5-131 (4/11/2026, corsia 13)
+
+RL-037 verificato di nuovo con l'ambiente attuale della corsia 13 (worktree
+`adflow-glm-131`, database dedicato `adflow_131`, `AI_PROVIDER=litellm`): con
+`AI_MODELLO_IMMAGINI=openrouter/openai/gpt-5-image-mini` e la LiteLLM
+installata, il difetto **non si riproduce più**. L'ipotesi del brief era
+giusta per il modello della prima prova (`gemini-2.5-flash-image`); con il
+modello attuale LiteLLM instrada la generazione via chat-completions di
+OpenRouter e riempie comunque `data[0].b64_json`, la forma che l'adattatore
+legge già. Nessuna correzione a `genera_immagine` e `_leggi_immagine`.
+
+**Prova a mano** (una sola chiamata, forma della risposta, niente salvataggi):
+`litellm.image_generation` risponde con un `ImageResponse` che ha
+`data[0].b64_json` = PNG 1024×1024 (≈ 1,8 MB) e `usage` con `input_tokens`
+(2593), `output_tokens` (4175) e `total_tokens` (7747). `completion_cost`
+non riconosce il modello: il costo registrato è il prezzo di configurazione
+`AI_PREZZO_IMMAGINE` = 0,04 $ (tetto di 2 € rispettato).
+
+**Prova end-to-end** (`demo` + invio + `prova-ai --campagna 1`): campagna di
+7 giorni, un solo canale, **1 foto per 3 post** (foto in meno dei post).
+Esito: **completata, campagna `in_revisione`**, 3 post `da_approvare`, tutti
+con `riempitivo=immagine_ai` e la loro immagine `creata_ai` (PNG 1024×1024
+salvata nell'archivio), nessun blocco o avviso, nessun post approvato né
+pubblicato. Costo dallo storico AI (rapporto di `prova-ai`):
+
+| Tipo | Chiamate | Token in | Token out | Costo |
+|---|---|---|---|---|
+| analisi | 1 | 2 076 | 149 | 0,0067 $ |
+| piano | 1 | 2 170 | 527 | 0,0107 $ |
+| testo | 3 | 5 714 | 406 | 0,0183 $ |
+| immagine | 3 | 9 934 | 12 525 | 0,1200 $ |
+| **totale** | **8** | | | **0,1557 $** |
+
+Costo totale del task: 0,04 $ + 0,1557 $ ≈ **0,20 $ ≈ 0,17 €**, sotto il
+tetto di 2 €. Il piano ha messo l'immagine AI anche sul post che la foto
+unica avrebbe coperto: scelta del piano, controllo R-09 verde. Nuovi test con
+risposte finte nella forma osservata e nella forma del difetto
+(`tests/adapters/ai/test_litellm.py`).

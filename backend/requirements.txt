@@ -4,6 +4,8 @@ uvicorn[standard]==0.54.0
 pydantic-settings==2.15.0
 email-validator==2.3.0
 python-multipart==0.0.32
+# L'adattatore Meta lo importa a runtime (RL-004): non solo transitivo da litellm
+httpx==0.28.1
 
 # Database
 SQLAlchemy==2.1.2
@@ -15,13 +17,16 @@ procrastinate==3.10.0
 
 # AI: provider vero dietro adapters/ai (nei test si usa il provider finto)
 litellm==1.104.2
+# Transitiva da litellm (huggingface-hub). Dichiarata per governarla (RL-005):
+# la prima versione senza vulnerabilità è 4.2.1, ma litellm chiede filelock<4
+# e la 3.x più recente è questa; si aggiorna quando litellm lo ammette.
+filelock==3.32.7
 
 # Immagini: sistemazione delle foto (spec R-42) e immagini AI di rimpiazzo (R-28)
-pillow==12.3.0
+pillow==13.0.0
 
 # Test e formattazione
 cryptography==50.0.2
 pytest==9.1.1
-httpx2==2.13.1
 black==23.3.0
 pre-commit==4.6.2
