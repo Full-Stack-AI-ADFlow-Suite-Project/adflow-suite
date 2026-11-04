@@ -222,7 +222,7 @@ Tre corsie, una per sviluppatore, 5 ore ciascuna (ADR-121). Ogni task ha in `bri
 | T5-132 | **Foto della demo e passi non scritti**: README e cartella al sicuro (RL-012, RL-013, RL-014) | `brief-corsia-rapida.md` §T5-132 | T4-108 | un clone nuovo arriva alla demo seguendo il README | ☐ |
 | T5-133 | **Dipendenze**: pillow, httpx, filelock (RL-001, RL-004, RL-005) | `brief-corsia-rapida.md` §T5-133 | T4-108 | pip-audit pulito sul runtime, o l'elenco di ciò che resta con il motivo; suite verde | ☐ |
 | T5-134 | **Intestazioni di sicurezza** sulle risposte di `/api` (RL-015) | `brief-corsia-rapida.md` §T5-134 | T4-108 | il test senza marcatore; foto visibili nel frontend; suite verde | ☐ |
-| T5-135 | **Input estremi**: 422 al posto dei 500 (RL-026) | `brief-corsia-rapida.md` §T5-135 | T4-108 | i test senza marcatore; suite verde | ☐ |
+| T5-135 | **Input estremi**: 422 al posto dei 500 (RL-026) | `brief-corsia-rapida.md` §T5-135 | T4-108 | i test senza marcatore; suite verde | ☑ |
 | T5-136 | **Contrasto**: le quattro violazioni serie di axe (RL-035) | `brief-corsia-rapida.md` §T5-136 | T4-108 | axe senza violazioni serie sulle tre pagine | ☐ |
 
 ## Dopo l'MVP
