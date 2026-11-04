@@ -2,7 +2,9 @@
 from datetime import date, datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import BaseModel, ConfigDict, Field, field_validator
+
+from app.core.testi import verifica_testi
 
 
 class FotoCalendario(BaseModel):
@@ -172,3 +174,10 @@ class VotoAI(BaseModel):  # POST /storico-ai/{id}/voto
     model_config = ConfigDict(extra="forbid")
     voto: int = Field(ge=1, le=5)
     nota: str | None = Field(None, max_length=1000)
+
+    @field_validator("nota")
+    @classmethod
+    def nota_sicura(cls, valore: str | None) -> str | None:
+        if valore is not None:
+            verifica_testi(valore)
+        return valore

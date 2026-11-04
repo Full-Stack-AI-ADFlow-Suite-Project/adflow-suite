@@ -2,6 +2,8 @@
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
+from app.core.testi import verifica_testi
+
 from .profilo_schemas import ProfiloPubblico
 
 
@@ -20,12 +22,9 @@ class NuovoArtigiano(BaseModel):
     @classmethod
     def testo_rappresentabile(cls, valore: str) -> str:
         valore = valore.strip()
-        if not valore or "\x00" in valore:
+        if not valore:
             raise ValueError("Compilare email e nome con dati validi.")
-        try:
-            valore.encode("utf-8")
-        except UnicodeEncodeError:
-            raise ValueError("Caratteri non validi.") from None
+        verifica_testi(valore)
         return valore
 
 

@@ -1,12 +1,14 @@
 """Endpoint del modulo contenuti: chiamano service.py, senza logica di business."""
 from datetime import date, datetime
-from typing import Annotated, Any
+from typing import Annotated, Any, Literal
 
 from fastapi import APIRouter, Depends, Query, Response
 from sqlalchemy.orm import Session
 
+from app.adapters.ai.base import TIPI_USO
 from app.core.db import get_db
 from app.core.orologio import adesso
+from app.core.percorsi import IdPercorso, IdQueryOpzionale
 from app.moduli.accesso.service import richiede_ruolo
 
 from . import service, settimana
@@ -21,6 +23,9 @@ from .schemas import (
 )
 
 router = APIRouter(tags=["contenuti"])
+
+# I tipi di chiamata che lo storico sa filtrare (``adapters/ai/base.py``).
+TipoChiamataAI = Literal[*TIPI_USO]
 
 
 @router.get("/calendario", response_model=CalendarioSettimana)
@@ -38,7 +43,7 @@ def calendario_settimanale(
 
 @router.get("/campagne/{id}/calendario", response_model=CalendarioCampagna)
 def calendario(
-    id: int,
+    id: IdPercorso,
     db: Annotated[Session, Depends(get_db, scope="function")],
     utente: Annotated[Any, Depends(richiede_ruolo("artigiano", "operatore"))],
     response: Response,
@@ -55,8 +60,8 @@ def storico_ai(
     db: Annotated[Session, Depends(get_db, scope="function")],
     _: Annotated[Any, Depends(richiede_ruolo("operatore"))],
     response: Response,
-    campagna_id: Annotated[int | None, Query()] = None,
-    tipo: Annotated[str | None, Query()] = None,
+    campagna_id: IdQueryOpzionale = None,
+    tipo: Annotated[TipoChiamataAI | None, Query()] = None,
     modello: Annotated[str | None, Query()] = None,
     versione_prompt: Annotated[str | None, Query()] = None,
     esito: Annotated[str | None, Query()] = None,
@@ -85,8 +90,8 @@ def numeri_ai(
     db: Annotated[Session, Depends(get_db, scope="function")],
     _: Annotated[Any, Depends(richiede_ruolo("operatore"))],
     response: Response,
-    campagna_id: Annotated[int | None, Query()] = None,
-    tipo: Annotated[str | None, Query()] = None,
+    campagna_id: IdQueryOpzionale = None,
+    tipo: Annotated[TipoChiamataAI | None, Query()] = None,
     modello: Annotated[str | None, Query()] = None,
     versione_prompt: Annotated[str | None, Query()] = None,
     esito: Annotated[str | None, Query()] = None,
@@ -108,7 +113,7 @@ def numeri_ai(
 
 @router.get("/storico-ai/{id}", response_model=ChiamataAIDettaglio)
 def chiamata_ai(
-    id: int,
+    id: IdPercorso,
     db: Annotated[Session, Depends(get_db, scope="function")],
     _: Annotated[Any, Depends(richiede_ruolo("operatore"))],
     response: Response,
@@ -120,7 +125,7 @@ def chiamata_ai(
 
 @router.post("/storico-ai/{id}/voto", response_model=ValutazioneAISchema)
 def vota_chiamata_ai(
-    id: int,
+    id: IdPercorso,
     dati: VotoAI,
     db: Annotated[Session, Depends(get_db, scope="function")],
     utente: Annotated[Any, Depends(richiede_ruolo("operatore"))],

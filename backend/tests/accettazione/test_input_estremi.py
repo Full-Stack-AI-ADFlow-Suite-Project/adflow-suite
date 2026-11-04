@@ -12,24 +12,27 @@ mano:
    invece del 404 documentato arriva un 500.
 
 Il 500 è la risposta sbagliata: l'atteso è 404 (id che non esiste) o 422
-(valore non ammesso). I test restano in `xfail(strict=True)` con RL-026.
+(valore non ammesso). RL-026 è corretto.
 """
 
 from __future__ import annotations
 
-import pytest
-from fastapi.testclient import TestClient
+import io
 
+from fastapi.testclient import TestClient
+from PIL import Image
+
+from app.adapters.archivio import ArchivioDisco, usa_archivio
 from tests.moduli.artigiani.fabbrica import profilo
+from tests.moduli.campagne.fabbrica import (
+    campagna_in_bozza,
+    campagna_in_revisione,
+    gruppo,
+)
 
 ID_OLTRE_IL_LIMITE = 9_999_999_999_999
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="RL-026: un id di percorso oltre int4 fa andare il database in "
-    "InternalError e l'API risponde 500 invece di 404",
-)
 def test_un_id_di_percorso_enorme_non_fa_500(client: TestClient, db, utente_di_prova):
     artigiano = utente_di_prova("artigiano")
     profilo(db, utente_id=artigiano.id)
@@ -37,14 +40,61 @@ def test_un_id_di_percorso_enorme_non_fa_500(client: TestClient, db, utente_di_p
     assert risposta.status_code in (404, 422), f"risposta {risposta.status_code}"
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="RL-026: `GET /api/storico-ai?tipo=<valore non ammesso>` va in "
-    "InternalError sul confronto con la colonna enum: atteso 422",
-)
 def test_un_tipo_di_chiamata_non_ammesso_non_fa_500(
     client: TestClient, utente_di_prova
 ):
     utente_di_prova("operatore")
     risposta = client.get("/api/storico-ai?tipo=spazzatura")
+    assert risposta.status_code == 422, f"risposta {risposta.status_code}"
+
+
+def test_un_artigiano_enorme_nel_filtro_non_fa_500(client: TestClient, utente_di_prova):
+    utente_di_prova("operatore")
+    risposta = client.get(f"/api/campagne?artigiano={ID_OLTRE_IL_LIMITE}")
+    assert risposta.status_code == 422, f"risposta {risposta.status_code}"
+
+
+def test_una_campagna_enorme_nel_filtro_dello_storico_non_fa_500(
+    client: TestClient, utente_di_prova
+):
+    utente_di_prova("operatore")
+    for percorso in ("/api/storico-ai", "/api/storico-ai/numeri"):
+        risposta = client.get(f"{percorso}?campagna_id={ID_OLTRE_IL_LIMITE}")
+        assert (
+            risposta.status_code == 422
+        ), f"{percorso}: risposta {risposta.status_code}"
+
+
+def test_un_gruppo_enorme_nell_upload_non_fa_500(
+    client: TestClient, db, utente_di_prova, tmp_path
+):
+    archivio = ArchivioDisco(tmp_path)
+    with usa_archivio(archivio):
+        artigiano = utente_di_prova("artigiano")
+        bottega = profilo(db, utente_id=artigiano.id)
+        campagna = campagna_in_bozza(db, profilo_id=bottega.id)
+        gruppo(db, campagna)
+        db.flush()
+        buffer = io.BytesIO()
+        Image.new("RGB", (1080, 1350), (70, 70, 70)).save(buffer, format="JPEG")
+        risposta = client.post(
+            f"/api/campagne/{campagna.id}/foto",
+            files={"file": ("foto.jpg", buffer.getvalue(), "image/jpeg")},
+            data={"gruppo_id": str(ID_OLTRE_IL_LIMITE)},
+        )
+    assert risposta.status_code == 422, f"risposta {risposta.status_code}"
+
+
+def test_una_foto_enorme_nella_richiesta_non_fa_500(
+    client: TestClient, db, utente_di_prova
+):
+    artigiano = utente_di_prova("artigiano")
+    bottega = profilo(db, utente_id=artigiano.id)
+    campagna = campagna_in_revisione(db, profilo_id=bottega.id)
+    db.flush()
+    utente_di_prova("operatore")
+    risposta = client.post(
+        f"/api/campagne/{campagna.id}/richiesta",
+        json={"domanda": "x", "foto": [ID_OLTRE_IL_LIMITE]},
+    )
     assert risposta.status_code == 422, f"risposta {risposta.status_code}"
