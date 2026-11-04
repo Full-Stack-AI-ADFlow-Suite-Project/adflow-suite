@@ -499,7 +499,7 @@ def cambia_foto(
             ``riscrivi_testo`` dopo l'approvazione.
     """
     record = _post(db, post_id)
-    campagna = campagne.campagna(db, record.campagna_id)
+    campagna = campagne.campagna_bloccata(db, record.campagna_id)
     if riscrivi_testo:
         if campagna.stato != "in_revisione":
             raise DatiNonValidi(
@@ -646,6 +646,12 @@ def accendi_intervento(db: Session, post_id: int, tipo: str, adesso: datetime) -
         raise DatiNonValidi("Tipo di intervento non valido.")
     record = _post(db, post_id)
     campagna = campagne.campagna(db, record.campagna_id)
+    record = db.scalars(
+        select(Post)
+        .where(Post.id == post_id)
+        .with_for_update()
+        .execution_options(populate_existing=True)
+    ).one()
     if tipo in RIGENERAZIONI:
         if not puo_rigenerare(db, post_id, adesso):
             raise StatoNonValido(
