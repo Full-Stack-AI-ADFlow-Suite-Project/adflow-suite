@@ -39,12 +39,6 @@ def _campagna_con_due_post(motore, bottega) -> dict:
     return crea_con_commit(motore, costruisci)
 
 
-@pytest.mark.xfail(
-    strict=False,
-    reason="RL-022 (R-03, variante): approvazione e respinta insieme passano "
-    "entrambe in 49/50 ripetizioni; la campagna finisce con decisioni "
-    "incoerenti. Correzione proposta: blocco della riga in approva()/respingi()",
-)
 def test_approva_e_respingi_insieme(motore_concorrenza, mondo_concorrenza):
     """50 volte: approvazione e respinta in parallelo, un solo esito vincente."""
     doppie = 0
