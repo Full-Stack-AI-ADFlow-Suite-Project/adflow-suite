@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
+from app.core.limite_login import prenota_azione_ai
 from app.core.orologio import adesso
 from app.moduli.accesso import service as accesso
 
@@ -196,6 +197,7 @@ def rigenera_post(
     ora: Annotated[datetime, Depends(adesso)],
 ) -> dict[str, str]:
     """Accende l'intervento e accoda il job `rigenera_post` (R-03, R-31)."""
+    prenota_azione_ai(utente.id, ora)
     interventi.rigenera(
         db, post_id, corpo.modalita, corpo.testo_proposto, corpo.nota, ora
     )
@@ -211,6 +213,7 @@ def rigenera_immagine_post(
     ora: Annotated[datetime, Depends(adesso)],
 ) -> dict[str, str]:
     """Accende l'intervento e accoda il job `rigenera_immagine` (R-49, R-31)."""
+    prenota_azione_ai(utente.id, ora)
     interventi.rigenera_immagine(
         db, post_id, corpo.nota, corpo.riscrivi_testo, corpo.nota_testo, ora
     )

@@ -20,6 +20,10 @@ class Impostazioni(BaseSettings):
     login_limite_tentativi: int = Field(default=5, ge=1, le=1000)
     login_finestra_secondi: int = Field(default=900, ge=1, le=86400)
     login_limite_segreto: str = "solo-sviluppo-cambiare-in-produzione"
+    # Azioni che fanno spendere l'AI (rigenera testo e immagine, invio): per
+    # utente, in una finestra (RL-018). Il default lascia lavorare un operatore.
+    azioni_ai_limite: int = Field(default=20, ge=1, le=10000)
+    azioni_ai_finestra_secondi: int = Field(default=60, ge=1, le=86400)
     email_test_environment: bool = False
     cookie_secure: bool | None = None
 
