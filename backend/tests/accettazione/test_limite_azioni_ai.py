@@ -13,6 +13,7 @@ import pytest
 from fastapi.testclient import TestClient
 from sqlalchemy.orm import Session
 
+from app.core.config import leggi_impostazioni
 from app.moduli.accesso.service import utente_corrente
 from app.main import app
 from tests.moduli.artigiani.fabbrica import profilo
@@ -35,20 +36,16 @@ def campagna_con_tanti_post(db: Session, client: TestClient, utente_di_prova):
     return [p.id for p in post]
 
 
-@pytest.mark.xfail(
-    strict=True,
-    reason="RL-018 (R-15): nessun limite di frequenza sulle azioni che fanno "
-    "partire chiamate AI a pagamento (invio, rigenera testo, rigenera "
-    "immagine, rifai il post): 20 richieste in pochi secondi passano tutte",
-)
 def test_una_raffica_di_rigenerazioni_incontra_un_limite(
-    campagna_con_tanti_post, client
+    campagna_con_tanti_post, client, monkeypatch
 ):
     """Venti rigenerazioni di testo in pochi secondi: qualcuna deve dire 429.
 
     Il ciclo per post di R-03 (max 3) non è un limite di frequenza: qui si
-    rigenerano 20 post diversi, ognuno la prima volta.
+    rigenerano 20 post diversi, ognuno la prima volta. Il limite si abbassa
+    (il default, 20 al minuto, lascia lavorare un operatore vero).
     """
+    monkeypatch.setattr(leggi_impostazioni(), "azioni_ai_limite", 5)
     codici = []
     for post_id in campagna_con_tanti_post:
         risposta = client.post(
@@ -59,3 +56,26 @@ def test_una_raffica_di_rigenerazioni_incontra_un_limite(
         f"nessun limite di frequenza ha risposto su {N_RIGENERAZIONI} richieste "
         f"consecutive: {codici}"
     )
+    primo_429 = codici.index(429)
+    assert codici[:primo_429] == [200] * 5, codici
+
+
+def test_il_429_dice_quando_riprovare(campagna_con_tanti_post, client, monkeypatch):
+    monkeypatch.setattr(leggi_impostazioni(), "azioni_ai_limite", 1)
+    url = f"/api/post/{campagna_con_tanti_post[0]}/rigenera"
+    client.post(url, json={"modalita": "totale"})
+    risposta = client.post(
+        f"/api/post/{campagna_con_tanti_post[1]}/rigenera", json={"modalita": "totale"}
+    )
+    assert risposta.status_code == 429
+    assert risposta.json()["detail"] == "Troppe richieste. Riprova tra poco."
+    assert 1 <= int(risposta.headers["Retry-After"]) <= 60
+
+
+def test_il_default_lascia_lavorare_un_operatore(campagna_con_tanti_post, client):
+    """Con il limite di fabbrica (20 al minuto) venti rigenerazioni passano tutte."""
+    codici = [
+        client.post(f"/api/post/{p}/rigenera", json={"modalita": "totale"}).status_code
+        for p in campagna_con_tanti_post
+    ]
+    assert 429 not in codici, codici
