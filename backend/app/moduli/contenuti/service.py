@@ -168,6 +168,11 @@ def post_dovuti(
     )
 
 
+def post_per_id(db: Session, post_id: int) -> Post:
+    """Il post con quell'id; ``NonTrovato`` se non c'è (usata da ``pubblicazione``)."""
+    return _post(db, post_id)
+
+
 def segna_esito(
     db: Session,
     post: Post,
