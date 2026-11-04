@@ -218,7 +218,7 @@ Tre corsie, una per sviluppatore, 5 ore ciascuna (ADR-121). Ogni task ha in `bri
 
 | ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
 |---|---|---|---|---|---|
-| T5-131 | **Immagini AI che escono**: il modello restituisce l'immagine (RL-037) | `brief-corsia-rapida.md` §T5-131; `T4-107-ai-vera.md` | T4-108 | una campagna senza foto sufficienti arriva a `in_revisione` con l'immagine AI; costo sotto i 2 € nel report | ☐ |
+| T5-131 | **Immagini AI che escono**: il modello restituisce l'immagine (RL-037) | `brief-corsia-rapida.md` §T5-131; `T4-107-ai-vera.md` | T4-108 | una campagna senza foto sufficienti arriva a `in_revisione` con l'immagine AI; costo sotto i 2 € nel report | ☑ |
 | T5-132 | **Foto della demo e passi non scritti**: README e cartella al sicuro (RL-012, RL-013, RL-014) | `brief-corsia-rapida.md` §T5-132 | T4-108 | un clone nuovo arriva alla demo seguendo il README | ☐ |
 | T5-133 | **Dipendenze**: pillow, httpx, filelock (RL-001, RL-004, RL-005) | `brief-corsia-rapida.md` §T5-133 | T4-108 | pip-audit pulito sul runtime, o l'elenco di ciò che resta con il motivo; suite verde | ☐ |
 | T5-134 | **Intestazioni di sicurezza** sulle risposte di `/api` (RL-015) | `brief-corsia-rapida.md` §T5-134 | T4-108 | il test senza marcatore; foto visibili nel frontend; suite verde | ☐ |
