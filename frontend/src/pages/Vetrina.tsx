@@ -23,7 +23,7 @@ const BENEFICI = [
   },
   {
     titolo: "Un calendario pronto",
-    testo: "Settimane di post già programmati. Li rivedi uno a uno e approvi prima che esca qualsiasi cosa.",
+    testo: "Settimane di post già programmati e rivisti dal consorzio prima che esca qualsiasi cosa.",
     icona: "M8 2v4 M16 2v4 M3 10h18 M5 4h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2Z",
   },
   {
@@ -39,12 +39,12 @@ const PASSI = [
     testo: "Compili il profilo una volta: cosa fai, dove sei, che clienti hai.",
   },
   {
-    titolo: "Il consorzio prepara la campagna",
-    testo: "L'operatore imposta durata e frequenza; AdFlow scrive testi e prepara le immagini.",
+    titolo: "Scegli e carichi, noi prepariamo",
+    testo: "Periodo, canali e foto della bottega li dai tu; testi e immagini li prepara AdFlow.",
   },
   {
-    titolo: "Approvi e si pubblica da sola",
-    testo: "Controlli il calendario, dai l'ok, e i post escono sui social giorno dopo giorno.",
+    titolo: "Il consorzio approva e i post escono da soli",
+    testo: "Ogni post passa prima dal consorzio; poi esce sui social giorno dopo giorno.",
   },
 ];
 
@@ -59,7 +59,7 @@ export function Vetrina() {
 
   return (
     <div className={stili.pagina}>
-      <section className={stili.hero}>
+      <section className={stili.hero} aria-label="Presentazione">
         <header className={stili.topbar}>
           <div className={stili.brand}>
             <Wordmark chiaro />
@@ -80,8 +80,8 @@ export function Vetrina() {
           </h1>
           <p className={stili.sottotitolo}>
             AdFlow prepara per te testi, immagini e un calendario di
-            pubblicazione. Tu approvi, il consorzio pubblica su Facebook e
-            Instagram.
+            pubblicazione. Il consorzio approva ogni post, poi esce su
+            Facebook e Instagram.
           </p>
           <Button
             component={Link}

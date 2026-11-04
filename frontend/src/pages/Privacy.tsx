@@ -1,26 +1,41 @@
 /**
- * Privacy: informativa segnaposto raggiungibile dalla vetrina e dalla
- * pagina di accesso, senza sessione. La struttura segue gli artt. 13-14
- * GDPR e i rilievi di T4-107 (RL-040…RL-044): i dati del titolare e i
- * testi definitivi li deve fornire il consorzio — ogni segnaposto è
- * marcato «da completare».
+ * Privacy: informativa raggiungibile dalla vetrina e dalla pagina di
+ * accesso, senza sessione. La struttura segue gli artt. 13-14 GDPR e i
+ * rilievi di T4-107 (RL-040…RL-044): i punti ancora aperti sono marcati
+ * «in fase di definizione con il consorzio»; i contatti del titolare
+ * arrivano da GET /api/consorzio.
  */
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { Anchor, Container, List, Text, Title } from "@mantine/core";
 
+import { consorzio } from "../api/consorzio";
+import type { Consorzio } from "../api/accesso";
 import stili from "./Privacy.module.css";
 
-const SEGNE = "[da completare col consorzio]";
+const MANCANTE = "in fase di definizione con il consorzio";
 
 export function Privacy() {
+  const [contatto, setContatto] = useState<Consorzio | null>(null);
+
+  useEffect(() => {
+    consorzio()
+      .then(setContatto)
+      .catch(() => setContatto(null));
+  }, []);
+
+  const titolare = contatto
+    ? `${contatto.nome} (tel. ${contatto.telefono}, ${contatto.email})`
+    : MANCANTE;
+
   return (
-    <div className={stili.pagina}>
+    <main className={stili.pagina}>
       <Container size={720} py="xl">
         <Title order={1} className={stili.titolo}>
           Informativa privacy
         </Title>
         <Text c="dimmed" size="sm" mb="xl">
-          Bozza di struttura ex artt. 13-14 GDPR · {SEGNE}
+          Struttura ex artt. 13-14 GDPR · i punti segnati sono {MANCANTE}
         </Text>
 
         <section className={stili.sezione}>
@@ -28,9 +43,8 @@ export function Privacy() {
             Titolare del trattamento
           </Title>
           <Text>
-            Il titolare del trattamento è il consorzio {SEGNE}, raggiungibile
-            ai contatti indicati in fondo alla pagina. Eventuale DPO/referente
-            privacy: {SEGNE}.
+            Il titolare del trattamento è il consorzio {titolare}. Eventuale
+            DPO/referente privacy: {MANCANTE}.
           </Text>
         </section>
 
@@ -48,7 +62,7 @@ export function Privacy() {
             </List.Item>
             <List.Item>
               Foto caricate dall'artigiano, che possono ritrarre persone:
-              servono il consenso di chi è ritratto {SEGNE}
+              servono il consenso di chi è ritratto ({MANCANTE})
             </List.Item>
             <List.Item>
               Testi e immagini generati con AI e relativi storici di
@@ -71,7 +85,7 @@ export function Privacy() {
             calendario editoriale, pubblicazione su Facebook e Instagram,
             gestione degli accessi. Base giuridica: esecuzione del servizio
             richiesto dall'artigiano; per le foto che ritraggono persone, il
-            consenso {SEGNE}.
+            consenso ({MANCANTE}).
           </Text>
         </section>
 
@@ -82,8 +96,8 @@ export function Privacy() {
           <Text>
             I contenuti approvati sono pubblicati su Facebook e Instagram
             (Meta). Testi e immagini passano per il fornitore AI configurato
-            {SEGNE}: possibili trasferimenti fuori dall'UE da inquadrare con
-            gli accordi ex art. 28 e capo V GDPR (rilievo RL-042).
+            ({MANCANTE}): possibili trasferimenti fuori dall'UE da inquadrare
+            con gli accordi ex art. 28 e capo V GDPR (rilievo RL-042).
           </Text>
         </section>
 
@@ -93,7 +107,7 @@ export function Privacy() {
           </Title>
           <Text>
             Tempi di conservazione per ciascun dato, storico AI incluso:
-            {` ${SEGNE}`} (rilievi RL-019, RL-040).
+            {` ${MANCANTE}`} (rilievi RL-019, RL-040).
           </Text>
         </section>
 
@@ -104,9 +118,9 @@ export function Privacy() {
           <Text>
             Artt. 15-22 GDPR: accesso, rettifica, cancellazione, limitazione,
             portabilità, opposizione. Si esercitano scrivendo al consorzio ai
-            contatti sotto; la procedura di cancellazione/anonimizzazione va
-            definita (rilievo RL-041). Reclamo al Garante per la protezione
-            dei dati personali.
+            contatti indicati sopra; la procedura di
+            cancellazione/anonimizzazione va definita (rilievo RL-041).
+            Reclamo al Garante per la protezione dei dati personali.
           </Text>
         </section>
 
@@ -116,6 +130,6 @@ export function Privacy() {
           </Anchor>
         </Text>
       </Container>
-    </div>
+    </main>
   );
 }

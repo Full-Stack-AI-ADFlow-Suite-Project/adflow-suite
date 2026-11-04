@@ -18,6 +18,7 @@ import {
   Stack,
   Text,
   TextInput,
+  VisuallyHidden,
 } from "@mantine/core";
 
 import { paginaIniziale, useAuth } from "../contesto-auth";
@@ -80,7 +81,8 @@ export function Accesso() {
   };
 
   return (
-    <div className={`${layout.accesso} ${stili.pagina}`}>
+    <main className={`${layout.accesso} ${stili.pagina}`}>
+      <VisuallyHidden component="h1">Accesso ad AdFlow Suite</VisuallyHidden>
       <Button
         className={stili.tornaHome}
         component={Link}
@@ -168,6 +170,6 @@ export function Accesso() {
           </Link>
         </Text>
       </Container>
-    </div>
+    </main>
   );
 }
