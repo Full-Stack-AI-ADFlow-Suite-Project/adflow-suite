@@ -1,0 +1,319 @@
+{
+  "pages": [
+    {
+      "key": "vetrina@1280x800",
+      "url": "/",
+      "finalUrl": "http://127.0.0.1:5173/",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\vetrina-1280x800.png"
+    },
+    {
+      "key": "accesso@1280x800",
+      "url": "/accesso",
+      "finalUrl": "http://127.0.0.1:5173/accesso",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\accesso-1280x800.png"
+    },
+    {
+      "key": "privacy@1280x800",
+      "url": "/privacy",
+      "finalUrl": "http://127.0.0.1:5173/privacy",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\privacy-1280x800.png"
+    },
+    {
+      "key": "art-ingresso@1280x800",
+      "url": "/ingresso",
+      "finalUrl": "http://127.0.0.1:5173/ingresso",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\art-ingresso-1280x800.png"
+    },
+    {
+      "key": "art-campagne@1280x800",
+      "url": "/campagne",
+      "finalUrl": "http://127.0.0.1:5173/campagne",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\art-campagne-1280x800.png"
+    },
+    {
+      "key": "art-calendario@1280x800",
+      "url": "/calendario",
+      "finalUrl": "http://127.0.0.1:5173/calendario",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\art-calendario-1280x800.png"
+    },
+    {
+      "key": "art-campagna@1280x800",
+      "url": "/campagna",
+      "finalUrl": "http://127.0.0.1:5173/campagna",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\art-campagna-1280x800.png"
+    },
+    {
+      "key": "art-archivio@1280x800",
+      "url": "/archivio",
+      "finalUrl": "http://127.0.0.1:5173/archivio",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\art-archivio-1280x800.png"
+    },
+    {
+      "key": "art-profilo@1280x800",
+      "url": "/profilo",
+      "finalUrl": "http://127.0.0.1:5173/profilo",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\art-profilo-1280x800.png"
+    },
+    {
+      "key": "op-da-approvare@1280x800",
+      "url": "/da-approvare",
+      "finalUrl": "http://127.0.0.1:5173/da-approvare",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\op-da-approvare-1280x800.png"
+    },
+    {
+      "key": "op-artigiani@1280x800",
+      "url": "/artigiani",
+      "finalUrl": "http://127.0.0.1:5173/artigiani",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\op-artigiani-1280x800.png"
+    },
+    {
+      "key": "op-artigiano-1@1280x800",
+      "url": "/artigiani/1",
+      "finalUrl": "http://127.0.0.1:5173/artigiani/1",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\op-artigiano-1-1280x800.png"
+    },
+    {
+      "key": "op-artigiano-1-campagne@1280x800",
+      "url": "/artigiani/1/campagne",
+      "finalUrl": "http://127.0.0.1:5173/artigiani/1/campagne",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\op-artigiano-1-campagne-1280x800.png"
+    },
+    {
+      "key": "op-artigiano-1-archivio@1280x800",
+      "url": "/artigiani/1/archivio",
+      "finalUrl": "http://127.0.0.1:5173/artigiani/1/archivio",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\op-artigiano-1-archivio-1280x800.png"
+    },
+    {
+      "key": "op-campagna-1@1280x800",
+      "url": "/campagne/1",
+      "finalUrl": "http://127.0.0.1:5173/campagne/1",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\op-campagna-1-1280x800.png"
+    },
+    {
+      "key": "op-storico-ai@1280x800",
+      "url": "/storico-ai",
+      "finalUrl": "http://127.0.0.1:5173/storico-ai",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\op-storico-ai-1280x800.png"
+    },
+    {
+      "key": "op-nuovo-artigiano@1280x800",
+      "url": "/nuovo-artigiano",
+      "finalUrl": "http://127.0.0.1:5173/nuovo-artigiano",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\op-nuovo-artigiano-1280x800.png"
+    },
+    {
+      "key": "vetrina@375x812",
+      "url": "/",
+      "finalUrl": "http://127.0.0.1:5173/",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\vetrina-375x812.png"
+    },
+    {
+      "key": "accesso@375x812",
+      "url": "/accesso",
+      "finalUrl": "http://127.0.0.1:5173/accesso",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\accesso-375x812.png"
+    },
+    {
+      "key": "privacy@375x812",
+      "url": "/privacy",
+      "finalUrl": "http://127.0.0.1:5173/privacy",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\privacy-375x812.png"
+    },
+    {
+      "key": "art-ingresso@375x812",
+      "url": "/ingresso",
+      "finalUrl": "http://127.0.0.1:5173/ingresso",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\art-ingresso-375x812.png"
+    },
+    {
+      "key": "art-campagne@375x812",
+      "url": "/campagne",
+      "finalUrl": "http://127.0.0.1:5173/campagne",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\art-campagne-375x812.png"
+    },
+    {
+      "key": "art-calendario@375x812",
+      "url": "/calendario",
+      "finalUrl": "http://127.0.0.1:5173/calendario",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\art-calendario-375x812.png"
+    },
+    {
+      "key": "art-campagna@375x812",
+      "url": "/campagna",
+      "finalUrl": "http://127.0.0.1:5173/campagna",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\art-campagna-375x812.png"
+    },
+    {
+      "key": "art-archivio@375x812",
+      "url": "/archivio",
+      "finalUrl": "http://127.0.0.1:5173/archivio",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\art-archivio-375x812.png"
+    },
+    {
+      "key": "art-profilo@375x812",
+      "url": "/profilo",
+      "finalUrl": "http://127.0.0.1:5173/profilo",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\art-profilo-375x812.png"
+    },
+    {
+      "key": "op-da-approvare@375x812",
+      "url": "/da-approvare",
+      "finalUrl": "http://127.0.0.1:5173/da-approvare",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\op-da-approvare-375x812.png"
+    },
+    {
+      "key": "op-artigiani@375x812",
+      "url": "/artigiani",
+      "finalUrl": "http://127.0.0.1:5173/artigiani",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\op-artigiani-375x812.png"
+    },
+    {
+      "key": "op-artigiano-1@375x812",
+      "url": "/artigiani/1",
+      "finalUrl": "http://127.0.0.1:5173/artigiani/1",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\op-artigiano-1-375x812.png"
+    },
+    {
+      "key": "op-artigiano-1-campagne@375x812",
+      "url": "/artigiani/1/campagne",
+      "finalUrl": "http://127.0.0.1:5173/artigiani/1/campagne",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\op-artigiano-1-campagne-375x812.png"
+    },
+    {
+      "key": "op-artigiano-1-archivio@375x812",
+      "url": "/artigiani/1/archivio",
+      "finalUrl": "http://127.0.0.1:5173/artigiani/1/archivio",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\op-artigiano-1-archivio-375x812.png"
+    },
+    {
+      "key": "op-campagna-1@375x812",
+      "url": "/campagne/1",
+      "finalUrl": "http://127.0.0.1:5173/campagne/1",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\op-campagna-1-375x812.png"
+    },
+    {
+      "key": "op-storico-ai@375x812",
+      "url": "/storico-ai",
+      "finalUrl": "http://127.0.0.1:5173/storico-ai",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\op-storico-ai-375x812.png"
+    },
+    {
+      "key": "op-nuovo-artigiano@375x812",
+      "url": "/nuovo-artigiano",
+      "finalUrl": "http://127.0.0.1:5173/nuovo-artigiano",
+      "status": 200,
+      "title": "AdFlow · Consorzio artigiani",
+      "shot": "C:\\Users\\web\\Desktop\\adflow-suite\\.impeccable\\critique\\shots\\op-nuovo-artigiano-375x812.png"
+    }
+  ],
+  "consoleErrors": {
+    "op-artigiani@1280x800": [
+      "In HTML, %s cannot be a descendant of <%s>.\nThis will cause a hydration error.%s <div> p \n\n  ...\n    <@mantine/core/Card>\n    <@mantine/core/Card>\n    <@mantine/core/Stack gap=\"xs\" hiddenFrom=\"sm\">\n      <@mantine/core/Box className=\"m_6d731127...\" style={{...}} variant={undefined} hiddenFrom=\"sm\">\n        <div ref={undefined} style={{...}} className=\"m_6d731127...\" data-variant={undefined} data-size={undefined} ...>\n          <@mantine/core/Card withBorder={true} radius=\"md\" p=\"md\" style={{cursor:\"po...\"}} onClick={function onClick}>\n            <@mantine/core/Paper unstyled={undefined} data-orientation=\"vertical\" className=\"m_e615b15f...\" ...>\n              <@mantine/core/Box mod={[...]} className=\"m_e615b15f...\" style={{...}} variant={undefined} ...>\n                <div ref={undefined} style={{...}} className=\"m_e615b15f...\" data-variant={undefined} ...>\n                  <@mantine/core/Anchor>\n                  <@mantine/core/Text>\n                  <@mantine/core/Group>\n                  <@mantine/core/Group gap=\"md\" mt=\"sm\">\n                    <@mantine/core/Box className=\"m_4081bf90...\" style={{...}} variant={undefined} mod={[...]} ...>\n                      <div ref={undefined} style={{...}} className=\"m_4081bf90...\" data-variant={undefined} ...>\n                        <@mantine/core/Text size=\"sm\">\n                          <@mantine/core/Box className=\"mantine-fo...\" style={{...}} component=\"p\" variant={undefined} ...>\n>                           <p\n>                             ref={undefined}\n>                             style={{--text-fz:\"var(--mant...\",--text-lh:\"var(--mant...\"}}\n>                             className=\"mantine-focus-auto m_b6d8b162 mantine-Text-root\"\n>                             data-variant={undefined}\n>                             data-size=\"sm\"\n>                             size={undefined}\n>                           >\n                              <@mantine/core/Badge color=\"yellow\" variant=\"light\">\n                                <@mantine/core/Box variant=\"light\" mod={[...]} className=\"m_347db0ec...\" style={{...}}>\n>                                 <div\n>                                   ref={undefined}\n>                                   style={{--badge-bg:\"var(--mant...\",--badge-color:\"var(--mant...\",--badge-bd:\"calc(0.062...\"}}\n>                                   className=\"m_347db0ec mantine-Badge-root\"\n>                                   data-variant=\"light\"\n>                                   data-size={undefined}\n>                                   size={undefined}\n>                                 >\n                        ...\n          ...\n",
+      "<%s> cannot contain a nested %s.\nSee this log for the ancestor stack trace. p <div>"
+    ],
+    "op-campagna-1@1280x800": [
+      "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+      "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+      "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+      "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+      "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+      "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+    ],
+    "op-storico-ai@1280x800": [
+      "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+      "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+      "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+      "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+      "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+      "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+    ],
+    "op-artigiani@375x812": [
+      "In HTML, %s cannot be a descendant of <%s>.\nThis will cause a hydration error.%s <div> p \n\n  ...\n    <@mantine/core/Card>\n    <@mantine/core/Card>\n    <@mantine/core/Stack gap=\"xs\" hiddenFrom=\"sm\">\n      <@mantine/core/Box className=\"m_6d731127...\" style={{...}} variant={undefined} hiddenFrom=\"sm\">\n        <div ref={undefined} style={{...}} className=\"m_6d731127...\" data-variant={undefined} data-size={undefined} ...>\n          <@mantine/core/Card withBorder={true} radius=\"md\" p=\"md\" style={{cursor:\"po...\"}} onClick={function onClick}>\n            <@mantine/core/Paper unstyled={undefined} data-orientation=\"vertical\" className=\"m_e615b15f...\" ...>\n              <@mantine/core/Box mod={[...]} className=\"m_e615b15f...\" style={{...}} variant={undefined} ...>\n                <div ref={undefined} style={{...}} className=\"m_e615b15f...\" data-variant={undefined} ...>\n                  <@mantine/core/Anchor>\n                  <@mantine/core/Text>\n                  <@mantine/core/Group>\n                  <@mantine/core/Group gap=\"md\" mt=\"sm\">\n                    <@mantine/core/Box className=\"m_4081bf90...\" style={{...}} variant={undefined} mod={[...]} ...>\n                      <div ref={undefined} style={{...}} className=\"m_4081bf90...\" data-variant={undefined} ...>\n                        <@mantine/core/Text size=\"sm\">\n                          <@mantine/core/Box className=\"mantine-fo...\" style={{...}} component=\"p\" variant={undefined} ...>\n>                           <p\n>                             ref={undefined}\n>                             style={{--text-fz:\"var(--mant...\",--text-lh:\"var(--mant...\"}}\n>                             className=\"mantine-focus-auto m_b6d8b162 mantine-Text-root\"\n>                             data-variant={undefined}\n>                             data-size=\"sm\"\n>                             size={undefined}\n>                           >\n                              <@mantine/core/Badge color=\"yellow\" variant=\"light\">\n                                <@mantine/core/Box variant=\"light\" mod={[...]} className=\"m_347db0ec...\" style={{...}}>\n>                                 <div\n>                                   ref={undefined}\n>                                   style={{--badge-bg:\"var(--mant...\",--badge-color:\"var(--mant...\",--badge-bd:\"calc(0.062...\"}}\n>                                   className=\"m_347db0ec mantine-Badge-root\"\n>                                   data-variant=\"light\"\n>                                   data-size={undefined}\n>                                   size={undefined}\n>                                 >\n                        ...\n          ...\n",
+      "<%s> cannot contain a nested %s.\nSee this log for the ancestor stack trace. p <div>"
+    ],
+    "op-campagna-1@375x812": [
+      "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+      "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+      "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+      "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+      "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+      "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+    ],
+    "op-storico-ai@375x812": [
+      "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+      "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+      "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+      "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+      "Failed to load resource: the server responded with a status of 502 (Bad Gateway)",
+      "Failed to load resource: the server responded with a status of 502 (Bad Gateway)"
+    ]
+  },
+  "failedShots": []
+}
