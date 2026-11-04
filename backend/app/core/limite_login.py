@@ -37,11 +37,13 @@ def prenota(
     limite: int | None = None,
     finestra_secondi: int | None = None,
     messaggio: str | None = None,
+    messaggio_non_disponibile: str = "Accesso temporaneamente non disponibile.",
 ) -> None:
     """Conta un tentativo; oltre il limite solleva ``TroppiTentativi``.
 
     Senza parametri legge i limiti del login. ``limite``, ``finestra_secondi`` e
-    ``messaggio`` servono agli altri usi (azioni AI) e non cambiano il login.
+    ``messaggio`` e ``messaggio_non_disponibile`` (database giù) servono agli
+    altri usi (azioni AI) e non cambiano il login.
     """
     impostazioni = leggi_impostazioni()
     if limite is None:
@@ -89,7 +91,7 @@ def prenota(
                 },
             ).one()
     except SQLAlchemyError:
-        raise LimiteNonDisponibile("Accesso temporaneamente non disponibile.") from None
+        raise LimiteNonDisponibile(messaggio_non_disponibile) from None
     if tentativi > limite:
         riprova_dopo = max(1, ceil((scade_il - ora).total_seconds()))
         if messaggio is None:
@@ -112,4 +114,7 @@ def prenota_azione_ai(utente_id: int, ora: datetime) -> None:
         limite=impostazioni.azioni_ai_limite,
         finestra_secondi=impostazioni.azioni_ai_finestra_secondi,
         messaggio="Troppe richieste. Riprova tra poco.",
+        messaggio_non_disponibile=(
+            "Servizio momentaneamente non disponibile. Riprova tra poco."
+        ),
     )

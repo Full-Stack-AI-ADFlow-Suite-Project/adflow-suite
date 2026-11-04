@@ -79,3 +79,25 @@ def test_il_default_lascia_lavorare_un_operatore(campagna_con_tanti_post, client
         for p in campagna_con_tanti_post
     ]
     assert 429 not in codici, codici
+
+
+def test_con_il_database_giu_il_503_non_parla_di_accesso(
+    campagna_con_tanti_post, client, monkeypatch
+):
+    """Il limite non raggiungibile: 503 con il messaggio del servizio, non del login."""
+    from sqlalchemy.exc import OperationalError
+
+    from app.core import limite_login
+
+    class Guasto:
+        def begin(self):
+            raise OperationalError("istruzione", {}, Exception("database giù"))
+
+    monkeypatch.setattr(limite_login, "motore", lambda: Guasto())
+    risposta = client.post(
+        f"/api/post/{campagna_con_tanti_post[0]}/rigenera", json={"modalita": "totale"}
+    )
+    assert risposta.status_code == 503
+    assert risposta.json() == {
+        "detail": "Servizio momentaneamente non disponibile. Riprova tra poco."
+    }
