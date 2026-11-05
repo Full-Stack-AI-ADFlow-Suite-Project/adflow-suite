@@ -1,6 +1,6 @@
 # Costituzione
 
-Regole non negoziabili. Se un task le contraddice, fermati e chiedi. Il perimetro dell'MVP è in `perimetro-mvp.md` (ADR-114).
+Le regole che il codice rispetta: una violazione è un difetto. Lo stato di ogni rotta e job (MVP, congelato, fuori MVP) è in `plan.md`; il perimetro dell'MVP com'era deciso (ADR-114) è in `docs/archivio/perimetro-mvp.md`.
 
 ## 1. Invarianti del prodotto
 1. Si pubblica solo un post `approvato`; si approva solo la campagna intera: tutti i suoi post `da_approvare`. Dopo l'approvazione, la versione che l'operatore scrive o cambia su un post (spec R-16) nasce approvata da lui.
@@ -61,7 +61,6 @@ Ordine dei moduli: `accesso`, `notifiche`, `artigiani`, `campagne`, `contenuti`,
 - Frontend: TypeScript strict, Mantine, niente stato globale; i tipi di `api/<modulo>.ts` rispecchiano lo `schemas.py` del modulo.
 - Test su PostgreSQL reale (`adflow_test`), mai SQLite; l'ora "adesso" si inietta (`core/orologio.py`).
 
-## 5. Aree e fatto
-- Lo sprint 3 · MVP ha aree di lavoro (`tasks.md`), non proprietà dei file: un task tocca i file che gli servono, con i loro test.
-- Composizione, `core/`, `alembic/`, `backend/requirements.txt` e i `domain.py`: la PR che li cambia la rivede il referente dei file comuni.
-- Un task è fatto quando il suo "Fatto quando" è vero, la checklist di `converge.md` è verde e la PR, rivista da un collega, è unita dall'admin.
+## 5. Revisione
+- Ogni PR passa i controlli di GitHub (`backend/README.md`, Comandi) ed è rivista da un collega; la unisce l'admin.
+- La PR che cambia composizione, `core/`, `alembic/`, `backend/requirements.txt` o un `domain.py` lo dice nella descrizione e la rivede il referente dei file comuni.

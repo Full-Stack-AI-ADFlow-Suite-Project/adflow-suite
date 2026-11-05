@@ -1,5 +1,5 @@
 /**
- * Le campagne dell'artigiano (docs/pagine/AdFlow-campagne.html, ADR-117, H2):
+ * Le campagne dell'artigiano (docs/archivio/pagine/AdFlow-campagne.html, ADR-117, H2):
  * prima quelle in corso, poi quelle in lavorazione, poi le passate. Un clic
  * apre la pagina Campagna su quella campagna.
  */

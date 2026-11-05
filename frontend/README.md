@@ -1,8 +1,8 @@
 # AdFlow Suite · Frontend
 
 React + TypeScript + Vite, con Mantine. Riferimenti: `docs/agenti/plan.md` §3,
-`docs/agenti/constitution.md` §2 e §4, spec R-29; pagine statiche dell'MVP
-in `docs/pagine/` (mappa in `index.html`).
+`docs/agenti/constitution.md` §2 e §4, spec R-29; le pagine statiche da cui
+è nata l'interfaccia sono in `docs/archivio/pagine/` (mappa in `index.html`).
 
 ## Installazione e avvio
 
@@ -20,10 +20,7 @@ verso il backend su http://localhost:8000 (`vite.config.ts`).
 
 Di default le pagine chiamano le API vere: serve il backend avviato
 (`uv run uvicorn app.main:app --reload` da `backend/`), con il worker per la
-generazione e la pubblicazione e gli utenti del seed (README della radice).
-
-Una pagina il cui endpoint non è ancora su `main` usa i dati di esempio
-finché il suo task non la passa alle API vere (AGENTS.md).
+generazione e la pubblicazione e gli utenti del seed (`backend/README.md`).
 
 Per lavorare a una pagina senza il backend ci sono i dati di esempio di
 `src/api/esempi/`, con la forma delle API di plan §3. Si accendono con un file
@@ -60,18 +57,6 @@ src/
   auth.tsx           sessione, guard per ruolo, pagina iniziale per ruolo
   pages/             Accesso, artigiano/, operatore/
   components/        cornici condivise (Guscio: barra laterale e pagina)
-  tema.ts            palette e caratteri delle pagine statiche (assets/adflow.css)
+  tema.ts            palette e caratteri (da docs/archivio/pagine/assets/adflow.css)
   index.css          token con i nomi di adflow.css; i valori stanno in tema.ts
 ```
-
-## Nuovo artigiano
-
-Operatore e admin aprono `/nuovo-artigiano` dalla barra laterale: solo email e
-nome del referente, poi la password provvisoria da annotare una volta. Confermare
-«Ho annotato la password», cambiare pagina o ricaricare la elimina dalla vista.
-La password non viene salvata nel browser né nei dati di esempio.
-
-La pagina chiama `POST /api/artigiani` con `{email, nome}`. Con
-`VITE_USA_ESEMPI=1` la creazione è simulata, con un avviso di anteprima: gli
-account non sono reali e le email duplicate si ricordano in memoria, senza
-password, fino al ricaricamento.

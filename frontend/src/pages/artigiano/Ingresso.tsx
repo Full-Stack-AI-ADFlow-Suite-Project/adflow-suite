@@ -1,6 +1,6 @@
 import layout from "../../components/Layout.module.css";
 /**
- * L'ingresso dell'artigiano (docs/pagine/AdFlow-ingresso.html, spec R-29,
+ * L'ingresso dell'artigiano (docs/archivio/pagine/AdFlow-ingresso.html, spec R-29,
  * ADR-117, H1): ciò che gli chiede il consorzio, gli avvisi sulle sue
  * campagne, "Nuova campagna" e le campagne in corso. Gli avvisi dicono solo lo
  * stato: piano e post si vedono dopo l'approvazione (spec §4).

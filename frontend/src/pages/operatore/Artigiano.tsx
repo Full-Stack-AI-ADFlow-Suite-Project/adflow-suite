@@ -1,5 +1,5 @@
 /**
- * La pagina dell'artigiano (docs/pagine/AdFlow-operatore-artigiano.html, spec
+ * La pagina dell'artigiano (docs/archivio/pagine/AdFlow-operatore-artigiano.html, spec
  * R-38, ADR-117, H3): account, canali collegati e profilo della bottega in
  * sola lettura, con i pulsanti per le sue campagne e il suo archivio foto.
  */

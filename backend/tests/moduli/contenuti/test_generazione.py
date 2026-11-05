@@ -685,7 +685,7 @@ def test_ca58_errore_di_configurazione_fallita_subito_senza_altre_esecuzioni(db,
 
 
 def test_ca58_litellm_senza_i_modelli_fallita_subito_con_il_motivo(db, monkeypatch):
-    """`AI_PROVIDER=litellm` senza i modelli in `.env`: configurazione (converge §3)."""
+    """`AI_PROVIDER=litellm` senza i modelli in `.env`: configurazione (README, Prove a mano)."""
     import app.adapters.ai.litellm as modulo_litellm
 
     campagna = _campagna(db)

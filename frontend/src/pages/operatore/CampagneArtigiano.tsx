@@ -1,6 +1,6 @@
 /**
  * Le campagne di un artigiano viste dall'operatore
- * (docs/pagine/AdFlow-operatore-artigiano-campagne.html, spec R-38, CA-94):
+ * (docs/archivio/pagine/AdFlow-operatore-artigiano-campagne.html, spec R-38, CA-94):
  * in cima quelle in corso e da approvare, poi lo storico. Un clic apre Vedi
  * campagna; la bozza si apre solo dopo l'invio.
  */
