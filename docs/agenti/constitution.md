@@ -1,6 +1,6 @@
 # Costituzione
 
-Regole non negoziabili. Se un task le contraddice, fermati e chiedi. Il perimetro dell'MVP è in `perimetro-mvp.md` (ADR-114).
+Le regole che il codice rispetta: una violazione è un difetto. Lo stato di ogni rotta e job (MVP, congelato, fuori MVP) è in `plan.md`; il perimetro dell'MVP com'era deciso (ADR-114) è in `docs/archivio/perimetro-mvp.md`.
 
 ## 1. Invarianti del prodotto
 1. Si pubblica solo un post `approvato`; si approva solo la campagna intera: tutti i suoi post `da_approvare`. Dopo l'approvazione, la versione che l'operatore scrive o cambia su un post (spec R-16) nasce approvata da lui.

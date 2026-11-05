@@ -1,6 +1,6 @@
 # Spec · cosa fa il prodotto
 
-Versione corta (ADR-122). Il testo completo, con ogni dettaglio delle regole e il testo di tutti i criteri di accettazione, è in `docs/archivio/completi/spec.md`; ciò che non entra nell'MVP è in `docs/archivio/fuori-mvp.md` e `docs/ROADMAP.md`. Dove questa pagina non torna con `perimetro-mvp.md`, vale quella. I numeri stanno nelle regole (§5); i numeri delle sezioni sono quelli del testo completo.
+Versione corta (ADR-122). Il testo completo, con ogni dettaglio delle regole e il testo di tutti i criteri di accettazione, è in `docs/archivio/completi/spec.md`; ciò che non entra nell'MVP è in `docs/archivio/fuori-mvp.md` e `docs/ROADMAP.md`. Dove questa pagina non torna con il codice, vale il codice. I numeri stanno nelle regole (§5); i numeri delle sezioni sono quelli del testo completo.
 
 ## 0–1. Perimetro e attori
 AdFlow prepara e pubblica le campagne social degli artigiani di un consorzio. L'artigiano descrive la bottega una volta (profilo) e per ogni campagna sceglie periodo, canali (Facebook, Instagram) e, se vuole, carica foto a gruppi. L'AI analizza le foto, scrive il piano e i testi; le foto che mancano diventano immagini AI. L'operatore del consorzio rivede, sistema, chiede all'artigiano ciò che può dare solo lui, approva o respinge. Il worker pubblica i post approvati alla loro data, nell'MVP su una sola pagina di prova Meta.

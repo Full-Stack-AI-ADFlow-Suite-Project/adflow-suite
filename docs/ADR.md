@@ -65,10 +65,10 @@ Versione corta (ADR-122): le decisioni che spiegano il prodotto com'è, una fras
 ## Perimetro e processo
 | ID | Decisione · perché |
 |---|---|
-| 114 | Perimetro MVP (`docs/agenti/perimetro-mvp.md`): consegna il 6/11/2026, codice bloccato il 30/10; AI vera, pubblicazione su una pagina di prova Meta; ciò che resta fuori va in `docs/ROADMAP.md` o è congelato. Supera, per l'MVP, le decisioni che non tornano. |
+| 114 | Perimetro MVP (`docs/archivio/perimetro-mvp.md`): consegna il 6/11/2026, codice bloccato il 30/10; AI vera, pubblicazione su una pagina di prova Meta; ciò che resta fuori va in `docs/ROADMAP.md` o è congelato. Supera, per l'MVP, le decisioni che non tornano. |
 | 115, 122 | Un solo archivio, `docs/archivio/`, per ciò che non fa testo; a sprint chiusi ci vanno brief, report, QA, i testi completi di ADR, spec e plan e, dopo il pitch, pagine statiche e pitch. |
 | 116…119 | Corsie 6–9: interventi e richiesta, pagine e calendario, interfaccia, richieste dopo la prova. |
-| 120 | Sprint 4: simulazione di accettazione, con rilievi e non correzioni (`docs/accettazione.md`). |
+| 120 | Sprint 4: simulazione di accettazione, con rilievi e non correzioni (esito in `docs/archivio/accettazione/sintesi.md`). |
 | 121 | Sprint 5: corsia rapida, correzioni dei rilievi più gravi, perimetro invariato. |
 | 123 | Tutto chiuso dal 5/11/2026: sprint conclusi, nessuna data di consegna, documentazione come fonte di conoscenza passiva; i lavori si aprono uno alla volta su scelta del team, e ciò che serve per presentare il progetto è nella corsia della presentazione di `tasks.md`. La consegna è stata spostata senza una data nuova. |
 

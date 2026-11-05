@@ -64,7 +64,7 @@ Ogni requisito rimanda alle regole di dettaglio (R-xx) e ai criteri di accettazi
 
 | Area | Requisito | Come si verifica |
 |---|---|---|
-| **Sicurezza** | Password con scrypt; sessione in cookie httpOnly, nel database solo l'hash del token; protezione CSRF same-origin attiva in produzione; permessi controllati sul server a ogni richiesta (401, 403, 404 per le risorse di altri); limite dei tentativi di accesso (5 per IP e per account ogni 15 minuti, 429); validazione HTTPS di `FOTO_URL_PUBBLICO` | Probe SAST/DAST automatici (`T3-09`), test TLS/proxy reali (`test_proxy_http_reale.py`, `#17`), `docs/sicurezza-accesso.md` e `docs/valutazione-sicurezza.md` |
+| **Sicurezza** | Password con scrypt; sessione in cookie httpOnly, nel database solo l'hash del token; protezione CSRF same-origin attiva in produzione; permessi controllati sul server a ogni richiesta (401, 403, 404 per le risorse di altri); limite dei tentativi di accesso (5 per IP e per account ogni 15 minuti, 429); validazione HTTPS di `FOTO_URL_PUBBLICO` | Probe SAST/DAST automatici (`T3-09`), test TLS/proxy reali (`test_proxy_http_reale.py`, `#17`), `docs/archivio/sicurezza-accesso.md` e `docs/archivio/valutazione-sicurezza.md` |
 | **Segreti** | Chiavi AI e token Meta solo nel file di configurazione del server, mai nel codice né nei log | `.env.example` con valori finti; test automatici sui log JSONL |
 | **Privacy** | Dalle foto si toglie la posizione GPS prima della pubblicazione; dichiarazione dell'artigiano su prodotti e consenso delle persone; né dati personali né prompt/risposte AI finiscono nei log applicativi | CA-81, CA-113; test dei log |
 | **Integrità** | Nulla si cancella nelle campagne inviate: versioni dei post, piani, decisioni ed errori restano; la foto originale non si modifica mai | Invarianti della costituzione; test automatici |
@@ -478,7 +478,7 @@ Dalla roadmap (`docs/ROADMAP.md`), in ordine di priorità:
 
 ### Fonti
 
-`docs/agenti/perimetro-mvp.md` (ADR-114, ADR-116…119), `docs/agenti/spec.md` §0–§6, `docs/agenti/plan.md` §1–§6, `docs/agenti/constitution.md` §2–§3, `docs/agenti/tasks.md`, `docs/ROADMAP.md`, `docs/valutazione-sicurezza.md`, rapporti delle prove reali `qa/corsia9/T3-927/demo-reale-rapporto.md`, pagine statiche in `docs/archivio/pagine/`.
+`docs/archivio/perimetro-mvp.md` (ADR-114, ADR-116…119), `docs/agenti/spec.md` §0–§6, `docs/agenti/plan.md` §1–§6, `docs/agenti/constitution.md` §2–§3, `docs/agenti/tasks.md`, `docs/ROADMAP.md`, `docs/archivio/valutazione-sicurezza.md`, rapporti delle prove reali `docs/archivio/qa/corsia9/T3-927/demo-reale-rapporto.md`, pagine statiche in `docs/archivio/pagine/`.
 
 ### Decisioni e parametri consolidati nella v1.0
 
