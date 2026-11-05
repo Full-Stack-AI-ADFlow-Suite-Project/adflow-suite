@@ -1,8 +1,8 @@
 # Tasks
 
-**Tutto chiuso (ADR-123, 5 novembre 2026).** Gli sprint sono conclusi, l'ultimo è lo **Sprint 5 · Corsia rapida** (ADR-121), e non c'è più una data di consegna. Questa pagina è storia e fonte di conoscenza passiva: non dice che cosa fare. I lavori nuovi si aprono uno alla volta, in modo chirurgico, quando il team li sceglie; la [Corsia della presentazione](#corsia-della-presentazione) elenca ciò che serve per presentare il progetto quando le sue parti necessarie sono completate, e anche quei lavori si aprono su scelta. Il blocco del codice dello Sprint 3 (ADR-114) resta: un lavoro nuovo è una scelta esplicita. Gli sprint 1, 2a e 2b sono in `docs/archivio/tasks-sprint-1-2.md`. Nelle righe i file hanno il nome di allora: i brief della colonna *Leggi* sono in `docs/archivio/brief/`, i report e la sintesi della simulazione in `docs/archivio/accettazione/`, `perimetro-mvp.md` e `converge.md` in `docs/archivio/` (ADR-122, ADR-123); la mappa dei vecchi percorsi è in `docs/archivio/LEGGIMI.md`. Ciò che non entra nell'MVP è in `docs/ROADMAP.md`.
+**Tutto chiuso (ADR-123, 5 novembre 2026).** È la storia degli sprint 3, 4 e 5, con le caselle com'erano, e la [Corsia della presentazione](#corsia-della-presentazione): ciò che serve per presentare il progetto, voci che si aprono su scelta del team come ogni altro lavoro. Gli sprint 1, 2a e 2b sono in `docs/archivio/tasks-sprint-1-2.md`; il testo intero di questa pagina, con le regole e le date degli sprint, in `docs/archivio/completi/tasks.md`. Nelle righe i file hanno il nome di allora: i brief della colonna *Leggi* sono in `docs/archivio/brief/`, i report della simulazione in `docs/archivio/accettazione/`, `perimetro-mvp.md` e `converge.md` in `docs/archivio/` (mappa in `docs/archivio/LEGGIMI.md`).
 
-`uv run python allinea.py` resta il comando che allinea la copia locale (main, dipendenze, database); lo stato dei task che stampa è quello di questa pagina, cioè storia.
+`allinea.py` legge questa pagina: lo stato dei task che stampa è questa storia.
 
 | Area | Chi | Di cosa si occupa |
 |---|---|---|
@@ -23,20 +23,7 @@
 
 Nelle tabelle le aree si chiamano ancora "Corsia", perché `allinea.py` le legge così.
 
-**Regole dello sprint MVP** (ADR-114, decisioni F1–F3):
-
-- **Un'area non è un elenco di file proibiti.** Il task tocca i file che gli servono, con i loro test. Se cambia un file su cui lavora un'altra area, lo dice a chi ci lavora.
-- **Una PR per task**, su `feature/<id>-<breve>`. La rivede un collega; i controlli di GitHub devono essere verdi; unisce l'admin. Se la PR cambia composizione, `core/`, `alembic/`, `backend/requirements.txt` o un `domain.py`, la rivede il referente dei file comuni.
-- **Le firme nascono nel task che le usa.** Niente apertura con `NotImplementedError` e niente colonna "Tocca".
-- **Una libreria nuova** entra in `backend/requirements.txt` nella PR del task che la usa, con nome, motivo e licenza.
-- **Frontend.** Finché l'endpoint non è su `main` la pagina usa i dati di esempio (`src/api/esempi/`); passa alle API vere nel suo task appena l'endpoint c'è, o al più tardi in T3-07.
-- **La chiusura (T3-07)** è la prova del percorso della demo da database vuoto, non un controllo di proprietà.
-
 ## Sprint 3 · MVP (AI vera, immagini AI, pubblicazione su Meta, calendario, deliverable)
-
-**Ordine.** T3-01 apre lo sprint. Senza aspettarlo partono T3-02, T3-03, T3-11, T3-12, T3-21, T3-31, T3-41, T3-53 e T3-54; gli altri quando ciò che sta in "Dipende da" è su `main`. CA dello sprint: quelli di spec §6.
-
-**Date.** T3-31 entro il 16/10 e la prova su 10 post (T3-32) entro il 20/10. Meta (T3-41) parte il 14/10; se Instagram non pubblica entro il 23/10 resta simulato (D1). Corsia 6 (ADR-116): una persona, un task alla volta nell'ordine di `brief-interventi.md` §2; tutto su `main` entro il 24/10, prima di T3-08 parte 2, altrimenti ciò che manca resta fuori. Corsia 7 (ADR-117): una persona, un task alla volta nell'ordine di `brief-pagine.md` §2; lavoro dal 22 al 27/10, tutto su `main` entro il 28/10, altrimenti ciò che manca resta fuori. Corsia 8 (ADR-118): nell'ordine di `brief-interfaccia.md` §5, dal 26 al 30/10; ciò che il 30/10 non è su `main` resta com'è oggi. Corsia 9 (ADR-119): a ondate, con i task di un'ondata in parallelo (`brief-richieste.md` §2), dal 28/10; per la sola corsia 9 il codice si blocca il 1/11: ciò che il 1/11 non è su `main` resta fuori e la sua parte di regole torna com'era. Codice bloccato il 30/10 (il 1/11 per la corsia 9); dal 2 al 6/11 solo correzioni, slide, video e prove.
 
 ### Corsia 0 · Comune e deliverable (tutto il team)
 
@@ -94,8 +81,6 @@ Nelle tabelle le aree si chiamano ancora "Corsia", perché `allinea.py` le legge
 
 ### Corsia 6 · Interventi e richiesta all'artigiano (Giovanni)
 
-Ogni task ha in `brief-interventi.md` i file da toccare e da non toccare, le firme, i messaggi d'errore, gli schemi e i nomi dei test: si legge la sezione del proprio task, non tutto il brief.
-
 | ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
 |---|---|---|---|---|---|
 | T3-60 | **Preparazione della corsia 6** (ADR-116): regole in costituzione, perimetro, spec e plan; `brief-interventi.md`; i task; pagine statiche; valori nei `domain.py`. Giovanni con Claude | ADR-116; `perimetro-mvp.md` | — | documenti coerenti tra loro; comandi di converge §1 verdi; `tests/test_allinea.py` verde con la corsia 6 | ☑ |
@@ -107,8 +92,6 @@ Ogni task ha in `brief-interventi.md` i file da toccare e da non toccare, le fir
 | T3-66 | **Prova della corsia 6**: test di percorso e percorso a mano in due finestre, operatore e artigiano | `brief-interventi.md` §T3-66; converge §4 | T3-61, T3-62, T3-63, T3-64, T3-65 | CA-91 verde; passi 4, 6 e 9 di converge §4 senza errori; screenshot nella PR | ☑ |
 
 ### Corsia 7 · Pagine, archivio foto e calendario (Giovanni)
-
-Ogni task ha in `brief-pagine.md` i file da toccare e da non toccare, le firme, i messaggi d'errore, gli schemi e i nomi dei test: si legge la sezione del proprio task, non tutto il brief.
 
 | ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
 |---|---|---|---|---|---|
@@ -124,8 +107,6 @@ Ogni task ha in `brief-pagine.md` i file da toccare e da non toccare, le firme, 
 
 ### Corsia 8 · Interfaccia ed esperienza d'uso (da assegnare)
 
-`brief-interfaccia.md` non decide colori, caratteri né scelte d'uso: guida chi sviluppa a farle, con la funzione di ogni scelta e possibilità reali già pronte. Il suo §1 dice che cosa non si tocca e vale per ogni task; poi si legge la sezione del proprio task. Nessun cambio di comportamento: rotte, campi, chiamate, stati e messaggi del backend restano quelli di prima.
-
 | ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
 |---|---|---|---|---|---|
 | T3-80 | **Preparazione della corsia 8** (ADR-118): perimetro (riga H7 e blocco I), `brief-interfaccia.md`, i task, T3-79 tolto dalla corsia 7, `allinea.py` con la corsia 8. Il referente con Claude | ADR-118; `perimetro-mvp.md` | T3-78 | documenti coerenti tra loro; `tests/test_allinea.py` verde; `allinea.py 8` stampa T3-81 pronto | ☑ |
@@ -138,8 +119,6 @@ Ogni task ha in `brief-pagine.md` i file da toccare e da non toccare, le firme, 
 | T3-87 | **Prova della corsia 8**: percorso della demo in due finestre, operatore a 1280 px e artigiano alle larghezze di S2, e controllo del §1.5 su tutta la corsia | `brief-interfaccia.md` §1.5, §T3-87; converge §4 | T3-83, T3-84, T3-85, T3-86 | passi 1–9 di converge §4 senza errori; testi fissi invariati; screenshot prima e dopo di ogni pagina della demo | ☑ |
 
 ### Corsia 9 · Richieste dopo la prova (Giovanni)
-
-Ogni task ha in `brief-richieste.md` i file da toccare, le firme, i messaggi d'errore, gli schemi e i test: si legge il §1 e la sezione del proprio task. I task di un'ondata (`brief-richieste.md` §2) partono insieme; prima della PR rebase su `origin/main`, perché più task toccano gli stessi file (§1.8).
 
 | ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
 |---|---|---|---|---|---|
@@ -174,13 +153,9 @@ Ogni task ha in `brief-richieste.md` i file da toccare, le firme, i messaggi d'e
 
 ## Sprint 4 · Simulazione di accettazione dell'MVP
 
-Lo sprint 4 mette alla prova l'MVP come se si dovesse autorizzare la produzione (ADR-120, `docs/archivio/accettazione/accettazione-post-mvp.md`). Non aggiunge funzioni e non corregge: ogni task scrive i suoi rilievi in `docs/archivio/accettazione/rilievi.md`, e i difetti restano documentati da test in `xfail(strict=True)`. Le correzioni le decide T4-108.
-
-**Ordine.** Un task alla volta, in ordine di numero, eseguito da un agente guidato da Giovanni. Ogni task su un branch `feature/T4-1xx-<breve>` aperto dal branch della simulazione, e unito lì. Niente su `main` prima del 6/11.
+Lo sprint 4 mette alla prova l'MVP come se si dovesse autorizzare la produzione (ADR-120, `docs/archivio/accettazione/accettazione-post-mvp.md`). Non aggiunge funzioni e non corregge: ogni task scrive i suoi rilievi in `docs/archivio/accettazione/rilievi.md`, e i difetti restano documentati da test in `xfail(strict=True)`. T4-108 ha classificato i rilievi e proposto le correzioni.
 
 ### Corsia 10 · Simulazione di accettazione (Giovanni con gli agenti)
-
-Ogni task ha in `brief-accettazione.md` i file da toccare e da non toccare e il suo "Fatto quando": si legge la sezione del proprio task, non tutto il brief.
 
 | ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
 |---|---|---|---|---|---|
@@ -196,7 +171,7 @@ Ogni task ha in `brief-accettazione.md` i file da toccare e da non toccare e il 
 
 ## Sprint 5 · Corsia rapida
 
-Tre corsie, una per sviluppatore, 5 ore ciascuna (ADR-121). Ogni task ha in `brief-corsia-rapida.md` il tetto di ore, come si fa e il suo "Fatto quando": si legge la sezione del proprio task, non tutto il brief.
+Tre corsie, una per sviluppatore, 5 ore ciascuna (ADR-121), con il brief `brief-corsia-rapida.md`.
 
 > **Sprint concluso il 5 novembre 2026** (ADR-123). Gli 11 task di correzione sono uniti in `main` (PR 171–181, controlli di GitHub verdi); T5-112, la prova finale del percorso, è chiuso senza essere eseguito e passa alla [Corsia della presentazione](#corsia-della-presentazione) come P-01.
 >
@@ -256,13 +231,9 @@ Ciò che serve per presentare il progetto, quando è completato o almeno quando 
 | P-05 | **Pitch allo stato finale**: scaletta (`docs/pitch.md`) e slide senza la data del 6/11, con le schermate e i numeri del progetto finito; le slide di T3-05 sono in archivio (`docs/archivio/pagine/AdFlow-pitch.html`) e lì restano com'erano | P-04; `docs/ROADMAP.md` | P-04 | slide pronte; due prove cronometrate sotto i 10 minuti | ☐ |
 | P-06 | **Prova generale**: pitch e demo dal vivo sulla macchina e sulla rete della presentazione, con il video di P-03 come riserva | P-01…P-05 | P-01, P-03, P-05 | una prova completa senza interruzioni, con il piano B provato | ☐ |
 
-## Dopo l'MVP
-
-Ciò che non entra nell'MVP (ritocco delle foto, ingresso dell'operatore, anagrafica, collegamento degli account, promemoria, metriche, immagini AI chieste dall'artigiano) è in `docs/ROADMAP.md`.
-
 ## Follow-up aperti
 
-Le issue di GitHub da tenere d'occhio; `allinea.py` le mostra finché la casella non è spuntata. Quelle chiuse sono in `docs/archivio/tasks-sprint-1-2.md`.
+Le issue di GitHub seguite; `allinea.py` mostra quelle senza la casella spuntata. Quelle chiuse sono in `docs/archivio/tasks-sprint-1-2.md`.
 
 | Issue | Corsia | Task / fatto quando | Preparato |
 |---|---|---|---|
