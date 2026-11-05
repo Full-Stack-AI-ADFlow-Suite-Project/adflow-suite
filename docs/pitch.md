@@ -21,7 +21,7 @@
 | `07:35 – 09:15` | 1 min 40 s | **Slide 8–9**: Anteprima Metriche (`AdFlow-operatore-metriche.html`) e Roadmap (`docs/ROADMAP.md`) | **Angelo** e **Gianluca** | Apertura dell'anteprima statica **Metriche** (andamento per consorzio, bottega e singola campagna, confronto canali e orari migliori). Poi la **Roadmap** divisa tra ciò che è *già scritto e testato ma congelato* (spunta per post, note interne, caroselli, rimpiazzo da archivio) e ciò che è *da costruire* (metriche live da Meta Insights, OAuth per singola bottega, ritocco AI delle foto, link rapido senza password per la richiesta foto, abbonamenti a fasce). |
 | `09:15 – 09:30` | 15 s | **Slide 10**: Chiusura e apertura alle domande | **Tutti** | Riepilogo dei 3 numeri chiave (`< 5 min` di revisione operatore per campagna, `< 0,80 €/mese` di costo vivo per bottega, `1.997` test verdi su PostgreSQL) e apertura Q&A. |
 
-> **Piano di emergenza durante il pitch**: se la rete della sala o il provider esterno rallenta durante i 3 min 45 s della demo, Angelo passa istantaneamente al **video di riserva** (`qa/T3-07/demo-riserva.webm`) già aperto in una scheda locale del browser al secondo corrispondente.
+> **Piano di emergenza durante il pitch**: se la rete della sala o il provider esterno rallenta durante i 3 min 45 s della demo, Angelo passa istantaneamente al **video di riserva** (`docs/archivio/qa/T3-07/demo-riserva.webm`) già aperto in una scheda locale del browser al secondo corrispondente.
 
 ---
 
