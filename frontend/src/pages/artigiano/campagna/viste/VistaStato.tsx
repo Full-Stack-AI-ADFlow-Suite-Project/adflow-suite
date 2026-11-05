@@ -1,7 +1,7 @@
 import layout from "../../../../components/Layout.module.css";
 /**
  * Vista per stato della campagna dopo l'invio
- * (docs/pagine/AdFlow-campagna-stati.html). L'artigiano vede
+ * (docs/archivio/pagine/AdFlow-campagna-stati.html). L'artigiano vede
  * l'esito del lavoro, mai il lavoro in corso: niente piano né post fino
  * all'approvazione (spec §4); dopo, il piano approvato (R-45).
  */

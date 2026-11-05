@@ -1,4 +1,4 @@
-# Controllo del frontend a ogni PR: lint e build come in docs/agenti/converge.md §1.
+# Controllo del frontend a ogni PR: lint e build come in frontend/README.md (Controlli).
 name: Frontend
 
 on:

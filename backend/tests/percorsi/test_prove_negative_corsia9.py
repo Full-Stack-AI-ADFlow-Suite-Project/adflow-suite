@@ -1,4 +1,4 @@
-"""T3-927, passo 9 di converge §4: le due prove negative che il percorso a mano
+"""T3-927, prove negative del percorso della demo (backend/README.md): le due prove negative che il percorso a mano
 non poteva fare con l'AI finta, dalle API vere.
 
 1. «Modifica di un post che esce entro 15 minuti»: dopo l'approvazione modifica,

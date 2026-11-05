@@ -1,7 +1,7 @@
 # Roadmap · AdFlow Suite
 
-Ciò che non entra nell'MVP del 6 novembre 2026 (ADR-114, `docs/agenti/perimetro-mvp.md`). È anche la slide "dove può arrivare il prodotto" del pitch.
-**Da riattivare** = il codice esiste ed è testato, ma nell'MVP è congelato e nascosto. **Da costruire** = solo analisi e, a volte, tabelle già pronte. Le regole (R-xx) e i criteri (CA-xx) di ciò che è da costruire sono in `docs/agenti/spec.md` §7.
+Ciò che non entra nell'MVP (ADR-114; il perimetro com'era deciso è in `docs/archivio/perimetro-mvp.md`) e ciò che manca per andare in produzione. È anche la slide "dove può arrivare il prodotto" del pitch.
+**Da riattivare** = il codice esiste ed è testato, ma nell'MVP è congelato: l'interfaccia lo nasconde e non si estende (commento "Congelato per l'MVP, ADR-114"). **Da costruire** = solo analisi e, a volte, tabelle già pronte. Le regole (R-xx) e i criteri (CA-xx) di ciò che è da costruire sono in `docs/archivio/fuori-mvp.md`.
 
 ## Contenuti e AI
 
@@ -54,3 +54,21 @@ Ciò che non entra nell'MVP del 6 novembre 2026 (ADR-114, `docs/agenti/perimetro
 | Anagrafica e accesso dal sito del consorzio | Da costruire | ADR-05 |
 | Altri canali (LinkedIn, TikTok, X) e video | Da costruire | appunti in archivio (note sul flusso) |
 | Più consorzi; app mobile; calendario con trascinamento | Da costruire | appunti in archivio (note sul flusso) |
+
+## Prima della produzione
+
+Ciò che la valutazione di sicurezza del 30/10/2026 (`docs/archivio/valutazione-sicurezza.md`) e la simulazione di accettazione (`docs/archivio/accettazione/sintesi.md`, rilievi RL-xxx) hanno lasciato aperto dopo lo sprint 5. MFA, recupero password e tetto di spesa AI cambiano il perimetro.
+
+| Voce | Rilievi |
+|---|---|
+| Rilascio e staging: container, compose, proxy, rollback; la prova di TLS e proxy (oggi solo locale) ripetuta su uno staging vero, backend raggiungibile solo dal proxy, redirect HTTPS e HSTS, access log senza query string | RL-032, RL-033, issue #17 |
+| Segreti in un secret manager, con rotazione e revoca coordinate; chiave dedicata per le foto firmate, distinta da quella dei contatori del login; token Meta con i permessi minimi; utente del database con privilegi minimi; backup cifrati con un ripristino provato | RL-038 |
+| CSRF e CORS: caso del sottodominio non autorizzato, API same-origin o allowlist esatta | — |
+| Sessioni: MFA per operatore e admin, durata massima assoluta, revoca di tutte le sessioni di un utente, reset della password con token monouso | — |
+| Abuso e spesa: rate limit per endpoint su upload e job, limiti di concorrenza, budget e interruttore sul provider AI, limiti al proxy sulle foto pubbliche | — |
+| Osservabilità: log centralizzati con allarmi, eventi anche per ruoli, approvazioni e pubblicazioni, procedura di risposta agli incidenti; prove di carico complete | RL-031 |
+| CI: aggiornamenti automatici e lock delle dipendenze transitive, scansione dei segreti, mypy, copertura, E2E, Actions fissate a uno SHA | RL-001, RL-002, RL-003, RL-008, RL-030 |
+| Privacy e AI Act: inventario dei dati, che cosa va al provider AI, conservazione e cancellazione (anche dello storico AI), registro, DPA, DPIA | RL-019, RL-040…RL-044 |
+| Storage delle foto condiviso tra le istanze, token social cifrati | RL-017, RL-034, RL-039 |
+
+I limiti noti dei task dello sprint 5, non corretti, sono in `docs/agenti/tasks.md`.

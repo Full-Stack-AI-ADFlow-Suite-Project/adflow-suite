@@ -5,7 +5,7 @@ Le cinque intestazioni di base di OWASP ASVS V3 — CSP, HSTS, ``nosniff``,
 comincia con ``/api``, errori compresi. La CSP ``default-src 'none'``
 romperebbe ``/docs`` e ``/openapi.json``: fuori dall'API non si manda. Le
 stesse intestazioni le ridice anche il proxy per il solo percorso ``/api``
-(``docs/sicurezza-accesso.md``); la CSP di una risposta d'immagine non tocca
+(``backend/README.md``, In produzione); la CSP di una risposta d'immagine non tocca
 la pagina che la incorpora: le foto restano visibili nel frontend.
 """
 
