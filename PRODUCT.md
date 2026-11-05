@@ -26,7 +26,7 @@ Un "ufficio stampa del consorzio": l'artigiano dà solo le foto e i dati della b
 - L'artigiano entra dal telefono in bottega e dal PC a casa o in ufficio: i percorsi devono essere comprensibili a 375 px e con il menu chiuso (il nome della bottega resta visibile), e restare comodi anche sullo schermo largo.
 - L'operatore lavora da scrivania su elenchi e dettagli (Vedi campagna): densità e leggibilità contano più dell'effetto.
 - La demo è dal vivo, sul percorso dell'artigiano (pitch del 6 novembre 2026). I dati di esempio in `frontend/src/api/esempi/` alimentano le pagine finché l'endpoint non è su `main`.
-- Le pagine statiche di `docs/pagine/` sono il riferimento concordato dell'interfaccia dell'MVP.
+- Le pagine statiche di `docs/archivio/pagine/` sono il riferimento concordato dell'interfaccia dell'MVP.
 - Richiesta all'artigiano senza email: l'operatore avvisa a voce o con un messaggio.
 
 ## Capabilities and Constraints
@@ -43,11 +43,11 @@ Un "ufficio stampa del consorzio": l'artigiano dà solo le foto e i dati della b
 
 - Nome: **AdFlow Suite** (wordmark dedicato, `frontend/src/components/Wordmark.tsx`).
 - Voce: italiano, tono da "consorzio che sa il fatto suo", diretto e rassicurante verso l'artigiano.
-- Riferimento visivo concordato dell'MVP: `docs/pagine/` e `adflow.css`.
+- Riferimento visivo concordato dell'MVP: `docs/archivio/pagine/` e `adflow.css`.
 
 ## Evidence on Hand
 
-- `docs/pagine/`: pagine statiche di riferimento dell'interfaccia (mappa in `index.html`).
+- `docs/archivio/pagine/`: pagine statiche di riferimento dell'interfaccia (mappa in `index.html`).
 - `frontend/src/api/esempi/`: dati di esempio usati dalle pagine.
 - Nessun materiale fotografico di marca oltre al wordmark: non inventare loghi, testimonianze o numeri.
 
