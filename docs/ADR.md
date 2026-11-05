@@ -61,6 +61,7 @@ Versione corta (ADR-122): le decisioni che spiegano il prodotto com'è, una fras
 | 103 | Nuovo artigiano con una password provvisoria mostrata una sola volta: nessuna password viaggia per email. |
 | 104, 117 | Pagine dell'artigiano (Ingresso, Campagne, Calendario, Archivio foto, Profilo) e dell'operatore (Da approvare, Artigiani, Calendario, Storico AI): ognuno trova in un posto ciò che lo riguarda. |
 | 113, 118 | Uno stile unico per app e pagine statiche; le scelte visive le fa chi sviluppa con una guida e criteri (WCAG AA, telefono). |
+| 124 | Vetrina pubblica su `/` per chi non ha sessione (hero, benefici, come funziona, contatti del consorzio) e pagina `/privacy` raggiungibile senza account; `/accesso` resta la porta del modulo. Il prodotto si presenta da solo prima del login. Entrata con la PR #170. |
 
 ## Perimetro e processo
 | ID | Decisione · perché |
