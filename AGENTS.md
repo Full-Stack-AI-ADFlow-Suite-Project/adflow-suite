@@ -25,17 +25,16 @@ Tutto è chiuso (ADR-123, 5 novembre 2026): gli sprint sono conclusi e non c'è 
 
 | Dove | Che cosa ci trovi |
 |---|---|
-| `docs/agenti/perimetro-mvp.md` | Che cosa è nell'MVP, congelato, tolto o in roadmap |
-| `docs/agenti/constitution.md` | Le regole che il codice rispetta (invarianti, sicurezza) |
-| `docs/agenti/spec.md`, `plan.md` | Regole e criteri del prodotto; architettura, §6 funzioni tra moduli, §7 `core/` e fixture dei test |
-| `docs/agenti/converge.md` | I controlli prima di una PR e il percorso della demo (§4) |
-| `docs/agenti/tasks.md` | La storia degli sprint, i problemi noti dello sprint 5, la corsia della presentazione |
-| `docs/ADR.md`, `docs/ROADMAP.md` | Le decisioni con il perché; ciò che resta fuori dall'MVP |
-| `docs/pagine/` | Le pagine statiche dell'interfaccia (mappa in `index.html`) |
-| `docs/archivio/` | I testi completi e la storia (mappa nel suo `LEGGIMI.md`) |
+| `docs/agenti/constitution.md` | Le regole che il codice rispetta (invarianti, architettura, sicurezza) |
+| `docs/agenti/spec.md`, `plan.md` | Regole e criteri del prodotto; architettura con lo stato di ogni rotta e job, §6 funzioni tra moduli, §7 `core/` e fixture dei test |
+| `docs/agenti/tasks.md` | La storia degli sprint, i limiti noti dello sprint 5, la corsia della presentazione |
+| `docs/ADR.md`, `docs/ROADMAP.md` | Le decisioni con il perché; ciò che resta fuori dall'MVP e ciò che manca per la produzione |
+| `docs/proposta-tecnica.md`, `docs/pitch.md` | La proposta per il cliente e la scaletta del pitch |
+| `backend/README.md` | Comandi, prove a mano, dati e percorso della demo, Meta, produzione |
+| `docs/archivio/` | La storia: pagine statiche, perimetro, converge, sicurezza, accettazione, brief, QA e i testi completi (mappa in `LEGGIMI.md`) |
 
 ## Comandi
 
 Serve `uv`: `uv run` usa `.venv` senza attivarlo, così i comandi sono gli stessi su Windows, macOS e Linux. Si lanciano uno alla volta (`&&` non funziona in ogni shell).
 Dalla radice: `uv run python allinea.py` prepara l'ambiente, anche la prima volta (aggiorna `main` senza toccare il lavoro in corso, crea `.venv`, installa le dipendenze, copia `backend/.env.example` in `backend/.env`, porta il database all'ultima migrazione). Lo stato dei task che stampa è storia.
-Da `backend/`: `uv run uvicorn app.main:app --reload` avvia l'API; `uv run alembic upgrade head`, poi `uv run pytest`, poi `uv run black --check .` sono il controllo prima della PR. GitHub li rilancia a ogni PR (`.github/workflows/backend.yml`).
+Da `backend/`: `uv run uvicorn app.main:app --reload` avvia l'API; `uv run alembic upgrade head`, poi `uv run pytest`, poi `uv run black --check .` sono il controllo prima della PR; da `frontend/` `npm run lint` e `npm run build`. GitHub li rilancia a ogni PR (`.github/workflows/`).
