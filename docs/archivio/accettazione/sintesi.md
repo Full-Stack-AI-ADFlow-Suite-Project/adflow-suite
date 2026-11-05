@@ -1,5 +1,7 @@
 # Sintesi della simulazione di accettazione (T4-108)
 
+> Il piano della simulazione (`accettazione-post-mvp.md`), il registro dei rilievi RL-xxx (`rilievi.md`) e i report `T4-1xx-*` citati qui sono in `docs/archivio/accettazione/`, il brief della corsia 10 in `docs/archivio/brief/` (ADR-122). Questa pagina resta il riferimento sullo stato della qualità.
+
 La simulazione ha prodotto **44 rilievi** (RL-001…RL-044), classificati:
 **27 correggere**, **7 proposta**, **7 roadmap**, **3 limite MVP**. Un solo
 **blocco assoluto** è confermato.

@@ -1,5 +1,5 @@
 /**
- * Elenco degli artigiani (docs/pagine/AdFlow-operatore-elenco.html, spec R-38,
+ * Elenco degli artigiani (docs/archivio/pagine/AdFlow-operatore-elenco.html, spec R-38,
  * ADR-117, H3): una tabella in un riquadro con altezza fissa e scorrimento
  * proprio, intestazione ferma, ricerca nel browser. La riga apre la pagina
  * dell'artigiano.

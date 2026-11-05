@@ -246,7 +246,7 @@ def test_api_download_foto_pubblica_firma_alterata_restituisce_404(
         foto_db = fabbrica_foto(db, gruppo=grp, file=nome_file)
 
         url = service.url_foto_pubblica(db, foto_db.id, canale="instagram")
-        url_alterato = url[:-2] + "99"
+        url_alterato = url[:-2] + ("00" if url.endswith("99") else "99")
 
         res = client.get(url_alterato)
         assert res.status_code == 404

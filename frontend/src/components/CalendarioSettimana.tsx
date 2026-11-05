@@ -1,5 +1,5 @@
 /**
- * La griglia del calendario settimanale (docs/pagine/AdFlow-calendario.html,
+ * La griglia del calendario settimanale (docs/archivio/pagine/AdFlow-calendario.html,
  * spec R-48, ADR-117, H5): sette colonne da lunedì a domenica, il giorno e la
  * data in testa, oggi evidenziato; in ogni colonna i post in ordine d'ora.
  * Fatta a mano, senza librerie. Sotto i 768 px diventa un elenco per giorno.

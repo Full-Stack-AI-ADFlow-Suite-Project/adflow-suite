@@ -3,9 +3,9 @@
 **Evento**: Presentazione finale MVP · 6 novembre 2026
 **Team**: Gianluca, Silvia, Giovanni (coordinamento), Nilton, Angelo
 **Durata massima**: 10 minuti (9 min 15 s nominali + 45 s di margine)
-**Slide interattive**: [`docs/pagine/AdFlow-pitch.html`](pagine/AdFlow-pitch.html)
-**Anteprima Metriche**: [`docs/pagine/AdFlow-operatore-metriche.html`](pagine/AdFlow-operatore-metriche.html)
-**Fonti**: [`docs/proposta-tecnica.md`](proposta-tecnica.md) (v1.0), [`docs/ROADMAP.md`](ROADMAP.md), [`docs/agenti/converge.md`](agenti/converge.md) §4
+**Slide interattive**: [`docs/archivio/pagine/AdFlow-pitch.html`](archivio/pagine/AdFlow-pitch.html)
+**Anteprima Metriche**: [`docs/archivio/pagine/AdFlow-operatore-metriche.html`](archivio/pagine/AdFlow-operatore-metriche.html)
+**Fonti**: [`docs/proposta-tecnica.md`](proposta-tecnica.md) (v1.0), [`docs/ROADMAP.md`](ROADMAP.md), il percorso della demo in [`backend/README.md`](../backend/README.md#il-percorso-della-demo)
 
 ---
 
@@ -15,13 +15,13 @@
 |---|---|---|---|---|
 | `00:00 – 00:50` | 50 s | **Slide 1–2**: Il problema delle botteghe e la promessa di AdFlow | **Silvia** | L'artigiano sa raccontare il proprio mestiere a voce, ma non ha tempo né metodo per pubblicare con costanza; il consorzio non può scrivere a mano per 50 botteghe. AdFlow trasforma il profilo della bottega e poche foto in un calendario editoriale completo, rivisto dall'operatore e pubblicato in automatico. |
 | `00:50 – 01:45` | 55 s | **Slide 3**: Come funziona (Artigiano → AI → Operatore → Social) | **Gianluca** | Flusso in 4 passi: 1) profilo in 9 passi compilato una volta e confermato al rientro; 2) bozza con foto nuove o dall'Archivio foto e dichiarazione legale; 3) generazione a 4 tappe con immagini AI dove mancano foto; 4) revisione in Vedi campagna e uscita automatica su Facebook e Instagram. |
-| `01:45 – 05:30` | 3 min 45 s | **Slide 4 + Demo dal vivo** (`converge.md` §4) | **Giovanni** (voce) + **Angelo** (alla tastiera) | **Atto 1 – Artigiano (1 min 10 s)**: accesso di *Mosaici d'Arte* (`mosaici@esempio.it`), conferma Bentornato sul profilo, apertura bozza *Collezione d'autunno*, avviso che i post scoperti avranno un'immagine AI, spunta della dichiarazione e invio.<br>**Atto 2 – Generazione e Revisione Operatore (1 min 35 s)**: barra di avanzamento a 4 tappe; apertura in *Vedi campagna*; controllo delle foto valutate dall'AI (punteggi e scarto della foto sfocata), dell'immagine AI creata per l'uscita scoperta e del costo AI (`0,0781 $`); rigenerazione di un testo, anteprima di pubblicazione con bordi sfocati e approvazione in blocco.<br>**Atto 3 – Calendario, Storico AI e Pubblicazione Meta (1 min 00 s)**: vista calendario dell'artigiano; ispezione di prompt/risposta e voto 5★ in *Storico AI*; avanzamento data e pubblicazione reale del post sulla Pagina Facebook del consorzio. |
+| `01:45 – 05:30` | 3 min 45 s | **Slide 4 + Demo dal vivo** (il percorso della demo di `backend/README.md`) | **Giovanni** (voce) + **Angelo** (alla tastiera) | **Atto 1 – Artigiano (1 min 10 s)**: accesso di *Mosaici d'Arte* (`mosaici@esempio.it`), conferma Bentornato sul profilo, apertura bozza *Collezione d'autunno*, avviso che i post scoperti avranno un'immagine AI, spunta della dichiarazione e invio.<br>**Atto 2 – Generazione e Revisione Operatore (1 min 35 s)**: barra di avanzamento a 4 tappe; apertura in *Vedi campagna*; controllo delle foto valutate dall'AI (punteggi e scarto della foto sfocata), dell'immagine AI creata per l'uscita scoperta e del costo AI (`0,0781 $`); rigenerazione di un testo, anteprima di pubblicazione con bordi sfocati e approvazione in blocco.<br>**Atto 3 – Calendario, Storico AI e Pubblicazione Meta (1 min 00 s)**: vista calendario dell'artigiano; ispezione di prompt/risposta e voto 5★ in *Storico AI*; avanzamento data e pubblicazione reale del post sulla Pagina Facebook del consorzio. |
 | `05:30 – 06:35` | 1 min 05 s | **Slide 5–6**: Architettura, sicurezza e osservabilità AI | **Nilton** | Monolite modulare FastAPI + Worker Procrastinate su un solo PostgreSQL 16 (13 migrazioni, 7 moduli con confini verificati da `test_confini.py`, **1.997 test automatici**). Sicurezza: scrypt, sessioni hashate, rate limit su DB, CSRF same-origin, GPS rimosso dalle foto, URL firmati HMAC per Meta. LiteLLM con prompt `v3` e tracciabilità completa in `chiamata_ai`. |
 | `06:35 – 07:35` | 1 min 00 s | **Slide 7**: Tempi, ore del team e costi (sviluppo ed esercizio) | **Giovanni** | 6 settimane, 5 componenti, 143 task chiusi, **1.110 ore** (33.500 € costo di sviluppo MVP). Costo vivo d'esercizio: **0,07–0,13 $ a campagna** con foto reali; per un consorzio di **50 botteghe** appena **25–40 €/mese tutto compreso** (16 € VPS europeo + 10–25 $ di AI), cioè **meno di 0,80 € al mese per bottega**. |
 | `07:35 – 09:15` | 1 min 40 s | **Slide 8–9**: Anteprima Metriche (`AdFlow-operatore-metriche.html`) e Roadmap (`docs/ROADMAP.md`) | **Angelo** e **Gianluca** | Apertura dell'anteprima statica **Metriche** (andamento per consorzio, bottega e singola campagna, confronto canali e orari migliori). Poi la **Roadmap** divisa tra ciò che è *già scritto e testato ma congelato* (spunta per post, note interne, caroselli, rimpiazzo da archivio) e ciò che è *da costruire* (metriche live da Meta Insights, OAuth per singola bottega, ritocco AI delle foto, link rapido senza password per la richiesta foto, abbonamenti a fasce). |
 | `09:15 – 09:30` | 15 s | **Slide 10**: Chiusura e apertura alle domande | **Tutti** | Riepilogo dei 3 numeri chiave (`< 5 min` di revisione operatore per campagna, `< 0,80 €/mese` di costo vivo per bottega, `1.997` test verdi su PostgreSQL) e apertura Q&A. |
 
-> **Piano di emergenza durante il pitch**: se la rete della sala o il provider esterno rallenta durante i 3 min 45 s della demo, Angelo passa istantaneamente al **video di riserva** (`qa/T3-07/demo-riserva.webm`) già aperto in una scheda locale del browser al secondo corrispondente.
+> **Piano di emergenza durante il pitch**: se la rete della sala o il provider esterno rallenta durante i 3 min 45 s della demo, Angelo passa istantaneamente al **video di riserva** (`docs/archivio/qa/T3-07/demo-riserva.webm`) già aperto in una scheda locale del browser al secondo corrispondente.
 
 ---
 
@@ -109,7 +109,7 @@
 ### Slide 8 · Anteprima Post-MVP: la pagina Metriche (`AdFlow-operatore-metriche.html`)
 - **Perché le metriche sono il passo successivo naturale**:
   - Una volta avviate le pubblicazioni regolari, il consorzio e l'artigiano vogliono misurare quali temi, foto e orari generano più interesse.
-- **Cosa mostra l'anteprima già disegnata (`docs/pagine/AdFlow-operatore-metriche.html`)**:
+- **Cosa mostra l'anteprima già disegnata (`docs/archivio/pagine/AdFlow-operatore-metriche.html`)**:
   - **Filtro a tre livelli**: intero consorzio, singola bottega (*Mosaici d'Arte*) o singola campagna (*Collezione d'autunno*).
   - **Indicatori sintetici**: post pubblicati, copertura complessiva, interazioni (mi piace, commenti, salvataggi), tasso medio di interazione e confronto Facebook vs Instagram.
   - **Classifica dei post migliori**: quali uscite hanno funzionato meglio (es. foto del banco di lavoro rispetto alle immagini AI di rimpiazzo) per guidare il piano della campagna successiva.

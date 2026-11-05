@@ -1,5 +1,5 @@
 /**
- * L'archivio foto in sola lettura (docs/pagine/AdFlow-archivio-foto.html, spec
+ * L'archivio foto in sola lettura (docs/archivio/pagine/AdFlow-archivio-foto.html, spec
  * R-47, ADR-117, H4), lo stesso componente per l'artigiano e per l'operatore:
  * un blocco per campagna, le miniature e, sulle immagini AI, l'etichetta
  * "Immagine AI". Un clic apre la foto grande. Nessun pulsante per caricare,

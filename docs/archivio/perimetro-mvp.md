@@ -1,6 +1,6 @@
 # Perimetro MVP
 
-Decisione ADR-114 del 13/10/2026, approvata dal team, aggiornata con ADR-116 del 16/10/2026 (interventi dopo l'approvazione e richiesta all'artigiano: righe B1, B5, B8–B10, C3 e pagine statiche) e con ADR-117 del 21/10/2026 (pagine dell'artigiano e dell'operatore, archivio foto, calendario settimanale: blocco H, riga E1 e pagine statiche) e con ADR-118 del 26/10/2026 (interfaccia ed esperienza d'uso: blocco I, riga H7) e con ADR-119 del 28/10/2026 (richieste dopo la prova: blocco J, righe A10, B1, B8, C1). Consegna e pitch il **6 novembre 2026**; codice bloccato il **30 ottobre**, il **1° novembre** per la corsia 9. ADR-121 del 2/11/2026 riapre il codice per i soli task delle corsie 11, 12 e 13 (T5-111…T5-136): correzioni dei rilievi, nessuna funzione nuova e nessuna riga di questa pagina cambia.
+Decisione ADR-114 del 13/10/2026, aggiornata con ADR-116…119 (interventi, pagine, interfaccia, richieste dopo la prova: blocchi H, I, J e le righe citate in ognuno). Consegna e pitch il **6 novembre 2026**; codice bloccato il **30 ottobre**, il **1° novembre** per la corsia 9. ADR-121 del 2/11/2026 riapre il codice per i soli task delle corsie 11, 12 e 13 (T5-111…T5-136): correzioni dei rilievi, nessuna funzione nuova e nessuna riga di questa pagina cambia. ADR-123 del 5/11/2026 chiude tutto: la data del 6 novembre non vale più e non ce n'è una nuova; i lavori si aprono uno alla volta su scelta del team.
 Questa pagina dice che cosa entra nell'MVP. Dove `spec.md`, `plan.md` o `tasks.md` non tornano con questa pagina, vale questa pagina.
 
 | Decisione | Significato |
@@ -77,9 +77,9 @@ Blocco H: ciò che il 28/10 non è su `main` resta fuori dall'MVP e la sua parte
 
 | ID | Tema (regole) | Decisione | Nell'MVP |
 |---|---|---|---|
-| I1 | Scelte d'uso e visive | Task MVP | Le fa chi sviluppa con la guida di `brief-interfaccia.md` (funzione, criteri, possibilità reali, la prima sempre "com'è oggi"); le approva il referente dei file comuni (T3-81, T3-82). Nessuna palette, carattere o paradigma deciso in anticipo |
+| I1 | Scelte d'uso e visive | Task MVP | Le fa chi sviluppa con la guida di `docs/archivio/brief/brief-interfaccia.md` (funzione, criteri, possibilità reali, la prima sempre "com'è oggi"); le approva il referente dei file comuni (T3-81, T3-82). Nessuna palette, carattere o paradigma deciso in anticipo |
 | I2 | Stile di app e pagine statiche | Task MVP | Tema, caratteri, componenti di base e icone, nell'app e in `adflow.css` insieme; cambiano i valori, non i nomi dei colori e delle variabili (T3-83). Al massimo una libreria nuova, di icone |
-| I3 | Testi | Task MVP | Testi visibili scritti nel frontend, con il tono scelto; restano i testi fissi di `brief-interfaccia.md` §1.4 (T3-84) |
+| I3 | Testi | Task MVP | Testi visibili scritti nel frontend, con il tono scelto; restano i testi fissi di `docs/archivio/brief/brief-interfaccia.md` §1.4 (T3-84) |
 | I4 | Layout e telefono | Task MVP | Le pagine e le larghezze scelte, prima il percorso della demo dell'artigiano; solo proprietà visive e CSS (T3-85) |
 | I5 | Prova con due persone | Task MVP | Tre compiti sul telefono; correzioni solo di stile o testo (T3-86) |
 | I6 | Comportamento | Mantieni | Backend, rotte, chiamate, campi, validazioni, condizioni, stati, ordine di sezioni e passi: invariati |

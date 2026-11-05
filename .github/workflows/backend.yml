@@ -1,4 +1,4 @@
-# Controllo del backend a ogni PR: gli stessi comandi di docs/agenti/converge.md §1,
+# Controllo del backend a ogni PR: gli stessi comandi di backend/README.md (Comandi),
 # su una macchina pulita.
 name: Backend
 

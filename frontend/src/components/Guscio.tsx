@@ -1,6 +1,6 @@
 /**
  * Cornice delle pagine interne: barra laterale con marca, voci, utente
- * collegato ed Esci (docs/pagine, ADR-113).
+ * collegato ed Esci (docs/archivio/pagine, ADR-113).
  */
 import { Avatar, Burger, Title } from "@mantine/core";
 import { useDisclosure } from "@mantine/hooks";

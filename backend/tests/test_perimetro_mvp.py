@@ -1,4 +1,4 @@
-"""Test del perimetro MVP (ADR-114, `perimetro-mvp.md`).
+"""Test del perimetro MVP (ADR-114, `docs/archivio/perimetro-mvp.md`).
 
 Raccoglie i controlli sulle funzioni tolte o sostituite nell'MVP:
 - `POST /campagne/{id}/prosegui` tolto (A3);

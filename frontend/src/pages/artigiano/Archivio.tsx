@@ -1,5 +1,5 @@
 /**
- * L'archivio foto dell'artigiano (docs/pagine/AdFlow-archivio-foto.html, spec
+ * L'archivio foto dell'artigiano (docs/archivio/pagine/AdFlow-archivio-foto.html, spec
  * R-47, ADR-117, H4): le sue foto campagna per campagna, in sola lettura.
  * Le immagini AI compaiono con l'approvazione della campagna.
  */

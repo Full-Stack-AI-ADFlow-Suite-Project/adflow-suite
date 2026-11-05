@@ -21,7 +21,7 @@ descrizione, durata, gruppi e foto vere), la invia e la genera come ``prova-ai``
 poi mette a confronto il suo riepilogo con quello della campagna di partenza.
 Va lanciato a worker fermo: l'invio mette in coda anche il job di generazione.
 
-``demo`` prepara da database vuoto i dati della demo (T3-06, converge §4): il
+``demo`` prepara da database vuoto i dati della demo (T3-06, percorso della demo in backend/README.md): il
 seed, la bottega della demo con il profilo e una campagna in bozza pronta da
 inviare, con le foto vere prese dalla cartella. Profilo e testi si cambiano con
 un ``demo.json`` nella stessa cartella. Le foto non entrano in git.

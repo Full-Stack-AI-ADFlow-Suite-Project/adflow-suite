@@ -2,7 +2,7 @@ import layout from "../components/Layout.module.css";
 import stili from "./Accesso.module.css";
 /**
  * Accesso: una sola pagina per artigiano, operatore e admin
- * (docs/pagine/AdFlow-login.html). Un solo messaggio di errore
+ * (docs/archivio/pagine/AdFlow-login.html). Un solo messaggio di errore
  * per ogni credenziale sbagliata (CA-02); nessuna registrazione né
  * recupero password: sotto il modulo il contatto del consorzio.
  */
