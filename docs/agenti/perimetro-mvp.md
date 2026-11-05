@@ -1,6 +1,6 @@
 # Perimetro MVP
 
-Decisione ADR-114 del 13/10/2026, aggiornata con ADR-116…119 (interventi, pagine, interfaccia, richieste dopo la prova: blocchi H, I, J e le righe citate in ognuno). Consegna e pitch il **6 novembre 2026**; codice bloccato il **30 ottobre**, il **1° novembre** per la corsia 9. ADR-121 del 2/11/2026 riapre il codice per i soli task delle corsie 11, 12 e 13 (T5-111…T5-136): correzioni dei rilievi, nessuna funzione nuova e nessuna riga di questa pagina cambia.
+Decisione ADR-114 del 13/10/2026, aggiornata con ADR-116…119 (interventi, pagine, interfaccia, richieste dopo la prova: blocchi H, I, J e le righe citate in ognuno). Consegna e pitch il **6 novembre 2026**; codice bloccato il **30 ottobre**, il **1° novembre** per la corsia 9. ADR-121 del 2/11/2026 riapre il codice per i soli task delle corsie 11, 12 e 13 (T5-111…T5-136): correzioni dei rilievi, nessuna funzione nuova e nessuna riga di questa pagina cambia. ADR-123 del 5/11/2026 chiude tutto: la data del 6 novembre non vale più e non ce n'è una nuova; i lavori si aprono uno alla volta su scelta del team.
 Questa pagina dice che cosa entra nell'MVP. Dove `spec.md`, `plan.md` o `tasks.md` non tornano con questa pagina, vale questa pagina.
 
 | Decisione | Significato |

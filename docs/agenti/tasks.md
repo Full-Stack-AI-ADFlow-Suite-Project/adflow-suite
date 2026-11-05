@@ -1,8 +1,8 @@
 # Tasks
 
-Gli sprint sono chiusi: l'ultimo è lo **Sprint 5 · Corsia rapida** (ADR-121), chiuso il 4 novembre 2026 con un solo task aperto, T5-112 (nota in fondo allo sprint 5). Il blocco del codice dello Sprint 3 (ADR-114) vale per tutto. Gli sprint 1, 2a e 2b sono in `docs/archivio/tasks-sprint-1-2.md`. I brief citati nella colonna *Leggi* sono archiviati in `docs/archivio/brief/`, i report della simulazione in `docs/archivio/accettazione/` (ADR-122). Ciò che non entra nell'MVP è in `docs/ROADMAP.md`.
+**Tutto chiuso (ADR-123, 5 novembre 2026).** Gli sprint sono conclusi, l'ultimo è lo **Sprint 5 · Corsia rapida** (ADR-121), e non c'è più una data di consegna. Questa pagina è storia e fonte di conoscenza passiva: non dice che cosa fare. I lavori nuovi si aprono uno alla volta, in modo chirurgico, quando il team li sceglie; la [Corsia della presentazione](#corsia-della-presentazione) elenca ciò che serve per presentare il progetto quando le sue parti necessarie sono completate, e anche quei lavori si aprono su scelta. Il blocco del codice dello Sprint 3 (ADR-114) resta: un lavoro nuovo è una scelta esplicita. Gli sprint 1, 2a e 2b sono in `docs/archivio/tasks-sprint-1-2.md`. I brief citati nella colonna *Leggi* sono archiviati in `docs/archivio/brief/`, i report della simulazione in `docs/archivio/accettazione/` (ADR-122). Ciò che non entra nell'MVP è in `docs/ROADMAP.md`.
 
-**Da dove riparto?** Dalla radice: `uv run python allinea.py <area>`. Allinea la tua copia a `main` e legge questa pagina per te: stampa i task pronti della tua area (quelli con le dipendenze già ☑), cosa leggere e il branch da aprire. Le caselle di questa pagina sono l'unica fonte dello stato: non tenere elenchi a parte.
+`uv run python allinea.py` resta il comando che allinea la copia locale (main, dipendenze, database); lo stato dei task che stampa è quello di questa pagina, cioè storia.
 
 | Area | Chi | Di cosa si occupa |
 |---|---|---|
@@ -198,12 +198,13 @@ Ogni task ha in `brief-accettazione.md` i file da toccare e da non toccare e il 
 
 Tre corsie, una per sviluppatore, 5 ore ciascuna (ADR-121). Ogni task ha in `brief-corsia-rapida.md` il tetto di ore, come si fa e il suo "Fatto quando": si legge la sezione del proprio task, non tutto il brief.
 
-> **Sprint chiuso il 4 novembre 2026: 11 task su 12 fatti e uniti in `main`** (PR 171–181, controlli di GitHub verdi). **Non è stato fatto, o è stato lasciato fuori:**
+> **Sprint concluso il 5 novembre 2026** (ADR-123). Gli 11 task di correzione sono uniti in `main` (PR 171–181, controlli di GitHub verdi); T5-112, la prova finale del percorso, è chiuso senza essere eseguito e passa alla [Corsia della presentazione](#corsia-della-presentazione) come P-01.
 >
-> - **T5-112, la prova finale del percorso**: non eseguita. Serve AI e Meta veri, con tetto di 5 €, e una persona presente; la casella resta ☐ e `T5-112-percorso.md` non esiste. Nessuno ha ancora provato il percorso di `converge.md` §4 su `main`, da database vuoto, con AI e Meta veri.
-> - **Revisione umana**: le PR sono state unite dopo i controlli di GitHub e una revisione incrociata, senza la rilettura di un altro sviluppatore né del referente dei file comuni (`alembic/`, `worker.py`, `main.py`, `core/`, `requirements.txt`). Da farla a posteriori.
+> **I punti qui sotto non sono lavori da fare.** Restano come risorsa per cercare eventuali problemi; finché il team non apre un lavoro su uno di loro, sono fuori dal perimetro.
+>
+> - **Revisione umana**: le PR sono state unite dopo i controlli di GitHub e una revisione incrociata, senza la rilettura di un altro sviluppatore né del referente dei file comuni (`alembic/`, `worker.py`, `main.py`, `core/`, `requirements.txt`).
 > - **Test in locale**: con i database isolati di corsia 6 test falliscono e 23 vanno in errore perché le guardie pretendono il nome `adflow_test`; passano solo dove il database si chiama così (CI, copia principale).
-> - **Limiti noti dei task, non corretti** (fuori dal perimetro, ADR-114):
+> - **Limiti noti dei task, non corretti** (ADR-114):
 >   - disco pieno non gestito nell'archivio foto (congelato) e nelle immagini AI, e con un file troncato lasciato su disco (T5-123);
 >   - byte NUL nei filtri di ricerca e nei campi dei form, `pagina` dello storico AI, `GET /foto/{id}/pubblica` e le rotte `/archivio` congelate (T5-135); il test di accettazione del NUL è stato riscritto e va riletto da chi l'ha scritto;
 >   - il registro eventi segna i 429 e i 503 delle azioni AI come `login_*` (T5-124);
@@ -220,7 +221,7 @@ Tre corsie, una per sviluppatore, 5 ore ciascuna (ADR-121). Ogni task ha in `bri
 | ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
 |---|---|---|---|---|---|
 | T5-111 | **Pubblicazione al massimo una volta**: tentativo confermato prima del social, nessuna ripubblicazione dopo un esito sconosciuto (RL-025) | `brief-corsia-rapida.md` §T5-111; constitution §1.7, §2.6 | T4-108 | RL-025 non è più `xfail`; `alembic downgrade -1` e `upgrade head` funzionano; suite verde | ☑ |
-| T5-112 | **Prova finale del percorso**: converge §4 su `main`, da database vuoto, con AI e Meta veri | `brief-corsia-rapida.md` §T5-112; converge §4 | T5-111, T5-121, T5-122, T5-131, T5-133 | report `T5-112-percorso.md` scritto e nessun punto rotto | ☐ |
+| T5-112 | **Prova finale del percorso**: converge §4 su `main`, da database vuoto, con AI e Meta veri | `brief-corsia-rapida.md` §T5-112; converge §4 | T5-111, T5-121, T5-122, T5-131, T5-133 | chiuso con lo sprint senza essere eseguito: la prova è P-01 della Corsia della presentazione | ☑ |
 
 ### Corsia 12 · Corsia rapida: concorrenza e guasti (Sviluppatore B)
 
@@ -242,13 +243,26 @@ Tre corsie, una per sviluppatore, 5 ore ciascuna (ADR-121). Ogni task ha in `bri
 | T5-135 | **Input estremi**: 422 al posto dei 500 (RL-026) | `brief-corsia-rapida.md` §T5-135 | T4-108 | i test senza marcatore; suite verde | ☑ |
 | T5-136 | **Contrasto**: le quattro violazioni serie di axe (RL-035) | `brief-corsia-rapida.md` §T5-136 | T4-108 | axe senza violazioni serie sulle tre pagine | ☑ |
 
+## Corsia della presentazione
+
+Ciò che serve per presentare il progetto, quando è completato o almeno quando le sue parti necessarie lo sono (ADR-123). Non ha una data e non è uno sprint: ogni voce si apre su scelta del team, come ogni altro lavoro, e la casella si spunta nella PR che la chiude. Le parti necessarie del progetto (per esempio il frontend della PR #170) si decidono di volta in volta e non sono in questa tabella. Le sigle `P-` non sono lette da `allinea.py`.
+
+| ID | Voce | Riferimento | Dopo | Fatto quando | ☐ |
+|---|---|---|---|---|---|
+| P-01 | **Prova finale del percorso** (era T5-112): il percorso della demo su `main`, da database vuoto, con AI e Meta veri, tetto di 5 € e una persona presente | converge §4; `brief-corsia-rapida.md` §T5-112 | le parti necessarie completate; P-02 | report della prova scritto, con il costo, e nessun punto rotto | ☐ |
+| P-02 | **Dati della demo pronti**: cartella delle foto senza persone riconoscibili, chi le ha fatte e dove stanno scritto nel README del backend; seed, pagina Meta di prova, token valido e tunnel provati | `backend/README.md`; T3-06 | — | da database vuoto un comando prepara la demo con foto che si possono mostrare | ☐ |
+| P-03 | **Video di riserva**: lo stesso percorso di P-01, registrato e salvato in `qa/` al posto di quello di T3-07 | converge §4; `qa/T3-07/README.md` | P-01 | video salvato e riprodotto offline sulla macchina della presentazione | ☐ |
+| P-04 | **Proposta tecnica allo stato finale**: milestone, ore, costi e date di `docs/proposta-tecnica.md` aggiornati a ciò che il progetto è | `docs/proposta-tecnica.md`; `docs/ROADMAP.md` | le parti necessarie completate | nessuna data o stato superato; riletta da un collega | ☐ |
+| P-05 | **Pitch allo stato finale**: slide e scaletta (`docs/pitch.md`, `docs/pagine/AdFlow-pitch.html`) senza la data del 6/11, con le schermate e i numeri del progetto finito | P-04; `docs/ROADMAP.md` | P-04 | slide pronte; due prove cronometrate sotto i 10 minuti | ☐ |
+| P-06 | **Prova generale**: pitch e demo dal vivo sulla macchina e sulla rete della presentazione, con il video di P-03 come riserva | P-01…P-05 | P-01, P-03, P-05 | una prova completa senza interruzioni, con il piano B provato | ☐ |
+
 ## Dopo l'MVP
 
 Ciò che non entra nell'MVP (ritocco delle foto, ingresso dell'operatore, anagrafica, collegamento degli account, promemoria, metriche, immagini AI chieste dall'artigiano) è in `docs/ROADMAP.md`.
 
 ## Follow-up aperti
 
-`allinea.py` li mostra finché la casella non è spuntata. Quelli chiusi sono in `docs/archivio/tasks-sprint-1-2.md`.
+Le issue di GitHub da tenere d'occhio; `allinea.py` le mostra finché la casella non è spuntata. Quelle chiuse sono in `docs/archivio/tasks-sprint-1-2.md`.
 
 | Issue | Corsia | Task / fatto quando | Preparato |
 |---|---|---|---|

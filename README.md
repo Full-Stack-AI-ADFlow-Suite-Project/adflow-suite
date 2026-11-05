@@ -2,7 +2,7 @@
 
 Repository ufficiale per il progetto di fine tirocinio Full Stack AI.
 
-**Perimetro MVP** (ADR-114): consegna e pitch il 6 novembre 2026, codice bloccato il 30 ottobre. Che cosa entra nell'MVP: [`docs/agenti/perimetro-mvp.md`](docs/agenti/perimetro-mvp.md); che cosa resta fuori: [`docs/ROADMAP.md`](docs/ROADMAP.md).
+**Stato** (ADR-123): tutto chiuso dal 5 novembre 2026, senza una data di consegna. I lavori si aprono uno alla volta, su scelta del team; la documentazione è una fonte di conoscenza, non un elenco di cose da fare. Che cosa entra nell'MVP: [`docs/agenti/perimetro-mvp.md`](docs/agenti/perimetro-mvp.md); che cosa resta fuori: [`docs/ROADMAP.md`](docs/ROADMAP.md); che cosa serve per presentarlo: la corsia della presentazione in [`docs/agenti/tasks.md`](docs/agenti/tasks.md).
 
 ## ▶️ Si parte da qui
 
@@ -12,12 +12,11 @@ Ogni volta che riapri il progetto, dalla radice del repository:
 uv run python allinea.py
 ```
 
-Un solo comando: scarica le novità e aggiorna `main` (mai il tuo branch di lavoro, mai le modifiche non salvate), installa le dipendenze cambiate, porta il database all'ultima migrazione, poi ti dice quali task della tua area sono pronti, cosa leggere per ognuno e che branch aprire.
+Un solo comando: scarica le novità e aggiorna `main` (mai il tuo branch di lavoro, mai le modifiche non salvate), installa le dipendenze cambiate e porta il database all'ultima migrazione. Stampa anche lo stato dei task degli sprint, che ora è storia.
 
-- La prima volta indica la tua area: `uv run python allinea.py 3` (0 comune e deliverable, 1 nuovo artigiano e calendario, 2 foto e invio, 3 AI vera, 4 Meta, 5 frontend). Resta ricordata.
-- `uv run python allinea.py tutte` mostra lo stato di tutte le aree; `--stato` mostra lo stato senza toccare nulla.
+- `--stato` mostra lo stato senza toccare nulla.
 - In VS Code è il task predefinito: **Ctrl+Shift+B** (su macOS ⇧⌘B), oppure _Terminal → Run Task → Allinea_.
-- Chi lavora con un agente (Claude Code, Codex, Kilo…) non deve fare altro: [`AGENTS.md`](AGENTS.md) gli dice di lanciarlo a inizio sessione.
+- Chi lavora con un agente (Claude Code, Codex, Kilo…) trova le regole in [`AGENTS.md`](AGENTS.md).
 
 Funziona anche alla prima installazione: vedi [Setup](#-setup-fase-1---locale).
 

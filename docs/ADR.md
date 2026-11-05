@@ -70,6 +70,7 @@ Versione corta (ADR-122): le decisioni che spiegano il prodotto com'è, una fras
 | 116…119 | Corsie 6–9: interventi e richiesta, pagine e calendario, interfaccia, richieste dopo la prova. |
 | 120 | Sprint 4: simulazione di accettazione, con rilievi e non correzioni (`docs/accettazione.md`). |
 | 121 | Sprint 5: corsia rapida, correzioni dei rilievi più gravi, perimetro invariato. |
+| 123 | Tutto chiuso dal 5/11/2026: sprint conclusi, nessuna data di consegna, documentazione come fonte di conoscenza passiva; i lavori si aprono uno alla volta su scelta del team, e ciò che serve per presentare il progetto è nella corsia della presentazione di `tasks.md`. La consegna è stata spostata senza una data nuova. |
 
 ## Superate dal perimetro MVP
 Restano nel registro completo per la storia: ritocco AI delle foto e cicli dei ritocchi (41, 43, 100), minimi di foto e capacità calcolata (60, 64, 75), immagini AI su richiesta, cartoline e riempitivi a tappe (61, 80, 82, 84, 85, 86, 88), piano debole (65, 79), archivio come rimpiazzo (83), spunta e nota interna (92, 94), togli canale (67, 76), ingresso dell'operatore, anagrafica e metriche (105, 107, 108, 109), e le decisioni sulle pagine statiche e sui documenti (53–56, 71–73, 87, 110–112). Dettagli minori e di processo: 18, 19, 21, 27, 38 (profilo e anagrafica), 44 (superata da 116), 45, 50, 51 (avvio del repository e corsie degli sprint 1–2). Le sostituite (15, 17, 20, 22, 23, 26, 31, 32, 34, 36, 39, 42, 46, 48, 52) sono in fondo al registro completo.

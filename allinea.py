@@ -1,4 +1,7 @@
-"""Allinea la tua copia di AdFlow Suite e ti dice da dove ripartire.
+"""Allinea la tua copia di AdFlow Suite e stampa lo stato dei task di tasks.md.
+
+Dal 5/11/2026 è tutto chiuso (ADR-123): lo stato dei task è storia, e quando
+non c'è nulla da fare il comando non suggerisce né task né branch.
 
 Dalla radice del repository:
 
@@ -348,9 +351,7 @@ def stampa_corsia(corsia: Corsia, manca: dict[str, list[str]], esteso: bool) -> 
     )
     da_fare = [t for t in corsia.task if not t.fatto]
     if not da_fare:
-        print(
-            "  Corsia completa per questo sprint: resta la revisione delle PR aperte."
-        )
+        print("  Corsia completa.")
         return
     for task in da_fare:
         if manca[task.id]:
@@ -425,7 +426,7 @@ def main(argomenti: list[str]) -> int:
         for task in anticipo:
             print(f"  →  {task.id} {task.titolo}")
             print(f"       branch:       git switch -c {nome_del_branch(task)}")
-    if not mie and scelta != "tutte":
+    if not mie and scelta != "tutte" and any(not t.fatto for t in totale):
         print(
             "\nPer vedere solo la tua corsia, con cosa leggere e il branch da aprire:"
         )
