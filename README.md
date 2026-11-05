@@ -33,11 +33,13 @@ Funziona anche alla prima installazione: vedi [Setup](#-setup-fase-1---locale).
 Un solo canale fa testo (ADR-114): [`AGENTS.md`](AGENTS.md) e [`docs/agenti/`](docs/agenti/): perimetro dell'MVP (`perimetro-mvp.md`), regole (`constitution.md`), cosa (`spec.md`), come (`plan.md`), task (`tasks.md`), verifica (`converge.md`). Anche le persone ci trovano i task da prendere.
 
 - [`docs/proposta-tecnica.md`](docs/proposta-tecnica.md): la proposta tecnica per il cliente (analisi, architettura, piano con costi e tempi).
+- [`docs/pitch.md`](docs/pitch.md): scaletta del pitch del 6 novembre 2026, con le slide in [`docs/pagine/AdFlow-pitch.html`](docs/pagine/AdFlow-pitch.html).
 - [`docs/ROADMAP.md`](docs/ROADMAP.md): ciò che non entra nell'MVP; è anche la slide della roadmap nel pitch.
 - [`docs/pagine/`](docs/pagine/index.html): pagine statiche dell'MVP, riferimento per l'interfaccia.
 - [`docs/ADR.md`](docs/ADR.md): registro delle decisioni, con il perché e le alternative scartate; una riga nuova solo se cambia il perimetro dell'MVP.
-- [`docs/sicurezza-accesso.md`](docs/sicurezza-accesso.md): procedura operativa per proxy, log e HTTPS (issue #16–19).
-- [`docs/archivio/`](docs/archivio/LEGGIMI.md): appunti, note e diagrammi di prima dell'MVP, note datate delle PR, brief e script dei task chiusi; non fanno testo.
+- [`docs/accettazione/`](docs/accettazione/sintesi.md): esito della simulazione di accettazione (`sintesi.md`) e registro dei 44 rilievi (`rilievi.md`).
+- [`docs/sicurezza-accesso.md`](docs/sicurezza-accesso.md): procedura operativa per proxy, log e HTTPS (issue #16–19) e interventi aperti prima di un'esposizione pubblica.
+- [`docs/archivio/`](docs/archivio/LEGGIMI.md): tutto ciò che non fa testo, con la mappa dei vecchi percorsi: appunti e diagrammi di prima dell'MVP, note delle PR, i brief di tutte le corsie, piano e report della simulazione, la valutazione di sicurezza del 30/10, le evidenze di QA (ADR-115, ADR-122).
 
 ## 🚀 Setup (Fase 1 - Locale)
 

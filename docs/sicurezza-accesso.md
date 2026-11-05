@@ -1,6 +1,6 @@
-# Sicurezza dell'accesso · procedura operativa
+# Sicurezza · procedura operativa e interventi aperti
 
-Cosa fa il codice per proteggere l'accesso e cosa deve fare chi installa AdFlow in un ambiente reale. Le regole di sicurezza del progetto sono in `docs/agenti/constitution.md` §3; qui c'è il dettaglio operativo (issue #16–19). La storia delle PR che l'hanno costruito è in `docs/archivio/novita/` e in git.
+Cosa fa il codice per proteggere l'accesso, cosa deve fare chi installa AdFlow in un ambiente reale e che cosa manca prima di esporlo al pubblico con dati veri (ultima sezione). Le regole di sicurezza del progetto sono in `docs/agenti/constitution.md` §3; qui c'è il dettaglio operativo (issue #16–19). La storia delle PR che l'hanno costruito è in `docs/archivio/novita/` e in git; la valutazione completa del 30/10/2026, da cui viene l'ultima sezione, è in `docs/archivio/valutazione-sicurezza.md`; i rilievi della simulazione di accettazione sono in `docs/accettazione/rilievi.md`.
 
 ## In produzione, prima dell'avvio
 
@@ -60,7 +60,7 @@ Cosa fa il codice per proteggere l'accesso e cosa deve fare chi installa AdFlow 
 
   Fuori da `/api/` nessuna di queste intestazioni: una CSP così stretta romperebbe `/docs` e il frontend, che prende le sue da sé.
 
-**Prova locale con TLS e proxy (issue #17, parte locale chiusa).** `tests/moduli/accesso/test_proxy_http_reale.py` prova in locale HTTPS con certificato X.509 verificato, un proxy TLS temporaneo e un processo Uvicorn separato (`--proxy-headers --forwarded-allow-ips 127.0.0.1`), verificando: cookie `Secure`, `HttpOnly`, `SameSite=Lax`, `Path=/` e assenza di `Domain` al login e al logout; sovrascrittura degli header contraffatti (`X-Forwarded-Proto`, `X-Forwarded-For`, `X-Request-ID`); rifiuto degli header inoltrati quando la richiesta arriva da un indirizzo non fidato (`192.0.2.1`). Evidenza registrata in `qa/issue-17/README.md` (senza cookie, credenziali o chiavi private). Per un futuro ambiente di staging pubblico si ripete la stessa verifica sul reverse proxy esterno.
+**Prova locale con TLS e proxy (issue #17, parte locale chiusa).** `tests/moduli/accesso/test_proxy_http_reale.py` prova in locale HTTPS con certificato X.509 verificato, un proxy TLS temporaneo e un processo Uvicorn separato (`--proxy-headers --forwarded-allow-ips 127.0.0.1`), verificando: cookie `Secure`, `HttpOnly`, `SameSite=Lax`, `Path=/` e assenza di `Domain` al login e al logout; sovrascrittura degli header contraffatti (`X-Forwarded-Proto`, `X-Forwarded-For`, `X-Request-ID`); rifiuto degli header inoltrati quando la richiesta arriva da un indirizzo non fidato (`192.0.2.1`). Evidenza registrata in `docs/archivio/qa/issue-17/README.md` (senza cookie, credenziali o chiavi private). Per un futuro ambiente di staging pubblico si ripete la stessa verifica sul reverse proxy esterno.
 
 ## Eventi di sicurezza
 
@@ -80,3 +80,24 @@ Cosa fa il codice per proteggere l'accesso e cosa deve fare chi installa AdFlow 
 ## Come si prova
 
 I test girano su `adflow_test`, con host `localhost` o `127.0.0.1` e porta 5432, e controllano `current_database()` nei processi che aprono connessioni: mai sul database dell'applicazione. Coprono il limite esatto e la scadenza, richieste concorrenti e processi indipendenti, i guasti del database e del logger, il contenuto JSON senza dati personali, proxy fidati e non fidati, TLS reale, email Unicode e account storici. `cryptography` serve solo a queste prove, per generare certificati temporanei.
+
+## Prima di un'esposizione pubblica
+
+Riassunto degli interventi ancora aperti della valutazione del 30/10/2026 (testo integrale, con i criteri di completamento, in `docs/archivio/valutazione-sicurezza.md`). Già fatti e quindi tolti da qui: controllo di `Origin` sulle richieste mutanti in produzione, validazione HTTPS di `FOTO_URL_PUBBLICO`, probe SAST/DAST locali in CI. Ciò che cambia il perimetro (MFA, recupero password, tetto di spesa AI) va prima concordato: questa lista non autorizza a toccare il codice congelato.
+
+- **TLS, proxy e rete** (issue #17, RL-033): ripetere su uno staging vero la prova locale di sopra; backend raggiungibile solo dal proxy; redirect HTTPS e HSTS; intestazioni di sicurezza anche sul livello che serve il frontend; access log senza query string (i link firmati delle foto).
+- **Segreti**: `LOGIN_LIMITE_SEGRETO`, `META_TOKEN_PAGINA` e `OPENAI_API_KEY` in un secret manager; procedura di rotazione e revoca coordinata tra le istanze; token Meta con i permessi minimi; utente del database dedicato con privilegi minimi e TLS verso il database se non è locale; permessi su archivio foto, configurazione e backup cifrati, con un ripristino provato.
+- **CSRF e CORS**: provare il caso di un sottodominio non autorizzato; API same-origin, oppure una allowlist esatta senza credenziali per origini arbitrarie.
+- **Sessioni**: MFA almeno per `operatore` e `admin`; durata massima assoluta oltre al timeout d'inattività; revoca di tutte le sessioni di un utente; reset della password con token monouso (task a parte).
+- **Abuso e spesa**: rate limit per endpoint e per utente su upload, rigenerazioni e job; limiti di concorrenza; budget, allarmi e interruttore sul provider AI; limiti di frequenza al proxy sulle foto pubbliche, senza bloccare Meta; limite del body anche nel proxy.
+- **Foto firmate**: chiave dedicata, distinta da quella dei contatori; durata minima utile a Meta e cache allineata alla scadenza; mai URL firmati in log, errori o referrer.
+- **Log e incidenti**: raccolta centralizzata con accesso ristretto e allarmi; eventi anche per utenti, ruoli, approvazioni e pubblicazioni; una procedura di risposta agli incidenti (revoca token, invalidazione sessioni, rotazione segreti).
+- **Dipendenze e CI**: aggiornamenti automatici (Dependabot o simili), lock delle dipendenze transitive (RL-001/002), scansione dei segreti, `GITHUB_TOKEN` con i permessi minimi e Actions fissate a uno SHA; pillow da aggiornare (RL-004).
+- **Dati personali e provider** (RL-040…RL-044): inventario dei dati, che cosa va al provider AI e con che conservazione, retention e cancellazione di database, foto, backup e log.
+
+La valutazione si rilancia da `backend/`, solo su `adflow_test` locale (la suite ricrea lo schema; il log JSONL va in `backend/security-assessment-logs/`, ignorato da git):
+
+```powershell
+uv run python scripts/esegui_valutazione_sicurezza.py --security-only
+uv run python scripts/esegui_valutazione_sicurezza.py
+```
