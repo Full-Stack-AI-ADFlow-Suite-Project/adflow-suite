@@ -12,7 +12,7 @@ Dalla radice, ogni volta che riapri il progetto:
 uv run python allinea.py
 ```
 
-Aggiorna `main` (mai il branch di lavoro né le modifiche non salvate), installa le dipendenze cambiate e porta il database all'ultima migrazione; `--stato` mostra lo stato senza toccare nulla. In VS Code è il task predefinito (**Ctrl+Shift+B**, su macOS ⇧⌘B). Poi `uv run python avvia.py` avvia API, worker e frontend insieme; Ctrl+C li ferma.
+Aggiorna `main` (mai il branch di lavoro né le modifiche non salvate), installa le dipendenze cambiate e porta il database all'ultima migrazione; `--stato` mostra lo stato senza toccare nulla. In VS Code è il task predefinito (**Ctrl+Shift+B**, su macOS ⇧⌘B). Poi `uv run python avvia.py` avvia API, worker e frontend insieme; Ctrl+C li ferma. Prima di partire controlla che PostgreSQL risponda e che non ci sia già un altro `avvia.py`; poi aspetta l'API (`✓ API pronta`). Log e registro degli avvii stanno in `logs/` (non versionata): `app_runtime.log` (ruota a 5 MB) e `registro_avvii.log` (una riga per avvio e per arresto, con PID e motivo). `--no-log` non scrive nulla.
 
 **La prima volta** servono [uv](https://docs.astral.sh/uv/getting-started/installation/), PostgreSQL 16 con i database `adflow` e `adflow_test` e Node 22+; Python 3.11 lo scarica uv. `allinea.py` crea `.venv`, installa le dipendenze e l'hook di `pre-commit`, copia `backend/.env.example` in `backend/.env` e si ferma: si mettono utente e password di PostgreSQL in `DATABASE_URL` e `DATABASE_URL_TEST` e si rilancia. I comandi sono gli stessi su Windows, macOS e Linux e si lanciano uno alla volta.
 
