@@ -220,9 +220,9 @@ Tre corsie, una per sviluppatore, 5 ore ciascuna (ADR-121), con il brief `brief-
 
 ## Corsia della presentazione
 
-Ciò che serve per presentare il progetto (ADR-123). Il codice è considerato pronto: da qui cambia solo con modifiche mirate. Non ha una data e non è uno sprint: ogni voce si apre su scelta del team, come ogni altro lavoro, e la casella si spunta nella PR che la chiude. L'unica parte del codice ancora in lavorazione è il frontend della PR #170: prima di P-01 si decide se entra (unita) o resta fuori, perché video, schermate e pitch mostrano l'interfaccia definitiva. Le sigle `P-` non sono lette da `allinea.py`.
+Ciò che serve per presentare il progetto (ADR-123). Il codice è considerato pronto: da qui cambia solo con modifiche mirate. Non ha una data e non è uno sprint: ogni voce si apre su scelta del team, come ogni altro lavoro, e la casella si spunta nella PR che la chiude. La PR #170 è stata unita il 5/11/2026: vetrina pubblica su `/`, pagina `/privacy`, restyling dell'accesso e wordmark AdFlow sono in `main` — l'interfaccia per P-01 è questa. I ritocchi rimasti sono in `docs/idee.md` §Frontend. Le sigle `P-` non sono lette da `allinea.py`.
 
-**Ordine.** P-02 → decisione sulla PR #170 → P-01 → P-03; poi P-04 → P-05 → P-06. P-04 si può scrivere in parallelo a P-01.
+**Ordine.** P-02 → P-01 → P-03; poi P-04 → P-05 → P-06. P-04 si può scrivere in parallelo a P-01.
 
 **Modifiche mirate.** Ogni punto rotto trovato in P-01, P-03 o P-06 diventa una PR piccola e chirurgica, solo per quel punto; poi si ripete il solo passo rotto, non tutto il percorso.
 
@@ -230,10 +230,10 @@ Ciò che serve per presentare il progetto (ADR-123). Il codice è considerato pr
 
 | ID | Voce | Riferimento | Dopo | Fatto quando | ☐ |
 |---|---|---|---|---|---|
-| P-01 | **Prova finale del percorso** (era T5-112): il percorso della demo su `main`, da database vuoto, con AI e Meta veri e una persona presente | il percorso della demo di `backend/README.md`; `brief-corsia-rapida.md` §T5-112 | P-02; decisione sulla PR #170 | report della prova scritto, con il costo; ogni punto rotto corretto con una modifica mirata e il suo passo ripetuto | ☐ |
+| P-01 | **Prova finale del percorso** (era T5-112): il percorso della demo su `main`, da database vuoto, con AI e Meta veri e una persona presente | il percorso della demo di `backend/README.md`; `brief-corsia-rapida.md` §T5-112 | P-02 | report della prova scritto, con il costo; ogni punto rotto corretto con una modifica mirata e il suo passo ripetuto | ☐ |
 | P-02 | **Dati della demo pronti**: cartella delle foto senza persone riconoscibili, chi le ha fatte e dove stanno scritto nel README del backend; seed, pagina Meta di prova, token valido e tunnel provati. La cartella non è nel repository: la porta chi la tiene (responsabile da indicare all'apertura) | `backend/README.md`; T3-06 | — | da database vuoto un comando prepara la demo con foto che si possono mostrare | ☐ |
 | P-03 | **Video di riserva**: lo stesso percorso di P-01, registrato e salvato al posto di quello di T3-07 | il percorso della demo di `backend/README.md`; `docs/archivio/qa/T3-07/README.md` | P-01 | video salvato e riprodotto offline sulla macchina della presentazione | ☐ |
-| P-04 | **Proposta tecnica allo stato finale**: milestone, ore, costi e date di `docs/proposta-tecnica.md` aggiornati a ciò che il progetto è | `docs/proposta-tecnica.md`; `docs/ROADMAP.md` | decisione sulla PR #170 | nessuna data o stato superato; riletta da un collega | ☐ |
+| P-04 | **Proposta tecnica allo stato finale**: milestone, ore, costi e date di `docs/proposta-tecnica.md` aggiornati a ciò che il progetto è | `docs/proposta-tecnica.md`; `docs/ROADMAP.md` | — | nessuna data o stato superato; riletta da un collega | ☐ |
 | P-05 | **Pitch allo stato finale**: scaletta (`docs/pitch.md`) e slide senza la data del 6/11, con le schermate e i numeri del progetto finito; le slide di T3-05 sono in archivio (`docs/archivio/pagine/AdFlow-pitch.html`) e lì restano com'erano | P-04; `docs/ROADMAP.md` | P-04 | slide pronte; due prove cronometrate sotto i 10 minuti | ☐ |
 | P-06 | **Prova generale**: pitch e demo dal vivo sulla macchina e sulla rete della presentazione, con il video di P-03 come riserva | P-01…P-05 | P-01, P-03, P-05 | il token della pagina Meta ricontrollato lo stesso giorno; una prova completa senza interruzioni, con il piano B provato | ☐ |
 
