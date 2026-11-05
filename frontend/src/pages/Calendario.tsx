@@ -1,5 +1,5 @@
 /**
- * Il calendario settimanale (docs/pagine/AdFlow-calendario.html, spec R-48,
+ * Il calendario settimanale (docs/archivio/pagine/AdFlow-calendario.html, spec R-48,
  * ADR-117, H5), uguale per i tre ruoli: l'artigiano vede i suoi post,
  * l'operatore quelli di tutti, con il filtro per bottega. Si naviga una
  * settimana alla volta; senza data il server dà quella di oggi.

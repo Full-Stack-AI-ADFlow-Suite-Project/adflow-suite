@@ -441,7 +441,7 @@ def main(argomenti: list[str]) -> int:
     pronti = [t for c in mie for t in c.task if not t.fatto and not manca[t.id]]
     if pronti:
         print(
-            f"\nProssimo passo: {pronti[0].id}. Regole in AGENTS.md, controllo prima della PR in docs/agenti/converge.md."
+            f"\nProssimo passo: {pronti[0].id}. Regole in AGENTS.md, controlli della PR in backend/README.md."
         )
     return 0
 

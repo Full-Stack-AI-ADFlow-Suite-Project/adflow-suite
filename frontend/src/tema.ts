@@ -2,7 +2,7 @@ import { Anchor, Button, Card, createTheme, Paper, rem } from "@mantine/core";
 import type { CSSVariablesResolver, MantineColorsTuple } from "@mantine/core";
 
 // Palette e caratteri del foglio di stile delle pagine statiche
-// (docs/pagine/assets/adflow.css, ADR-113). Solo tema chiaro.
+// (docs/archivio/pagine/assets/adflow.css, ADR-113). Solo tema chiaro.
 const blu: MantineColorsTuple = [
   "#eef5f1", // --primary-light
   "#d9e9df",

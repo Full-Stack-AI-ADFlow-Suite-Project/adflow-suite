@@ -3,7 +3,7 @@
 Nell'MVP esiste una sola Pagina di prova, da ``.env`` (``META_PAGINA_ID``,
 ``META_INSTAGRAM_ID``, ``META_TOKEN_PAGINA``, ``META_GRAPH_VERSIONE``); la
 tabella ``account_social`` non si legge. Se ``META_INSTAGRAM_ID`` è vuoto il
-canale Instagram passa al finto (ripiego di D1, perimetro-mvp).
+canale Instagram passa al finto (ripiego di D1, docs/archivio/perimetro-mvp.md).
 
 - Facebook: ``POST /{pagina}/photos`` con la foto caricata (``source``) e
   ``message`` → ``id_esterno`` è ``post_id``.

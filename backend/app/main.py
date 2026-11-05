@@ -39,7 +39,7 @@ app.add_middleware(TracciamentoRichieste)
 app.add_middleware(CorrelazioneRichieste)
 # RL-015: le cinque intestazioni di sicurezza sull'API, errori compresi, e
 # solo lì: la CSP stretta romperebbe /docs (il frontend le prende dal proxy,
-# docs/sicurezza-accesso.md). Ultimo, perché il più esterno di tutti.
+# backend/README.md, In produzione). Ultimo, perché il più esterno di tutti.
 app.add_middleware(IntestazioniSicurezza)
 
 for _router in (

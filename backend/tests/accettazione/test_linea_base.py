@@ -5,7 +5,7 @@ Ogni test di questo file descrive un difetto reale trovato dalla corsia 10
 lo dichiara previsto, così la suite resta verde e il difetto resta documentato;
 il giorno in cui qualcuno corregge il difetto, il test passa e pytest lo
 segnala come XPASS strict, obbligando a togliere il marcatore e il rilievo
-nel registro (`docs/accettazione/rilievi.md`).
+nel registro (`docs/archivio/accettazione/rilievi.md`).
 """
 
 import subprocess

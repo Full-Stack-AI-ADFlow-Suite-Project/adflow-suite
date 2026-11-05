@@ -1,5 +1,5 @@
 /* Calendario settimanale: sette colonne da lunedì a domenica, fatto a mano
-   (E1). Misure e regole di docs/pagine/assets/adflow.css; i token sono in
+   (E1). Misure e regole di docs/archivio/pagine/assets/adflow.css; i token sono in
    index.css. */
 .settimana {
   display: grid;
