@@ -4,6 +4,8 @@ import { Navigate, Route, Routes } from "react-router-dom";
 import { RichiedeRuolo } from "./auth";
 import { paginaIniziale, useAuth } from "./contesto-auth";
 import { Accesso } from "./pages/Accesso";
+import { Privacy } from "./pages/Privacy";
+import { Vetrina } from "./pages/Vetrina";
 import { Calendario } from "./pages/Calendario";
 import { Profilo, RichiedeProfilo } from "./pages/artigiano/profilo/Profilo";
 import { Archivio } from "./pages/artigiano/Archivio";
@@ -20,10 +22,11 @@ import { StoricoAI } from "./pages/operatore/StoricoAI";
 import { StoricoAIDettaglio } from "./pages/operatore/StoricoAIDettaglio";
 import { VediCampagna } from "./pages/operatore/VediCampagna";
 
-/** Porta alla pagina di partenza del ruolo (spec R-29). */
+/** Senza sessione mostra la vetrina pubblica; con sessione porta alla
+ *  pagina di partenza del ruolo (spec R-29). */
 function Partenza() {
   const { utente } = useAuth();
-  if (!utente) return <Navigate to="/accesso" replace />;
+  if (!utente) return <Vetrina />;
   return <Navigate to={paginaIniziale(utente.ruolo)} replace />;
 }
 
@@ -41,6 +44,7 @@ export default function App() {
   return (
     <Routes>
       <Route path="/accesso" element={<Accesso />} />
+      <Route path="/privacy" element={<Privacy />} />
       <Route
         path="/ingresso"
         element={

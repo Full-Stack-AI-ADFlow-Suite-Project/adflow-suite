@@ -11,6 +11,7 @@ import type { ReactNode } from "react";
 import type { Ruolo } from "../api/accesso";
 import { leggiProfilo } from "../api/artigiani";
 import { useAuth } from "../contesto-auth";
+import { Wordmark } from "./Wordmark";
 import stile from "./Guscio.module.css";
 
 export interface VoceNav {
@@ -220,25 +221,8 @@ export function Guscio({
         }}
       >
         <Link className={stile.marca} to="/">
-          <span className={stile.marcaIcona}>
-            <svg
-              width="22"
-              height="22"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2.5"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              aria-hidden="true"
-            >
-              <polygon points="12 2 2 7 12 12 22 7 12 2" />
-              <polyline points="2 17 12 22 22 17" />
-              <polyline points="2 12 12 17 22 12" />
-            </svg>
-          </span>
           <span className={stile.marcaTesto}>
-            <b>AdFlow</b>
+            <Wordmark dimensione={19} />
             <span>Suite · {artigiano ? "Artigiano" : "Operatore"}</span>
           </span>
         </Link>

@@ -1,0 +1,104 @@
+[
+  {
+    "antipattern": "side-tab",
+    "name": "Side-tab accent border",
+    "description": "Thick colored border on one side of a card â€” the most recognizable tell of AI-generated UIs. Use a subtler accent or remove it entirely.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "C:\\Users\\web\\Desktop\\adflow-suite\\frontend\\src\\components\\Layout.module.css",
+    "line": 6,
+    "snippet": "border-left: 4px solid var(--mantine-color-yellow-6)",
+    "importedBy": [
+      "Accesso.tsx",
+      "Ingresso.tsx",
+      "Bentornato.tsx",
+      "Passo10.tsx",
+      "Passo11.tsx",
+      "Passo12.tsx",
+      "RichiestaConsorzio.tsx",
+      "SceltaCampagna.tsx",
+      "VistaStato.tsx",
+      "Profilo.tsx",
+      "Decidi.tsx",
+      "PostCard.tsx",
+      "RigaCampagna.tsx"
+    ]
+  },
+  {
+    "antipattern": "side-tab",
+    "name": "Side-tab accent border",
+    "description": "Thick colored border on one side of a card â€” the most recognizable tell of AI-generated UIs. Use a subtler accent or remove it entirely.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "C:\\Users\\web\\Desktop\\adflow-suite\\frontend\\src\\components\\Layout.module.css",
+    "line": 10,
+    "snippet": "border-left: 4px solid var(--mantine-color-gray-6)",
+    "importedBy": [
+      "Accesso.tsx",
+      "Ingresso.tsx",
+      "Bentornato.tsx",
+      "Passo10.tsx",
+      "Passo11.tsx",
+      "Passo12.tsx",
+      "RichiestaConsorzio.tsx",
+      "SceltaCampagna.tsx",
+      "VistaStato.tsx",
+      "Profilo.tsx",
+      "Decidi.tsx",
+      "PostCard.tsx",
+      "RigaCampagna.tsx"
+    ]
+  },
+  {
+    "antipattern": "overused-font",
+    "name": "Overused font",
+    "description": "Inter, Roboto, Fraunces, Geist, Plus Jakarta Sans, and Space Grotesk are used on so many sites they no longer feel distinctive. Each new wave of AI-generated UIs converges on the same handful of faces. Choose a face that gives your interface personality.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "C:\\Users\\web\\Desktop\\adflow-suite\\frontend\\src\\components\\Wordmark.module.css",
+    "line": 2,
+    "snippet": "font-family: \"Inter",
+    "importedBy": [
+      "Wordmark.tsx"
+    ]
+  },
+  {
+    "antipattern": "overused-font",
+    "name": "Overused font",
+    "description": "Inter, Roboto, Fraunces, Geist, Plus Jakarta Sans, and Space Grotesk are used on so many sites they no longer feel distinctive. Each new wave of AI-generated UIs converges on the same handful of faces. Choose a face that gives your interface personality.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "C:\\Users\\web\\Desktop\\adflow-suite\\frontend\\src\\components\\Wordmark.module.css",
+    "line": 10,
+    "snippet": "font-family: \"Instrument Serif",
+    "importedBy": [
+      "Wordmark.tsx"
+    ]
+  },
+  {
+    "antipattern": "side-tab",
+    "name": "Side-tab accent border",
+    "description": "Thick colored border on one side of a card â€” the most recognizable tell of AI-generated UIs. Use a subtler accent or remove it entirely.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "C:\\Users\\web\\Desktop\\adflow-suite\\frontend\\src\\pages\\artigiano\\Ingresso.tsx",
+    "line": 197,
+    "snippet": "borderLeft: \"4px solid",
+    "importedBy": [
+      "App.tsx"
+    ]
+  },
+  {
+    "antipattern": "side-tab",
+    "name": "Side-tab accent border",
+    "description": "Thick colored border on one side of a card â€” the most recognizable tell of AI-generated UIs. Use a subtler accent or remove it entirely.",
+    "severity": "warning",
+    "category": "slop",
+    "file": "C:\\Users\\web\\Desktop\\adflow-suite\\frontend\\src\\pages\\operatore\\vedi-campagna\\decisioni\\RichiestaOperatore.tsx",
+    "line": 57,
+    "snippet": "borderLeft: \"4px solid",
+    "importedBy": [
+      "Decidi.tsx"
+    ]
+  }
+]

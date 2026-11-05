@@ -1,0 +1,94 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-11-04T00:00:00Z",
+  "title": "Design System: AdFlow Suite",
+  "extensions": {
+    "colorMeta": {
+      "primary": { "role": "primary", "displayName": "Verde Consorzio", "canonical": "#2f5d46", "tonalRamp": ["#eef5f1", "#d9e9df", "#b8d5c4", "#8ebba2", "#5f9a7a", "#3f7a5b", "#2f5d46", "#254b38", "#1d3b2c", "#152b20"] },
+      "bg-app": { "role": "neutral", "displayName": "Carta Calda", "canonical": "#f7f5ef", "tonalRamp": ["#f7f5ef", "#efeae0", "#e6e0d4", "#ddd6c7", "#c7bfb0", "#6b655a", "#635d52", "#474239", "#2c352f", "#1f2a24"] },
+      "accent-walnut": { "role": "tertiary", "displayName": "Noce", "canonical": "#7a5230" },
+      "text-main": { "role": "neutral", "displayName": "Inchiostro", "canonical": "#1f2a24" }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display (solo marchio)", "purpose": "Wordmark «adflow»: Inter Tight 800 + Instrument Serif corsivo. Mai nel corpo." },
+      "body": { "displayName": "Body", "purpose": "Testo di lavoro 14px/1.5 in Source Sans 3." },
+      "label": { "displayName": "Label", "purpose": "Sopratitoli e metadati: 12px, 600, maiuscoletto, tracking 0.14em." },
+      "mono": { "displayName": "Mono", "purpose": "ID, orari tecnici, conteggi." }
+    },
+    "shadows": [
+      { "name": "appoggio", "value": "0 1px 2px 0 rgba(31,42,36,0.05)", "purpose": "Default di card e superfici: quasi invisibile." },
+      { "name": "separazione", "value": "0 1px 3px 0 rgba(31,42,36,0.05)", "purpose": "Superfici sopra un fondo sfumato." }
+    ],
+    "motion": [
+      { "name": "ease-standard", "value": "0.2s ease", "purpose": "Transizioni di fondo/hover e apertura della barra laterale." },
+      { "name": "focus-ring", "value": "outline: 2px solid #2f5d46; outline-offset: 2px", "purpose": "Indicatore di tastiera universale, identico alle pagine statiche." }
+    ],
+    "breakpoints": [
+      { "name": "telefono-artigiano", "value": "375px", "purpose": "Larghezza di riferimento del percorso dell'artigiano e della demo." },
+      { "name": "desktop-operatore", "value": "1280px", "purpose": "Larghezza di riferimento delle pagine dell'operatore." }
+    ]
+  },
+  "components": [
+    {
+      "name": "Pulsante primario",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "L'unica azione principale in vista: Verde Consorzio pieno.",
+      "html": "<button class=\"ds-btn-primary\">Approva</button>",
+      "css": ".ds-btn-primary { background: #2f5d46; color: #ffffff; border: none; border-radius: 10px; padding: 10px 18px; font-family: 'Source Sans 3', sans-serif; font-size: 14px; font-weight: 600; cursor: pointer; transition: background 0.2s ease; } .ds-btn-primary:hover { background: #254b38; } .ds-btn-primary:focus-visible { outline: 2px solid #2f5d46; outline-offset: 2px; }"
+    },
+    {
+      "name": "Voce di navigazione (attiva)",
+      "kind": "nav",
+      "refersTo": "nav-item-active",
+      "description": "Voce della barra laterale: attiva su Verde Nebbia, inattiva su trasparente.",
+      "html": "<nav class=\"ds-nav\"><a class=\"ds-voce attiva\" href=\"#\">Ingresso</a><a class=\"ds-voce\" href=\"#\">Campagne</a><a class=\"ds-voce\" href=\"#\">Archivio foto</a></nav>",
+      "css": ".ds-nav { display: flex; flex-direction: column; gap: 4px; background: #ffffff; padding: 12px; width: 226px; border-right: 1px solid #ddd6c7; } .ds-voce { display: block; padding: 9px 12px; color: #474239; font-family: 'Source Sans 3', sans-serif; font-size: 13.5px; font-weight: 500; line-height: 1.5; border-radius: 10px; text-decoration: none; transition: background 0.2s ease; } .ds-voce:hover { background: #efeae0; color: #1f2a24; } .ds-voce.attiva, .ds-voce.attiva:hover { background: #eef5f1; color: #2f5d46; font-weight: 600; } .ds-voce:focus-visible { outline: 2px solid #2f5d46; outline-offset: 2px; }"
+    },
+    {
+      "name": "Card",
+      "kind": "card",
+      "refersTo": "card",
+      "description": "Superficie che porta contenuto: Bianco Foglio, hairline, appoggio quasi invisibile.",
+      "html": "<div class=\"ds-card\"><h3 class=\"ds-card-title\">Campagna di primavera</h3><p class=\"ds-card-body\">12 post su Facebook e Instagram, dal 10 al 24 novembre.</p></div>",
+      "css": ".ds-card { background: #ffffff; border: 1px solid #ddd6c7; border-radius: 14px; box-shadow: 0 1px 2px 0 rgba(31,42,36,0.05); padding: 20px; } .ds-card-title { font-family: 'Source Sans 3', sans-serif; font-size: 15px; font-weight: 700; letter-spacing: -0.015em; color: #1f2a24; margin: 0 0 6px; } .ds-card-body { font-family: 'Source Sans 3', sans-serif; font-size: 14px; line-height: 1.5; color: #474239; margin: 0; }"
+    },
+    {
+      "name": "Badge di stato",
+      "kind": "chip",
+      "refersTo": "badge-stato",
+      "description": "Stato leggibile: pallino + parola umana; tooltip esplicativo al passaggio del mouse.",
+      "html": "<span class=\"ds-badge\"><span class=\"ds-pallino\"></span>In revisione</span> <span class=\"ds-badge ok\"><span class=\"ds-pallino\"></span>Pubblicato</span>",
+      "css": ".ds-badge { display: inline-flex; align-items: center; gap: 6px; background: #e0f2fe; color: #0369a1; border-radius: 9999px; padding: 3px 10px; font-family: 'Source Sans 3', sans-serif; font-size: 12px; font-weight: 600; } .ds-badge.ok { background: #dcfce7; color: #1f6a2f; } .ds-badge .ds-pallino { width: 6px; height: 6px; border-radius: 50%; background: currentColor; }"
+    },
+    {
+      "name": "Campo di testo",
+      "kind": "input",
+      "refersTo": "input-testo",
+      "description": "Bordo su grigio caldo, focus con bordo Verde Medio e outline universale.",
+      "html": "<label class=\"ds-campo-label\" for=\"f\">Titolo della campagna</label><input id=\"f\" class=\"ds-campo\" type=\"text\" placeholder=\"Es. Nuova collezione autunno\" />",
+      "css": ".ds-campo-label { display: block; font-family: 'Source Sans 3', sans-serif; font-size: 13px; font-weight: 600; color: #1f2a24; margin-bottom: 6px; } .ds-campo { width: 100%; background: #ffffff; border: 1px solid #c7bfb0; border-radius: 10px; padding: 10px 12px; font-family: 'Source Sans 3', sans-serif; font-size: 14px; color: #1f2a24; transition: border-color 0.2s ease; } .ds-campo::placeholder { color: #6b655a; } .ds-campo:focus { border-color: #3f7a5b; outline: 2px solid #2f5d46; outline-offset: 2px; }"
+    },
+    {
+      "name": "Wordmark",
+      "kind": "custom",
+      "refersTo": "wordmark",
+      "description": "La firma: «ad» in Inter Tight 800 + «flow» in Instrument Serif corsivo verde.",
+      "html": "<span class=\"ds-wordmark\">ad<em>flow</em></span>",
+      "css": ".ds-wordmark { font-family: 'Inter Tight', 'Source Sans 3', sans-serif; font-weight: 800; letter-spacing: -0.045em; color: #1f2a24; line-height: 1; font-size: 22px; } .ds-wordmark em { font-family: 'Instrument Serif', serif; font-style: italic; font-weight: 400; font-size: 1.08em; letter-spacing: -0.01em; color: #2f5d46; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "La Bottega Editoriale",
+    "overview": "Un banco di lavoro ordinato dove le foto della bottega diventano campagne social: materia artigiana (carta calda, verde bosco, noce) incontra cura tipografica da rivista. App Operate/Read: precisione prima dell'espressione. Anti-riferimento dichiarato: il SaaS generico da template.",
+    "keyCharacteristics": ["Neutri caldi su carta, mai grigi freddi", "Un solo accento portante: Verde Consorzio #2f5d46", "Separazioni con bordi sottili, non con ombre", "Source Sans 3 ovunque; Inter Tight + Instrument Serif solo nel marchio", "Solo tema chiaro; percorso artigiano a 375px"],
+    "rules": [
+      { "name": "La Regola dell'Unica Voce", "body": "Il Verde Consorzio parla per l'azione o lo stato attivo: poche aree per schermata.", "section": "colors" },
+      { "name": "La Regola dell'Inchiostro Mai Nero", "body": "Il testo è #1f2a24; i grigi freddi di default non esistono.", "section": "colors" },
+      { "name": "La Regola della Firma Unica", "body": "Inter Tight e Instrument Serif compaiono solo nel wordmark.", "section": "typography" },
+      { "name": "La Regola del Piatto di Default", "body": "Le superfici si distinguono per bordo, non per ombra.", "section": "elevation" }
+    ],
+    "dos": ["Usare i token del tema con i nomi di adflow.css", "Separare con hairline #ddd6c7 e neutri caldi", "Mantenere l'outline di focus 2px Verde Consorzio", "Mostrare gli stati come parole umane con tooltip", "Verificare il percorso artigiano a 375px"],
+    "donts": ["Non introdurre un secondo accento, gradienti o colori freddi", "Non usare Inter Tight o Instrument Serif nel corpo", "Non schiarire i grigi del testo sotto #6b655a", "Non annidare card dentro card", "Non cambiare comportamento per un intervento visivo"]
+  }
+}
