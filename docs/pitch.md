@@ -3,8 +3,8 @@
 **Evento**: Presentazione finale MVP · 6 novembre 2026
 **Team**: Gianluca, Silvia, Giovanni (coordinamento), Nilton, Angelo
 **Durata massima**: 10 minuti (9 min 15 s nominali + 45 s di margine)
-**Slide interattive**: [`docs/pagine/AdFlow-pitch.html`](pagine/AdFlow-pitch.html)
-**Anteprima Metriche**: [`docs/pagine/AdFlow-operatore-metriche.html`](pagine/AdFlow-operatore-metriche.html)
+**Slide interattive**: [`docs/archivio/pagine/AdFlow-pitch.html`](archivio/pagine/AdFlow-pitch.html)
+**Anteprima Metriche**: [`docs/archivio/pagine/AdFlow-operatore-metriche.html`](archivio/pagine/AdFlow-operatore-metriche.html)
 **Fonti**: [`docs/proposta-tecnica.md`](proposta-tecnica.md) (v1.0), [`docs/ROADMAP.md`](ROADMAP.md), [`docs/agenti/converge.md`](agenti/converge.md) §4
 
 ---
@@ -109,7 +109,7 @@
 ### Slide 8 · Anteprima Post-MVP: la pagina Metriche (`AdFlow-operatore-metriche.html`)
 - **Perché le metriche sono il passo successivo naturale**:
   - Una volta avviate le pubblicazioni regolari, il consorzio e l'artigiano vogliono misurare quali temi, foto e orari generano più interesse.
-- **Cosa mostra l'anteprima già disegnata (`docs/pagine/AdFlow-operatore-metriche.html`)**:
+- **Cosa mostra l'anteprima già disegnata (`docs/archivio/pagine/AdFlow-operatore-metriche.html`)**:
   - **Filtro a tre livelli**: intero consorzio, singola bottega (*Mosaici d'Arte*) o singola campagna (*Collezione d'autunno*).
   - **Indicatori sintetici**: post pubblicati, copertura complessiva, interazioni (mi piace, commenti, salvataggi), tasso medio di interazione e confronto Facebook vs Instagram.
   - **Classifica dei post migliori**: quali uscite hanno funzionato meglio (es. foto del banco di lavoro rispetto alle immagini AI di rimpiazzo) per guidare il piano della campagna successiva.

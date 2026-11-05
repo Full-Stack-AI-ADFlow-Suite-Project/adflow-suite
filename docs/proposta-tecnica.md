@@ -451,7 +451,7 @@ Con 50 botteghe attive, il costo vivo totale di infrastruttura + intelligenza ar
 Dalla roadmap (`docs/ROADMAP.md`), in ordine di priorità:
 
 1. **Riattivazione immediata del codice congelato** (già scritto e testato): spunta di revisione per singolo post, nota interna per post, rimozione di un canale dalla campagna; caroselli da 2 a 4 foto; suggerimento automatico di foto dall'archivio della bottega nel piano.
-2. **Metriche di engagement** per post, campagna e canale (copertura, interazioni, clic da Meta Insights), con pagina **Metriche** (anteprima già pronta in `docs/pagine/AdFlow-metriche.html`), report settimanale e orari scelti dai dati storici.
+2. **Metriche di engagement** per post, campagna e canale (copertura, interazioni, clic da Meta Insights), con pagina **Metriche** (anteprima già pronta in `docs/archivio/pagine/AdFlow-operatore-metriche.html`), report settimanale e orari scelti dai dati storici.
 3. **Collegamento OAuth degli account social** di ogni bottega con Advanced Access e App Review di Meta; sospensione automatica se un permesso scade.
 4. **Pagine operatore di gestione**: ingresso con quadro del consorzio, elenco artigiani (`AdFlow-operatore-artigiani.html`) e scheda anagrafica della bottega (`AdFlow-operatore-artigiano.html`).
 5. **Contenuti avanzati**: ritocco delle foto con l'AI (sfondo e luce senza toccare il prodotto), immagini chieste dall'artigiano sul singolo post, varianti per test A/B; nella richiesta all'artigiano, un link da telefono senza password e l'analisi AI immediata della foto sostitutiva.
@@ -478,7 +478,7 @@ Dalla roadmap (`docs/ROADMAP.md`), in ordine di priorità:
 
 ### Fonti
 
-`docs/agenti/perimetro-mvp.md` (ADR-114, ADR-116…119), `docs/agenti/spec.md` §0–§6, `docs/agenti/plan.md` §1–§6, `docs/agenti/constitution.md` §2–§3, `docs/agenti/tasks.md`, `docs/ROADMAP.md`, `docs/valutazione-sicurezza.md`, rapporti delle prove reali `qa/corsia9/T3-927/demo-reale-rapporto.md`, pagine statiche in `docs/pagine/`.
+`docs/agenti/perimetro-mvp.md` (ADR-114, ADR-116…119), `docs/agenti/spec.md` §0–§6, `docs/agenti/plan.md` §1–§6, `docs/agenti/constitution.md` §2–§3, `docs/agenti/tasks.md`, `docs/ROADMAP.md`, `docs/valutazione-sicurezza.md`, rapporti delle prove reali `qa/corsia9/T3-927/demo-reale-rapporto.md`, pagine statiche in `docs/archivio/pagine/`.
 
 ### Decisioni e parametri consolidati nella v1.0
 
