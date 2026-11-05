@@ -1,6 +1,6 @@
 # Sicurezza · procedura operativa e interventi aperti
 
-Cosa fa il codice per proteggere l'accesso, cosa deve fare chi installa AdFlow in un ambiente reale e che cosa manca prima di esporlo al pubblico con dati veri (ultima sezione). Le regole di sicurezza del progetto sono in `docs/agenti/constitution.md` §3; qui c'è il dettaglio operativo (issue #16–19). La storia delle PR che l'hanno costruito è in `docs/archivio/novita/` e in git; la valutazione completa del 30/10/2026, da cui viene l'ultima sezione, è in `docs/archivio/valutazione-sicurezza.md`; i rilievi della simulazione di accettazione sono in `docs/accettazione/rilievi.md`.
+Cosa fa il codice per proteggere l'accesso, cosa deve fare chi installa AdFlow in un ambiente reale e che cosa manca prima di esporlo al pubblico con dati veri (ultima sezione). Le regole di sicurezza del progetto sono in `docs/agenti/constitution.md` §3; qui c'è il dettaglio operativo (issue #16–19). La storia delle PR che l'hanno costruito è in `docs/archivio/novita/` e in git; la valutazione completa del 30/10/2026, da cui viene l'ultima sezione, è in `docs/archivio/valutazione-sicurezza.md`; l'esito della simulazione di accettazione è in `docs/accettazione.md`, i suoi rilievi RL-xxx in `docs/archivio/accettazione/rilievi.md`.
 
 ## In produzione, prima dell'avvio
 

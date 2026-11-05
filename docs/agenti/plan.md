@@ -2,7 +2,7 @@
 
 Come è costruito il prodotto: stack, tabelle, API, job, adattatori, contratti tra i moduli, base comune. Cartelle e regole dei moduli: `constitution.md` §2. Vincoli: regole R-xx di `spec.md` §5.
 
-**Stato** (ADR-114, `perimetro-mvp.md`): nelle tabelle `MVP` = nel prodotto; `congelato` = il codice e i test restano, l'interfaccia lo nasconde, non si estende; `fuori MVP` = non c'è, o il codice l'ha tolto T3-01: è in `docs/ROADMAP.md`. Le righe `fuori MVP` stanno in fondo a ogni tabella.
+**Stato** (ADR-114, `perimetro-mvp.md`): nelle tabelle `MVP` = nel prodotto; `congelato` = il codice e i test restano, l'interfaccia lo nasconde, non si estende; `fuori MVP` = non c'è, o il codice l'ha tolto T3-01: è in `docs/ROADMAP.md`. Le API e i job `fuori MVP` sono in `docs/archivio/fuori-mvp.md`; nel modello dati le righe `fuori MVP` restano, in fondo alla tabella.
 
 ## 1. Stack e configurazione
 Python 3.11+ · FastAPI · Pydantic · SQLAlchemy 2 + Alembic · PostgreSQL 16 · Procrastinate (coda e job in PostgreSQL) · LiteLLM (AI; primo provider OpenAI; provider `finto` per sviluppo e test) · React + Vite + TypeScript + Mantine · pytest. Social simulato e Meta, su una pagina di prova (`SOCIAL_PROVIDER`); email verso un catcher locale (Mailpit). Sessione con cookie httpOnly. Driver psycopg 3: gli indirizzi iniziano con `postgresql+psycopg://`. Le versioni stanno in `backend/requirements.txt`; l'ambiente virtuale è `.venv` nella radice. Cosa offre già il codice comune: §7.
@@ -136,13 +136,6 @@ La versione corrente di un post è l'ultima; il piano corrente è l'ultimo. Vers
 | congelato | revisione | POST /campagne/{id}/nota `{nota}` | operatore | in ogni stato dopo l'invio: decisione `nota`, nessuna email · 422 senza nota (R-32) |
 | congelato | revisione | POST /campagne/{id}/togli-canale `{canale, nota}` | operatore | in generazione_fallita, piano_da_rivedere o in_revisione: post del canale scartati, canale in `canali_tolti`, decisione `canale_tolto`; da generazione_fallita, se resta un canale, riparte il job · 409 se è l'ultimo canale · 422 senza nota |
 | congelato | revisione | POST /post/{id}/controllato `{valore}` | operatore | mette o toglie la spunta (R-30) · 409 fuori da in_revisione o su un post `da_rivedere` |
-| fuori MVP | campagne | PUT /foto/{id} `{da_usare}` | artigiano | la stella (tolta da T3-01) |
-| fuori MVP | revisione | POST /campagne/{id}/prosegui | operatore | piano_da_rivedere → in_generazione (tolto da T3-01, R-20) |
-| fuori MVP | artigiani | PUT, GET, DELETE /profilo/logo | artigiano | il logo della bottega (tolto da T3-01, R-40) |
-| fuori MVP | accesso | POST /auth/cambia-password `{password_attuale, password_nuova}` | autenticato | 204; spegne `deve_cambiare_password`; finché è acceso ogni altra chiamata → 403 (R-37) |
-| fuori MVP | artigiani | POST /artigiani/{id}/password-provvisoria · POST /artigiani/{id}/social/{piattaforma}/collega | operatore | nuova password provvisoria · collegamento degli account |
-| fuori MVP | revisione | POST /post/{id}/ritocca-foto · /scegli-foto | operatore | ritocco e versioni della foto (R-17) |
-| fuori MVP | pubblicazione | GET /metriche?artigiano=&campagna=&dal=&al= | operatore; artigiano solo le sue | metriche (R-39) |
 
 Per ogni percorso: una richiesta oltre `RICHIESTA_MAX_BYTE` (12 MiB: i 10 MB di una foto più il margine del multipart) riceve 413 prima di arrivare al router; `POST /auth/login` oltre il limite dei tentativi riceve 429 con `Retry-After`.
 
@@ -158,9 +151,6 @@ Non esistono: approvazione o scarto del singolo post (dopo l'approvazione la ver
 | MVP | contenuti | `rigenera_post(post_id)` | da /rigenera; 3 esecuzioni | non fa nulla se la campagna non è `in_revisione` o il post non è `da_approvare`; nuovo testo, stesse foto, versioni rifiutate come contesto, validatore; conta il ciclo e spegne l'intervento in corso quando nasce la versione; alla terza esecuzione fallita spegne l'intervento senza contare il ciclo (R-31) |
 | MVP | contenuti | `rigenera_immagine(post_id, nota, riscrivi_testo, nota_testo)` | da /rigenera-immagine; 3 esecuzioni | spec R-49: non fa nulla se la campagna non è `in_revisione`; nuova immagine AI con la nota e i prompt da non ripetere, foto `creata_ai` con il prompt in `analisi_ai`, versione `rigenera_immagine` su ogni post toccato; con `riscrivi_testo` poi il testo (un ciclo di R-03); spegne l'intervento; due rifiuti del provider → nessuna versione |
 | congelato | notifiche | `invia_notifica(notifica_id)` | alla creazione; 3 tentativi | email via adattatore, verso il catcher locale; aggiorna `stato_invio` |
-| fuori MVP | contenuti | `ritocca_foto(post_id)` | da /ritocca-foto | nuova `versione_foto` e nuova versione del post (R-17) |
-| fuori MVP | revisione | `promemoria` | ogni ora | email all'operatore 48 ore prima dell'inizio (R-06) |
-| fuori MVP | pubblicazione | `raccogli_metriche` · `report_settimanale` | giorno · settimana | metriche e riepiloghi (R-39) |
 
 **Generazione nell'MVP** (ADR-114), tappe ③ e ④: il codice passa all'AI solo le foto migliori per punteggio, fino ai post chiesti per canale; il piano non si ferma mai e i post scoperti hanno `riempitivo` = `immagine_ai`; per ogni uscita scoperta un'immagine AI quadrata 1:1, la stessa sui due canali (spec R-28, R-43), salvata con l'adattatore archivio e creata come foto `creata_ai` con `campagne.service.aggiungi_foto()`. Ogni chiamata all'AI scrive una riga `chiamata_ai` (spec R-44, R-50). L'archivio non entra nel piano e il controllo accetta come riempitivo solo `immagine_ai`.
 

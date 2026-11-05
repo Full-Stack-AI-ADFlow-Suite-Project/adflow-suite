@@ -1,7 +1,7 @@
 # Roadmap · AdFlow Suite
 
 Ciò che non entra nell'MVP del 6 novembre 2026 (ADR-114, `docs/agenti/perimetro-mvp.md`). È anche la slide "dove può arrivare il prodotto" del pitch.
-**Da riattivare** = il codice esiste ed è testato, ma nell'MVP è congelato e nascosto. **Da costruire** = solo analisi e, a volte, tabelle già pronte. Le regole (R-xx) e i criteri (CA-xx) di ciò che è da costruire sono in `docs/agenti/spec.md` §7.
+**Da riattivare** = il codice esiste ed è testato, ma nell'MVP è congelato e nascosto. **Da costruire** = solo analisi e, a volte, tabelle già pronte. Le regole (R-xx) e i criteri (CA-xx) di ciò che è da costruire sono in `docs/archivio/fuori-mvp.md`.
 
 ## Contenuti e AI
 

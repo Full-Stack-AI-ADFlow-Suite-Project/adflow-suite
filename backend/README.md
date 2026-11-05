@@ -2,7 +2,7 @@
 
 Monolite a moduli + worker per la gestione di campagne social per artigiani.
 
-Installazione, configurazione, avvio e controlli prima della PR sono nel [README principale](../README.md): qui c'è solo la mappa del codice. Per allinearti e sapere quale task prendere, dalla radice: `uv run python allinea.py`.
+La prima installazione si fa dalla radice con `uv run python allinea.py` ([README principale](../README.md)); qui ci sono i comandi del backend, i dati della demo, la pubblicazione su Meta e la mappa del codice.
 
 ## Stack
 
@@ -34,6 +34,10 @@ uv run black --check .                                                    # form
 I due database si creano una volta sola, con l'utente del tuo PostgreSQL che metti in `DATABASE_URL` e `DATABASE_URL_TEST` (se `createdb` non c'è, installa il client di PostgreSQL, per esempio `postgresql-client`). Su una macchina nuova è questo l'ordine: `createdb`, poi `allinea.py` o `alembic upgrade head`.
 
 **Il nome `adflow_test` e la porta 5432 sono un vincolo, non un'opzione** (RL-012): le fixture dei test verificano di essere collegati proprio a quel database, su quella porta (danno per scontato `DATABASE_URL_TEST` su `localhost:5432/adflow_test`); con un nome o una porta diversi la suite non parte. Lo svuotano e lo riportano all'ultima migrazione a ogni esecuzione: non metterci dati da conservare.
+
+Il seed chiede a terminale la password dei tre utenti (`artigiano@example.com`, `operatore@example.com`, `admin@example.com`) e crea gli account social finti Facebook e Instagram dell'artigiano, `collegato`; si può rilanciare: ciò che esiste resta com'è. Altri comandi: `uv run python -m app.cli crea-utente --email … --nome … --ruolo artigiano|operatore|admin` e `uv run python -m app.cli cambia-password --email …` (chiede la password a terminale e chiude le sessioni dell'utente).
+
+In `.env`: `CONSORZIO_NOME`, `CONSORZIO_TELEFONO` e `CONSORZIO_EMAIL` sono i soli dati di `GET /api/consorzio`, senza sessione; `SESSIONE_ARTIGIANO_GIORNI=7` e `SESSIONE_OPERATORE_ORE=12` (anche per l'admin) sono la durata della sessione senza uso, rinnovata a ogni richiesta. `OROLOGIO_GIORNI_AVANTI=12` manda avanti di 12 giorni l'ora di API e worker per provare la pubblicazione: si riavviano entrambi e si rifà l'accesso; le date scritte dal database restano vere; in produzione deve restare 0, o l'applicazione non parte. Le tabelle della coda le crea la migrazione 007. Controllo: `http://localhost:8000/api/health` risponde `{"stato":"ok"}`, le API sono documentate su `http://localhost:8000/docs`.
 
 ## Dati della demo
 
