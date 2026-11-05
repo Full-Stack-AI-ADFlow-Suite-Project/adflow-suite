@@ -13,6 +13,8 @@ from pathlib import Path
 import socket
 import sys
 import threading
+import time
+import types
 from unittest.mock import MagicMock
 
 import pytest
@@ -237,9 +239,15 @@ def test_main_ctrl_c_registra_arresto_regolare(monkeypatch, tmp_path: Path):
     )
 
     def interrompi(_secondi):
-        raise KeyboardInterrupt
+        # Solo nel thread principale (il ciclo di main): i thread di appoggio e
+        # `subprocess` usano il vero `time.sleep`, che qui non va toccato.
+        if threading.current_thread() is threading.main_thread():
+            raise KeyboardInterrupt
 
-    monkeypatch.setattr(avvia.time, "sleep", interrompi)
+    # Un modulo `time` finto solo per `avvia`: patchare `time.sleep` per tutti
+    # farebbe scattare Ctrl+C anche dentro `Popen.wait` (visto in CI su Linux).
+    finto_time = types.SimpleNamespace(monotonic=time.monotonic, sleep=interrompi)
+    monkeypatch.setattr(avvia, "time", finto_time)
     assert avvia.main() == 0
     ultima = registro.read_text(encoding="utf-8").splitlines()[-1]
     assert "| ARRESTO | Ctrl+C" in ultima
