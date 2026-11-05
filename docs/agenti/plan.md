@@ -7,7 +7,7 @@ Versione corta (ADR-122): la mappa per orientarsi nel codice, che resta la fonte
 ## 1. Stack e configurazione
 Python 3.11+ · FastAPI · Pydantic · SQLAlchemy 2 + Alembic · PostgreSQL 16 (driver psycopg 3, `postgresql+psycopg://`) · Procrastinate (coda e job in PostgreSQL) · LiteLLM (AI; provider `finto` per sviluppo e test) · React + Vite + TypeScript + Mantine · pytest. Social `finto` o `meta`, su una pagina di prova; email verso Mailpit. Sessione con cookie httpOnly.
 
-Ogni variabile di `backend/.env` è un campo di `core/config.py` ed è in `.env.example` con un valore finto: database, archivio foto, AI (`AI_PROVIDER`, modelli, chiavi, prezzi), Meta (`SOCIAL_PROVIDER`, pagina, token, `FOTO_URL_PUBBLICO`), tempi (`ANTICIPO_MINIMO_GIORNI=3`, `MARGINE_SLOT_MINUTI=15`, `OROLOGIO_GIORNI_AVANTI=0`, durate delle sessioni), consorzio, sicurezza (`AMBIENTE`, limiti del login, `LOGIN_LIMITE_SEGRETO`, `COOKIE_SECURE`: `docs/sicurezza-accesso.md`).
+Ogni variabile di `backend/.env` è un campo di `core/config.py` ed è in `.env.example` con un valore finto: database, archivio foto, AI (`AI_PROVIDER`, modelli, chiavi, prezzi), Meta (`SOCIAL_PROVIDER`, pagina, token, `FOTO_URL_PUBBLICO`), tempi (`ANTICIPO_MINIMO_GIORNI=3`, `MARGINE_SLOT_MINUTI=15`, `OROLOGIO_GIORNI_AVANTI=0`, durate delle sessioni), consorzio, sicurezza (`AMBIENTE`, limiti del login, `LOGIN_LIMITE_SEGRETO`, `COOKIE_SECURE`: `backend/README.md`, sezione In produzione).
 
 ## 2. Modello dati
 | Modulo | Tabelle |
