@@ -238,3 +238,7 @@ logs/
 # Report Playwright della simulazione di accettazione (T4-106)
 frontend/test-results/
 frontend/playwright-report/
+
+# Artefatti di lavoro di Impeccable (le critiche in .impeccable/critique/ restano)
+.impeccable/walkthrough/
+frontend/walkthrough.tmp.mjs
