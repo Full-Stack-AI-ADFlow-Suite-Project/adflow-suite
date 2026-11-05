@@ -24,6 +24,22 @@ Elenco completo nella nota dello sprint 5 in `docs/agenti/tasks.md`. Uno per sch
 
 Ciò che resta oltre la PR #170: ritocchi d'uso e di stile, pagine che la prova con le persone ha segnalato, telefono. Si può fermare a singole pagine. *Stato: idea.*
 
+Rilievi dell'audit UI (critique Impeccable del 4/11/2026, report in `.impeccable/critique/`) ancora aperti. RL-047, RL-048 e RL-049 erano difetti delle pagine pubbliche e sono corretti nella PR #170.
+
+Da correggere:
+
+- **RL-045** — Le foto caricate si vedono come nomi file, non miniature (`Passo11.tsx`): l'artigiano non può verificare l'upload. `urlFotoFile()` esiste ed è già usata in `VistaStato` e `RichiestaConsorzio`.
+- **RL-046** — Il calendario della campagna mostra un segnaposto «AI 1:1» al posto dell'immagine AI, mentre `ArchivioFoto` allo stesso ruolo mostra l'immagine vera (`CalendarioCampagnaView.tsx` contro `ArchivioFoto.tsx`).
+- **RL-050** — Detriti di demo: link morto «Post su {canale}» (`PostCard.tsx`), «operatore n. 7» con l'ID invece del nome, errore grezzo «Stato non previsto: {stato}» (`VistaStato.tsx`), `Badge` dentro `Text` in `Artigiani.tsx`.
+- **RL-052** — Attriti d'uso: il date picker di `Passo10` ammette una data che il validatore poi rifiuta; gli errori di upload si sovrascrivono e resta solo l'ultimo; «Rimuovi queste foto» elimina serie e descrizione senza conferma; la dichiarazione del passo 12 è rossa prima di toccarla; «Chiama il consorzio» non è un link `tel:`/`mailto:`; i tooltip degli stati ci sono solo per l'operatore; `aria-expanded` mancante sui toggle; 3 `<img>` dell'operatore senza `loading="lazy"`; `Guscio` ricarica il profilo a ogni pagina.
+- **RL-053** — Select di filtro in «Campagne da approvare» senza etichetta visibile né valore selezionato leggibile, soprattutto da telefono.
+- **RL-055** — Le tile foto non danno feedback se l'immagine non si carica: resta un riquadro grigio vuoto, indistinguibile da un caricamento lento.
+
+Proposte:
+
+- **RL-051** — Deriva di vocabolario e struttura: lo stesso stato appare «inviata» (`SceltaCampagna`) e «In lavorazione» (`ElencoCampagne`); tre schemi colore diversi per i canali e tre per le immagini AI; `Passo12` salta da h2 a h4; grigi freddi `#e9ecef` fuori palette in 5 file.
+- **RL-054** — Le barre «Entro quando» sono gialle identiche su ogni riga: l'urgenza non si legge nella barra e si accavalla col bordo rosso di «Preparazione non riuscita».
+
 ## Sistema di log
 
 Oggi ci sono il log JSONL e il tracciamento delle richieste (`backend/app/core/log_jsonl.py`, `tracciamento_richieste.py`). L'idea: un posto unico dove leggere ciò che succede (errori, job del worker, pubblicazioni, chiamate AI), con livelli e filtri; da un semplice visore dei file fino a uno strumento esterno. *Stato: idea.*
