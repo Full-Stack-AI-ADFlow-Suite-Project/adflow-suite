@@ -4,11 +4,12 @@ Salva, legge ed elimina file all'interno della cartella configurata da ARCHIVIO_
 Include controlli rigorosi di sicurezza per prevenire attacchi di Directory Traversal.
 """
 
+import os
 from pathlib import Path
 from typing import Optional
 
 from app.core.config import leggi_impostazioni
-from .base import ArchivioAdapter
+from .base import CARTELLA_DERIVATE, ArchivioAdapter, Derivato
 
 
 class ArchivioDisco(ArchivioAdapter):
@@ -106,3 +107,66 @@ class ArchivioDisco(ArchivioAdapter):
         if not percorso.is_file():
             raise FileNotFoundError(f"File non trovato nell'archivio: {nome_file}")
         return percorso
+
+    # --- File derivati (RT-06) ---------------------------------------------------
+
+    def _percorso_derivato(self, foto_id: int, chiave: str) -> Path:
+        """``<radice>/derivate/<foto_id>/<chiave>.jpg``, dentro ``derivate/`` (come ``_valida_e_risolvi_percorso``)."""
+        foto_id, chiave = self.valida_derivato(foto_id, chiave)
+        base = (self._radice / CARTELLA_DERIVATE).resolve()
+        percorso = (base / str(foto_id) / f"{chiave}.jpg").resolve()
+        if not percorso.is_relative_to(base):
+            raise ValueError(
+                "Accesso negato: il percorso richiesto è esterno alla cartella dei derivati."
+            )
+        return percorso
+
+    def salva_derivato(self, foto_id: int, chiave: str, contenuto: bytes) -> None:
+        """Scrive il derivato in modo atomico (file temporaneo, poi rinomina)."""
+        self.valida_payload_derivato(contenuto)
+        percorso = self._percorso_derivato(foto_id, chiave)
+        percorso.parent.mkdir(parents=True, exist_ok=True)
+        temporaneo = percorso.with_name(f"{percorso.name}.{os.getpid()}.tmp")
+        try:
+            temporaneo.write_bytes(contenuto)
+            temporaneo.replace(percorso)
+        finally:
+            temporaneo.unlink(missing_ok=True)
+
+    def leggi_derivato(self, foto_id: int, chiave: str) -> bytes:
+        percorso = self._percorso_derivato(foto_id, chiave)
+        if not percorso.is_file():
+            raise FileNotFoundError(f"Derivato non trovato: foto {foto_id}")
+        return percorso.read_bytes()
+
+    def esiste_derivato(self, foto_id: int, chiave: str) -> bool:
+        try:
+            return self._percorso_derivato(foto_id, chiave).is_file()
+        except ValueError:
+            return False
+
+    def elimina_derivato(self, foto_id: int, chiave: str) -> bool:
+        percorso = self._percorso_derivato(foto_id, chiave)
+        try:
+            percorso.unlink(missing_ok=False)
+        except (FileNotFoundError, IsADirectoryError):
+            return False
+        return True
+
+    def elenca_derivati(self) -> list[Derivato]:
+        base = self._radice / CARTELLA_DERIVATE
+        if not base.is_dir():
+            return []
+        trovati: list[Derivato] = []
+        for percorso in base.glob("*/*.jpg"):
+            cartella = percorso.parent.name
+            if not (percorso.is_file() and cartella.isdecimal() and int(cartella) > 0):
+                continue
+            try:
+                self.valida_derivato(int(cartella), percorso.stem)
+            except ValueError:
+                continue
+            trovati.append(
+                Derivato(int(cartella), percorso.stem, percorso.stat().st_mtime)
+            )
+        return trovati

@@ -63,7 +63,7 @@ Nessun job nuovo per il ritocco (ADR-124): la variante Standard si rende alla fi
 I nomi dei job stanno in `core/coda.py`; un job di un altro modulo si accoda con `accoda(nome, …)`, senza importarlo.
 
 ## 5. Adattatori
-In `adapters/<nome>/`, ognuno con interfaccia, finto e reale. **ai**: `analizza_gruppo()`, `pianifica_campagna()`, `genera_post()`, `genera_immagine()`; ogni errore esce come `ErroreAI` con il tipo di R-35; dopo ogni chiamata `ultimo_uso` va in `chiamata_ai`; prompt versionati in `adapters/ai/prompts/`. **social**: `pubblica()`; Meta con Facebook `/{page-id}/photos` e Instagram contenitore + `media_publish`, errori tradotti in temporaneo o definitivo; una sola pagina di prova da `.env`. **email**: catcher locale (congelato). **archivio**: file sotto `ARCHIVIO_FOTO_DIR`.
+In `adapters/<nome>/`, ognuno con interfaccia, finto e reale. **ai**: `analizza_gruppo()`, `pianifica_campagna()`, `genera_post()`, `genera_immagine()`; ogni errore esce come `ErroreAI` con il tipo di R-35; dopo ogni chiamata `ultimo_uso` va in `chiamata_ai`; prompt versionati in `adapters/ai/prompts/`. **social**: `pubblica()`; Meta con Facebook `/{page-id}/photos` e Instagram contenitore + `media_publish`, errori tradotti in temporaneo o definitivo; una sola pagina di prova da `.env`. **email**: catcher locale (congelato). **archivio**: file sotto `ARCHIVIO_FOTO_DIR`; i file derivati (render del ritocco) in `derivate/<foto_id>/<chiave>.jpg` con `salva_derivato`, `leggi_derivato`, `esiste_derivato`, `elimina_derivato`, `elenca_derivati` (RT-06).
 
 ## 6. Contratti tra moduli
 Un modulo legge i dati di un altro solo con le funzioni del `service.py` di quel modulo (niente SQL sulle sue tabelle, niente copie delle sue costanti, lo stato si passa per nome). Ordine: accesso → notifiche → artigiani → campagne → contenuti → revisione → pubblicazione; un modulo usa solo quelli che lo precedono (`tests/test_confini.py`). Le funzioni pubbliche principali:
@@ -78,7 +78,7 @@ Un modulo legge i dati di un altro solo con le funzioni del `service.py` di quel
 | revisione | `scadenze` (per il tick). È revisione a scrivere le righe `approvazione`, anche quelle delle versioni nate dopo l'approvazione: contenuti non conosce quella tabella |
 | pubblicazione | `pubblica_dovuti` e le sue fasi: `prepara_tentativi`, `avvia_chiamata`, `chiama_social`, `registra_esito`, `chiudi_campagne` |
 
-*In arrivo con la corsia del ritocco (ADR-124):* campagne `copia_per_ai` e `prepara_analisi` (RT-03, RT-19), `rendi`, `leggi_render`, `chiave_render` (RT-06); contenuti `rendi_foto_approvate` (RT-07), `ritocca_foto` (RT-28); revisione `approva` che chiama `contenuti.rendi_foto_approvate`. L'adapter dell'archivio ha metodi per i file derivati (RT-06). Nessuna modifica a `core/`.
+*In arrivo con la corsia del ritocco (ADR-124):* campagne `copia_per_ai` e `prepara_analisi` (RT-03, RT-19), `rendi`, `leggi_render`, `chiave_render`, `pota_anteprime` (RT-06, fatte); contenuti `rendi_foto_approvate` (RT-07), `ritocca_foto` (RT-28); revisione `approva` che chiama `contenuti.rendi_foto_approvate`. Nessuna modifica a `core/`.
 
 Una firma si cambia nel task che ne ha bisogno, dicendolo nella PR.
 

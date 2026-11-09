@@ -2,8 +2,10 @@
 
 from collections.abc import Callable, Iterable
 from copy import deepcopy
+from dataclasses import asdict, is_dataclass
 from datetime import date, datetime, timedelta, timezone
 import errno
+import hashlib
 import json
 import logging
 from io import BytesIO
@@ -50,7 +52,7 @@ from .domain import (
 )
 from .immagini import MAX_FOTO_PER_GRUPPO, analizza_e_valida_immagine
 from .colore import apri_in_srgb
-from .esecutore import sistema_foto_buffer
+from .esecutore import VERSIONE_ESECUTORE, Comando, esegui, sistema_foto_buffer
 from .foto_pubblica import (
     DURATA_PREDEFINITA_SECONDI,
     componi_firma as componi_firma_foto,
@@ -1489,6 +1491,110 @@ def copia_per_ai(db: Session, foto_id: int) -> bytes:
     uscita = BytesIO()
     immagine.save(uscita, "JPEG", quality=QUALITA_COPIA_AI)
     return uscita.getvalue()
+
+
+# --- I render salvati (ADR-124, RT-06) -----------------------------------------
+# Un render è il risultato di un comando su una foto, salvato come file derivato
+# (`derivate/<foto_id>/<chiave>.jpg`). La chiave è un hash del comando, delle
+# zone, della versione dell'esecutore e del file originale: lo stesso comando
+# dà la stessa chiave e un solo file. L'originale non si tocca mai (§1.3).
+# I render approvati non si cancellano (§1.2, D2): le anteprime sì, a mano a
+# mano, ma chi pota deve dire quali chiavi sono approvate (`protette`).
+
+
+def _canonico(valore: Any) -> Any:
+    if is_dataclass(valore) and not isinstance(valore, type):
+        return _canonico(asdict(valore))
+    if isinstance(valore, dict):
+        return {str(k): _canonico(v) for k, v in valore.items()}
+    if isinstance(valore, (list, tuple)):
+        return [_canonico(v) for v in valore]
+    return valore
+
+
+def chiave_render(foto_file: str, comando: Comando, zone: Iterable[Any] = ()) -> str:
+    """L'identità di un render: sha256 (esadecimale) di comando, zone, versione dell'esecutore e file.
+
+    Le zone contano come insieme: l'ordine non cambia la chiave.
+    """
+    zone_canoniche = sorted(
+        json.dumps(_canonico(z), sort_keys=True, separators=(",", ":"), default=str)
+        for z in zone
+    )
+    corpo = json.dumps(
+        {
+            "comando": _canonico(comando),
+            "zone": zone_canoniche,
+            "esecutore": VERSIONE_ESECUTORE,
+            "file": foto_file,
+        },
+        sort_keys=True,
+        separators=(",", ":"),
+        default=str,
+    )
+    return hashlib.sha256(corpo.encode("utf-8")).hexdigest()
+
+
+def _foto_con_file(db: Session, foto_id: int) -> Foto:
+    foto = db.get(Foto, foto_id)
+    if foto is None:
+        raise NonTrovato("Foto non trovata.")
+    return foto
+
+
+def rendi(db: Session, foto_id: int, comando: Comando, zone: Iterable[Any] = ()) -> str:
+    """Rende la foto con ``comando`` e restituisce la chiave del render; crea il file solo se manca.
+
+    Raises:
+        NonTrovato: la foto o il suo file originale non ci sono più.
+        DatiNonValidi: il file non si riesce a leggere o il comando non è valido.
+    """
+    foto = _foto_con_file(db, foto_id)
+    zone = list(zone)
+    chiave = chiave_render(foto.file, comando, zone)
+    archivio = ottieni_archivio()
+    if archivio.esiste_derivato(foto.id, chiave):
+        return chiave
+    try:
+        originale = archivio.leggi(foto.file)
+    except FileNotFoundError:
+        raise NonTrovato("File immagine non trovato nell'archivio.") from None
+    archivio.salva_derivato(foto.id, chiave, esegui(originale, comando, zone))
+    return chiave
+
+
+def leggi_render(foto_id: int, chiave: str) -> bytes:
+    """I byte del render salvato.
+
+    Raises:
+        NonTrovato: il render non c'è (o la chiave non è una chiave di render).
+    """
+    archivio = ottieni_archivio()
+    try:
+        return archivio.leggi_derivato(foto_id, chiave)
+    except (FileNotFoundError, ValueError):
+        raise NonTrovato("Render non trovato.") from None
+
+
+def pota_anteprime(
+    *, protette: Iterable[str], eta_max: timedelta, adesso: datetime | None = None
+) -> int:
+    """Elimina i render più vecchi di ``eta_max`` che non sono tra le chiavi ``protette``.
+
+    ``protette`` sono le chiavi dei render approvati o pubblicati: chi pota le
+    ricava da dove le tiene (``versione_post_foto.render``) e non si cancellano
+    mai (§1.2, D2). Restituisce quanti file ha tolto.
+    """
+    protette = set(protette)
+    limite = (adesso or orologio.adesso()).timestamp() - eta_max.total_seconds()
+    archivio = ottieni_archivio()
+    tolti = 0
+    for derivato in archivio.elenca_derivati():
+        if derivato.chiave in protette or derivato.scritto_il >= limite:
+            continue
+        if archivio.elimina_derivato(derivato.foto_id, derivato.chiave):
+            tolti += 1
+    return tolti
 
 
 def foto_sistemata(
