@@ -80,7 +80,7 @@ Regressione delle foto buone: un insieme sintetico di "foto buone" (esposizione 
 | RT-00 | **Preparazione della corsia**: ADR nuovo con le decisioni dal 7 al 9 novembre; spec R-42 e R-21; plan (rotte e job nuovi, §6, §7); questo file | nota §0, §5–§12 | — | documenti coerenti tra loro; comandi verdi | ☑ |
 | RT-01 | **Strumenti di test per le immagini**, numpy, hypothesis in CI | nota §12.1; §3 qui | RT-00 | `tests/immagini.py` con i suoi test; hypothesis eseguito in CI | ☑ |
 | RT-02 | **Colore sRGB** | nota §12.1 | RT-01 | i casi di 12.1 verdi; sistemazione con sRGB | ☑ |
-| RT-03 | **Copia per l'AI preparata dal modulo** | nota §6.1, §7.2 | RT-02 | l'adapter non legge più l'archivio; l'AI riceve sRGB | ☐ |
+| RT-03 | **Copia per l'AI preparata dal modulo** | nota §6.1, §7.2 | RT-02 | l'adapter non legge più l'archivio; l'AI riceve sRGB | ☑ |
 | RT-04 | **Esecutore a passi fissi**, fine dell'autocontrasto per canale | nota §7.5, §12.4 | RT-02 | `sistema_foto_buffer` passa dall'esecutore; foto buone invariate | ☐ |
 | RT-05 | **Migrazioni**: `versione_post_foto.ritocco`, `versione_post_foto.render`, `chiamata_ai.token_in_cache` | nota §8.6, §12.3 | RT-00 | upgrade e downgrade puliti | ☐ |
 | RT-06 | **Render salvati**: adapter dell'archivio esteso ai file derivati, chiave, cache delle anteprime | nota §10.11, §12.5 | RT-04 | render idempotente; originale intatto; §1.2 rispettata; nome derivato validato | ☐ |

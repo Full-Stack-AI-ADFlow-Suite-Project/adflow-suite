@@ -127,12 +127,18 @@ def _immagine(lato_lungo: int = 2000, formato: str = "PNG") -> bytes:
     return uscita.getvalue()
 
 
+def _copia_ai(lato_lungo: int = 64) -> bytes:
+    """Il JPEG che `campagne` prepara per l'AI (RT-03): l'adattatore non decodifica."""
+    return _immagine(lato_lungo, "JPEG")
+
+
 def _gruppo(archivio: ArchivioFinto, n_foto: int = 2, *, da: int = 1) -> GruppoAI:
     foto = [
         FotoAI(
             id=numero,
-            file=archivio.salva(_immagine(), "png"),
+            file=f"{numero}.png",
             mime="image/png",
+            immagine=_copia_ai(),
         )
         for numero in range(da, da + n_foto)
     ]
@@ -407,7 +413,7 @@ def test_le_rigenerazioni_mandano_versioni_scartate_proposta_e_nota(completion, 
 # --- Analisi -------------------------------------------------------------------
 
 
-def test_analisi_una_chiamata_per_gruppo_con_foto_ridotte_a_1024(
+def test_analisi_una_chiamata_per_gruppo_con_le_foto_gia_pronte(
     completion, ai, archivio
 ):
     gruppo = _gruppo(archivio, 2)
@@ -423,6 +429,10 @@ def test_analisi_una_chiamata_per_gruppo_con_foto_ridotte_a_1024(
     for immagine in immagini:
         assert immagine["detail"] == "high"
         assert immagine["url"].startswith("data:image/jpeg;base64,")
+    # Mandati così come arrivano: l'adattatore non li decodifica né li ridimensiona.
+    assert immagini[0]["url"].split(",", 1)[1] == base64.b64encode(
+        gruppo.foto[0].immagine
+    ).decode("ascii")
     testi = [p["text"] for p in parti if p["type"] == "text"]
     assert "Foto 1:" in testi and "Foto 2:" in testi
 
@@ -444,15 +454,19 @@ def test_analisi_una_chiamata_per_gruppo_con_foto_ridotte_a_1024(
     assert ai.ultimo_uso.modello == "visione-di-prova"
 
 
-def test_la_foto_mandata_all_analisi_e_jpeg_di_al_massimo_1024_px(archivio):
-    import base64
+def test_l_adattatore_non_legge_piu_l_archivio_ne_decodifica(archivio, monkeypatch):
+    """Con i byte già pronti l'archivio non si tocca (RT-03, plan §5)."""
 
-    foto = FotoAI(id=1, file=archivio.salva(_immagine(3000), "png"), mime="image/png")
+    def vietato(*_args, **_kwargs):
+        raise AssertionError("l'adattatore non deve decodificare")
+
+    monkeypatch.setattr(modulo.Image, "open", vietato)
+    foto = FotoAI(id=1, file="manca.png", mime="image/png", immagine=b"byte-di-prova")
     parte = modulo._foto_per_ai(foto)
-    dati = base64.b64decode(parte["image_url"]["url"].split(",", 1)[1])
-    with Image.open(BytesIO(dati)) as inviata:
-        assert inviata.format == "JPEG"
-        assert max(inviata.size) == 1024
+    assert parte["image_url"]["url"] == "data:image/jpeg;base64," + base64.b64encode(
+        b"byte-di-prova"
+    ).decode("ascii")
+    assert parte["image_url"]["detail"] == "high"
 
 
 def test_il_soggetto_ha_al_massimo_15_parole(completion, ai, archivio):
@@ -520,21 +534,24 @@ def test_un_analisi_incompleta_o_fuori_schema_e_di_tipo_risposta(
     assert sollevato.value.tipo == "risposta"
 
 
-def test_una_foto_mancante_dall_archivio_e_una_richiesta_su_quella_foto(
+def test_una_foto_senza_immagine_e_una_richiesta_su_quella_foto(
     completion, ai, archivio
 ):
     gruppo = _gruppo(archivio, 2)
-    archivio.elimina(gruppo.foto[1].file)
+    gruppo.foto[1].immagine = None
     with pytest.raises(ErroreAI) as sollevato:
         ai.analizza_gruppo(gruppo)
     assert (sollevato.value.tipo, sollevato.value.foto_id) == ("richiesta", 2)
     assert completion.chiamate == []
 
 
-def test_una_foto_illeggibile_e_una_richiesta_su_quella_foto(completion, ai, archivio):
-    corrotta = archivio.salva(b"\xff\xd8\xff non e' un jpeg", "jpg")
+def test_una_foto_con_immagine_vuota_e_una_richiesta_su_quella_foto(
+    completion, ai, archivio
+):
     gruppo = GruppoAI(
-        id=1, descrizione=None, foto=[FotoAI(id=7, file=corrotta, mime="image/jpeg")]
+        id=1,
+        descrizione=None,
+        foto=[FotoAI(id=7, file="7.jpg", mime="image/jpeg", immagine=b"")],
     )
     with pytest.raises(ErroreAI) as sollevato:
         ai.analizza_gruppo(gruppo)

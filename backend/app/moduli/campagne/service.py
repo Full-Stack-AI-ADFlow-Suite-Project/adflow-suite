@@ -6,6 +6,7 @@ from datetime import date, datetime, timedelta, timezone
 import errno
 import json
 import logging
+from io import BytesIO
 from typing import Any, NamedTuple
 
 from sqlalchemy import event, func, select, text
@@ -48,6 +49,7 @@ from .domain import (
     TRANSIZIONI,
 )
 from .immagini import MAX_FOTO_PER_GRUPPO, analizza_e_valida_immagine
+from .colore import apri_in_srgb
 from .sistemazione_foto import sistema_foto_buffer
 from .foto_pubblica import (
     DURATA_PREDEFINITA_SECONDI,
@@ -1457,6 +1459,36 @@ def sistema_foto(
     return sistema_foto_buffer(
         dati, canale=canale, proporzione=proporzione, soggetto_box=soggetto_box
     )
+
+
+# La copia che si manda all'AI: sRGB, al massimo 1024 px sul lato lungo, JPEG q85
+# (ADR-124, RT-03). Il colore giusto serve a giudicare la dominante.
+LATO_COPIA_AI = 1024
+QUALITA_COPIA_AI = 85
+
+
+def copia_per_ai(db: Session, foto_id: int) -> bytes:
+    """Il JPEG della foto da mandare all'AI: sRGB, lato lungo al massimo 1024 px, qualità 85.
+
+    L'adattatore dell'AI riceve questi byte e non legge l'archivio né decodifica
+    (plan §5). L'originale non cambia (costituzione §1.3).
+
+    Raises:
+        NonTrovato: la foto o il suo file non ci sono più.
+        DatiNonValidi: il file non si riesce a leggere.
+    """
+    foto = db.get(Foto, foto_id)
+    if foto is None:
+        raise NonTrovato("Foto non trovata.")
+    try:
+        originale = ottieni_archivio().leggi(foto.file)
+    except FileNotFoundError:
+        raise NonTrovato("File immagine non trovato nell'archivio.") from None
+    immagine = apri_in_srgb(originale, lato_max=LATO_COPIA_AI)
+    immagine.thumbnail((LATO_COPIA_AI, LATO_COPIA_AI))
+    uscita = BytesIO()
+    immagine.save(uscita, "JPEG", quality=QUALITA_COPIA_AI)
+    return uscita.getvalue()
 
 
 def foto_sistemata(

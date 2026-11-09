@@ -10,8 +10,10 @@ e gli errori tecnici secondo il tipo.
 from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import date, datetime, timedelta, timezone
+from io import BytesIO
 
 import pytest
+from PIL import Image
 from sqlalchemy import select
 
 import app.adapters.ai as modulo_ai
@@ -30,6 +32,7 @@ from app.moduli.contenuti.service import (
     ultimo_errore,
     uscite_della_campagna,
 )
+from tests import immagini
 from tests.moduli.artigiani.fabbrica import profilo
 from tests.moduli.campagne.fabbrica import (
     campagna_conclusa,
@@ -403,6 +406,86 @@ def test_ca59_errore_su_una_sola_foto_la_foto_resta_fuori_con_il_motivo(db, ai, 
     assert len(usate) == 6
     # un errore che non ferma l'esecuzione non si salva tra gli errori
     assert _errori(db, campagna) == []
+
+
+def _spia_analisi(ai: AIFinto, monkeypatch) -> list[dict[int, bytes | None]]:
+    """Registra, per ogni chiamata di analisi, la copia che porta ogni foto."""
+    viste: list[dict[int, bytes | None]] = []
+    originale = ai.analizza_gruppo
+
+    def spia(gruppo):
+        viste.append({foto.id: foto.immagine for foto in gruppo.foto})
+        return originale(gruppo)
+
+    monkeypatch.setattr(ai, "analizza_gruppo", spia)
+    return viste
+
+
+def _metti_i_file(db, campagna, archivio, *, illeggibile: int | None = None) -> None:
+    """Dà a ogni foto della campagna un file vero nell'archivio (uno può essere rotto)."""
+    for una in campagne.foto_della_campagna(db, campagna.id):
+        dati = (
+            b"\xff\xd8\xff non e' un jpeg"
+            if una.id == illeggibile
+            else immagini.jpeg_qualita(
+                immagini.tinta_unita((200, 90, 40), (1600, 1200))
+            )
+        )
+        una.file = archivio.salva(dati, "jpg")
+    db.commit()
+
+
+def test_rt03_all_analisi_va_la_copia_srgb_preparata_dal_modulo(
+    db, ai, archivio, monkeypatch
+):
+    campagna = _campagna(db, n_foto=5)
+    _metti_i_file(db, campagna, archivio)
+    viste = _spia_analisi(ai, monkeypatch)
+
+    assert _job(campagna.id) == 1
+
+    assert viste and all(viste)
+    for copie in viste:
+        for copia in copie.values():
+            assert copia is not None and copia[:2] == b"\xff\xd8"
+            assert max(Image.open(BytesIO(copia)).size) == 1024
+
+
+def test_rt03_una_foto_illeggibile_va_senza_copia_e_le_altre_no(
+    db, ai, archivio, monkeypatch
+):
+    campagna = _campagna(db, n_foto=5)
+    guasta = _foto_ids(db, campagna)[1]
+    _metti_i_file(db, campagna, archivio, illeggibile=guasta)
+    viste = _spia_analisi(ai, monkeypatch)
+
+    assert _job(campagna.id) == 1
+
+    prima = viste[0]
+    assert prima[guasta] is None
+    assert all(copia for foto_id, copia in prima.items() if foto_id != guasta)
+
+
+def test_rt03_la_copia_si_prepara_una_volta_per_foto_anche_se_il_gruppo_riparte(
+    db, ai, archivio, monkeypatch
+):
+    campagna = _campagna(db, n_foto=6)
+    _metti_i_file(db, campagna, archivio)
+    guasta = _foto_ids(db, campagna)[2]
+    ai.comanda_errore("analizza_gruppo", "richiesta", volte=1, foto_id=guasta)
+    preparate: list[int] = []
+    originale = campagne.copia_per_ai
+
+    def conta(db_, foto_id):
+        preparate.append(foto_id)
+        return originale(db_, foto_id)
+
+    monkeypatch.setattr(campagne, "copia_per_ai", conta)
+
+    assert _job(campagna.id) == 1
+
+    assert sorted(preparate) == sorted(set(preparate))  # nessuna foto due volte
+    assert len(_chiamate(ai, "analizza_gruppo")) >= 2  # il gruppo è ripartito
 
 
 def test_analisi_senza_esito_per_una_foto_e_un_errore_di_risposta(db, ai, monkeypatch):

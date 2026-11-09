@@ -55,6 +55,10 @@ class FotoAI:
     file: str
     mime: str
     analisi: dict[str, Any] | None = None
+    # Il JPEG da mandare all'AI, già pronto (sRGB, al massimo 1024 px): lo prepara
+    # il modulo `campagne` (ADR-124, RT-03). L'adattatore non legge più l'archivio
+    # e non decodifica: con ``immagine`` vuota la richiesta fallisce su questa foto.
+    immagine: bytes | None = None
 
 
 @dataclass
