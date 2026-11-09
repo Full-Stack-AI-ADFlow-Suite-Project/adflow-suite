@@ -277,6 +277,22 @@ SPINTA: Final[Parametri] = Parametri(
 # Soglia sotto la quale una rotazione non vale la pena (zona morta): vale per tutte.
 ROTAZIONE_MIN_GRADI: Final[float] = 0.5
 
+# Le correzioni di luce dell'esecutore (RT-17). Sotto queste dosi una correzione non si
+# fa: una foto buona esce com'è (zona morta). Le misure si fanno nella regione del soggetto.
+ESPOSIZIONE_OBIETTIVO_L: Final[
+    float
+] = 55.0  # mediana di L* a cui si porta una foto scura o chiara
+ZONA_MORTA_ESPOSIZIONE_STOP: Final[float] = 0.1
+ZONA_MORTA_BIANCO: Final[float] = 0.01  # scostamento di un canale dal grigio
+ZONA_MORTA_FLASH: Final[float] = 0.05  # caduta di luce ai bordi
+OMBRE_GUADAGNO_MAX_STOP: Final[float] = 1.0  # con dose 1, nel punto più buio
+FLASH_GUADAGNO_MAX: Final[float] = 1.5  # al massimo +50% sui bordi
+# La nitidezza si spegne con una compressione forte (qualità JPEG sotto questa) o con zoom digitale.
+NITIDEZZA_QUALITA_MIN: Final[int] = 70
+NITIDEZZA_ZOOM_MAX: Final[float] = 1.05
+NITIDEZZA_RAGGIO: Final[float] = 1.2  # pixel, sulla foto già a lato corto 1080
+NITIDEZZA_PERCENTUALE_MAX: Final[int] = 150  # con dose 1
+
 # Il parametro è più forte quando è più grande ("maggiore") o più piccolo ("minore").
 SENSO: Final[dict[str, str]] = {
     "avvicinamento_senza_nota_sotto": "maggiore",

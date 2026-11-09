@@ -94,7 +94,7 @@ Regressione delle foto buone: un insieme sintetico di "foto buone" (esposizione 
 | RT-14 | **Candidati e segni** | nota §7.2, §9.6 | RT-13 | quadrilatero sintetico trovato con errore < 1% del lato | ☑ |
 | RT-15 | **Geometria**: rotazioni, prospettiva | nota §7.5 passi 3, 5 | RT-04, RT-14 | rettangolo inclinato raddrizzato entro 0,5° | ☑ |
 | RT-16 | **Finestra e barre** | nota §7.5 passo 6, §12.5 | RT-15 | proprietà della finestra verdi | ☑ |
-| RT-17 | **Luce e nitidezza** | nota §10.7, §12.5 | RT-13, RT-16 | dosi entro i tetti; zona morta sulle foto buone | ☐ |
+| RT-17 | **Luce e nitidezza** | nota §10.7, §12.5 | RT-13, RT-16 | dosi entro i tetti; zona morta sulle foto buone | ☑ |
 | RT-18 | **Privacy**: sfocatura delle zone | nota §7.5 passo 4 | RT-04 | zona illeggibile, resto invariato | ☐ |
 | RT-19 | **Preparazione dell'analisi**: una decodifica per copia AI, contesto e `locale` | nota §7.2, §10.3, §12.2 | RT-03, RT-14 | una sola decodifica per foto; contesto solo con le fasce non normali | ☐ |
 | RT-20 | **Schema compatto** | nota §12.2 | RT-12 | contratto schema ⇄ catalogo; validatori morbidi | ☐ |

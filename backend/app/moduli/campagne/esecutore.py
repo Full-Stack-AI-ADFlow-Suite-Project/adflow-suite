@@ -12,8 +12,8 @@ decide il codice (nota 7.5), non l'AI e non l'operatore:
 | 5 | raddrizza    | rotazione fine o prospettiva (`geometria`); un controllo che fallisce salta il passo, non il comando |
 | 6 | finestra     | la `Finestra` esplicita del comando (`finestra.calcola_finestra`), con le barre se serve; o le regole di R-42 di oggi (variante Originale) |
 | 7 | lato_corto   | lato corto 1080 |
-| 8 | luce         | RT-17 (vuoto) |
-| 9 | nitidezza    | RT-17 (vuoto) |
+| 8 | luce         | esposizione, bianco, ombre, flash (`luce.correggi_luce`), misurati nella regione del soggetto |
+| 9 | nitidezza    | `UnsharpMask` (`luce.nitidezza`), spenta con compressione forte o zoom digitale |
 | 10| codifica     | JPEG q90, profilo sRGB, nessun metadato |
 
 I passi vuoti non fanno nulla: si riempiono nei task indicati, senza cambiare
@@ -34,10 +34,12 @@ from PIL import Image
 from app.core.errori import DatiNonValidi
 
 from . import geometria
+from . import luce as luce_foto
 from . import ritocco_catalogo as catalogo
 from . import sistemazione_foto as regole
 from .colore import apri_in_srgb, profilo_srgb_bytes
 from .finestra import Finestra
+from .preanalisi import fatti_del_file
 
 # Cambia quando cambia l'uscita dell'esecutore: entra nella chiave dei render (RT-06).
 VERSIONE_ESECUTORE: Final[str] = "ritocco-1"
@@ -98,6 +100,7 @@ class Comando:
     barre: str | None = None
     luce: dict[str, Any] | None = None
     nitidezza: bool = False
+    nitidezza_dose: float = catalogo.STANDARD.nitidezza_dose
 
     def __post_init__(self) -> None:
         if self.barre not in (None, "sfocate", "neutre"):
@@ -145,6 +148,9 @@ class _Contesto:
     mappa: geometria.Mappa
     zone: Sequence[Any] = ()
     avvisi: list[str] = field(default_factory=list)
+    dati: bytes = b""
+    # Falso dopo le regole di R-42: non dicono dove sono finiti i punti (luce senza regione).
+    mappa_affidabile: bool = True
 
 
 _Passo = Callable[[Image.Image, Comando, "str | None", _Contesto], Image.Image]
@@ -198,7 +204,7 @@ def _passo_raddrizza(
 
 
 def _applica_finestra(
-    img: Image.Image, finestra: Finestra, barre: str | None
+    img: Image.Image, finestra: Finestra, barre: str | None, ctx: _Contesto
 ) -> Image.Image:
     """Ritaglia il riquadro calcolato; se il rapporto esce dall'intervallo, barre (o, senza, taglio al centro)."""
     larghezza, altezza = img.size
@@ -235,10 +241,11 @@ def _passo_finestra(
 ) -> Image.Image:
     """Le regole di R-42: rapporto più vicino nell'intervallo, soggetto, centro, bordi sfocati."""
     if isinstance(comando.finestra, Finestra):
-        return _applica_finestra(img, comando.finestra, comando.barre)
+        return _applica_finestra(img, comando.finestra, comando.barre, ctx)
     r42 = comando.finestra
     if r42 is None or canale is None:
         return img
+    ctx.mappa_affidabile = False
     target = regole._ratio_target(
         ratio_corrente=regole._calcola_ratio(img.width, img.height),
         proporzioni_ammesse=regole.PROPORZIONI_CANALE[canale],
@@ -254,19 +261,41 @@ def _passo_finestra(
 def _passo_lato_corto(
     img: Image.Image, comando: Comando, canale: str | None, ctx: _Contesto
 ) -> Image.Image:
-    return regole._ridimensiona_lato_corto(img, regole.LATO_CORTO_TARGET)
+    ridimensionata = regole._ridimensiona_lato_corto(img, regole.LATO_CORTO_TARGET)
+    if ridimensionata.size != img.size:
+        ctx.mappa = ctx.mappa.scalata(*ridimensionata.size)
+    return ridimensionata
 
 
 def _passo_luce(
     img: Image.Image, comando: Comando, canale: str | None, ctx: _Contesto
 ) -> Image.Image:
-    return img  # RT-17
+    """Esposizione, bianco, ombre e flash, misurati nella regione del soggetto (RT-17)."""
+    if not comando.luce:
+        return img
+    luce = comando.luce
+    soggetto = neutro = None
+    if ctx.mappa_affidabile:
+        soggetto = ctx.mappa.box_norm(luce.get("soggetto"))
+        neutro = ctx.mappa.box_norm((luce.get("bianco") or {}).get("neutro"))
+    return luce_foto.correggi_luce(img, luce, soggetto, neutro)
 
 
 def _passo_nitidezza(
     img: Image.Image, comando: Comando, canale: str | None, ctx: _Contesto
 ) -> Image.Image:
-    return img  # RT-17
+    """Una nitidezza leggera, solo dove non peggiora la foto (RT-17)."""
+    if not comando.nitidezza:
+        return img
+    fatti = fatti_del_file(ctx.dati)
+    zoom = fatti["exif"]["zoom_digitale"]
+    qualita = fatti["qualita_jpeg"]
+    if (qualita is not None and qualita < catalogo.NITIDEZZA_QUALITA_MIN) or (
+        zoom is not None and zoom > catalogo.NITIDEZZA_ZOOM_MAX
+    ):
+        ctx.avvisi.append("nitidezza_saltata")
+        return img
+    return luce_foto.nitidezza(img, comando.nitidezza_dose)
 
 
 _DOPO_LA_DECODIFICA: Final[tuple[tuple[str, _Passo], ...]] = (
@@ -321,7 +350,7 @@ def esegui(
     # Il limite si legge qui, a ogni chiamata (così i test lo possono abbassare).
     img = apri_in_srgb(dati, max_pixel=regole.MAX_PIXEL_TOTALI)
     passi.extend(("decodifica", "srgb"))
-    ctx = _Contesto(geometria.Mappa.identita(*img.size), zone_privacy)
+    ctx = _Contesto(geometria.Mappa.identita(*img.size), zone_privacy, dati=dati)
 
     # 3-9. In ordine fisso; i passi non ancora scritti non fanno nulla.
     for nome, passo in _DOPO_LA_DECODIFICA:

@@ -49,6 +49,23 @@ class Mappa:
         """La mappa dopo un passo che trasforma i punti con ``passo`` (3×3) e dà una foto ``larghezza``×``altezza``."""
         return Mappa(larghezza, altezza, passo @ self.matrice, self.origine)
 
+    def traslata(self, dx: float, dy: float, larghezza: int, altezza: int) -> "Mappa":
+        """Dopo un ritaglio (``dx``, ``dy`` negativi) o l'aggiunta di barre (positivi)."""
+        passo = np.array([[1, 0, dx], [0, 1, dy], [0, 0, 1]], dtype=float)
+        return self.dopo(passo, larghezza, altezza)
+
+    def scalata(self, larghezza: int, altezza: int) -> "Mappa":
+        """Dopo un ridimensionamento della foto di adesso a ``larghezza``×``altezza``."""
+        passo = np.array(
+            [
+                [larghezza / self.larghezza, 0, 0],
+                [0, altezza / self.altezza, 0],
+                [0, 0, 1],
+            ],
+            dtype=float,
+        )
+        return self.dopo(passo, larghezza, altezza)
+
     def punti(self, punti: np.ndarray) -> np.ndarray:
         """Trasforma un array (n, 2) di punti in pixel del riferimento di partenza."""
         omogenei = np.hstack([np.asarray(punti, dtype=float), np.ones((len(punti), 1))])
