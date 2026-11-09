@@ -101,7 +101,7 @@ Regressione delle foto buone: un insieme sintetico di "foto buone" (esposizione 
 | RT-21 | **Prompt `analisi_v4`** e ordine dei messaggi | nota §9.3, §9.4, §12.2, §12.3 | RT-19, RT-20 | ogni codice nel prompt; prompt statico; prefisso sopra soglia | ☑ |
 | RT-22 | **Token in cache e costo** | nota §12.3 | RT-05, RT-21 | `token_in_cache` salvato; costo di riserva corretto | ☑ |
 | RT-23 | **Provider finto aggiornato** | nota §6.2 g, §12.2 | RT-20 | risposte compatte configurabili; punteggio intero | ☑ |
-| RT-24 | **Diagnosi** (doppia chiave) | nota §7.4, §10.7, §12.2 | RT-13, RT-20 | una riga di test per ogni riga della tabella 10.7 | ☐ |
+| RT-24 | **Diagnosi** (doppia chiave) | nota §7.4, §10.7, §12.2 | RT-13, RT-20 | una riga di test per ogni riga della tabella 10.7 | ☑ |
 | RT-25 | **Varianti** come comandi | nota §12.5 | RT-16, RT-17, RT-18, RT-24 | tre comandi per foto; Spinta spenta se uguale alla Standard | ☐ |
 | RT-26 | **Integrazione nella generazione** e render Standard nel worker | nota §7.1–§7.4 | RT-06, RT-21, RT-23, RT-25 | campagna finta generata con varianti e render Standard; tempo di 20 foto misurato | ☐ |
 | RT-27 | **Ricalcolo locale** per le foto già analizzate (comando, senza AI) | nota §10.12 | RT-25 | foto v3 con varianti; nessuna chiamata AI | ☐ |

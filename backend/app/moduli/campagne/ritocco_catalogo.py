@@ -278,6 +278,17 @@ SPINTA: Final[Parametri] = Parametri(
 # Soglia sotto la quale una rotazione non vale la pena (zona morta): vale per tutte.
 ROTAZIONE_MIN_GRADI: Final[float] = 0.5
 
+# La diagnosi (RT-24, doppia chiave): quando una misura conferma ciò che dice l'AI.
+DIAGNOSI_ROTAZIONE_MAX_GRADI: Final[
+    float
+] = 8.0  # il tetto della Spinta: oltre, non è un orizzonte storto
+DIAGNOSI_FLASH_CADUTA_MIN: Final[
+    float
+] = 0.10  # caduta di luce ai bordi che conferma il flash
+DIAGNOSI_LUCI_BRUCIATE_OK: Final[frozenset[str]] = frozenset(
+    {"nessuna", "poche"}
+)  # per schiarire... e scurire
+
 # Le correzioni di luce dell'esecutore (RT-17). Sotto queste dosi una correzione non si
 # fa: una foto buona esce com'è (zona morta). Le misure si fanno nella regione del soggetto.
 ESPOSIZIONE_OBIETTIVO_L: Final[
