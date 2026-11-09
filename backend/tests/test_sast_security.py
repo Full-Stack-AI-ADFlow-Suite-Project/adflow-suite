@@ -11,6 +11,12 @@ from app.core.config import Impostazioni
 APP = Path(__file__).resolve().parents[1] / "app"
 
 
+# Le funzioni di OpenCV (e simili) che decodificano un file o un flusso.
+DECODER_VIETATI = frozenset(
+    {"imread", "imdecode", "imreadmulti", "imreadanimation", "VideoCapture"}
+)
+
+
 def _nome_chiamata(nodo: ast.AST) -> str:
     if isinstance(nodo, ast.Name):
         return nodo.id
@@ -31,6 +37,9 @@ def _problemi_sast(sorgente: str) -> list[str]:
         foglia = chiamata.rsplit(".", 1)[-1]
         if foglia in {"eval", "exec"} or chiamata in {"os.system", "os.popen"}:
             problemi.append("dynamic-code-or-shell")
+        # Un solo decoder: Pillow decodifica, OpenCV riceve array (ADR-124, RT-11).
+        if foglia in DECODER_VIETATI:
+            problemi.append("pillow-unico-decoder")
         if chiamata in {"pickle.load", "pickle.loads", "_pickle.load", "_pickle.loads"}:
             problemi.append("unsafe-deserialization")
         if chiamata in {"text", "sqlalchemy.text"} and nodo.args:
@@ -81,6 +90,10 @@ def test_sorgenti_backend_senza_primitive_ad_alto_rischio() -> None:
         ),
         ("subprocess.run(command, shell=True)", "shell-true"),
         ("httpx.get(url, verify=False)", "tls-verification-disabled"),
+        ("cv2.imread(percorso)", "pillow-unico-decoder"),
+        ("cv2.imdecode(buffer, cv2.IMREAD_COLOR)", "pillow-unico-decoder"),
+        ("cv2.VideoCapture(0)", "pillow-unico-decoder"),
+        ("cv2.imreadmulti(percorso)", "pillow-unico-decoder"),
     ],
 )
 def test_regole_sast_rilevano_pattern_pericolosi(sorgente: str, regola: str) -> None:
@@ -129,3 +142,23 @@ def test_config_produzione_accetta_url_foto_https_valido() -> None:
         foto_url_pubblico="https://media.example.test/adflow"
     )
     assert impostazioni.foto_url_pubblico == "https://media.example.test/adflow"
+
+
+def test_pillow_decodifica_e_opencv_riceve_array() -> None:
+    """Gli strumenti di OpenCV che servono (non decodificano) restano ammessi."""
+    ammesse = "cv2.Canny(grigio, 50, 150)\ncv2.cvtColor(array, cv2.COLOR_RGB2GRAY)"
+    assert _problemi_sast(ammesse) == []
+
+
+def test_opencv_e_quello_headless_e_si_importa() -> None:
+    """In `requirements.txt` solo `opencv-python-headless` (mai `opencv-python`)."""
+    righe = (APP.parent / "requirements.txt").read_text(encoding="utf-8").splitlines()
+    pacchetti = [r.split("==")[0].strip().lower() for r in righe if "==" in r]
+    assert "opencv-python-headless" in pacchetti
+    assert "opencv-python" not in pacchetti
+    assert "opencv-contrib-python" not in pacchetti
+
+    import cv2
+
+    assert cv2.__version__.startswith("4.")
+    assert hasattr(cv2, "CascadeClassifier")  # D7: le cascate di Haar

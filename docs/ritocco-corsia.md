@@ -88,14 +88,14 @@ Regressione delle foto buone: un insieme sintetico di "foto buone" (esposizione 
 | RT-08 | **Anteprima reale per l'operatore** (e per l'artigiano, D1) | nota §6.2 a, §8.2 | RT-06 | la card mostra il render; BOLA verde | ☑ |
 | RT-09 | **Test dei componenti**: Vitest, Testing Library, MSW, in CI | §3 qui | RT-08 | `npm test` in CI con i primi test della card | ☑ |
 | RT-10 | **Test end-to-end in CI**: workflow per il Playwright già presente, dati di prova del ritocco | §3 qui | RT-08 | `percorso-demo` e un percorso del ritocco verdi in CI | ☑ |
-| RT-11 | **OpenCV** e regola "Pillow unico decoder" | nota §2.2 | RT-01 | dipendenza in `requirements.txt`; la regola fallisce su `cv2.imread` | ☐ |
-| RT-12 | **Catalogo del ritocco** | nota §12.2, §12.5 | RT-00 | codici, fasce, parametri e versioni in un solo file, con i test di coerenza | ☐ |
-| RT-13 | **Misure e fasce** | nota §7.2, §9.5 | RT-11, RT-12 | ogni misura provata su un'immagine sintetica con valore noto | ☐ |
-| RT-14 | **Candidati e segni** | nota §7.2, §9.6 | RT-13 | quadrilatero sintetico trovato con errore < 1% del lato | ☐ |
-| RT-15 | **Geometria**: rotazioni, prospettiva | nota §7.5 passi 3, 5 | RT-04, RT-14 | rettangolo inclinato raddrizzato entro 0,5° | ☐ |
-| RT-16 | **Finestra e barre** | nota §7.5 passo 6, §12.5 | RT-15 | proprietà della finestra verdi | ☐ |
-| RT-17 | **Luce e nitidezza** | nota §10.7, §12.5 | RT-13, RT-16 | dosi entro i tetti; zona morta sulle foto buone | ☐ |
-| RT-18 | **Privacy**: sfocatura delle zone | nota §7.5 passo 4 | RT-04 | zona illeggibile, resto invariato | ☐ |
+| RT-11 | **OpenCV** e regola "Pillow unico decoder" | nota §2.2 | RT-01 | dipendenza in `requirements.txt`; la regola fallisce su `cv2.imread` | ☑ |
+| RT-12 | **Catalogo del ritocco** | nota §12.2, §12.5 | RT-00 | codici, fasce, parametri e versioni in un solo file, con i test di coerenza | ☑ |
+| RT-13 | **Misure e fasce** | nota §7.2, §9.5 | RT-11, RT-12 | ogni misura provata su un'immagine sintetica con valore noto | ☑ |
+| RT-14 | **Candidati e segni** | nota §7.2, §9.6 | RT-13 | quadrilatero sintetico trovato con errore < 1% del lato | ☑ |
+| RT-15 | **Geometria**: rotazioni, prospettiva | nota §7.5 passi 3, 5 | RT-04, RT-14 | rettangolo inclinato raddrizzato entro 0,5° | ☑ |
+| RT-16 | **Finestra e barre** | nota §7.5 passo 6, §12.5 | RT-15 | proprietà della finestra verdi | ☑ |
+| RT-17 | **Luce e nitidezza** | nota §10.7, §12.5 | RT-13, RT-16 | dosi entro i tetti; zona morta sulle foto buone | ☑ |
+| RT-18 | **Privacy**: sfocatura delle zone | nota §7.5 passo 4 | RT-04 | zona illeggibile, resto invariato | ☑ |
 | RT-19 | **Preparazione dell'analisi**: una decodifica per copia AI, contesto e `locale` | nota §7.2, §10.3, §12.2 | RT-03, RT-14 | una sola decodifica per foto; contesto solo con le fasce non normali | ☐ |
 | RT-20 | **Schema compatto** | nota §12.2 | RT-12 | contratto schema ⇄ catalogo; validatori morbidi | ☐ |
 | RT-21 | **Prompt `analisi_v4`** e ordine dei messaggi | nota §9.3, §9.4, §12.2, §12.3 | RT-19, RT-20 | ogni codice nel prompt; prompt statico; prefisso sopra soglia | ☐ |
@@ -200,7 +200,7 @@ Regressione delle foto buone: un insieme sintetico di "foto buone" (esposizione 
 
 ### RT-11 · OpenCV e regola del decoder
 
-- `backend/requirements.txt`: `opencv-python-headless` (Apache-2.0; le wheel includono librerie di terzi, tra cui FFmpeg con licenza LGPL: la nota va riportata), motivo: candidati e geometria. Mai `opencv-python`.
+- `backend/requirements.txt`: `opencv-python-headless` (Apache-2.0; le wheel includono librerie di terzi, tra cui FFmpeg con licenza LGPL: la nota va riportata), motivo: candidati e geometria. Mai `opencv-python`. **Serie 4.x** (`4.14.0.94`): la 5.0 non ha più `CascadeClassifier` né i file delle cascate di Haar (D7), quindi si resta sulla 4.
 - Regola nel probe di sicurezza (`scripts/esegui_valutazione_sicurezza.py`) o in un test: in `app/` niente `cv2.imread`, `cv2.imdecode`, `cv2.VideoCapture`. Pillow decodifica, OpenCV riceve array.
 - **Test:** la regola fallisce su un sorgente di prova che usa `cv2.imdecode`; l'import di `cv2` funziona in CI.
 
@@ -357,3 +357,17 @@ Regressione delle foto buone: un insieme sintetico di "foto buone" (esposizione 
 | Test end-to-end instabili | RT-10, RT-33 | un solo browser, dati sintetici, attese su risposte di rete e non su tempi fissi |
 | Costo oltre la stima | RT-34 | leva della `descrizione` (nota 12.2), decisa dalla persona |
 | Foto HEIC dall'iPhone | RT-33 | da verificare con un iPhone vero; oggi i magic bytes la rifiutano |
+
+---
+
+## 8. Da fare a mano
+
+Quello che richiede una persona, un dispositivo o dati reali. Si compila man mano, durante la corsia; ogni voce dice che cosa fare, dove e come verificare. Nessuna è un blocco: la corsia si chiude senza.
+
+| # | Che cosa | Dove | Come verificare | Nato in |
+|---|---|---|---|---|
+| a | Provare una foto vera in **Display P3** e una **HEIC** (chi non ha un iPhone ne cerca un campione libero online: i passi sono sotto) | locale, fuori dal repository | la foto P3 esce con i colori giusti (non spenti) nell'anteprima; la HEIC viene rifiutata con il messaggio di oggi (i magic bytes non la ammettono) | RT-02, RT-33 |
+| b | Percorso a mano con **screenshot su foto reali** | locale, con le foto della demo (cartella fuori dal repository) | le stesse azioni del test end-to-end, più la foto P3 reale, con gli screenshot da allegare alla PR | RT-33 |
+| c | **Prova-ritocco con l'AI vera** (costo e token) | `cd backend && uv run python -m app.cli prova-ritocco --cartella ...` con `AI_PROVIDER=litellm` e le chiavi in `backend/.env` | il rapporto riporta token in ingresso, in uscita e in cache e il costo per gruppo; si confronta con la stima (+5–12%) | RT-32 |
+| d | **RT-34**: taratura delle soglie sulle foto reali (dopo la corsia, con il consenso dei titolari) | `prova-ritocco` sulle foto raccolte, con la verità scritta a mano su un sottoinsieme | catalogo aggiornato con il rapporto della prova; segni accesi o spenti deciso | RT-34 |
+| e | Aggiungere a `backend/.env.example` le variabili nuove (il file dei segreti non si tocca da automazione): `RITOCCO_SEGNI=false` (RT-14) e, da RT-22, `AI_PREZZO_INGRESSO_CACHE_MILIONE=0` | `backend/.env.example` | `Impostazioni` ha i due campi con questi valori; `.env.example` li elenca con un commento | RT-14, RT-22 |

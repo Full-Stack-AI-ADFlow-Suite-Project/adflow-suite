@@ -93,6 +93,10 @@ class Impostazioni(BaseSettings):
     # Dollari per immagine creata, con lo stesso scopo (spec R-44).
     ai_prezzo_immagine: Decimal = Decimal(0)
 
+    # Segni sulla copia mandata all'AI (riquadri con etichetta sui candidati, ADR-124,
+    # RT-14): spenti finché la taratura sulle foto reali (RT-34) non decide.
+    ritocco_segni: bool = False
+
     anticipo_minimo_giorni: int = 3
     margine_slot_minuti: int = 15
     # Solo per le prove a mano: `adesso()` va avanti di questi giorni (README, Prove a mano)
