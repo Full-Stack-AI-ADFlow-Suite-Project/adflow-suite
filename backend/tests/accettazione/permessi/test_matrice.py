@@ -74,6 +74,9 @@ def mondo(db: Session, client: TestClient, tmp_path) -> dict:
             .order_by(Foto.id)
         ).first()
         foto_a.file = nome_file
+        # anche la foto del post ha un file vero: l'anteprima la rende (RT-08)
+        for legame in post.versione_corrente.legami_foto:
+            db.get(Foto, legame.foto_id).file = archivio.salva(buffer.getvalue(), "jpg")
 
         archivio_gruppo = gruppo_di_archivio(db, profilo_id=bottega_a.id)
         archivio_foto = db.scalars(
@@ -182,8 +185,8 @@ def test_la_matrice_copre_esattamente_le_operazioni_dello_schema():
         not senza_operazione
     ), f"righe senza operazione nello schema: {senza_operazione}"
     assert (
-        len(dello_schema) == 57
-    ), f"attese 57 operazioni, ce ne sono {len(dello_schema)}"
+        len(dello_schema) == 58
+    ), f"attese 58 operazioni, ce ne sono {len(dello_schema)}"
 
 
 @pytest.mark.parametrize("metodo,percorso", sorted(MATRICE))

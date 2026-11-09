@@ -43,9 +43,13 @@ Utenti di esempio, password `prova`:
 ```bash
 npm run lint
 npm run build
+npm test
 ```
 
 Gli stessi comandi girano a ogni PR (`.github/workflows/frontend.yml`).
+
+`npm test` lancia i test dei componenti (Vitest, Testing Library, MSW): `src/**/*.test.tsx`, accanto al componente. `src/test/` ha il finto server (`server.ts`, ogni test dichiara le sue risposte con `server.use(...)`; una richiesta non prevista è un errore), l'avvio (`setup.ts`) e `disegna()` (tema, router in memoria e sessione finta).
+Test end-to-end (Playwright, Chromium): `npm run test:e2e`, da `frontend/`. Playwright avvia da sé il backend (`e2e/prepara-backend.sh`: database dedicato `adflow_e2e`, migrazioni, seed, provider AI e social finti) e il frontend. Due progetti, in ordine: `percorso-demo` (database vuoto) e `ritocco`, che prima prepara una campagna con quattro foto sintetiche (`e2e/prepara-dati-ritocco.sh`, `backend/scripts/prepara_dati_ritocco_e2e.py`). Se il Chromium di Playwright non si installa sulla tua macchina, `PLAYWRIGHT_CHROMIUM=/percorso/di/chrome npm run test:e2e`. In CI gira nel workflow `.github/workflows/e2e.yml`.
 
 ## Struttura
 

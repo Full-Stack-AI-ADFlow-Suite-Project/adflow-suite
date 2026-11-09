@@ -18,6 +18,7 @@ import { Link } from "react-router-dom";
 
 import type { PostVista } from "../../../api/revisione";
 import { StatoBadge } from "../../../components/StatoBadge";
+import { FotoAnteprima } from "./FotoAnteprima";
 import { AzioniPost } from "../vedi-campagna/post/AzioniPost";
 import { conCancelletto, interventoAttivo } from "../vedi-campagna/post/regole";
 import { StoricoVersioni } from "../vedi-campagna/post/StoricoVersioni";
@@ -71,15 +72,11 @@ function AnteprimaPost({
       {foto ? (
         // L'immagine intera, come esce: anche quella creata con AI (R-28).
         <Box mt="xs">
-          <img
-            src={`/api/foto/${foto.foto_id}/file`}
+          <FotoAnteprima
+            key={post.foto?.anteprima_url ?? foto.foto_id}
+            // Il render che esce (RT-08); senza, l'originale come prima.
+            src={post.foto?.anteprima_url ?? `/api/foto/${foto.foto_id}/file`}
             alt={isAi ? "Immagine creata con AI" : `Foto ${foto.foto_id}`}
-            style={{
-              width: "100%",
-              height: "auto",
-              borderRadius: 8,
-              display: "block",
-            }}
           />
         </Box>
       ) : isAi ? (

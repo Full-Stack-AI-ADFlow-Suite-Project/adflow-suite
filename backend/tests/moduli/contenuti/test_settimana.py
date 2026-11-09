@@ -65,7 +65,7 @@ def test_ca97_artigiano_solo_i_suoi_post_negli_stati_visibili(
     assert primo["testo"] == "Testo di prova"
     assert primo["hashtag"] == ["artigianato"]
     assert primo["ora"] == "10:00"
-    assert primo["foto"][0]["url"].startswith("/api/foto/")
+    assert primo["foto"][0]["url"] == f"/api/post/{primo['id']}/foto/anteprima"
 
 
 def test_ca97_sette_giorni_anche_vuoti(

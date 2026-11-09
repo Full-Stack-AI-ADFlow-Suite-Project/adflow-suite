@@ -1,0 +1,75 @@
+# Test end-to-end a ogni PR (RT-10, ADR-124): Playwright con Chromium contro il
+# backend vero (provider AI e social finti) e il frontend Vite. Il percorso della
+# demo parte dal database vuoto; il percorso del ritocco ne aggiunge i dati.
+# Comandi come in frontend/README.md e backend/README.md.
+name: End-to-end
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          # Credenziali finte: il database vive solo per la durata del controllo.
+          POSTGRES_USER: adflow
+          POSTGRES_PASSWORD: adflow
+          POSTGRES_DB: adflow
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U adflow"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      # Lo script prepara-backend.sh ne ricava adflow_e2e e lo ricrea da zero.
+      DATABASE_URL: postgresql+psycopg://adflow:adflow@localhost:5432/adflow
+      # La configurazione dell'app lo vuole; il percorso end-to-end non lo usa.
+      DATABASE_URL_TEST: postgresql+psycopg://adflow:adflow@localhost:5432/adflow_test
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: astral-sh/setup-uv@v6
+
+      - name: Dipendenze del backend
+        run: |
+          uv venv --python 3.11 --seed .venv
+          uv pip install -r backend/requirements.txt
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Dipendenze del frontend
+        working-directory: frontend
+        run: npm ci
+
+      - name: Chromium per Playwright
+        working-directory: frontend
+        run: npx playwright install --with-deps chromium
+
+      - name: Test end-to-end
+        working-directory: frontend
+        run: npm run test:e2e -- --trace off
+
+      - name: Report di Playwright
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: |
+            frontend/playwright-report/
+            frontend/test-results/
+          retention-days: 7

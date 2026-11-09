@@ -83,11 +83,11 @@ Regressione delle foto buone: un insieme sintetico di "foto buone" (esposizione 
 | RT-03 | **Copia per l'AI preparata dal modulo** | nota §6.1, §7.2 | RT-02 | l'adapter non legge più l'archivio; l'AI riceve sRGB | ☑ |
 | RT-04 | **Esecutore a passi fissi**, fine dell'autocontrasto per canale | nota §7.5, §12.4 | RT-02 | `sistema_foto_buffer` passa dall'esecutore; foto buone invariate | ☑ |
 | RT-05 | **Migrazioni**: `versione_post_foto.ritocco`, `versione_post_foto.render`, `chiamata_ai.token_in_cache` | nota §8.6, §12.3 | RT-00 | upgrade e downgrade puliti | ☑ |
-| RT-06 | **Render salvati**: adapter dell'archivio esteso ai file derivati, chiave, cache delle anteprime | nota §10.11, §12.5 | RT-04 | render idempotente; originale intatto; §1.2 rispettata; nome derivato validato | ☐ |
-| RT-07 | **Render all'approvazione e pubblicazione dal file** (blocco congelato) | nota §7.6 | RT-05, RT-06 | Meta finto riceve i byte del render approvato; URL Instagram con la chiave | ☐ |
-| RT-08 | **Anteprima reale per l'operatore** (e per l'artigiano, D1) | nota §6.2 a, §8.2 | RT-06 | la card mostra il render; BOLA verde | ☐ |
-| RT-09 | **Test dei componenti**: Vitest, Testing Library, MSW, in CI | §3 qui | RT-08 | `npm test` in CI con i primi test della card | ☐ |
-| RT-10 | **Test end-to-end in CI**: workflow per il Playwright già presente, dati di prova del ritocco | §3 qui | RT-08 | `percorso-demo` e un percorso del ritocco verdi in CI | ☐ |
+| RT-06 | **Render salvati**: adapter dell'archivio esteso ai file derivati, chiave, cache delle anteprime | nota §10.11, §12.5 | RT-04 | render idempotente; originale intatto; §1.2 rispettata; nome derivato validato | ☑ |
+| RT-07 | **Render all'approvazione e pubblicazione dal file** (blocco congelato) | nota §7.6 | RT-05, RT-06 | Meta finto riceve i byte del render approvato; URL Instagram con la chiave | ☑ |
+| RT-08 | **Anteprima reale per l'operatore** (e per l'artigiano, D1) | nota §6.2 a, §8.2 | RT-06 | la card mostra il render; BOLA verde | ☑ |
+| RT-09 | **Test dei componenti**: Vitest, Testing Library, MSW, in CI | §3 qui | RT-08 | `npm test` in CI con i primi test della card | ☑ |
+| RT-10 | **Test end-to-end in CI**: workflow per il Playwright già presente, dati di prova del ritocco | §3 qui | RT-08 | `percorso-demo` e un percorso del ritocco verdi in CI | ☑ |
 | RT-11 | **OpenCV** e regola "Pillow unico decoder" | nota §2.2 | RT-01 | dipendenza in `requirements.txt`; la regola fallisce su `cv2.imread` | ☐ |
 | RT-12 | **Catalogo del ritocco** | nota §12.2, §12.5 | RT-00 | codici, fasce, parametri e versioni in un solo file, con i test di coerenza | ☐ |
 | RT-13 | **Misure e fasce** | nota §7.2, §9.5 | RT-11, RT-12 | ogni misura provata su un'immagine sintetica con valore noto | ☐ |

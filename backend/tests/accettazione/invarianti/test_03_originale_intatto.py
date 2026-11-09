@@ -81,3 +81,30 @@ def test_l_originale_resta_identico_attraverso_tutte_le_lavorazioni(
         assert (
             _sha(archivio.leggi(libera.file)) == atteso
         ), "la pubblicazione ha toccato l'originale"
+
+
+def test_il_render_non_tocca_l_originale_e_sta_in_derivate(db, tmp_path):
+    """I render (ADR-124, RT-06) vanno in `derivate/`: l'originale resta identico (§1.3)."""
+    from app.moduli.campagne.esecutore import Comando, comando_originale
+
+    archivio = ArchivioDisco(tmp_path)
+    with usa_archivio(archivio):
+        libera = db.scalars(
+            select(Foto).where(Foto.campagna_id == campagna_attiva(db).id)
+        ).first()
+        buffer = io.BytesIO()
+        Image.new("RGB", (3000, 2000), (120, 30, 60)).save(buffer, format="JPEG")
+        libera.file = archivio.salva(buffer.getvalue(), "jpg")
+        db.flush()
+        atteso = _sha(buffer.getvalue())
+
+        chiavi = {
+            campagne_service.rendi(db, libera.id, comando)
+            for comando in (comando_originale(), Comando(ruota=90))
+        }
+
+        assert _sha(archivio.leggi(libera.file)) == atteso
+        assert len(chiavi) == 2
+        for chiave in chiavi:
+            assert (tmp_path / "derivate" / str(libera.id) / f"{chiave}.jpg").is_file()
+        assert (tmp_path / libera.file).read_bytes() == buffer.getvalue()

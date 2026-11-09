@@ -95,6 +95,21 @@ export interface FotoPossibile {
   soggetto: string | null;
 }
 
+export type VarianteFoto = "originale" | "standard" | "spinta";
+
+/** FotoPostSchema: come esce la foto del post (anteprima reale, varianti, privacy, avvisi). */
+export interface FotoPost {
+  anteprima_url: string;
+  varianti: {
+    disponibili: VarianteFoto[];
+    /** Le disponibili che escono uguali all'Originale. */
+    uguali: VarianteFoto[];
+    scelta: VarianteFoto;
+  };
+  zone_privacy: { numero: number; decise: number };
+  avvisi: string[];
+}
+
 /** PostSchema: riempitivo, versione corrente e storico. */
 export interface PostVista {
   post_id: number;
@@ -112,6 +127,8 @@ export interface PostVista {
   versioni: VersionePost[];
   /** Gli interventi ammessi adesso: i pulsanti nascono da qui (R-16). */
   interventi: Intervento[];
+  /** La foto come esce (RT-08); assente se il post non ha foto. */
+  foto?: FotoPost | null;
 }
 
 /** GruppoSchema: il gruppo di un'uscita o delle foto non usate. */

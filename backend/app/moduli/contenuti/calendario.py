@@ -47,7 +47,9 @@ def costruisci_post(
     versione = post.versione_corrente
     foto = []
     if versione is not None:
-        for legame in sorted(versione.legami_foto, key=lambda l: l.posizione):
+        for indice, legame in enumerate(
+            sorted(versione.legami_foto, key=lambda l: l.posizione)
+        ):
             immagine = immagini.get(legame.foto_id)
             if immagine is None:
                 continue
@@ -56,7 +58,12 @@ def costruisci_post(
             foto.append(
                 FotoCalendario(
                     id=immagine.id,
-                    url=f"/api/foto/{immagine.id}/file",
+                    # La prima foto è il render che esce (D1, RT-08).
+                    url=(
+                        f"/api/post/{post.id}/foto/anteprima"
+                        if indice == 0
+                        else f"/api/foto/{immagine.id}/file"
+                    ),
                     mime=immagine.mime,
                     larghezza=immagine.larghezza,
                     altezza=immagine.altezza,

@@ -66,6 +66,7 @@ def _post(post, stato_campagna: str, adesso: datetime) -> PostSchema:
         versione_corrente=_versione(corrente) if corrente is not None else None,
         versioni=[_versione(v) for v in post.versioni],
         interventi=contenuti.interventi_ammessi(post, stato_campagna, adesso),
+        foto=contenuti.vista_foto(post),
     )
 
 
@@ -152,6 +153,13 @@ def vedi_campagna(
     )
 
 
+def anteprima_foto(
+    db: Session, post_id: int, variante: str | None, utente: accesso.Utente
+) -> bytes:
+    """Il JPEG della foto del post come esce (RT-08): per l'operatore la variante chiesta, per l'artigiano il render approvato."""
+    return contenuti.anteprima_foto(db, post_id, variante, utente.ruolo, utente.id)
+
+
 def approva(
     db: Session, campagna_id: int, utente: accesso.Utente, adesso: datetime
 ) -> None:
@@ -178,6 +186,7 @@ def approva(
                 esito="approvato",
             )
         )
+    contenuti.rendi_foto_approvate(db, campagna_id)
     campagne.registra_decisione(
         db, record, utente.id, "approvata", motivo=None, nota=None, foto_segnate=[]
     )

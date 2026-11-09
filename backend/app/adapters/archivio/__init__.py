@@ -8,6 +8,7 @@ from .base import (
     DIMENSIONE_MAX_BYTE,
     ESTENSIONI_AMMESSE,
     ArchivioAdapter,
+    Derivato,
 )
 from .disco import ArchivioDisco
 from .finto import ArchivioFinto
@@ -56,6 +57,7 @@ __all__ = [
     "ArchivioAdapter",
     "ArchivioDisco",
     "ArchivioFinto",
+    "Derivato",
     "ottieni_archivio",
     "imposta_archivio",
     "usa_archivio",

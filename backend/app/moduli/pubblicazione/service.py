@@ -131,15 +131,18 @@ def avvia_chiamata(
     try:
         # Congelato per l'MVP, ADR-114: non estendere. Nell'MVP un post ha
         # una foto sola; la pubblicazione con più foto (caroselli, A8) resta.
-        # Byte della foto sistemata per il canale (R-42, T3-21) e suo
-        # indirizzo pubblico firmato (T3-23): li usa l'adattatore Meta.
-        byte_foto = [
-            campagne.foto_sistemata(db, legame.foto_id, canale=post.canale)[0]
+        # Toccato per la corsia del ritocco (ADR-124, RT-07): i byte sono quelli
+        # del render approvato, salvato all'approvazione (o reso ora se il post
+        # è stato approvato prima), e l'indirizzo pubblico firmato porta la
+        # chiave di quel render (T3-23): lo usa l'adattatore Meta.
+        render = [
+            (legame.foto_id, *contenuti.render_approvato(db, post, legame))
             for legame in versione.legami_foto
         ]
+        byte_foto = [dati for _, _, dati in render]
         url_foto = [
-            campagne.url_foto_pubblica(db, legame.foto_id, canale=post.canale)
-            for legame in versione.legami_foto
+            campagne.url_foto_pubblica(db, foto_id, canale=post.canale, chiave=chiave)
+            for foto_id, chiave, _ in render
         ]
     except (NonTrovato, DatiNonValidi):
         _segna_errore(

@@ -10,6 +10,7 @@ garantendo:
 
 from abc import ABC, abstractmethod
 from pathlib import Path
+from typing import NamedTuple
 import re
 import uuid
 
@@ -32,6 +33,19 @@ CARATTERI_VIETATI_NEL_NOME: tuple[str, ...] = (
     "|",
     "\x00",
 )
+
+# I file derivati (i render del ritocco, ADR-124, RT-06) stanno sotto questa cartella,
+# mai accanto agli originali: `derivate/<foto_id>/<chiave>.jpg`.
+CARTELLA_DERIVATE: str = "derivate"
+_CHIAVE_DERIVATO = re.compile(r"[0-9a-f]{64}")
+
+
+class Derivato(NamedTuple):
+    """Un file derivato in archivio: di quale foto, con quale chiave, quando è stato scritto."""
+
+    foto_id: int
+    chiave: str
+    scritto_il: float  # secondi dall'epoca
 
 
 class ArchivioAdapter(ABC):
@@ -197,4 +211,58 @@ class ArchivioAdapter(ABC):
     @abstractmethod
     def esiste(self, nome_file: str) -> bool:
         """Verifica se il file specificato esiste nell'archivio."""
+        raise NotImplementedError
+
+    # --- File derivati (render del ritocco) ------------------------------------
+
+    @staticmethod
+    def valida_derivato(foto_id: int, chiave: str) -> tuple[int, str]:
+        """Controlla l'identità di un derivato: ``foto_id`` intero positivo, ``chiave`` sha256 esadecimale.
+
+        Il nome del file lo decide il server (la chiave è un hash): nessun
+        separatore, nessuna risalita possibile.
+
+        Raises:
+            ValueError: ``foto_id`` non è un intero positivo o ``chiave`` non
+                è esattamente di 64 caratteri esadecimali minuscoli.
+        """
+        if isinstance(foto_id, bool) or not isinstance(foto_id, int) or foto_id <= 0:
+            raise ValueError(
+                "L'id della foto del derivato deve essere un intero positivo."
+            )
+        if not isinstance(chiave, str) or not _CHIAVE_DERIVATO.fullmatch(chiave):
+            raise ValueError(
+                "La chiave del derivato deve essere di 64 caratteri esadecimali minuscoli."
+            )
+        return foto_id, chiave
+
+    @classmethod
+    def valida_payload_derivato(cls, contenuto: bytes) -> None:
+        """Un derivato è sempre un JPEG, entro il limite di dimensione di R-13."""
+        cls.valida_dimensione_payload(contenuto)
+        cls.valida_magic_bytes(contenuto, ".jpg")
+
+    @abstractmethod
+    def salva_derivato(self, foto_id: int, chiave: str, contenuto: bytes) -> None:
+        """Salva il JPEG derivato in ``derivate/<foto_id>/<chiave>.jpg``. Mai sopra un originale."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def leggi_derivato(self, foto_id: int, chiave: str) -> bytes:
+        """Legge i byte del derivato (``FileNotFoundError`` se manca)."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def esiste_derivato(self, foto_id: int, chiave: str) -> bool:
+        """Dice se il derivato c'è (``False`` anche per identità non valida)."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def elimina_derivato(self, foto_id: int, chiave: str) -> bool:
+        """Elimina il derivato; ``False`` se non c'era. Chi chiama decide se è lecito (D2)."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def elenca_derivati(self) -> list[Derivato]:
+        """Tutti i derivati presenti, per la potatura delle anteprime."""
         raise NotImplementedError

@@ -10,6 +10,7 @@ Fornisce:
 from datetime import datetime, timezone
 import hashlib
 import hmac
+import re
 from typing import Final
 from urllib.parse import urlencode
 
@@ -32,17 +33,37 @@ def _segreto_firma() -> bytes:
     ).digest()
 
 
-def calcola_mac(foto_id: int, canale: str, scadenza_ts: int) -> str:
-    """Calcola il codice esadecimale HMAC-SHA256 per la terna (foto_id, canale, scadenza_ts)."""
+_CHIAVE_RENDER = re.compile(r"[0-9a-f]{64}")
+
+
+def chiave_valida(chiave: str | None) -> bool:
+    """Una chiave di render è un sha256 esadecimale minuscolo di 64 caratteri."""
+    return isinstance(chiave, str) and _CHIAVE_RENDER.fullmatch(chiave) is not None
+
+
+def calcola_mac(
+    foto_id: int, canale: str, scadenza_ts: int, chiave: str | None = None
+) -> str:
+    """Calcola il codice esadecimale HMAC-SHA256 per (foto_id, canale, [chiave del render,] scadenza_ts).
+
+    Con ``chiave`` la firma copre anche il render (ADR-124, RT-07): cambiare la
+    chiave nell'indirizzo la invalida. Senza, resta il messaggio di prima, così
+    gli indirizzi già emessi continuano a funzionare fino alla scadenza.
+    """
     segreto = _segreto_firma()
     canale_norm = canale.strip().lower()
-    messaggio = f"{foto_id}:{canale_norm}:{scadenza_ts}".encode("utf-8")
-    return hmac.new(segreto, messaggio, hashlib.sha256).hexdigest()
+    if chiave is None:
+        testo = f"{foto_id}:{canale_norm}:{scadenza_ts}"
+    else:
+        testo = f"{foto_id}:{canale_norm}:{chiave}:{scadenza_ts}"
+    return hmac.new(segreto, testo.encode("utf-8"), hashlib.sha256).hexdigest()
 
 
-def componi_firma(foto_id: int, canale: str, scadenza_ts: int) -> str:
+def componi_firma(
+    foto_id: int, canale: str, scadenza_ts: int, chiave: str | None = None
+) -> str:
     """Compone la firma a tempo compatta nel formato: '{scadenza_ts}_{mac}'."""
-    mac = calcola_mac(foto_id, canale, scadenza_ts)
+    mac = calcola_mac(foto_id, canale, scadenza_ts, chiave)
     return f"{scadenza_ts}_{mac}"
 
 
@@ -52,6 +73,7 @@ def verifica_firma(
     firma: str,
     scadenza_ts: int | None = None,
     ora: datetime | None = None,
+    chiave: str | None = None,
 ) -> bool:
     """Verifica che la firma sia valida e che il timestamp non sia scaduto.
 
@@ -62,6 +84,8 @@ def verifica_firma(
     anomalia di formato (garantendo anti-timing attack tramite compare_digest).
     """
     if foto_id <= 0 or not canale or not firma:
+        return False
+    if chiave is not None and not chiave_valida(chiave):
         return False
 
     canale_norm = canale.strip().lower()
@@ -102,7 +126,7 @@ def verifica_firma(
         return False
 
     # Verifica a tempo costante del MAC
-    mac_atteso = calcola_mac(foto_id, canale_norm, ts_effettivo)
+    mac_atteso = calcola_mac(foto_id, canale_norm, ts_effettivo, chiave)
     return hmac.compare_digest(mac_atteso, mac_fornito)
 
 
@@ -112,6 +136,7 @@ def genera_url_pubblico(
     durata_secondi: int = DURATA_PREDEFINITA_SECONDI,
     url_base: str | None = None,
     ora: datetime | None = None,
+    chiave: str | None = None,
 ) -> str:
     """Costruisce l'URL pubblico firmato per il canale (Instagram, spec R-42, CA-81).
 
@@ -121,12 +146,15 @@ def genera_url_pubblico(
         durata_secondi: validità del link in secondi dalla data di generazione.
         url_base: prefisso dell'URL (se omesso usa `foto_url_pubblico` delle impostazioni o lascia relativo).
         ora: istante di riferimento (default: adesso()).
+        chiave: chiave del render salvato da servire; entra nella firma e nell'URL.
 
     Returns:
         Stringa URL con query param 'canale' e 'firma'.
     """
     if foto_id <= 0:
         raise DatiNonValidi("ID foto non valido.")
+    if chiave is not None and not chiave_valida(chiave):
+        raise DatiNonValidi("Chiave del render non valida.")
 
     canale_norm = canale.strip().lower()
     if canale_norm not in PROPORZIONI_CANALE:
@@ -141,7 +169,7 @@ def genera_url_pubblico(
         else istante.replace(tzinfo=timezone.utc)
     )
     scadenza_ts = int(istante_utc.timestamp()) + max(1, durata_secondi)
-    firma = componi_firma(foto_id, canale_norm, scadenza_ts)
+    firma = componi_firma(foto_id, canale_norm, scadenza_ts, chiave)
 
     if url_base is not None:
         base = url_base
@@ -151,5 +179,7 @@ def genera_url_pubblico(
     base_pulita = base.strip().rstrip("/") if base else ""
 
     params = {"canale": canale_norm, "firma": firma}
+    if chiave is not None:
+        params["chiave"] = chiave
     query_string = urlencode(params)
     return f"{base_pulita}/api/foto/{foto_id}/pubblica?{query_string}"

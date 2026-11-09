@@ -101,3 +101,33 @@ def test_una_foto_di_bozza_non_usata_si_cancella_e_il_resto_resta(db, utente_di_
     assert (
         db.scalar(select(Campagna.id).where(Campagna.id == campagna.id)) == campagna.id
     )
+
+
+def test_un_render_approvato_sopravvive_alla_potatura(db):
+    """Le anteprime si potano per età; i render approvati no (§1.2, D2; ADR-124, RT-06)."""
+    import io
+    from datetime import timedelta
+
+    from PIL import Image
+
+    from app.adapters.archivio import ArchivioFinto, usa_archivio
+    from app.moduli.campagne.esecutore import Comando, comando_originale
+    from tests.moduli.campagne.fabbrica import foto as nuova_foto
+
+    with usa_archivio(ArchivioFinto()) as archivio:
+        record = nuova_foto(db)
+        buffer = io.BytesIO()
+        Image.new("RGB", (400, 300), (10, 120, 60)).save(buffer, format="JPEG")
+        record.file = archivio.salva(buffer.getvalue(), "jpg")
+        approvato = campagne_service.rendi(db, record.id, comando_originale())
+        anteprima = campagne_service.rendi(db, record.id, Comando(ruota=90))
+        for chiave in (approvato, anteprima):
+            archivio.invecchia_derivato(record.id, chiave, 0.0)
+
+        campagne_service.pota_anteprime(
+            protette={approvato}, eta_max=timedelta(days=30)
+        )
+
+        assert archivio.esiste_derivato(record.id, approvato)
+        assert not archivio.esiste_derivato(record.id, anteprima)
+        assert archivio.esiste(record.file)
