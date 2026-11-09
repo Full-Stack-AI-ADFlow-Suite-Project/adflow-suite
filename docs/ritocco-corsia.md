@@ -4,18 +4,20 @@ Aperta il 9 novembre 2026. È il piano per scrivere il codice delle decisioni pr
 
 Le sigle `RT-` non sono lette da `allinea.py` (come le `P-` della corsia della presentazione) e non vanno confuse con le regole `R-` dello spec.
 
+Rivisto il 9 novembre 2026 dopo il confronto con il codice: archivio dei file derivati (RT-06), Playwright già presente (RT-10), percorsi dei file, livello `revisione/interventi.py` (RT-28), dipendenze di RT-26 e RT-33, PR per ondata.
+
 ---
 
 ## 1. Regole della corsia
 
-1. **Un branch per la corsia**, preso da `main` (nome proposto: `feature/ritocco-foto`; nelle sessioni cloud quello indicato dalla sessione). Ogni task è uno o più commit su quel branch, in italiano all'imperativo (`feat:`, `fix:`, `test:`, `docs:`, `refactor:`, `chore:`).
-2. **La PR si apre solo a corsia completa** (decisione del 9 novembre). Si possono aprire PR intermedie verso il branch della corsia, mai verso `main`.
+1. **Un branch per la corsia**, `feature/ritocco-foto` (nelle sessioni cloud quello indicato dalla sessione), preso dalla punta del branch dei documenti della corsia (PR #190) finché questa non è in `main`. Ogni task è uno o più commit su quel branch, in italiano all'imperativo (`feat:`, `fix:`, `test:`, `docs:`, `refactor:`, `chore:`).
+2. **La PR verso `main` si apre solo a corsia completa** (decisione del 9 novembre). **Alla fine di ogni ondata (§5) si apre una PR intermedia verso il branch della corsia, mai verso `main`**: i workflow partono su ogni `pull_request` qualunque sia il ramo di destinazione, e senza PR nessun controllo di GitHub gira per 34 task.
 3. **Ogni task chiude verde.** Alla fine di ogni task: da `backend/` `uv run alembic upgrade head`, `uv run pytest`, `uv run black --check .`; da `frontend/` `npm run lint`, `npm run build` e, da RT-09, `npm test`; da RT-10 anche i test end-to-end.
 4. **Il codice congelato si tocca** (decisione del 9 novembre), ma solo dove il task lo dice e in modo chirurgico: il commento "Congelato per l'MVP, ADR-114" si aggiorna in quel punto e la modifica si elenca nella PR.
 5. **Nessuna chiamata reale ad AI, Meta o email nei test.** L'AI vera si usa solo in RT-32, a mano.
 6. **Le foto reali non entrano nel repository** (README della PR #189). I test usano immagini sintetiche generate in codice.
 7. **I confini dei moduli restano** (`tests/test_confini.py`): un modulo importa solo `service` o `schemas` dei moduli che vengono prima (accesso → notifiche → artigiani → campagne → contenuti → revisione → pubblicazione); gli adapter non importano mai i moduli.
-8. **Da scrivere nella PR** (AGENTS.md): dipendenze nuove (backend e frontend, con motivo e licenza), migrazioni Alembic, `contenuti/domain.py`, codice congelato toccato, CI cambiata.
+8. **Da scrivere nella PR** (AGENTS.md): dipendenze nuove (backend e frontend, con motivo e licenza), migrazioni Alembic, `contenuti/domain.py`, codice congelato toccato, CI cambiata, **adapter dell'archivio esteso** (RT-06) e **cambio di uscita di tutte le foto** da RT-04 (fine dell'autocontrasto) fino a RT-25.
 
 ## 2. Dove va il codice
 
@@ -24,10 +26,11 @@ Le sigle `RT-` non sono lette da `allinea.py` (come le `P-` della corsia della p
 | Colore, catalogo, misure, candidati, esecutore, diagnosi, varianti, render | `backend/app/moduli/campagne/` (file nuovi: `colore.py`, `ritocco_catalogo.py`, `preanalisi.py`, `esecutore.py`, `diagnosi.py`, `varianti.py`), esposti da `campagne/service.py` | `campagne` possiede `Foto` e l'archivio; viene prima di `contenuti`, `revisione` e `pubblicazione`, che lo possono chiamare |
 | Copia per l'AI | preparata da `campagne`, passata all'adapter come byte in `FotoAI` | l'adapter non importa i moduli: così non decodifica più e non serve duplicare il colore |
 | Schema e prompt | `adapters/ai/schemi.py`, `adapters/ai/prompts/analisi_v4.md`, `adapters/ai/litellm.py`, `adapters/ai/finto.py` | come oggi; i codici sono copie confrontate da un test con il catalogo |
+| File derivati (render) | `adapters/archivio/` (`base.py`, `disco.py`, `finto.py`): metodi nuovi per i derivati, in `derivate/` sotto la radice | l'adapter di oggi rifiuta i separatori di percorso (`valida_nome_file`) e sceglie lui il nome in `salva()`: un percorso `derivate/<foto>/<chiave>.jpg` non si può scrivere senza estenderlo |
 | Scelta dell'operatore e render approvato | `versione_post_foto.ritocco`, `versione_post_foto.render` (modelli di `contenuti`) | viaggiano con la versione del post (nota 8.6 A) |
-| Intervento `RITOCCA_FOTO` | `contenuti/domain.py`, `contenuti/interventi.py`, rotta in `revisione/router.py` | come `CAMBIA_FOTO` |
+| Intervento `RITOCCA_FOTO` | `contenuti/domain.py`, `contenuti/interventi.py`, `revisione/interventi.py` (livello intermedio, come `cambia_foto`), rotta in `revisione/router.py` | come `CAMBIA_FOTO`: rotta → `revisione.interventi` → `contenuti` |
 | Render all'approvazione | `revisione/service.py::approva` → `contenuti/service.py` → `campagne/service.py` | l'ordine dei moduli lo permette |
-| Pubblicazione dal file | `pubblicazione/service.py` (blocco congelato), `campagne/service.py::url_foto_pubblica`, `campagne/router.py` (`/foto/{id}/pubblica`) | l'URL firmato porta la chiave del render: `campagne` serve il file senza leggere `contenuti` |
+| Pubblicazione dal file | `pubblicazione/service.py` (blocco congelato), `campagne/service.py::url_foto_pubblica`, `campagne/foto_pubblica.py` (`calcola_mac`, `componi_firma`, `verifica_firma`, `genera_url_pubblico`), `campagne/router.py` (`/foto/{id}/pubblica`, non congelata) | l'URL firmato porta la chiave del render: `campagne` serve il file senza leggere `contenuti` |
 | Nessuna modifica a `core/` | – | non serve |
 
 ## 3. Strategia dei test
@@ -38,9 +41,9 @@ Le sigle `RT-` non sono lette da `allinea.py` (come le `P-` della corsia della p
 | Proprietà | hypothesis (già in `requirements-accettazione.txt`; da RT-01 **anche in CI**) | finestra sempre dentro la foto e nell'intervallo 4:5–1,91:1; soggetto e testo mai tagliati; l'esecutore non solleva eccezioni con comandi validi; L2 non solleva eccezioni con risposte AI casuali |
 | Contratto | pytest | codici dello schema = catalogo; ogni codice compare nel prompt; prompt statico (cache); il finto dà risposte valide |
 | Integrazione | pytest con DB di test, AI finta, archivio finto, Meta finto | generazione → varianti salvate; intervento → versione; approvazione → render; pubblicazione → stessi byte del render approvato |
-| Accettazione | `tests/accettazione/` | originale intatto (§1.3), niente si cancella (§1.2), BOLA sulle rotte nuove, firma dell'URL pubblico |
+| Accettazione | `tests/accettazione/` (`invarianti/test_03_originale_intatto.py`, `invarianti/test_02_niente_si_cancella.py`, `invarianti/test_07_pubblicazione_idempotente.py`, `test_bola_nuovi_endpoint.py`, `test_foto_pubblica_firma.py`) | originale intatto (§1.3), niente si cancella (§1.2), BOLA sulle rotte nuove, firma dell'URL pubblico |
 | Componenti | Vitest + Testing Library + MSW (RT-09) | card con tre varianti, stati spenti, privacy, riepilogo in Approva, chiamate API |
-| End-to-end | Playwright (RT-10) | il percorso dell'operatore nel browser vero, fino alla pubblicazione finta |
+| End-to-end | Playwright, **già presente** in `frontend/e2e/` (T4-106, `percorso-demo.spec.ts`, DB `adflow_e2e`); RT-10 lo porta in CI e vi aggiunge il percorso del ritocco | il percorso dell'operatore nel browser vero, fino alla pubblicazione finta |
 | Prova reale | `cli.py prova-ritocco` (RT-32), a mano, fuori da pytest | token, cache, costo, precisione su foto reali |
 
 Regressione delle foto buone: un insieme sintetico di "foto buone" (esposizione e colori normali, nessun difetto) deve uscire dalla Standard con ΔE medio < 1 e lo stesso rapporto. Vale come test fisso di ogni task che tocca l'esecutore.
@@ -62,6 +65,16 @@ Regressione delle foto buone: un insieme sintetico di "foto buone" (esposizione 
 
 ## 5. I task
 
+**Ondate** (a ogni fine ondata, controlli verdi e PR intermedia verso il branch della corsia, regola 2):
+
+| Ondata | Task | Che cosa si ha alla fine |
+|---|---|---|
+| A · Fondamenta | RT-00, RT-01, RT-02, RT-03, RT-04, RT-05 | documenti, strumenti di test, colore sRGB, copia per l'AI, esecutore a passi fissi, migrazioni |
+| B · Render e pubblicazione | RT-06, RT-07, RT-08, RT-09, RT-10 | render salvati, pubblicazione dal file, anteprima reale, test dei componenti ed end-to-end in CI |
+| C · Analisi locale | RT-11, RT-12, RT-13, RT-14, RT-15, RT-16, RT-17, RT-18 | OpenCV, catalogo, misure, candidati e i passi dell'esecutore |
+| D · AI e varianti | RT-19, RT-20, RT-21, RT-22, RT-23, RT-24, RT-25, RT-26, RT-27 | preparazione dell'analisi, schema, prompt, diagnosi, varianti, generazione |
+| E · Operatore e prova | RT-28, RT-29, RT-30, RT-31, RT-32, RT-33 | intervento, privacy, card, strumento di prova, prova della corsia |
+
 | ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
 |---|---|---|---|---|---|
 | RT-00 | **Preparazione della corsia**: ADR nuovo con le decisioni dal 7 al 9 novembre; spec R-42 e R-21; plan (rotte e job nuovi, §6, §7); questo file | nota §0, §5–§12 | — | documenti coerenti tra loro; comandi verdi | ☐ |
@@ -70,11 +83,11 @@ Regressione delle foto buone: un insieme sintetico di "foto buone" (esposizione 
 | RT-03 | **Copia per l'AI preparata dal modulo** | nota §6.1, §7.2 | RT-02 | l'adapter non legge più l'archivio; l'AI riceve sRGB | ☐ |
 | RT-04 | **Esecutore a passi fissi**, fine dell'autocontrasto per canale | nota §7.5, §12.4 | RT-02 | `sistema_foto_buffer` passa dall'esecutore; foto buone invariate | ☐ |
 | RT-05 | **Migrazioni**: `versione_post_foto.ritocco`, `versione_post_foto.render`, `chiamata_ai.token_in_cache` | nota §8.6, §12.3 | RT-00 | upgrade e downgrade puliti | ☐ |
-| RT-06 | **Render salvati**: file derivati, chiave, cache delle anteprime | nota §10.11, §12.5 | RT-04 | render idempotente; originale intatto; §1.2 rispettata | ☐ |
+| RT-06 | **Render salvati**: adapter dell'archivio esteso ai file derivati, chiave, cache delle anteprime | nota §10.11, §12.5 | RT-04 | render idempotente; originale intatto; §1.2 rispettata; nome derivato validato | ☐ |
 | RT-07 | **Render all'approvazione e pubblicazione dal file** (blocco congelato) | nota §7.6 | RT-05, RT-06 | Meta finto riceve i byte del render approvato; URL Instagram con la chiave | ☐ |
 | RT-08 | **Anteprima reale per l'operatore** (e per l'artigiano, D1) | nota §6.2 a, §8.2 | RT-06 | la card mostra il render; BOLA verde | ☐ |
 | RT-09 | **Test dei componenti**: Vitest, Testing Library, MSW, in CI | §3 qui | RT-08 | `npm test` in CI con i primi test della card | ☐ |
-| RT-10 | **Test end-to-end**: Playwright, workflow CI, dati di prova | §3 qui | RT-08 | un percorso dell'operatore verde in CI | ☐ |
+| RT-10 | **Test end-to-end in CI**: workflow per il Playwright già presente, dati di prova del ritocco | §3 qui | RT-08 | `percorso-demo` e un percorso del ritocco verdi in CI | ☐ |
 | RT-11 | **OpenCV** e regola "Pillow unico decoder" | nota §2.2 | RT-01 | dipendenza in `requirements.txt`; la regola fallisce su `cv2.imread` | ☐ |
 | RT-12 | **Catalogo del ritocco** | nota §12.2, §12.5 | RT-00 | codici, fasce, parametri e versioni in un solo file, con i test di coerenza | ☐ |
 | RT-13 | **Misure e fasce** | nota §7.2, §9.5 | RT-11, RT-12 | ogni misura provata su un'immagine sintetica con valore noto | ☐ |
@@ -90,14 +103,14 @@ Regressione delle foto buone: un insieme sintetico di "foto buone" (esposizione 
 | RT-23 | **Provider finto aggiornato** | nota §6.2 g, §12.2 | RT-20 | risposte compatte configurabili; punteggio intero | ☐ |
 | RT-24 | **Diagnosi** (doppia chiave) | nota §7.4, §10.7, §12.2 | RT-13, RT-20 | una riga di test per ogni riga della tabella 10.7 | ☐ |
 | RT-25 | **Varianti** come comandi | nota §12.5 | RT-16, RT-17, RT-18, RT-24 | tre comandi per foto; Spinta spenta se uguale alla Standard | ☐ |
-| RT-26 | **Integrazione nella generazione** e render Standard nel worker | nota §7.1–§7.4 | RT-21, RT-23, RT-25 | campagna finta generata con varianti e render Standard | ☐ |
+| RT-26 | **Integrazione nella generazione** e render Standard nel worker | nota §7.1–§7.4 | RT-06, RT-21, RT-23, RT-25 | campagna finta generata con varianti e render Standard; tempo di 20 foto misurato | ☐ |
 | RT-27 | **Ricalcolo locale** per le foto già analizzate (comando, senza AI) | nota §10.12 | RT-25 | foto v3 con varianti; nessuna chiamata AI | ☐ |
 | RT-28 | **Intervento `RITOCCA_FOTO`** (backend) | nota §8.5, §12.4 | RT-07, RT-26 | versioni, stati, altro canale, BOLA verdi | ☐ |
 | RT-29 | **Privacy in Approva** (backend) | nota §8.4, §12.4 | RT-28 | Approva chiede la conferma con zone da decidere | ☐ |
 | RT-30 | **Card con tre varianti** (frontend) | nota §12.4 | RT-09, RT-28 | test dei componenti verdi | ☐ |
 | RT-31 | **Riepilogo privacy in Approva** (frontend) | nota §8.4 | RT-09, RT-29 | test dei componenti verdi | ☐ |
 | RT-32 | **Strumento di prova `prova-ritocco`** | nota §9.10 | RT-26 | gira con il finto in pytest; rapporto e foglio di confronto | ☐ |
-| RT-33 | **Prova della corsia** e documentazione | tutto | RT-27…RT-32 | end-to-end completo verde; percorso a mano; README; descrizione della PR | ☐ |
+| RT-33 | **Prova della corsia** e documentazione | tutto | RT-10, RT-27…RT-32 | end-to-end completo verde; percorso a mano; README; descrizione della PR | ☐ |
 | RT-34 | *Dopo la corsia:* **taratura sulle foto reali** | nota §9.10 | RT-33, consenso dei titolari | soglie ritarate con il rapporto di RT-32 | ☐ |
 
 ---
@@ -106,7 +119,7 @@ Regressione delle foto buone: un insieme sintetico di "foto buone" (esposizione 
 
 ### RT-00 · Preparazione della corsia
 
-- **ADR nuovo** in `docs/ADR.md`, con il perché: ritocco a ciclo aperto (diagnosi AI, esecuzione locale); una sola chiamata AI con schema compatto; tre varianti per l'operatore; privacy proposta; intervallo unico; ritaglio anche in intervallo; raddrizzamento; sRGB; render salvato all'approvazione; codice congelato toccato in modo chirurgico; dipendenze nuove; corsia con PR finale.
+- **ADR nuovo** in `docs/ADR.md`, che è la versione corta (ADR-122): una riga nuova in fondo alla sua sezione, una frase per decisione con il perché; le alternative scartate stanno nella nota. `docs/archivio/` non si tocca. Le decisioni: ritocco a ciclo aperto (diagnosi AI, esecuzione locale); una sola chiamata AI con schema compatto; tre varianti per l'operatore; privacy proposta; intervallo unico; ritaglio anche in intervallo; raddrizzamento; sRGB; render salvato all'approvazione; codice congelato toccato in modo chirurgico; dipendenze nuove; corsia con PR finale.
 - **Spec:** R-42 (ritaglio anche dentro l'intervallo, raddrizzamento entro una tolleranza, tre varianti, sRGB, render approvato) e R-21 se serve; §2.2 (la sistemazione non è una tappa: la variante Standard si rende alla fine della generazione); §2.3 (Ritocca tra gli interventi). La versione completa in `docs/archivio/` non si tocca.
 - **Plan:** rotte nuove con il loro stato, job, funzioni tra moduli (§6), fixture dei test (§7).
 - **Fatto quando:** documenti coerenti tra loro e con questo piano; comandi verdi.
@@ -125,7 +138,7 @@ Regressione delle foto buone: un insieme sintetico di "foto buone" (esposizione 
 ### RT-02 · Colore sRGB
 
 - `campagne/colore.py`: `apri_in_srgb(dati: bytes, lato_max: int | None) -> Image`, con decodifica Pillow e i limiti di oggi (36 MP), `draft()` per i JPEG quando c'è `lato_max`, `exif_transpose`, conversione ICC → sRGB (relativo colorimetrico, compensazione del punto nero), modi particolari, profilo rotto → avviso nel log e nessuna eccezione. Più `profilo_srgb_bytes()` per incorporare sRGB nel JPEG in uscita.
-- `sistemazione_foto.py`: usa `apri_in_srgb` al posto di `Image.open` + `exif_transpose` + `convert`; il JPEG porta il profilo sRGB; EXIF e GPS restano tolti.
+- `sistemazione_foto.py` (test in `tests/moduli/campagne/test_sistemazione_foto.py`): usa `apri_in_srgb` al posto di `Image.open` + `exif_transpose` + `convert`; il JPEG porta il profilo sRGB; EXIF e GPS restano tolti.
 - **Collegamenti:** `campagne/immagini.py` (i controlli al caricamento restano com'erano); `test_sistemazione_foto.py` adattato.
 - **Test:** pomodoro P3 → (239, 35, 17) ±2; neutri invariati; foto senza profilo invariata; profilo rotto senza eccezione; PNG con `iCCP`; WEBP con ICC; CMYK; il JPEG in uscita ha il profilo sRGB e nessun EXIF.
 
@@ -141,6 +154,7 @@ Regressione delle foto buone: un insieme sintetico di "foto buone" (esposizione 
 - `campagne/esecutore.py`: `Comando` (dataclass: `ruota`, `raddrizza`, `finestra`, `barre`, `luce`, `nitidezza`, `versione`) e `esegui(dati, comando, zone_privacy) -> bytes` con i dieci passi della nota 7.5. I passi non ancora scritti sono vuoti e fanno nulla: si riempiono in RT-15…RT-18.
 - `comando_originale(foto)`: le regole di oggi di R-42 (rapporto, soggetto, centro, bordi sfocati) **senza autocontrasto**.
 - `sistema_foto_buffer` diventa un involucro che costruisce `comando_originale` (firma e `proporzione` invariate, D3).
+- **Effetto da scrivere nella PR:** da questo task fino a RT-25 (D6) l'uscita di ogni foto pubblicata non ha più l'autocontrasto di oggi; il criterio "foto buone invariate" si misura rispetto all'originale ridimensionato, non rispetto all'uscita di oggi.
 - **Test:** ordine dei passi; nessun metadato; profilo sRGB; lato corto 1080; le regole di rapporto di oggi (test esistenti adattati); proprietà con hypothesis (qualunque dimensione valida → rapporto nell'intervallo, nessuna eccezione); foto buone con ΔE < 1.
 
 ### RT-05 · Migrazioni
@@ -151,22 +165,22 @@ Regressione delle foto buone: un insieme sintetico di "foto buone" (esposizione 
 ### RT-06 · Render salvati
 
 - `campagne/service.py`: `rendi(foto_id, comando, zone) -> chiave` (crea il file solo se manca), `leggi_render(foto_id, chiave) -> bytes`, `chiave_render(...)` = sha256 del comando canonico + zone + versione dell'esecutore + `foto.file`.
-- Archivio: file derivati in `derivate/<foto_id>/<chiave>.jpg`, mai sopra l'originale (§1.3).
+- **Adapter dell'archivio** (`adapters/archivio/base.py`, `disco.py`, `finto.py`): metodi nuovi per i derivati, `salva_derivato(foto_id: int, chiave: str, contenuto: bytes)`, `leggi_derivato`, `esiste_derivato`, `elimina_derivato`. Il file sta in `derivate/<foto_id>/<chiave>.jpg` sotto la radice; `foto_id` deve essere un intero positivo e `chiave` esattamente 64 caratteri esadecimali minuscoli, altrimenti `ValueError`; il percorso risolto deve restare dentro `derivate/` (stessa difesa di `_valida_e_risolvi_percorso`). I metodi di oggi (`salva`, `leggi`, `elimina`, `esiste`, `valida_nome_file`) non cambiano. Mai sopra l'originale (§1.3). Cambio da elencare nella PR.
 - Anteprime non approvate: cache su disco con potatura per età (D2); i render approvati non si potano mai.
-- **Test:** due chiamate uguali, un file; chiavi diverse per comandi diversi; hash dell'originale invariato (estende `test_03_originale_intatto.py`); un render approvato sopravvive alla potatura (estende `test_02_niente_si_cancella.py`).
+- **Test:** adapter su disco e finto: salva/leggi/esiste/elimina dei derivati; chiave non esadecimale, di lunghezza sbagliata o con `..`, `foto_id` negativo o testuale → `ValueError`; il derivato non sovrascrive mai un originale; due chiamate uguali, un file; chiavi diverse per comandi diversi; hash dell'originale invariato (estende `test_03_originale_intatto.py`); un render approvato sopravvive alla potatura (estende `test_02_niente_si_cancella.py`).
 
 ### RT-07 · Render all'approvazione e pubblicazione dal file
 
 - `contenuti/service.py`: `rendi_foto_approvate(db, campagna_id)`, che per ogni `VersionePostFoto` approvata rende la variante scelta (`ritocco`, o Standard) con la privacy e salva la chiave in `render`. Va chiamata da `revisione/service.py::approva` dopo `approva_post`, e in ogni punto in cui una versione nasce approvata (interventi dopo l'approvazione, R-16).
 - `pubblicazione/service.py` (blocco congelato, righe ~132–137): `foto_sistemata(...)` diventa la lettura del render del legame; se manca (post approvati prima della corsia), si rende e si salva in quel momento. Il limite di una foto per post resta; il commento di congelamento si aggiorna.
-- `campagne/service.py::url_foto_pubblica` e `verifica_firma_foto`: la firma copre foto, chiave del render e scadenza; `GET /foto/{id}/pubblica?chiave=…` serve il file salvato.
+- `campagne/foto_pubblica.py` (`calcola_mac`, `componi_firma`, `verifica_firma`, `genera_url_pubblico`) e `campagne/service.py::url_foto_pubblica`: la firma copre foto, canale, chiave del render e scadenza; `GET /foto/{id}/pubblica?chiave=…` (non congelata) serve il file salvato. Con la chiave assente, le URL già emesse continuano a servire la foto sistemata al volo come oggi, finché non scadono.
 - **Test:** pubblicazione con Meta finto → byte uguali al render approvato (hash); URL firmato con chiave alterata → 404 (estende `test_foto_pubblica_firma.py`); pubblicazione idempotente (`test_07`) verde; post approvato senza render → reso al volo.
 
 ### RT-08 · Anteprima reale
 
 - Rotta autenticata `GET /post/{post_id}/foto/anteprima?variante=standard|spinta|originale` (router di `revisione`, permessi come la vista della campagna): rende o legge dalla cache e risponde con un JPEG. Per l'artigiano, solo sui post approvati e solo la variante scelta (D1).
 - Vista del post (`revisione/schemas.py`, `revisione/service.py`): `foto.anteprima_url`, `foto.varianti` (disponibili, uguali, scelta), `foto.zone_privacy` (numero, decise o no), `foto.avvisi`. Fino a RT-25 c'è solo Originale (D6).
-- `PostCard.tsx`: l'immagine viene da `anteprima_url`; il commento "come esce" torna vero. Calendario dell'artigiano: render dei post approvati.
+- `frontend/src/pages/operatore/campagna/PostCard.tsx`: l'immagine viene da `anteprima_url` (oggi `/api/foto/{id}/file`, cioè l'originale); il commento "come esce" torna vero. Calendario dell'artigiano: render dei post approvati.
 - **Test:** rotta per ogni ruolo (BOLA in `test_bola_nuovi_endpoint.py`); un artigiano non vede le anteprime di un post non approvato; tipo e dimensioni del JPEG.
 
 ### RT-09 · Test dei componenti
@@ -176,13 +190,13 @@ Regressione delle foto buone: un insieme sintetico di "foto buone" (esposizione 
 - Primi test: la card mostra l'immagine di `anteprima_url`, con testo alternativo; stato di caricamento e di errore dell'immagine.
 - **Fatto quando:** `npm test` verde in locale e in CI.
 
-### RT-10 · Test end-to-end
+### RT-10 · Test end-to-end in CI
 
-- `@playwright/test` (Apache-2.0) in `frontend/` o in una cartella `e2e/`; configurazione con un solo browser (Chromium), tracce solo quando un test fallisce.
-- Dati: un comando di seed per i test (sul modello di `cli.py demo`) con AI finta, archivio su disco, foto sintetiche (una P3, una storta, una buia, una buona); se la generazione richiede il worker, il test lo avvia.
-- Workflow CI nuovo (`e2e.yml`) con Postgres, backend, worker se serve, frontend in build di produzione, `npx playwright install --with-deps chromium`.
-- Primo percorso: accesso dell'operatore → Vedi campagna → la foto del post è il render (risposta JPEG dalla rotta di anteprima, lato corto 1080).
-- **Fatto quando:** verde in locale e in CI.
+- **Esiste già** (T4-106): `frontend/e2e/percorso-demo.spec.ts`, `frontend/e2e/prepara-backend.sh` (DB dedicato `adflow_e2e`, migrazioni e seed), `frontend/playwright.config.ts` (Chromium, un worker, due `webServer`), script `npm run test:e2e`, `@playwright/test` e `@axe-core/playwright` già in `package.json`. **Nessuna dipendenza nuova.** La CI non lo esegue ancora.
+- Workflow CI nuovo (`e2e.yml`) con Postgres, `prepara-backend.sh`, backend, worker se serve, frontend, `npx playwright install --with-deps chromium`; il test `percorso-demo` esistente deve passare prima di aggiungere altro. Variabili e porte come nella configurazione di oggi; se in CI serve cambiarle, si cambiano lì e si segnala.
+- Dati per il ritocco: foto sintetiche (una P3, una storta, una buia, una buona) caricate dal seed di `prepara-backend.sh` con AI finta e archivio su disco; se la generazione richiede il worker, il test lo avvia.
+- Primo percorso nuovo: accesso dell'operatore → Vedi campagna → la foto del post è il render (risposta JPEG dalla rotta di anteprima, lato corto 1080).
+- **Fatto quando:** `percorso-demo` e il percorso del ritocco verdi in locale e in CI.
 
 ### RT-11 · OpenCV e regola del decoder
 
@@ -272,6 +286,7 @@ Regressione delle foto buone: un insieme sintetico di "foto buone" (esposizione 
 
 - `generazione.py::_analizza`: `prepara_analisi` → AI → `diagnosi` → `varianti` → `aggiorna_foto` con `locale` e `ritocco`; `_CAMPI_ANALISI` esteso; un errore di L1 o L2 su una foto lascia l'analisi di oggi e la variante Originale (nessuna generazione interrotta).
 - Alla fine della generazione si rende la Standard delle foto usate dai post (cache delle anteprime), così la card si apre pronta.
+- **Tempo misurato qui, non solo in RT-32:** un test con 20 foto sintetiche (AI finta) registra il tempo di L1 + L2 + render Standard e lo confronta con il limite di 30 minuti oltre il quale `ferma_generazione` mette la campagna in `generazione_fallita`; se il margine è sotto il 5×, i render Standard si spostano in un job separato dopo la generazione.
 - Al piano arrivano gli stessi campi di oggi (`_valutazione` invariata, O9).
 - **Test:** campagna finta generata con varianti salvate e render Standard pronti; errore in L1 → generazione completa, foto in Originale; il piano riceve gli stessi campi di prima (test su `_valutazione`).
 
@@ -284,7 +299,8 @@ Regressione delle foto buone: un insieme sintetico di "foto buone" (esposizione 
 
 - `contenuti/domain.py`: `RITOCCA_FOTO` in `INTERVENTI_AMMESSI` negli stessi stati di `CAMBIA_FOTO`.
 - `contenuti/interventi.py::ritocca_foto(db, post_id, variante, privacy, utente, adesso)`: versione nuova con testo e hashtag della precedente, `tipo_intervento="ritocca_foto"`, `legame.ritocco` impostato; applicata a tutti i post della campagna con la stessa foto (se uno non lo ammette, la risposta lo dice); dopo l'approvazione la versione nasce approvata e si rende (RT-07). Nessuna AI.
-- Rotta `POST /post/{post_id}/ritocca-foto` in `revisione/router.py`, con schema in `revisione/schemas.py`; `interventi` della vista lo elenca.
+- `revisione/interventi.py::ritocca_foto(...)`: livello intermedio come `cambia_foto` (riga 88), che chiama `contenuti.ritocca_foto`. Prima di inserire il codice si controlla che né la rotta né la funzione cadano in un blocco "Congelato per l'MVP, ADR-114" (il router ne ha tre, alle righe ~121, ~149, ~178, e `revisione/interventi.py` uno alla ~169: `controllato`, `nota`, `togli-canale`); se cadono, si segnala nella PR.
+- Rotta `POST /post/{post_id}/ritocca-foto` in `revisione/router.py` (accanto a `cambia-foto`), con schema in `revisione/schemas.py`; `interventi` della vista lo elenca.
 - **Test:** stati ammessi e vietati; versione con autore; altro canale; dopo l'approvazione render nuovo; BOLA; il validatore dei testi non cambia esito.
 
 ### RT-29 · Privacy in Approva
@@ -295,13 +311,13 @@ Regressione delle foto buone: un insieme sintetico di "foto buone" (esposizione 
 
 ### RT-30 · Card con tre varianti
 
-- `PostCard.tsx` e un componente nuovo, per esempio `RitoccoFoto.tsx` in `vedi-campagna/post/`: `SegmentedControl` (Originale, Standard, Spinta) con gli stati spenti; interruttore "Oscura N zone"; etichette e avvisi con i collegamenti a Cambia foto e a Chiedi all'artigiano; "vale anche per il post …"; immagine in caricamento durante il cambio; chiamata a `ritocca-foto`, poi la vista si ricarica.
+- `pages/operatore/campagna/PostCard.tsx` e un componente nuovo, per esempio `RitoccoFoto.tsx` in `pages/operatore/vedi-campagna/post/` (accanto a `CambiaFoto.tsx`): `SegmentedControl` (Originale, Standard, Spinta) con gli stati spenti; interruttore "Oscura N zone"; etichette e avvisi con i collegamenti a Cambia foto e a Chiedi all'artigiano; "vale anche per il post …"; immagine in caricamento durante il cambio; chiamata a `ritocca-foto`, poi la vista si ricarica.
 - `frontend/src/api/interventi.ts`: `ritoccaFoto(postId, variante, privacy)`.
 - **Test (Vitest e MSW):** le tre varianti e gli stati spenti; un clic manda la chiamata giusta; "Nessuna modifica necessaria"; avviso privacy; accessibilità (ruoli ed etichette).
 
 ### RT-31 · Riepilogo privacy in Approva
 
-- Dialogo di Approva (`Decidi.tsx` o il componente di Approva): riepilogo "N foto con M zone da decidere", "Oscura tutte", "Rivedi" (porta alla prima foto), conferma esplicita.
+- Dialogo di Approva (`pages/operatore/campagna/Decidi.tsx` o il componente di Approva): riepilogo "N foto con M zone da decidere", "Oscura tutte", "Rivedi" (porta alla prima foto), conferma esplicita.
 - **Test (Vitest e MSW):** con zone → riepilogo e conferma richiesta; "Oscura tutte" manda `oscura_tutte`; senza zone il dialogo è quello di oggi.
 
 ### RT-32 · Strumento di prova `prova-ritocco`
