@@ -7,7 +7,7 @@ Verifiche previste:
 - Foto fuori proporzioni: ritaglio al centro ottimale.
 - Trattamento trasparenze e canali alpha (RGBA, WEBP).
 - Rimozione completa dei metadati GPS.
-- Autocontrasto e ridimensionamento a 1080 px.
+- Ridimensionamento a 1080 px (l'autocontrasto di una volta non c'è più, RT-04).
 - Integrazione con foto_sistemata() e database/archivio: l'originale resta intatto.
 - Validazione errori e parametri non validi.
 """

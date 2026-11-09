@@ -14,7 +14,7 @@ from PIL import Image
 
 from app.core.errori import DatiNonValidi
 from app.moduli.campagne.colore import apri_in_srgb, profilo_srgb_bytes
-from app.moduli.campagne.sistemazione_foto import sistema_foto_buffer
+from app.moduli.campagne.esecutore import sistema_foto_buffer
 from tests import immagini
 
 P3 = immagini.profilo_icc("p3")

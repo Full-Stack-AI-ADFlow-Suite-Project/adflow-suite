@@ -1,31 +1,27 @@
-"""Sistemazione delle foto per anteprima e pubblicazione.
+"""Le regole di R-42 per le proporzioni delle foto (spec R-21, R-42, CA-81 e CA-114, ADR-119).
 
-Implementa la logica locale con Pillow secondo spec R-21, R-42, CA-81 e CA-114 (ADR-119):
-1. Colore convertito in sRGB (`colore.apri_in_srgb`, ADR-124): un profilo Display P3 non si perde più;
-   rotazione dell'immagine secondo i metadati di orientamento EXIF;
-2. Rimozione di qualsiasi metadato GPS e dato sensibile (il JPEG porta solo il profilo sRGB);
-3. Adattamento alle proporzioni ammesse, da 4:5 a 1,91:1 (uguale per Facebook e Instagram):
+Dal task RT-04 (ADR-124) la sistemazione la esegue `esecutore.esegui`, con un
+comando; qui restano le regole geometriche che il passo «finestra» applica:
+1. Adattamento alle proporzioni ammesse, da 4:5 a 1,91:1 (uguale per Facebook e Instagram):
    - Una foto dentro l'intervallo non si taglia;
    - Se fuori:
      (a) con soggetto_box che entra nella finestra e taglio <= 35% area -> ritaglio attorno al soggetto;
      (b) senza riquadro e taglio <= 10% area -> ritaglio al centro;
      (c) altrimenti -> bordi sfocati (tela della proporzione, foto sfocata GaussianBlur 30 e scurita 15%,
          foto intera centrata sopra);
-4. Ridimensionamento con lato corto esattamente a 1080 px;
-5. Applicazione di un leggero autocontrasto;
-6. Esportazione finale in formato JPEG;
-7. Invariante costituzionale (§1.3): il file originale non viene mai modificato.
+2. Ridimensionamento con lato corto esattamente a 1080 px.
+
+L'autocontrasto leggero di una volta non c'è più (RT-04): le foto buone escono come
+sono. Invariante costituzionale (§1.3): il file originale non viene mai modificato.
 """
 
 from __future__ import annotations
 
-import io
 from typing import Any, Final
-from PIL import Image, ImageEnhance, ImageFilter, ImageOps
+
+from PIL import Image, ImageEnhance, ImageFilter
 
 from app.core.errori import DatiNonValidi
-
-from .colore import apri_in_srgb, profilo_srgb_bytes
 
 # Intervallo ammesso per entrambi i canali (R-21, R-42): da 4:5 a 1,91:1.
 RATIO_MINIMO: Final[float] = 4 / 5
@@ -39,7 +35,6 @@ PROPORZIONI_CANALE: Final[dict[str, tuple[tuple[int, int], ...]]] = {
 
 LATO_CORTO_TARGET: Final[int] = 1080
 TOLLERANZA_PROPORZIONE: Final[float] = 0.01
-CUTOFF_AUTOCONTRASTO: Final[int] = 2
 MAX_PIXEL_TOTALI: Final[int] = 36_000_000
 
 # Soglie di ritaglio (spec R-42, ADR-119, brief §1.5)
@@ -245,75 +240,3 @@ def _ridimensiona_lato_corto(
             nuova_altezza = lato_corto_target
 
     return img.resize((nuova_larghezza, nuova_altezza), Image.Resampling.LANCZOS)
-
-
-def sistema_foto_buffer(
-    dati_foto: bytes,
-    canale: str = "instagram",
-    proporzione: str | None = None,
-    soggetto_box: dict[str, float] | None = None,
-) -> bytes:
-    """Elabora e sistema i byte binari di una foto secondo spec R-42 e CA-114 (ADR-119).
-
-    Operazioni eseguite su una copia in memoria:
-    - Rotazione corretta basata sui metadati EXIF;
-    - Rimozione totale di GPS e metadati identificativi;
-    - Adattamento alle proporzioni ammesse da 4:5 a 1,91:1 con ritaglio sul soggetto,
-      ritaglio al centro o bordi sfocati;
-    - Ridimensionamento con lato corto a 1080 px;
-    - Autocontrasto leggero;
-    - Codifica finale JPEG.
-
-    Args:
-        dati_foto: Il contenuto binario dell'immagine sorgente (JPEG, PNG o WEBP).
-        canale: Canale di destinazione ('facebook' o 'instagram').
-        proporzione: Opzionale proporzione forzata ('1:1' o '4:5').
-        soggetto_box: Opzionale riquadro normalizzato del soggetto dall'analisi AI.
-
-    Returns:
-        I byte dell'immagine JPEG sistemata.
-
-    Raises:
-        DatiNonValidi: Se i byte non rappresentano un'immagine valida o se il canale/proporzione non è ammesso.
-    """
-    if not dati_foto:
-        raise DatiNonValidi("Nessun dato immagine fornito.")
-
-    canale_norm = canale.strip().lower()
-    if canale_norm not in PROPORZIONI_CANALE:
-        raise DatiNonValidi(
-            f"Canale '{canale}' non valido. Canali ammessi: {', '.join(PROPORZIONI_CANALE.keys())}."
-        )
-
-    # 1-2. Decodifica, rotazione da EXIF, trasparenza su bianco e conversione in sRGB
-    # (ADR-124, RT-02): una sola funzione per tutte le foto.
-    img = apri_in_srgb(dati_foto, max_pixel=MAX_PIXEL_TOTALI)
-
-    # 3. Adattamento alle proporzioni: da 4:5 a 1,91:1 (R-21, R-42, ADR-119)
-    ratio_corrente = _calcola_ratio(img.width, img.height)
-    target = _ratio_target(
-        ratio_corrente=ratio_corrente,
-        proporzioni_ammesse=PROPORZIONI_CANALE[canale_norm],
-        proporzione_richiesta=proporzione,
-    )
-
-    if target is not None:
-        img = _adatta_alle_proporzioni(img, target, soggetto_box=soggetto_box)
-
-    # 4. Ridimensionamento con lato corto esattamente a 1080 px
-    img = _ridimensiona_lato_corto(img, LATO_CORTO_TARGET)
-
-    # 5. Autocontrasto leggero
-    img = ImageOps.autocontrast(img, cutoff=CUTOFF_AUTOCONTRASTO)
-
-    # 6. Salvataggio in JPEG pulito: senza EXIF né GPS, con il profilo sRGB
-    # incorporato, così nessuno deve indovinare lo spazio colore.
-    output = io.BytesIO()
-    img.save(
-        output,
-        format="JPEG",
-        quality=90,
-        optimize=True,
-        icc_profile=profilo_srgb_bytes(),
-    )
-    return output.getvalue()

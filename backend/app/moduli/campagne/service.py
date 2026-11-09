@@ -50,7 +50,7 @@ from .domain import (
 )
 from .immagini import MAX_FOTO_PER_GRUPPO, analizza_e_valida_immagine
 from .colore import apri_in_srgb
-from .sistemazione_foto import sistema_foto_buffer
+from .esecutore import sistema_foto_buffer
 from .foto_pubblica import (
     DURATA_PREDEFINITA_SECONDI,
     componi_firma as componi_firma_foto,
@@ -1453,8 +1453,8 @@ def sistema_foto(
     Esegue: rotazione da metadati EXIF, rimozione GPS e metadati identificativi,
     adattamento proporzioni da 4:5 a 1,91:1 con ritaglio sul soggetto, al centro
     o bordi sfocati, ridimensionamento con lato corto esattamente a 1080 px,
-    autocontrasto leggero e salvataggio in formato JPEG. Invariante §1.3: la foto
-    originale resta intatta.
+    salvataggio in JPEG sRGB (l'autocontrasto di una volta non c'è più, ADR-124).
+    Invariante §1.3: la foto originale resta intatta.
     """
     return sistema_foto_buffer(
         dati, canale=canale, proporzione=proporzione, soggetto_box=soggetto_box
