@@ -33,6 +33,8 @@ jobs:
     env:
       # Lo script prepara-backend.sh ne ricava adflow_e2e e lo ricrea da zero.
       DATABASE_URL: postgresql+psycopg://adflow:adflow@localhost:5432/adflow
+      # La configurazione dell'app lo vuole; il percorso end-to-end non lo usa.
+      DATABASE_URL_TEST: postgresql+psycopg://adflow:adflow@localhost:5432/adflow_test
 
     steps:
       - uses: actions/checkout@v4
