@@ -42,12 +42,8 @@ from .base import (
     UsoAI,
 )
 from .immagini import VERSIONE_PROMPT as VERSIONE_PROMPT_IMMAGINE
-from .schemi import (
-    RispostaAnalisi,
-    RispostaPiano,
-    RispostaPost,
-    riquadro_da_centesimi,
-)
+from .analisi import analisi_da_risposta
+from .schemi import RispostaAnalisi, RispostaPiano, RispostaPost
 
 PROVIDER = "litellm"
 CARTELLA_PROMPT = Path(__file__).parent / "prompts"
@@ -200,24 +196,6 @@ def _token_in_cache(uso: Any) -> int | None:
     return valore if isinstance(valore, int) and not isinstance(valore, bool) else None
 
 
-def _persone_riconoscibili(ritocco: Any, contesto: str) -> bool:
-    """Derivato (nota 12.2): c'è un volto riconoscibile se una zona lo dice, se l'AI cita un volto
-    dello staff o minorenne, o se un candidato ``V`` del contesto non è stato escluso con ``no``.
-    """
-    if ritocco is not None:
-        if any(zona.ruolo == "volto" for zona in ritocco.zone):
-            return True
-        if any(voce.endswith((" staff", " minore")) for voce in ritocco.volti):
-            return True
-    candidati = set(re.findall(r"\bV\d+\b", contesto))
-    esclusi = {
-        voce.split()[0]
-        for voce in (ritocco.volti if ritocco else [])
-        if voce.endswith(" no")
-    }
-    return bool(candidati - esclusi)
-
-
 def _foto_per_ai(foto: FotoAI) -> dict[str, Any]:
     """La foto come ``image_url``: i byte JPEG preparati da ``campagne``, in base64, dettaglio alto."""
     if not foto.immagine:
@@ -234,23 +212,6 @@ def _foto_per_ai(foto: FotoAI) -> dict[str, Any]:
             "detail": DETTAGLIO_FOTO,
         },
     }
-
-
-def _spezza_i_cicli(analisi: dict[int, dict[str, Any]]) -> None:
-    """Se due scatti (o più) si dicono doppioni a vicenda, la migliore resta libera.
-
-    Senza, tutte le foto del ciclo uscirebbero dalle disponibili (R-05).
-    """
-    for inizio in list(analisi):
-        visti = [inizio]
-        corrente = analisi[inizio]["simile_a"]
-        while corrente is not None and corrente not in visti:
-            visti.append(corrente)
-            corrente = analisi[corrente]["simile_a"]
-        if corrente != inizio:
-            continue
-        migliore = max(visti, key=lambda uno: (analisi[uno]["punteggio"], -uno))
-        analisi[migliore]["simile_a"] = None
 
 
 class AILiteLLM(AIAdapter):
@@ -485,40 +446,11 @@ class AILiteLLM(AIAdapter):
             foto_id=gruppo.foto[0].id if len(gruppo.foto) == 1 else None,
         )
 
-        ids = [foto.id for foto in gruppo.foto]
-        per_id = {voce.foto_id: voce for voce in risposta.foto}
-        if len(risposta.foto) != len(ids) or set(per_id) != set(ids):
-            errore = ErroreAI(
-                "risposta", "L'analisi dell'AI non riguarda tutte le foto del gruppo."
-            )
+        try:
+            return analisi_da_risposta(risposta, gruppo.foto)
+        except ErroreAI as errore:
             self._segna_errore(errore)
-            raise errore
-        analisi = {}
-        contesti = {foto.id: foto.contesto for foto in gruppo.foto}
-        for uno in ids:
-            voce = per_id[uno]
-            simile = voce.simile_a if voce.simile_a in per_id else None
-            analisi[uno] = {
-                "idonea": voce.idonea,
-                "simile_a": simile if simile != uno else None,
-                "tipo": voce.tipo,
-                "punteggio": voce.punteggio,
-                "motivo": voce.motivo if not voce.idonea else None,
-                "soggetto": voce.soggetto,
-                "descrizione": voce.descrizione,
-                # Il formato di oggi, 0–1: chi legge `analisi_ai` non cambia (RT-20).
-                "soggetto_box": riquadro_da_centesimi(voce.soggetto_box),
-                "persone_riconoscibili": _persone_riconoscibili(
-                    voce.ritocco, contesti.get(uno, "")
-                ),
-                "marchi_visibili": bool(voce.ritocco and "marchi" in voce.ritocco.note),
-                # Per L2 (diagnosi) così com'è, già validato in modo morbido.
-                "ritocco": voce.ritocco.model_dump() if voce.ritocco else None,
-            }
-            if not voce.idonea and not voce.motivo:
-                analisi[uno]["motivo"] = "La foto non è adatta."
-        _spezza_i_cicli(analisi)
-        return analisi
+            raise
 
     def pianifica_campagna(
         self,

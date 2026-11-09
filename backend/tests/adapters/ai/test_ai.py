@@ -304,10 +304,20 @@ def test_analisi_ogni_foto_idonea_con_i_campi_del_piano():
             "soggetto",
             "descrizione",
             "soggetto_box",
+            "persone_riconoscibili",
+            "marchi_visibili",
+            "ritocco",
         }
         assert una["idonea"] is True
         assert una["simile_a"] is None
         assert una["soggetto"] == "Vasi del gruppo 1"
+        assert una["soggetto_box"] == {
+            "x": 0.25,
+            "y": 0.25,
+            "larghezza": 0.5,
+            "altezza": 0.5,
+        }
+        assert una["ritocco"] is None
 
 
 def test_analisi_a_comando_non_idonea_e_doppione():
@@ -605,3 +615,101 @@ def test_il_finto_registra_la_chiamata_e_il_suo_uso():
     assert (uso.tipo, uso.provider, uso.modello) == ("immagine", "finto", "finto")
     assert (uso.immagini, uso.costo_usd) == (1, Decimal("0.04"))
     assert (uso.token_ingresso, uso.token_uscita) == (None, None)
+
+
+# --- Il finto parla il formato compatto (RT-23) -------------------------------------
+
+
+def test_rt23_il_punteggio_del_finto_e_un_intero_da_uno_a_cinque():
+    for una in AIFinto().analizza_gruppo(_gruppo(3)).values():
+        assert isinstance(una["punteggio"], int) and 1 <= una["punteggio"] <= 5
+
+
+@pytest.mark.parametrize("punteggio", [0, 6, -1, 0.8, "alto"])
+def test_rt23_un_punteggio_fuori_schema_e_un_errore_di_risposta(punteggio):
+    finto = AIFinto()
+    finto.comanda_analisi(1, punteggio=punteggio)
+    with pytest.raises(ErroreAI) as sollevato:
+        finto.analizza_gruppo(_gruppo(2))
+    assert sollevato.value.tipo == "risposta"
+
+
+def test_rt23_il_ritocco_si_comanda_per_foto_e_passa_per_lo_stesso_schema():
+    finto = AIFinto()
+    ritocco = {
+        "note": ["scura", "marchi", "scura", "inventata"],
+        "centro": [62, 35],
+        "zone": [
+            {"ruolo": "volto", "b": [83, 40, 4, 5]},
+            {"ruolo": "tieni", "b": [90, 90, 40, 40]},
+        ],
+        "piana": "Q1",
+        "volti": ["V2 staff", "malformato"],
+    }
+    finto.comanda_analisi(2, ritocco=ritocco)
+    analisi = finto.analizza_gruppo(_gruppo(3))
+    assert analisi[1]["ritocco"] is None and analisi[3]["ritocco"] is None
+    assert analisi[2]["ritocco"] == {
+        "note": ["scura", "marchi"],  # i validatori morbidi ripuliscono
+        "centro": [62, 35],
+        "zone": [{"ruolo": "volto", "b": [83, 40, 4, 5]}],
+        "piana": "Q1",
+        "volti": ["V2 staff"],
+    }
+    assert analisi[2]["marchi_visibili"] is True
+    assert analisi[2]["persone_riconoscibili"] is True
+    assert analisi[1]["marchi_visibili"] is False
+
+
+def test_rt23_un_ritocco_malformato_comandato_vale_none():
+    finto = AIFinto()
+    finto.comanda_analisi(1, ritocco={"note": 3})
+    assert finto.analizza_gruppo(_gruppo(1))[1]["ritocco"] is None
+
+
+def test_rt23_il_soggetto_box_si_comanda_in_centesimi_e_torna_in_0_1():
+    finto = AIFinto()
+    finto.comanda_analisi(1, soggetto_box=[10, 20, 30, 40])
+    finto.comanda_analisi(2, soggetto_box=[60, 0, 60, 50])  # esce a destra
+    analisi = finto.analizza_gruppo(_gruppo(2))
+    assert analisi[1]["soggetto_box"] == {
+        "x": 0.1,
+        "y": 0.2,
+        "larghezza": 0.3,
+        "altezza": 0.4,
+    }
+    assert analisi[2]["soggetto_box"] is None
+
+
+def test_rt23_il_finto_e_il_vero_danno_la_stessa_analisi_per_la_stessa_risposta():
+    """Stessa risposta compatta: il finto e l'adattatore vero producono lo stesso dizionario."""
+    from app.adapters.ai.analisi import analisi_da_risposta
+    from app.adapters.ai.schemi import RispostaAnalisi
+
+    ritocco = {
+        "note": ["flash"],
+        "centro": None,
+        "zone": [],
+        "piana": None,
+        "volti": ["V1 no"],
+    }
+    finto = AIFinto()
+    finto.comanda_analisi(1, ritocco=ritocco, punteggio=5)
+    finto.comanda_analisi(2, idonea=False, motivo=None)
+    gruppo = _gruppo(2)
+    gruppo.foto[0].contesto = "flash; candidati V1"
+    dal_finto = finto.analizza_gruppo(gruppo)
+
+    voci = [
+        {
+            "foto_id": uno, "soggetto": "Vasi del gruppo 1", "descrizione": "Vasi del gruppo 1",
+            "tipo": "pezzo_finito", "idonea": uno != 2, "motivo": None, "punteggio": 5 if uno == 1 else 4,
+            "simile_a": None, "soggetto_box": [25, 25, 50, 50], "ritocco": ritocco if uno == 1 else None,
+        }
+        for uno in (1, 2)
+    ]  # fmt: skip
+    atteso = analisi_da_risposta(
+        RispostaAnalisi.model_validate({"foto": voci}), gruppo.foto
+    )
+    assert dal_finto == atteso
+    assert dal_finto[2]["motivo"] == "La foto non è adatta."
