@@ -98,7 +98,7 @@ Regressione delle foto buone: un insieme sintetico di "foto buone" (esposizione 
 | RT-18 | **Privacy**: sfocatura delle zone | nota §7.5 passo 4 | RT-04 | zona illeggibile, resto invariato | ☑ |
 | RT-19 | **Preparazione dell'analisi**: una decodifica per copia AI, contesto e `locale` | nota §7.2, §10.3, §12.2 | RT-03, RT-14 | una sola decodifica per foto; contesto solo con le fasce non normali | ☑ |
 | RT-20 | **Schema compatto** | nota §12.2 | RT-12 | contratto schema ⇄ catalogo; validatori morbidi | ☑ |
-| RT-21 | **Prompt `analisi_v4`** e ordine dei messaggi | nota §9.3, §9.4, §12.2, §12.3 | RT-19, RT-20 | ogni codice nel prompt; prompt statico; prefisso sopra soglia | ☐ |
+| RT-21 | **Prompt `analisi_v4`** e ordine dei messaggi | nota §9.3, §9.4, §12.2, §12.3 | RT-19, RT-20 | ogni codice nel prompt; prompt statico; prefisso sopra soglia | ☑ |
 | RT-22 | **Token in cache e costo** | nota §12.3 | RT-05, RT-21 | `token_in_cache` salvato; costo di riserva corretto | ☐ |
 | RT-23 | **Provider finto aggiornato** | nota §6.2 g, §12.2 | RT-20 | risposte compatte configurabili; punteggio intero | ☐ |
 | RT-24 | **Diagnosi** (doppia chiave) | nota §7.4, §10.7, §12.2 | RT-13, RT-20 | una riga di test per ogni riga della tabella 10.7 | ☐ |

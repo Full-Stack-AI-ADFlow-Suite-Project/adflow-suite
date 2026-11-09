@@ -101,6 +101,10 @@ _IMMAGINE = ("image", "immagine")
 _FILTRO = ("content_policy", "moderation_blocked", "safety system")
 
 
+# Il prompt dell'analisi (ADR-124, RT-21): v4 ha il ritocco a codici; analisi_v3.md resta.
+VERSIONE_PROMPT_ANALISI = "analisi_v4"
+
+
 @lru_cache
 def _prompt(nome: str) -> str:
     """Il testo di ``prompts/<nome>.md``; il nome porta la versione (``piano_v3``)."""
@@ -434,18 +438,25 @@ class AILiteLLM(AIAdapter):
                 ),
             }
         ]
+        # Ordine fisso per la cache del provider (nota 12.3, C3): prima il messaggio di
+        # sistema, uguale per ogni gruppo; poi ciò che cambia. Per ogni foto: la riga,
+        # il contesto misurato (solo se c'è qualcosa da dire) e l'immagine.
         for foto in gruppo.foto:
             contenuto.append({"type": "text", "text": f"Foto {foto.id}:"})
+            if foto.contesto:
+                contenuto.append(
+                    {"type": "text", "text": f"Misurato dal programma: {foto.contesto}"}
+                )
             contenuto.append(_foto_per_ai(foto))
         risposta = self._chiama(
             "analisi",
             self._modello_visione,
             [
-                {"role": "system", "content": _prompt("analisi_v3")},
+                {"role": "system", "content": _prompt(VERSIONE_PROMPT_ANALISI)},
                 {"role": "user", "content": contenuto},
             ],
             RispostaAnalisi,
-            versione_prompt="analisi_v3",
+            versione_prompt=VERSIONE_PROMPT_ANALISI,
             foto_id=gruppo.foto[0].id if len(gruppo.foto) == 1 else None,
         )
 

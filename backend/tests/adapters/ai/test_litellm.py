@@ -7,6 +7,7 @@ errori, uno per ``ultimo_uso``.
 
 import base64
 import json
+import re
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 from io import BytesIO
@@ -745,7 +746,7 @@ def test_i_tipi_di_foto_dello_schema_sono_quelli_di_campagne():
     assert set(TipoFoto.__args__) == set(TIPI_CONTENUTO)
 
 
-@pytest.mark.parametrize("nome", ["analisi_v3", "piano_v3", "post_v3"])
+@pytest.mark.parametrize("nome", ["analisi_v3", "analisi_v4", "piano_v3", "post_v3"])
 def test_i_prompt_esistono_e_hanno_la_versione_nel_nome(nome):
     assert modulo._prompt(nome).strip()
 
@@ -1251,3 +1252,89 @@ def test_rt20_persone_riconoscibili_e_derivato(
     gruppo.foto[0].contesto = contesto
     completion.metti(risposta(_analisi_di(_voce(1, ritocco=ritocco))))
     assert ai.analizza_gruppo(gruppo)[1]["persone_riconoscibili"] is atteso
+
+
+# --- Il prompt analisi_v4 e l'ordine dei messaggi (RT-21) --------------------------
+
+
+def _schema_json() -> str:
+    from app.adapters.ai.schemi import RispostaAnalisi
+
+    return json.dumps(RispostaAnalisi.model_json_schema(), sort_keys=True)
+
+
+def test_rt21_ogni_codice_e_ogni_ruolo_compare_nel_prompt():
+    from app.moduli.campagne import ritocco_catalogo as catalogo
+
+    prompt = modulo._prompt("analisi_v4")
+    for codice in list(catalogo.NOTE) + list(catalogo.RUOLI_ZONA):
+        assert re.search(rf"(?<![a-z_]){re.escape(codice)}(?![a-z_])", prompt), codice
+
+
+def test_rt21_il_prompt_e_statico_niente_segnaposto_ne_date():
+    prompt = modulo._prompt("analisi_v4")
+    assert "{" not in prompt and "}" not in prompt
+    assert "%s" not in prompt and "<<" not in prompt
+    assert not re.search(r"\b\d{4}-\d{2}-\d{2}\b", prompt)
+    assert not re.search(r"\b\d{1,2}/\d{1,2}/\d{2,4}\b", prompt)
+    # nessun dato di una bottega o di una campagna: due letture sono identiche byte per byte
+    assert modulo._prompt("analisi_v4") == prompt
+
+
+def test_rt21_il_prefisso_fisso_supera_la_soglia_della_cache():
+    """Sistema più schema: sopra i 1.024 token stimati (caratteri / 4)."""
+    prefisso = modulo._prompt("analisi_v4") + _schema_json()
+    assert len(prefisso) / 4 > 1024
+    # e v4 pesa circa 900 token più di v3 (la nota 12.2)
+    v3, v4 = (
+        len(modulo._prompt("analisi_v3")) / 4,
+        len(modulo._prompt("analisi_v4")) / 4,
+    )
+    assert 400 < v4 - v3 < 2000
+
+
+def test_rt21_il_messaggio_di_sistema_e_uguale_per_gruppi_diversi(
+    ai, completion, archivio
+):
+    completion.metti(risposta(_analisi_di(_voce(1))))
+    ai.analizza_gruppo(_gruppo(archivio, 1))
+    completion.metti(risposta(_analisi_di(_voce(7), _voce(8))))
+    altro = _gruppo(archivio, 2, da=7)
+    altro.descrizione = "Tutt'altro gruppo, con un'altra descrizione"
+    ai.analizza_gruppo(altro)
+
+    sistema = [c["messages"][0] for c in completion.chiamate]
+    assert sistema[0]["role"] == "system"
+    assert (
+        sistema[0]["content"] == sistema[1]["content"] == modulo._prompt("analisi_v4")
+    )
+
+
+def test_rt21_ordine_dei_messaggi_sistema_gruppo_poi_riga_contesto_immagine(
+    ai, completion, archivio
+):
+    gruppo = _gruppo(archivio, 2)
+    gruppo.foto[0].contesto = "scura, nitidezza bassa; candidati V1"
+    completion.metti(risposta(_analisi_di(_voce(1), _voce(2))))
+    ai.analizza_gruppo(gruppo)
+
+    messaggi = completion.chiamate[0]["messages"]
+    assert [m["role"] for m in messaggi] == ["system", "user"]
+    parti = messaggi[1]["content"]
+    assert (
+        json.loads(parti[0]["text"])["descrizione_del_gruppo"] == "Vasi in terracotta"
+    )
+    sequenza = [p["text"] if p["type"] == "text" else "<immagine>" for p in parti[1:]]
+    assert sequenza == [
+        "Foto 1:",
+        "Misurato dal programma: scura, nitidezza bassa; candidati V1",
+        "<immagine>",
+        "Foto 2:",  # nessun contesto per una foto pulita
+        "<immagine>",
+    ]
+
+
+def test_rt21_la_versione_del_prompt_e_analisi_v4(ai, completion, archivio):
+    completion.metti(risposta(_analisi_di(_voce(1))))
+    ai.analizza_gruppo(_gruppo(archivio, 1))
+    assert ai.ultimo_uso.versione_prompt == "analisi_v4"
