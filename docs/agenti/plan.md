@@ -22,7 +22,7 @@ Ogni variabile di `backend/.env` è un campo di `core/config.py` ed è in `.env.
 
 Nulla si cancella: versioni, piani, decisioni ed errori restano. La versione corrente di un post è l'ultima; il piano corrente è l'ultimo. La richiesta all'artigiano (R-46) non ha tabella: si ricava dalle decisioni `integrazione*`. I valori ammessi di ogni campo stanno nel `domain.py` del modulo della tabella; la scheda per canale è `SCHEDE_CANALE` in `contenuti/domain.py` (valori in spec R-21).
 
-**Migrazioni**, una catena Alembic, ognuna con lo schema per esteso: 001–006 i moduli · 007 coda Procrastinate 3.10.0 · 008 riallineamento · 009 `limite_login` · 010 `foto.pubblicata_su` · 011 `notifica` · 012 `chiamata_ai` · 013 storico dell'AI · 014 `pubblicazione.chiamata_il`.
+**Migrazioni**, una catena Alembic, ognuna con lo schema per esteso: 001–006 i moduli · 007 coda Procrastinate 3.10.0 · 008 riallineamento · 009 `limite_login` · 010 `foto.pubblicata_su` · 011 `notifica` · 012 `chiamata_ai` · 013 storico dell'AI · 014 `pubblicazione.chiamata_il` · *in arrivo (RT-05, ADR-124)* 015 `versione_post_foto.ritocco` e `.render`, `chiamata_ai.token_in_cache`.
 
 **Stati** (`campagne/domain.py`, `contenuti/domain.py`):
 - campagna: bozza → inviata → in_generazione → in_revisione → attiva → conclusa · inviata / in_generazione → generazione_fallita → inviata · in_revisione → respinta · prima dell'approvazione → scaduta · attiva ⇄ sospesa · attiva / sospesa → annullata. `piano_da_rivedere` resta solo per le righe vecchie.
@@ -40,11 +40,12 @@ Nulla si cancella: versioni, piani, decisioni ed errori restano. La versione cor
 | campagne | `POST /campagne/{id}/riprova` · `POST /campagne/{id}/richiesta` | operatore |
 | campagne | `POST /campagne/{id}/richiesta/foto` · `POST /campagne/{id}/richiesta/invia` | artigiano |
 | campagne | `GET /foto/{id}/file` · `GET /archivio-foto` | proprietario, operatore |
-| campagne | `GET /foto/{id}/pubblica?canale=&firma=` (indirizzo firmato per Instagram, HMAC da `LOGIN_LIMITE_SEGRETO`) | senza sessione |
+| campagne | `GET /foto/{id}/pubblica?canale=&firma=` (indirizzo firmato per Instagram, HMAC da `LOGIN_LIMITE_SEGRETO`); *in arrivo (RT-07)*: `&chiave=` del render, coperta dalla firma | senza sessione |
 | contenuti | `GET /campagne/{id}/calendario` · `GET /calendario?dal=` | proprietario, operatore |
 | contenuti | `GET /storico-ai` · `/storico-ai/numeri` · `/storico-ai/{id}` · `POST /storico-ai/{id}/voto` | operatore |
 | revisione | `GET /da-approvare` · `GET /artigiani` · `GET /campagne/{id}/post` · `POST /campagne/{id}/approva` · `/respingi` · `/sospendi` · `/riattiva` · `/annulla` | operatore |
 | revisione | `POST /post/{id}/modifica` · `/rigenera` · `/rigenera-immagine` · `GET /post/{id}/foto-possibili` · `POST /post/{id}/cambia-foto` · `/sposta` · `/annulla` · `/riprogramma` | operatore |
+| revisione | *in arrivo (ADR-124):* `GET /post/{id}/foto/anteprima?variante=` (RT-08; l'artigiano solo sui post approvati) · `POST /post/{id}/ritocca-foto` (RT-28) | operatore (anteprima anche artigiano) |
 | congelato | `/archivio` e `/archivio/*` · `POST /campagne/{id}/nota` · `/togli-canale` · `POST /post/{id}/controllato` | — |
 
 Errori: 401 non autenticato, 403 ruolo, 404 risorsa di un altro o inesistente, 409 stato (le regole R-xx), 422 dati. Una richiesta oltre 12 MiB riceve 413; il login oltre il limite dei tentativi 429 con `Retry-After`.
@@ -56,6 +57,8 @@ Errori: 401 non autenticato, 403 ruolo, 404 risorsa di un altro o inesistente, 4
 | `tick_pubblicazione` (`worker.py`) | ogni minuto, uno alla volta | `revisione.scadenze()` (R-06, R-35), poi `pubblicazione.pubblica_dovuti()`: tentativo registrato prima della chiamata, al massimo una pubblicazione per post (ADR-121), campagne concluse (R-34) |
 | `rigenera_post` · `rigenera_immagine` | da revisione; 3 esecuzioni | nuovo testo o nuova immagine; non fanno nulla fuori da `in_revisione`; spengono l'intervento in corso (R-31, R-49) |
 | `invia_notifica` | congelato | email verso il catcher locale |
+
+Nessun job nuovo per il ritocco (ADR-124): la variante Standard si rende alla fine di `genera_campagna` (RT-26, con un job separato solo se la misura dei tempi lo chiede); i comandi `ricalcola-ritocco` e `prova-ritocco` sono della CLI (`app.cli`).
 
 I nomi dei job stanno in `core/coda.py`; un job di un altro modulo si accoda con `accoda(nome, …)`, senza importarlo.
 
@@ -75,6 +78,8 @@ Un modulo legge i dati di un altro solo con le funzioni del `service.py` di quel
 | revisione | `scadenze` (per il tick). È revisione a scrivere le righe `approvazione`, anche quelle delle versioni nate dopo l'approvazione: contenuti non conosce quella tabella |
 | pubblicazione | `pubblica_dovuti` e le sue fasi: `prepara_tentativi`, `avvia_chiamata`, `chiama_social`, `registra_esito`, `chiudi_campagne` |
 
+*In arrivo con la corsia del ritocco (ADR-124):* campagne `copia_per_ai` e `prepara_analisi` (RT-03, RT-19), `rendi`, `leggi_render`, `chiave_render` (RT-06); contenuti `rendi_foto_approvate` (RT-07), `ritocca_foto` (RT-28); revisione `approva` che chiama `contenuti.rendi_foto_approvate`. L'adapter dell'archivio ha metodi per i file derivati (RT-06). Nessuna modifica a `core/`.
+
 Una firma si cambia nel task che ne ha bisogno, dicendolo nella PR.
 
 ## 7. Base comune
@@ -89,6 +94,7 @@ Una firma si cambia nel task che ne ha bisogno, dicendolo nella PR.
 | `core/transizioni.py` | `verifica_transizione()` con il dizionario del `domain.py` |
 | `core/coda.py` · `worker.py` | `accoda()` (si chiama per ultima: scrive fuori dalla transazione), nomi dei job; i job in `jobs.py` di ogni modulo, `def` normali |
 | `tabelle.py` · `main.py` | i `models.py` per Alembic; i router montati sotto `/api` |
+| `tests/immagini.py` *(in arrivo, RT-01)* | profili ICC e immagini sintetiche (tinta unita, gradienti, rettangolo inclinato, JPEG di qualità data, EXIF), `delta_e` e `media_lab`; mai foto reali nel repository |
 | `tests/conftest.py` | fixture `db` (su `adflow_test`, annullata a fine test), `client`, `coda` (in memoria), `utente_di_prova(ruolo)`; fabbriche in `tests/moduli/<modulo>/fabbrica.py`, con `flush` e mai `commit` |
 
 A ogni `pytest` il database `adflow_test` si svuota e torna all'ultima migrazione.
