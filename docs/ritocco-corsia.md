@@ -88,7 +88,7 @@ Regressione delle foto buone: un insieme sintetico di "foto buone" (esposizione 
 | RT-08 | **Anteprima reale per l'operatore** (e per l'artigiano, D1) | nota §6.2 a, §8.2 | RT-06 | la card mostra il render; BOLA verde | ☑ |
 | RT-09 | **Test dei componenti**: Vitest, Testing Library, MSW, in CI | §3 qui | RT-08 | `npm test` in CI con i primi test della card | ☑ |
 | RT-10 | **Test end-to-end in CI**: workflow per il Playwright già presente, dati di prova del ritocco | §3 qui | RT-08 | `percorso-demo` e un percorso del ritocco verdi in CI | ☑ |
-| RT-11 | **OpenCV** e regola "Pillow unico decoder" | nota §2.2 | RT-01 | dipendenza in `requirements.txt`; la regola fallisce su `cv2.imread` | ☐ |
+| RT-11 | **OpenCV** e regola "Pillow unico decoder" | nota §2.2 | RT-01 | dipendenza in `requirements.txt`; la regola fallisce su `cv2.imread` | ☑ |
 | RT-12 | **Catalogo del ritocco** | nota §12.2, §12.5 | RT-00 | codici, fasce, parametri e versioni in un solo file, con i test di coerenza | ☐ |
 | RT-13 | **Misure e fasce** | nota §7.2, §9.5 | RT-11, RT-12 | ogni misura provata su un'immagine sintetica con valore noto | ☐ |
 | RT-14 | **Candidati e segni** | nota §7.2, §9.6 | RT-13 | quadrilatero sintetico trovato con errore < 1% del lato | ☐ |
@@ -200,7 +200,7 @@ Regressione delle foto buone: un insieme sintetico di "foto buone" (esposizione 
 
 ### RT-11 · OpenCV e regola del decoder
 
-- `backend/requirements.txt`: `opencv-python-headless` (Apache-2.0; le wheel includono librerie di terzi, tra cui FFmpeg con licenza LGPL: la nota va riportata), motivo: candidati e geometria. Mai `opencv-python`.
+- `backend/requirements.txt`: `opencv-python-headless` (Apache-2.0; le wheel includono librerie di terzi, tra cui FFmpeg con licenza LGPL: la nota va riportata), motivo: candidati e geometria. Mai `opencv-python`. **Serie 4.x** (`4.14.0.94`): la 5.0 non ha più `CascadeClassifier` né i file delle cascate di Haar (D7), quindi si resta sulla 4.
 - Regola nel probe di sicurezza (`scripts/esegui_valutazione_sicurezza.py`) o in un test: in `app/` niente `cv2.imread`, `cv2.imdecode`, `cv2.VideoCapture`. Pillow decodifica, OpenCV riceve array.
 - **Test:** la regola fallisce su un sorgente di prova che usa `cv2.imdecode`; l'import di `cv2` funziona in CI.
 

@@ -28,6 +28,12 @@ pillow==13.0.0
 #   test numerici delle immagini (ADR-124, RT-01). Motivo: array veloci sotto Pillow;
 #   non decodifica file (lo fa solo Pillow).
 numpy==2.4.6
+# opencv-python-headless 4.14.0.94 — Apache-2.0 (le wheel includono librerie di terzi,
+#   tra cui FFmpeg con licenza LGPL: la nota va riportata) — candidati e geometria delle
+#   foto: quadrilateri, linee, prospettiva, volti con le cascate di Haar (ADR-124, RT-11).
+#   Mai `opencv-python` (con interfaccia grafica). Pillow decodifica, OpenCV riceve array
+#   (regola in tests/test_sast_security.py). Serie 4.x: la 5.0 non ha più CascadeClassifier.
+opencv-python-headless==4.14.0.94
 
 # Test e formattazione
 cryptography==50.0.2
