@@ -18,6 +18,7 @@ annulla e ``registra_errore()`` decide che cosa succede alla campagna (R-35).
 Si usa sempre la fotografia del profilo, mai il profilo corrente (R-11).
 """
 
+import logging
 import re
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -77,6 +78,8 @@ ATTACCO_LUNGHEZZA = 120
 MAX_PASSI = 1000
 
 AVVIO = "avvio"
+logger = logging.getLogger(__name__)
+
 ANALISI = "analisi"
 PIANO = "piano"
 IMMAGINI = "immagini"
@@ -200,6 +203,7 @@ def passo(
     if tappa == TESTI:
         _scrivi(db, campagna, _post_da_scrivere(db, campagna), esecuzione)
         return True
+    _rendi_la_standard(db, campagna)
     campagne.cambia_stato(db, campagna, "in_revisione")
     notifiche.crea(
         db,
@@ -209,6 +213,33 @@ def passo(
         contenuto={"titolo": campagna.titolo},
     )
     return False
+
+
+def _rendi_la_standard(db: Session, campagna: Any) -> None:
+    """Rende la Standard delle foto usate dai post, così la card si apre già pronta (RT-26).
+
+    Sono anteprime: finiscono nella cache dei file derivati. Un render che non riesce non
+    ferma la generazione; l'anteprima si rende al primo apri.
+    """
+    fatti: set[tuple[int, str]] = set()
+    for post in service.post_della_campagna(db, campagna.id):
+        versione = post.versione_corrente
+        if versione is None:
+            continue
+        for legame in versione.legami_foto:
+            if (legame.foto_id, post.canale) in fatti:
+                continue
+            fatti.add((legame.foto_id, post.canale))
+            try:
+                campagne.rendi_per_canale(
+                    db, legame.foto_id, post.canale, {"variante": "standard"}
+                )
+            except Exception:  # noqa: BLE001 - l'anteprima si rende al primo apri
+                logger.warning(
+                    "Render Standard non riuscito: foto %s",
+                    legame.foto_id,
+                    exc_info=True,
+                )
 
 
 def _senza_campagna(contesto: dict[str, Any]) -> dict[str, Any]:
@@ -317,9 +348,21 @@ def _analizza(
                 risultati[foto.id]["soggetto_box"] = riquadro_valido(
                     analisi.get("soggetto_box")
                 )
+                # L2: diagnosi a doppia chiave e tre varianti (RT-26). Un errore qui non
+                # ferma niente: la foto resta con l'analisi di oggi e la sola Originale.
+                risultati[foto.id]["ritocco"] = campagne.ritocco_della_foto(
+                    foto,
+                    risultati[foto.id]["soggetto_box"],
+                    analisi.get("ritocco"),
+                    preparate.get(foto.id, {}).get("locale"),
+                    ai.ultimo_uso.versione_prompt if ai.ultimo_uso else None,
+                )
             break
 
     for foto in senza_analisi:
+        # `locale` è ciò che il programma ha misurato (L1), anche se l'AI ha rifiutato la foto.
+        risultati[foto.id]["locale"] = preparate.get(foto.id, {}).get("locale")
+        risultati[foto.id].setdefault("ritocco", None)
         campagne.aggiorna_foto(db, foto.id, risultati[foto.id], foto.n_utilizzi)
 
 

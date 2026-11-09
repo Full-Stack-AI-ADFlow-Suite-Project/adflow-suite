@@ -103,7 +103,7 @@ Regressione delle foto buone: un insieme sintetico di "foto buone" (esposizione 
 | RT-23 | **Provider finto aggiornato** | nota §6.2 g, §12.2 | RT-20 | risposte compatte configurabili; punteggio intero | ☑ |
 | RT-24 | **Diagnosi** (doppia chiave) | nota §7.4, §10.7, §12.2 | RT-13, RT-20 | una riga di test per ogni riga della tabella 10.7 | ☑ |
 | RT-25 | **Varianti** come comandi | nota §12.5 | RT-16, RT-17, RT-18, RT-24 | tre comandi per foto; Spinta spenta se uguale alla Standard | ☑ |
-| RT-26 | **Integrazione nella generazione** e render Standard nel worker | nota §7.1–§7.4 | RT-06, RT-21, RT-23, RT-25 | campagna finta generata con varianti e render Standard; tempo di 20 foto misurato | ☐ |
+| RT-26 | **Integrazione nella generazione** e render Standard nel worker | nota §7.1–§7.4 | RT-06, RT-21, RT-23, RT-25 | campagna finta generata con varianti e render Standard; tempo di 20 foto misurato | ☑ |
 | RT-27 | **Ricalcolo locale** per le foto già analizzate (comando, senza AI) | nota §10.12 | RT-25 | foto v3 con varianti; nessuna chiamata AI | ☐ |
 | RT-28 | **Intervento `RITOCCA_FOTO`** (backend) | nota §8.5, §12.4 | RT-07, RT-26 | versioni, stati, altro canale, BOLA verdi | ☐ |
 | RT-29 | **Privacy in Approva** (backend) | nota §8.4, §12.4 | RT-28 | Approva chiede la conferma con zone da decidere | ☐ |

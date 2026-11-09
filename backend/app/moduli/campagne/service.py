@@ -9,6 +9,7 @@ import hashlib
 import json
 import logging
 from io import BytesIO
+from types import SimpleNamespace
 from typing import Any, NamedTuple
 
 from sqlalchemy import event, func, select, text
@@ -53,7 +54,8 @@ from .domain import (
 from .immagini import MAX_FOTO_PER_GRUPPO, analizza_e_valida_immagine
 from . import analisi_locale
 from .colore import apri_in_srgb
-from .varianti import comando_per_variante, disponibilita
+from .diagnosi import diagnosi as diagnosi_foto
+from .varianti import comando_per_variante, disponibilita, ritocco_di_foto
 from .esecutore import (
     VERSIONE_ESECUTORE,
     Comando,
@@ -1584,6 +1586,38 @@ def rendi_per_canale(
     scelta = ritocco or {}
     comando = comando_per_variante(foto, canale, scelta.get("variante"))
     return rendi(db, foto_id, comando, zone_attive(foto, scelta.get("privacy")))
+
+
+def ritocco_della_foto(
+    foto: Any,
+    soggetto_box: dict[str, float] | None,
+    ai: dict[str, Any] | None,
+    locale: dict[str, Any] | None,
+    versione_prompt: str | None = None,
+) -> dict[str, Any] | None:
+    """La diagnosi e le tre varianti di una foto appena analizzata, pronte per ``foto.analisi_ai["ritocco"]``.
+
+    L2 e le varianti non fermano mai la generazione: se qualcosa va storto la foto resta con
+    l'analisi di oggi e la sola variante Originale (``None``, ADR-124, RT-26).
+    """
+    try:
+        diag = diagnosi_foto(ai, locale)
+        stand_in = SimpleNamespace(
+            larghezza=foto.larghezza,
+            altezza=foto.altezza,
+            analisi_ai={"soggetto_box": soggetto_box},
+        )
+        ritocco = ritocco_di_foto(stand_in, diag, locale)
+        ritocco["ai"] = ai
+        ritocco["versione_prompt"] = versione_prompt
+        return ritocco
+    except Exception:  # noqa: BLE001 - una foto senza ritocco è una foto in Originale
+        logger.warning(
+            "Ritocco non calcolato per la foto %s",
+            getattr(foto, "id", "?"),
+            exc_info=True,
+        )
+        return None
 
 
 def zone_attive(foto: Foto, privacy: Any) -> list[dict[str, Any]]:
