@@ -30,6 +30,7 @@ Versione corta (ADR-122): le decisioni che spiegano il prodotto com'è, una fras
 | 28 | Al caricamento si controllano formato, peso e lato corto; la qualità la giudica l'AI e la foto non idonea resta fuori, con il motivo. |
 | 70, 73 | Avvisi all'artigiano prima dell'invio, calcolati dal server e senza blocco: può aggiungere foto prima di una respinta. |
 | 81 | La frequenza è un impegno: escono sempre i post scelti, anche con poche foto. La presenza costante è lo scopo del prodotto. |
+| 124 | Ritocco delle foto a ciclo aperto (riprende, in forma locale, ciò che le 41, 43 e 100 avevano escluso): l'AI fa la diagnosi con una sola chiamata e uno schema compatto, il codice misura ed esegue, nessun ritocco generativo. L'operatore sceglie tra tre varianti pronte (Originale, Standard, Spinta) e decide le zone di privacy, che l'AI propone e non applica; il render approvato si salva e la pubblicazione usa quel file. Intervallo unico 4:5–1,91:1 con ritaglio anche dentro l'intervallo e raddrizzamento entro una tolleranza; colore convertito in sRGB per primo (foto iPhone). Si tocca il codice congelato (ADR-114) solo dove serve e in modo chirurgico; dipendenze nuove numpy e OpenCV. Una corsia, PR intermedie per ondata, PR finale. Piano e task: `docs/ritocco-corsia.md`. |
 
 ## Generazione
 | ID | Decisione · perché |

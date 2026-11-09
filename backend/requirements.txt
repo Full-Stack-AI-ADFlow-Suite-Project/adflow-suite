@@ -24,6 +24,10 @@ filelock==3.32.7
 
 # Immagini: sistemazione delle foto (spec R-42) e immagini AI di rimpiazzo (R-28)
 pillow==13.0.0
+# numpy 2.4.6 — BSD-3-Clause — misure sulle foto (luminanza, nitidezza, dominante) e
+#   test numerici delle immagini (ADR-124, RT-01). Motivo: array veloci sotto Pillow;
+#   non decodifica file (lo fa solo Pillow).
+numpy==2.4.6
 
 # Test e formattazione
 cryptography==50.0.2

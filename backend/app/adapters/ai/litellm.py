@@ -24,10 +24,9 @@ from typing import Any, TypeVar
 import litellm
 import openai
 from litellm import exceptions as errori_litellm
-from PIL import Image, ImageOps
+from PIL import Image
 from pydantic import BaseModel, ValidationError
 
-from app.adapters.archivio import ottieni_archivio
 from app.core.config import leggi_impostazioni
 
 from .base import (
@@ -49,8 +48,6 @@ PROVIDER = "litellm"
 CARTELLA_PROMPT = Path(__file__).parent / "prompts"
 # Lato lungo delle foto mandate all'analisi, qualità del JPEG e dettaglio.
 # Con `low` il provider riduce la foto a 512 px: troppo poco per descriverla.
-LATO_FOTO = 1024
-QUALITA_JPEG = 85
 DETTAGLIO_FOTO = "high"
 # Il job riprova da sé (R-35): LiteLLM non deve moltiplicare i tentativi.
 TIMEOUT_SECONDI = 120
@@ -182,24 +179,14 @@ def traduci_errore(errore: Exception, *, foto_id: int | None = None) -> ErroreAI
 
 
 def _foto_per_ai(foto: FotoAI) -> dict[str, Any]:
-    """La foto come ``image_url``: JPEG di al massimo 1024 px, in base64, dettaglio alto."""
-    try:
-        originale = ottieni_archivio().leggi(foto.file)
-    except FileNotFoundError:
+    """La foto come ``image_url``: i byte JPEG preparati da ``campagne``, in base64, dettaglio alto."""
+    if not foto.immagine:
         raise ErroreAI(
-            "richiesta", f"La foto {foto.id} non si trova più.", foto_id=foto.id
-        ) from None
-    try:
-        with Image.open(BytesIO(originale)) as aperta:
-            immagine = ImageOps.exif_transpose(aperta).convert("RGB")
-        immagine.thumbnail((LATO_FOTO, LATO_FOTO))
-        uscita = BytesIO()
-        immagine.save(uscita, "JPEG", quality=QUALITA_JPEG)
-    except (OSError, ValueError, SyntaxError, Image.DecompressionBombError):
-        raise ErroreAI(
-            "richiesta", f"La foto {foto.id} non si riesce a leggere.", foto_id=foto.id
-        ) from None
-    dati = base64.b64encode(uscita.getvalue()).decode("ascii")
+            "richiesta",
+            f"La foto {foto.id} non si trova più o non si riesce a leggere.",
+            foto_id=foto.id,
+        )
+    dati = base64.b64encode(foto.immagine).decode("ascii")
     return {
         "type": "image_url",
         "image_url": {

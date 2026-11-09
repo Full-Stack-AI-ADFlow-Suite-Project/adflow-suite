@@ -10,8 +10,8 @@ Rivisto il 9 novembre 2026 dopo il confronto con il codice: archivio dei file de
 
 ## 1. Regole della corsia
 
-1. **Un branch per la corsia**, `feature/ritocco-foto` (nelle sessioni cloud quello indicato dalla sessione), preso dalla punta del branch dei documenti della corsia (PR #190) finché questa non è in `main`. Ogni task è uno o più commit su quel branch, in italiano all'imperativo (`feat:`, `fix:`, `test:`, `docs:`, `refactor:`, `chore:`).
-2. **La PR verso `main` si apre solo a corsia completa** (decisione del 9 novembre). **Alla fine di ogni ondata (§5) si apre una PR intermedia verso il branch della corsia, mai verso `main`**: i workflow partono su ogni `pull_request` qualunque sia il ramo di destinazione, e senza PR nessun controllo di GitHub gira per 34 task.
+1. **Branch.** `feature/ritocco-foto` è la base della corsia (la punta dei documenti, PR #190); ogni ondata (§5) lavora su un suo branch `ritocco/ondata-a`, `ritocco/ondata-b`… ognuno preso dalla punta del precedente. Ogni task è uno o più commit, in italiano all'imperativo (`feat:`, `fix:`, `test:`, `docs:`, `refactor:`, `chore:`).
+2. **PR a catena, una per ondata.** A fine ondata si spinge il branch e si apre una PR con base il branch dell'ondata precedente (la A ha base `feature/ritocco-foto`), così i workflow girano a ogni ondata (partono su ogni `pull_request`, qualunque sia la base). **Le PR intermedie non si uniscono da sole.** La PR verso `main` si apre solo a corsia completa (decisione del 9 novembre), come bozza, dal branch dell'ultima ondata.
 3. **Ogni task chiude verde.** Alla fine di ogni task: da `backend/` `uv run alembic upgrade head`, `uv run pytest`, `uv run black --check .`; da `frontend/` `npm run lint`, `npm run build` e, da RT-09, `npm test`; da RT-10 anche i test end-to-end.
 4. **Il codice congelato si tocca** (decisione del 9 novembre), ma solo dove il task lo dice e in modo chirurgico: il commento "Congelato per l'MVP, ADR-114" si aggiorna in quel punto e la modifica si elenca nella PR.
 5. **Nessuna chiamata reale ad AI, Meta o email nei test.** L'AI vera si usa solo in RT-32, a mano.
@@ -77,12 +77,12 @@ Regressione delle foto buone: un insieme sintetico di "foto buone" (esposizione 
 
 | ID | Task | Leggi | Dipende da | Fatto quando | ☐ |
 |---|---|---|---|---|---|
-| RT-00 | **Preparazione della corsia**: ADR nuovo con le decisioni dal 7 al 9 novembre; spec R-42 e R-21; plan (rotte e job nuovi, §6, §7); questo file | nota §0, §5–§12 | — | documenti coerenti tra loro; comandi verdi | ☐ |
-| RT-01 | **Strumenti di test per le immagini**, numpy, hypothesis in CI | nota §12.1; §3 qui | RT-00 | `tests/immagini.py` con i suoi test; hypothesis eseguito in CI | ☐ |
-| RT-02 | **Colore sRGB** | nota §12.1 | RT-01 | i casi di 12.1 verdi; sistemazione con sRGB | ☐ |
-| RT-03 | **Copia per l'AI preparata dal modulo** | nota §6.1, §7.2 | RT-02 | l'adapter non legge più l'archivio; l'AI riceve sRGB | ☐ |
-| RT-04 | **Esecutore a passi fissi**, fine dell'autocontrasto per canale | nota §7.5, §12.4 | RT-02 | `sistema_foto_buffer` passa dall'esecutore; foto buone invariate | ☐ |
-| RT-05 | **Migrazioni**: `versione_post_foto.ritocco`, `versione_post_foto.render`, `chiamata_ai.token_in_cache` | nota §8.6, §12.3 | RT-00 | upgrade e downgrade puliti | ☐ |
+| RT-00 | **Preparazione della corsia**: ADR nuovo con le decisioni dal 7 al 9 novembre; spec R-42 e R-21; plan (rotte e job nuovi, §6, §7); questo file | nota §0, §5–§12 | — | documenti coerenti tra loro; comandi verdi | ☑ |
+| RT-01 | **Strumenti di test per le immagini**, numpy, hypothesis in CI | nota §12.1; §3 qui | RT-00 | `tests/immagini.py` con i suoi test; hypothesis eseguito in CI | ☑ |
+| RT-02 | **Colore sRGB** | nota §12.1 | RT-01 | i casi di 12.1 verdi; sistemazione con sRGB | ☑ |
+| RT-03 | **Copia per l'AI preparata dal modulo** | nota §6.1, §7.2 | RT-02 | l'adapter non legge più l'archivio; l'AI riceve sRGB | ☑ |
+| RT-04 | **Esecutore a passi fissi**, fine dell'autocontrasto per canale | nota §7.5, §12.4 | RT-02 | `sistema_foto_buffer` passa dall'esecutore; foto buone invariate | ☑ |
+| RT-05 | **Migrazioni**: `versione_post_foto.ritocco`, `versione_post_foto.render`, `chiamata_ai.token_in_cache` | nota §8.6, §12.3 | RT-00 | upgrade e downgrade puliti | ☑ |
 | RT-06 | **Render salvati**: adapter dell'archivio esteso ai file derivati, chiave, cache delle anteprime | nota §10.11, §12.5 | RT-04 | render idempotente; originale intatto; §1.2 rispettata; nome derivato validato | ☐ |
 | RT-07 | **Render all'approvazione e pubblicazione dal file** (blocco congelato) | nota §7.6 | RT-05, RT-06 | Meta finto riceve i byte del render approvato; URL Instagram con la chiave | ☐ |
 | RT-08 | **Anteprima reale per l'operatore** (e per l'artigiano, D1) | nota §6.2 a, §8.2 | RT-06 | la card mostra il render; BOLA verde | ☐ |
