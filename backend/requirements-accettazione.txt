@@ -1,8 +1,9 @@
 # Dipendenze dei test di accettazione (corsia 10, ADR-120).
 #
 # Non entrano in requirements.txt: servono solo ai test di proprietà di
-# `backend/tests/accettazione/proprieta/`, che si saltano se hypothesis non è
-# installato.
+# `backend/tests/accettazione/proprieta/` e di `tests/test_immagini_proprieta.py`,
+# che si saltano se hypothesis non è installato. Dalla corsia del ritocco (ADR-124,
+# RT-01) la CI li installa, così quei test girano a ogni PR.
 # Si installano con: da `backend/`, `uv pip install -r requirements-accettazione.txt`
 # (oppure `uv run --with-requirements requirements-accettazione.txt pytest`).
 #

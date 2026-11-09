@@ -39,7 +39,8 @@ jobs:
       - name: Installa le dipendenze
         run: |
           uv venv --python 3.11 --seed .venv
-          uv pip install -r backend/requirements.txt
+          # Anche hypothesis (ADR-124, RT-01): senza, i test di proprietà si saltano.
+          uv pip install -r backend/requirements.txt -r backend/requirements-accettazione.txt
 
       - name: Crea il database dei test
         run: psql -h localhost -U adflow -d adflow -c "CREATE DATABASE adflow_test"
