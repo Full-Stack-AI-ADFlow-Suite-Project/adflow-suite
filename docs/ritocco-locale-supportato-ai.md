@@ -4,7 +4,7 @@ Worktree: `ritocco-locale-supportato-ai` · branch `worktree-ritocco-locale-supp
 Aggiornata il 9 novembre 2026 sul branch `ccr-5fa1049d-405z9r` (sezioni 0 e 5–11).
 Questo file raccoglie la conversazione che ha portato al lavoro, la valutazione finale, il piano d'azione e un esempio di prompt con output strutturato. È una nota di lavoro, non documentazione di prodotto. Dove un'affermazione e il codice non tornano, vale il codice.
 
-Come leggerla: le sezioni 1–4 sono la storia (mosaici, prima impostazione). Dalla 5 in poi c'è lo studio sul caso d'uso largo (le 375 foto della PR #189), sul flusso con l'operatore, sul prompt e sui dati strutturati. **Dove la 4 e le 8–10 non tornano, valgono le 8–10.**
+Come leggerla: le sezioni 1–4 sono la storia (mosaici, prima impostazione). Dalla 5 in poi c'è lo studio sul caso d'uso largo (le 375 foto della PR #189), sul flusso con l'operatore, sul prompt e sui dati strutturati. **Dove la 4 e le 8–10 non tornano, valgono le 8–10; dove le 8–11 non tornano con la 12 (9 novembre), vale la 12.**
 
 ---
 
@@ -21,8 +21,12 @@ Come leggerla: le sezioni 1–4 sono la storia (mosaici, prima impostazione). Da
 | 8 nov | Inserire l'operatore nel flusso, con accesso a tutte le modifiche che stanno nel perimetro del costo | Ogni azione dell'operatore è locale e gratuita, nessuna chiamata AI in più |
 | 8 nov | **Una sola chiamata AI** per l'analisi delle foto (per gruppo, come oggi) | La pre-analisi locale e le scelte dell'operatore non chiamano l'AI |
 | 8 nov | I task per scrivere il codice si costruiscono a fine sessione | La sezione 11 raccoglie solo gli ingredienti |
+| 9 nov | **Approvate le proposte** delle sezioni 5–11, comprese quelle della 11.1 che avevano una proposta: foto "copertina" come foto feed; conferma della privacy in Approva con un clic; scelte dell'operatore su `VersionePostFoto` con migrazione | 11.1 aggiornata |
+| 9 nov | **L'aumento di costo del +40% è eccessivo**; la cache del prompt va rispettata | Schema compatto e sparso, prompt più corto, regole di cache: stima +5–12% (sezione 12.2–12.3) |
+| 9 nov | **L'operatore ha poche scelte a singolo clic**: si mostra una modifica Standard completa; un clic per una modifica Spinta, già pronta come comando strutturato; un clic per l'Originale | Il pannello Ritocca della 8.3 è sostituito dalle tre varianti (sezione 12.4) |
+| 9 nov | **Il colore delle foto iPhone va risolto** | Conversione ICC → sRGB obbligatoria e per prima (sezione 12.1) |
 
-Ancora aperte: le foto "copertina" della PR #189 (44) si trattano come foto feed? (proposta: sì). R-42 e lo `spec.md` vanno aggiornati (ritaglio in intervallo, raddrizzamento che contraddice "mai deformata")? Si cambiano solo se la persona lo chiede.
+Ancora aperte: l'autorizzazione a usare le foto reali raccolte con la PR #189 (consenso dei titolari); quando aggiornare R-42 nello `spec.md` (proposta: insieme al codice che lo cambia).
 
 ---
 
@@ -727,6 +731,8 @@ Caricamento e controlli, tappe della generazione, piano e testi, validatore dei 
 
 ### 8.3 Il pannello Ritocca
 
+> **Superata dalla 12.4** (decisione del 9 novembre): niente pannello con molti controlli, ma tre varianti a un clic più la privacy. Il testo resta come storia.
+
 Un cassetto (Mantine `Drawer`) con l'anteprima grande e questi controlli:
 
 | Controllo | Valori | Predefinito | Compare |
@@ -930,6 +936,8 @@ Proposta: segni sottili, colore unico ad alto contrasto, etichetta piccola fuori
 
 ### 9.9 Costi (prezzi della configurazione: 2,50 $ / 10 $ per milione)
 
+> **Superata dalla 12.2**: il +40% è stato giudicato eccessivo. Con lo schema compatto la stima scende a +5–12%.
+
 Stime per un gruppo da 10 foto; un'immagine a 1024 px con `detail: high` vale ~765 token.
 
 | Voce | Oggi (v3) | Con v4 | Note |
@@ -1008,6 +1016,8 @@ Foto 51: {"rapporto": 0.75, "misure": {"nitidezza": "bassa", "esposizione": "scu
 Circa 40–60 token. Le coordinate dei candidati **non** si mandano: sono disegnate (9.6).
 
 ### 10.5 Lo schema di risposta (in `adapters/ai/schemi.py`)
+
+> **Superate dalla 12.2 le sezioni 10.5, 10.6, 10.9 e 10.10**: lo schema diventa compatto e sparso (codici al posto di campi, riquadri in centesimi, `ritocco: null` per le foto senza nulla da dire), e la proposta diventa tre varianti salvate come comandi (12.5). Restano validi i principi: campi obbligatori, `Literal`, controlli nei validatori, test di confronto con il catalogo. La sezione 9.4 resta valida nel contenuto (che cosa l'AI deve riconoscere), ma va riscritta nella forma dei codici della 12.2.
 
 Regole di oggi: tutti i campi obbligatori, nullabili con `| None` senza valore di partenza, `Literal` per gli enum, controlli di valore nei validatori e non nello schema (provider con schema stretto). L'ordine dei campi è l'ordine in cui il modello scrive: prima osserva, poi giudica, poi localizza.
 
@@ -1284,17 +1294,21 @@ I task si costruiscono a fine sessione (sezione 0). Qui solo ciò che servirà.
 
 ### 11.1 Decisioni ancora da prendere
 
-1. Foto "copertina" trattate come feed? (proposta: sì)
-2. Riepilogo privacy in Approva: solo informativo o con conferma esplicita? (proposta: conferma, un clic)
-3. Scelte dell'operatore su `VersionePostFoto` con migrazione (8.6 A, proposta) o in `analisi_ai` (B)?
-4. Ingrandimento ammesso nell'avvicinamento: nessuno o fino a ~1,3×?
+Stato al 9 novembre (approvate le proposte):
+
+1. Foto "copertina" trattate come feed: **sì** (approvato).
+2. Riepilogo privacy in Approva: **conferma esplicita, un clic** (approvato).
+3. Scelte dell'operatore su `VersionePostFoto` con migrazione (8.6 A): **sì** (approvato).
+4. Ingrandimento nell'avvicinamento: **nessuno in Standard, fino a ~1,3× in Spinta** (12.4, proposta coerente con le varianti).
 5. Segni disegnati sulla copia AI: si decide in fase 0.
-6. OpenCV: volti e quadrilateri richiedono OpenCV già in L1 (non più solo "fase 4 se serve"). Rilevatore dei volti: le cascate di Haar sono nel pacchetto; un rilevatore migliore richiede un modello da scaricare (licenza e dimensione da verificare).
-7. Campo per i token in cache in `chiamata_ai`?
-8. R-42 e `spec.md`: aggiornarli (ritaglio in intervallo, raddrizzamento)?
-9. Fase 0: autorizzazione a usare le foto reali raccolte con la PR #189 (consenso scritto, README della PR).
+6. OpenCV già in L1 per volti e quadrilateri: **sì** (approvato). Rilevatore dei volti: le cascate di Haar sono nel pacchetto; uno migliore richiede un modello da scaricare (licenza e dimensione da verificare).
+7. Token in cache in `chiamata_ai`: **sì**, colonna nuova (12.3).
+8. R-42 e `spec.md`: da aggiornare insieme al codice che li cambia (proposta).
+9. Fase 0: autorizzazione a usare le foto reali raccolte con la PR #189 (consenso scritto, README della PR): **aperta**, dipende dai titolari.
 
 ### 11.2 Ingredienti, in ordine di dipendenza (non sono task)
+
+> **Superata dalla 12.6**: l'ordine cambia (il colore sRGB va per primo) e le varianti sostituiscono il pannello.
 
 1. **Fase 0 · prova:** script fuori da pytest sulle foto reali; v4 contro v3; con e senza segni; misura di token e costi.
 2. **Correzioni obbligatorie:** sRGB, via l'autocontrasto per canale, esecutore con ordine fisso (7.5), test sulle 21 foto buone.
@@ -1316,3 +1330,298 @@ I task si costruiscono a fine sessione (sezione 0). Qui solo ciò che servirà.
 - Nessuna modifica a `core/` prevista; nessuna a `docs/archivio/`.
 
 Fonti sui formati feed (terze parti, da confermare sulla documentazione Meta): [Sked Social](https://skedsocial.com/blog/best-instagram-image-and-video-size-recommendations.md), [AdaptlyPost](https://adaptlypost.com/es/blog/instagram-api-image-requirements), [ZoomSphere](https://help.zoomsphere.com/en/articles/4852379-scheduler-image-post-requirements-for-ig-auto-publishing), [Metricool](https://metricool.com/facebook-image-sizes/), [HeyOrca](https://heyorca.com/blog/facebook-posting-specs-best-practices-in-2026).
+
+---
+
+## 12. Revisione del 9 novembre: colore, costo, cache, operatore a tre varianti
+
+### 12.1 Il colore delle foto iPhone
+
+**Il problema.** L'iPhone (e diversi Android recenti) salva i JPEG con il profilo colore **Display P3**, più ampio di sRGB. I numeri dei pixel hanno senso solo insieme al profilo. Oggi il profilo si perde in tre punti:
+- `sistema_foto_buffer`: `convert("RGB")` lo ignora e il JPEG in uscita non lo porta, quindi Facebook e Instagram leggono i numeri P3 come se fossero sRGB;
+- `_foto_per_ai`: anche l'AI vede i colori sbagliati e giudica la dominante su una foto falsata;
+- l'anteprima dell'operatore mostra l'originale e il browser **gestisce** il profilo: l'operatore vede i colori giusti e la foto pubblicata esce diversa (6.2 a).
+
+**La prova** (9 novembre, `ImageCms` con LittleCMS 2.19, già nelle wheel di Pillow). Il profilo Display P3 è stato costruito in codice dai primari pubblici (adattamento Bradford da D65 a D50, curva sRGB). Il metodo è stato verificato rifacendo nello stesso modo un sRGB: la conversione verso il sRGB di LittleCMS lascia i colori identici.
+
+| Colore | Valori P3 | sRGB corretto | Uscita di oggi |
+|---|---|---|---|
+| pomodoro | (220, 60, 40) | (239, 35, 17) | (221, 60, 40) |
+| basilico | (60, 150, 60) | (0, 152, 44) | invariato |
+| rosa | (230, 90, 140) | (249, 77, 141) | invariato |
+| pane | (205, 160, 110) | (213, 158, 102) | invariato |
+| grigio, bianco | invariati | invariati | invariati |
+
+I neutri restano giusti, per questo il difetto passa inosservato. I colori saturi escono spenti: pizza, fiori, smalti, cioè proprio i prodotti dei profili della PR #189.
+
+**La soluzione.**
+1. **Una funzione sola**, per esempio `apri_in_srgb(dati) -> Image`, in `campagne`, usata da sistemazione, pre-analisi, copia AI e anteprima. Fa: decodifica Pillow con i limiti di oggi, `exif_transpose`, e se c'è `icc_profile` la conversione `ImageCms.profileToProfile(img, profilo_sorgente, sRGB, renderingIntent=RELATIVE_COLORIMETRIC, flags=BLACKPOINTCOMPENSATION, outputMode="RGB")`.
+2. **Modi particolari:** trasparenza appiattita su bianco prima della conversione (come oggi); `P` convertita prima in RGB; JPEG CMYK con profilo convertiti con il profilo, senza profilo con la conversione di oggi; scala di grigi con profilo grigio convertita in RGB.
+3. **Profilo rotto o illeggibile:** si ignora, si registra un avviso, nessuna eccezione (la foto resta pubblicabile come oggi).
+4. **Prestazioni:** la conversione si fa sulla copia già ridotta da `draft()`, non sui 12 MP.
+5. **In uscita:** JPEG con il profilo **sRGB incorporato** (pochi KB, nessun dato personale), così nessuno deve indovinare. EXIF e GPS restano tolti.
+6. **Colori fuori gamma:** i verdi e i rossi più saturi del P3 non esistono in sRGB e vengono tagliati al bordo (il canale rosso del basilico va a 0). È inevitabile pubblicando in sRGB, ed è comunque più fedele di oggi.
+7. **Da verificare con un iPhone vero:** se dal browser arriva un HEIC, oggi i magic bytes lo rifiutano. Le foto HDR con gain map danno l'immagine SDR di base: va bene.
+
+**Test senza foto reali:** il profilo P3 si genera in codice (nessuna licenza da verificare per la fixture). Casi: pomodoro P3 → atteso ±2; neutri invariati; foto senza profilo invariata; profilo rotto senza eccezione; PNG con `iCCP`; WEBP con ICC; JPEG CMYK.
+
+**Posizione:** è una correzione obbligatoria e la **prima** dell'esecutore (passo 2 della 7.5). Non dipende dall'AI: si può fare subito, da sola.
+
+### 12.2 Il costo: schema compatto e sparso
+
+**Da dove veniva il +40%.** Dall'uscita: lo schema largo della 10.5 aggiungeva circa 187 token a foto (misurato sui caratteri dell'esempio 10.6), e un token di uscita costa 4 volte uno di ingresso. Poi dal prompt, circa 2.100 token in più.
+
+**Le leve applicate:**
+1. **Codici sparsi** invece di campi: si scrive solo ciò che non è normale.
+2. **`ritocco: null`** quando non c'è niente da dire.
+3. **Riquadri come quattro interi in centesimi**, `[x, y, larghezza, altezza]`, anche per `soggetto_box`. L2 li riconverte nel formato di oggi, quindi chi legge `analisi_ai` non cambia.
+4. **Una sola lista di zone**, con il ruolo, invece di liste separate.
+5. **Superficie piana solo per codice** (`Q1`). Se OpenCV non la trova, non si raddrizza: limite accettato.
+6. **Volti solo per eccezione:** si scrivono solo `staff`, `minore` e `no`. Ogni codice V non citato vale `cliente`, perché nel dubbio si propone la zona.
+7. **Via dall'uscita** `persone_riconoscibili` (lo deriva L2) e `marchi_visibili` (diventa il codice `marchi`).
+8. **Contesto per foto in testo semplice**, solo le fasce non normali: in media una dozzina di token.
+9. **Aggiunte al prompt contenute** in circa 900 token (non 2.100): un elenco di codici con una riga ciascuno.
+
+**Lo schema** (sostituisce la 10.5):
+
+```python
+Nota = Literal[
+    # inquadratura
+    "lontana", "decentrata", "storta", "ambiente", "non_tagliare",
+    "ruota_90", "ruota_180", "ruota_270",
+    # luce
+    "scura", "chiara", "controluce", "flash",
+    "calda", "fredda", "verde", "magenta",
+    "riflessi_bordi", "riflessi_soggetto",
+    # qualità e tipo
+    "mossa_lieve", "mossa_forte", "foto_di_foto", "screenshot", "grafica",
+    # altro
+    "marchi",
+]
+RuoloZona = Literal[
+    "tieni",      # testo o elemento da non tagliare
+    "togli",      # intruso ai bordi
+    "neutro",     # superficie bianca o grigia di riferimento
+    "volto",      # volto riconoscibile senza codice V
+    "nome", "indirizzo", "targa", "dati",  # scritte private
+]
+
+
+class Zona(BaseModel):
+    ruolo: RuoloZona
+    b: list[int]          # [x, y, larghezza, altezza] in centesimi della foto
+
+
+class Ritocco(BaseModel):
+    note: list[Nota]
+    centro: list[int] | None      # [x, y] in centesimi: il punto da non tagliare
+    zone: list[Zona]
+    piana: str | None             # codice Q di una superficie da raddrizzare
+    volti: list[str]              # solo eccezioni: "V2 staff", "V3 minore", "V4 no"
+
+
+class AnalisiFoto(BaseModel):
+    foto_id: int
+    soggetto: str
+    descrizione: str
+    tipo: TipoFoto
+    idonea: bool
+    motivo: str | None
+    punteggio: int
+    simile_a: int | None
+    soggetto_box: list[int] | None    # [x, y, larghezza, altezza] in centesimi
+    ritocco: Ritocco | None           # None: niente da segnalare
+```
+
+Validatori morbidi (L2): `b` e `soggetto_box` con quattro interi in 0–100 e il riquadro dentro la foto; `centro` con due interi in 0–100; codici V e Q esistenti; `volti` letti con il formato "Vn ruolo" (un elemento malformato si scarta); liste troncate (`zone` ≤ 8); note in conflitto (`scura` e `chiara` insieme) scartate entrambe.
+
+**Il significato dei codici** (testo del prompt, una riga ciascuno; che cosa ne fa il codice):
+
+| Codice | Quando l'AI lo scrive | Effetto (con la doppia chiave della 10.7) |
+|---|---|---|
+| `lontana`, `decentrata` | soggetto piccolo o fuori centro | avvicinamento |
+| `storta` | orizzonte o verticali pendono senza motivo | rotazione dell'angolo misurato |
+| `ambiente` | la foto racconta un luogo | avvicinamento limitato |
+| `non_tagliare` | tagliare toglierebbe qualcosa di importante | nessun avvicinamento |
+| `ruota_90/180/270` | la foto è girata (EXIF perso, per esempio da WhatsApp) | rotazione prima di tutto, anche in Originale |
+| `scura`, `chiara` | difetto di esposizione, non il buio voluto | esposizione |
+| `controluce`, `flash` | come in 9.4 | ombre, caduta ai bordi |
+| `calda`, `fredda`, `verde`, `magenta` | dominante sul soggetto | bianco, solo con una zona `neutro` |
+| `riflessi_bordi`, `riflessi_soggetto` | vetri, bottiglie, smalti | esclusione ai bordi, avviso |
+| `mossa_lieve`, `mossa_forte` | movimento non voluto | avviso, nitidezza spenta se forte |
+| `foto_di_foto`, `screenshot`, `grafica` | non è una foto diretta | screenshot e grafica: solo Originale, avviso |
+| `marchi` | loghi o marchi di altre aziende | `marchi_visibili` per compatibilità, avviso |
+
+**Esempio di risposta** (sostituisce la 10.6; stesse due foto, coordinate inventate):
+
+```json
+{"foto": [
+  {"foto_id": 51, "soggetto": "Sala della pizzeria piena di clienti ai tavoli, di sera",
+   "descrizione": "Una sala con una decina di tavoli apparecchiati e occupati, luce calda dalle lampade a sospensione. In fondo il bancone e la bocca del forno a legna accesa. I clienti sono seduti, alcuni di fronte all'obiettivo.",
+   "tipo": "ambientato", "idonea": true, "motivo": null, "punteggio": 3, "simile_a": null,
+   "soggetto_box": [0, 18, 100, 70],
+   "ritocco": {"note": ["ambiente", "mossa_lieve"], "centro": [62, 35],
+               "zone": [{"ruolo": "neutro", "b": [41, 71, 6, 4]}, {"ruolo": "volto", "b": [83, 40, 4, 5]}],
+               "piana": null, "volti": []}},
+  {"foto_id": 52, "soggetto": "Lavagna con il menù del giorno scritto a gesso",
+   "descrizione": "Una lavagna nera su un cavalletto di legno elenca i piatti del giorno con i prezzi, a gesso bianco con qualche parola in rosso. È ripresa di sbieco davanti al bancone.",
+   "tipo": "dettaglio", "idonea": true, "motivo": null, "punteggio": 3, "simile_a": null,
+   "soggetto_box": [14, 8, 71, 83],
+   "ritocco": {"note": ["fredda"], "centro": [50, 45],
+               "zone": [{"ruolo": "tieni", "b": [20, 14, 60, 70]}, {"ruolo": "togli", "b": [0, 62, 12, 38]}],
+               "piana": "Q1", "volti": []}}
+]}
+```
+
+Nella 51 i volti V1 e V2 non sono citati, quindi valgono `cliente`. Nella 52 la dominante fredda non ha una zona `neutro`, quindi nessuna correzione del bianco.
+
+**Misura dei caratteri** (stima a ~3 caratteri per token; i token veri in fase 0):
+
+| Uscita per foto | Caratteri | Token stimati | Rispetto a v3 |
+|---|---|---|---|
+| v3, oggi | 514 | ~171 | – |
+| schema largo (10.6) | 1.076 | ~358 | +187 |
+| **compatto, foto con difetti** | 591 | ~197 | **+26** |
+| **compatto, foto buona** (`ritocco: null`) | 441 | ~147 | **−24** |
+
+**Costo stimato per un gruppo da 10 foto** (2,50 $ / 1,25 $ in cache / 10 $ per milione; ~765 token a immagine; media di +15 token di uscita a foto):
+
+| Voce | Oggi (v3) | Compatto, cache mancata | Compatto, cache presa |
+|---|---|---|---|
+| Prefisso fisso (sistema + schema) | ~1.100 | ~2.250 | ~2.250 a metà prezzo |
+| Contesto del gruppo e delle foto | ~100 | ~220 | ~220 |
+| Immagini | ~7.700 | ~7.700 | ~7.700 |
+| Ingresso | 2,2 ¢ | 2,5 ¢ | 2,3 ¢ |
+| Uscita | ~1.710 → 1,7 ¢ | ~1.860 → 1,9 ¢ | 1,9 ¢ |
+| **Totale** | **~3,9 ¢** | **~4,4 ¢ (+12%)** | **~4,1 ¢ (+5%)** |
+
+Se il costo deve restare **invariato**, la leva è la `descrizione`, che è circa metà dell'uscita: da 60 a 50 parole recupera ~15 token a foto. È una scelta che tocca la qualità dei testi: va decisa dalla persona, non è inclusa.
+
+### 12.3 Rispettare la cache del prompt
+
+La cache del provider (OpenAI, anche via OpenRouter) è automatica sul **prefisso identico** di almeno 1.024 token, a blocchi di 128, e dura qualche minuto di inattività. Regole:
+
+| # | Regola | Perché |
+|---|---|---|
+| C1 | Il messaggio di sistema è un file statico: nessuna data, nessun nome di bottega, nessun dato della campagna | basta un byte diverso e il prefisso non è più lo stesso |
+| C2 | Lo schema (`response_format`) è deterministico: stesso ordine dei campi, nessun valore calcolato | lo schema fa parte del prefisso |
+| C3 | Ordine fisso: sistema, schema, poi il messaggio utente con tutto ciò che cambia | la cache vale solo sul prefisso |
+| C4 | Il prefisso fisso resta sopra i 1.024 token (con v4 ~2.250) | sotto la soglia non c'è cache: è il caso di v3 oggi, al limite |
+| C5 | Stesso modello per tutte le analisi | la cache è per modello |
+| C6 | Le analisi dei gruppi di una campagna partono una dopo l'altra, senza pause | le chiamate dopo la prima trovano il prefisso in cache |
+| C7 | Una versione nuova del prompt è un file nuovo (`analisi_v5.md`), mai una modifica sul posto | cambiare il prefisso spegne la cache, va fatto apposta |
+| C8 | Se si passa a un modello Anthropic, `cache_control` esplicito sul messaggio di sistema (LiteLLM lo supporta) | lì la cache non è automatica |
+
+**Misurarla:**
+- `usage.prompt_tokens_details.cached_tokens` va salvato in una **colonna nuova** di `chiamata_ai` (`token_in_cache`; migrazione approvata con la 11.1).
+- Il costo di riserva di `litellm.py::_uso` (ingresso × prezzo) sovrastima le chiamate in cache: va corretto con il prezzo in cache.
+- Va verificato se `litellm.completion_cost` conta già i token in cache e se OpenRouter li riporta.
+
+### 12.4 L'operatore: tre varianti a un clic
+
+Sostituisce il pannello della 8.3. Tutti i principi della 8.1 restano.
+
+| Variante | Che cosa contiene | Quando si vede |
+|---|---|---|
+| **Standard** (predefinita) | la prima modifica completa: correzioni obbligatorie, codice `ruota_*`, e tutte le correzioni del livello 1 con le dosi prudenti della doppia chiave | è l'anteprima della card |
+| **Spinta** | la stessa diagnosi con soglie e tetti più ampi, più il livello 2 (tabella sotto) | un clic |
+| **Originale** | la foto come scattata, mai vista finora dall'operatore: correzioni obbligatorie tecniche (EXIF, `ruota_*`, **sRGB**, rapporto con le regole di oggi, 1080, JPEG senza metadati). Nessun avvicinamento, nessuna correzione di luce, nessun autocontrasto | un clic |
+
+La conversione sRGB resta anche in Originale: non è un ritocco, è leggere correttamente i colori della foto (12.1).
+
+**Nella card:**
+
+```text
+[ anteprima della variante scelta ]
+( Originale | Standard ● | Spinta )      Oscura 3 zone  ☐
+Ritagliata · Raddrizzata · Luce   ·  vale anche per il post Instagram
+⚠ Riflessi sul soggetto → Cambia foto · Chiedi all'artigiano
+```
+
+- **Un controllo a tre posizioni** (Mantine `SegmentedControl`) e un interruttore per la privacy.
+- **Spinta spenta** se coincide con Standard ("nessuna modifica in più"). Se Standard coincide con Originale, la card dice "Nessuna modifica necessaria". Il confronto si fa sui comandi strutturati, senza rendere niente.
+- **Privacy:** un clic per foto ("Oscura N zone"), indipendente dalla variante, oppure un clic per tutta la campagna nel riepilogo di Approva (8.4). Le zone valgono anche in Originale.
+- **Altro canale:** la scelta vale per tutti i post della campagna con la stessa foto. L'intervallo è unico, quindi il risultato è lo stesso.
+- **Tolti:** ritaglio a mano, cursori, rotazione manuale (la fa il codice `ruota_*`), aggiunta di zone. Se nessuna variante va bene, restano "Cambia foto" e "Chiedi all'artigiano", come oggi. Limite accettato: un volto che né il programma né l'AI hanno segnato si risolve cambiando foto.
+
+**Clic per l'operatore:**
+
+| Caso | Clic |
+|---|---|
+| La Standard va bene | 0 |
+| Serve una correzione più forte | 1 (Spinta) |
+| La modifica non convince | 1 (Originale) |
+| Zone privacy | 1 per foto, oppure 1 per campagna in Approva |
+| Nessuna variante va bene | Cambia foto o Chiedi all'artigiano, come oggi |
+
+**Dati della scelta** (`versione_post_foto.ritocco`, sostituisce la 10.10):
+
+```json
+{"variante": "spinta", "privacy": true}
+```
+
+`null` vale Standard senza privacy. Ogni cambio crea una versione `ritocca_foto` del post (8.5), senza AI.
+
+### 12.5 Le varianti come comandi strutturati
+
+L2, alla fine della tappa ANALISI, calcola i **tre comandi** e li salva in `foto.analisi_ai["ritocco"]["varianti"]`. Sono pronti prima che l'operatore apra la campagna, deterministici e confrontabili. Questo sostituisce la "proposta non salvata" della 10.9.
+
+```json
+{
+  "versione_esecutore": "ritocco-1",
+  "varianti": {
+    "originale": {"ruota": 0, "srgb": true, "finestra": "regole_r42", "luce": null, "nitidezza": false},
+    "standard": {
+      "ruota": 0, "srgb": true,
+      "raddrizza": {"tipo": "prospettiva", "candidato": "Q1"},
+      "finestra": {"b": [12, 6, 76, 86], "rapporto": 0.8},
+      "luce": {"esposizione": 0.0, "bianco": null, "ombre": 0.0, "flash": 0.0},
+      "nitidezza": true
+    },
+    "spinta": {
+      "ruota": 0, "srgb": true,
+      "raddrizza": {"tipo": "prospettiva", "candidato": "Q1"},
+      "finestra": {"b": [16, 8, 70, 80], "rapporto": 0.8},
+      "luce": {"esposizione": 0.0, "bianco": {"r": 1.0, "g": 1.0, "b": 0.96}, "ombre": 0.0, "flash": 0.0},
+      "nitidezza": true
+    }
+  },
+  "privacy": [{"id": "z1", "origine": "V1", "b": [11, 30, 6, 5]}, {"id": "z2", "origine": "ai", "b": [83, 40, 4, 5]}],
+  "avvisi": ["foto_mossa_lieve"],
+  "scarti": [{"correzione": "esposizione", "motivo": "ai_ok_misura_scura"}]
+}
+```
+
+**Standard e Spinta: dove cambiano** (i numeri sono di partenza, da tarare in fase 0):
+
+| Parametro | Standard | Spinta |
+|---|---|---|
+| Avvicinamento | solo con `lontana` o `decentrata`, margine 10%, nessun ingrandimento | anche senza nota se il soggetto occupa meno del 40%, margine 5%, ingrandimento fino a 1,3× |
+| Intrusi ai bordi | tolti se il taglio resta entro il 15% dell'area | entro il 30% |
+| Con `ambiente` | avvicinamento entro il 10% dell'area | entro il 20% |
+| Rotazione | 0,5°–5° | 0,5°–8° |
+| Prospettiva | deformazione entro l'8% | entro il 15% |
+| Esposizione | doppia chiave, tetto ±0,5 stop | doppia chiave con soglia di misura più bassa, tetto ±1 stop |
+| Bianco | solo con `neutro`, tetto 5% per canale | con `neutro` tetto 10%; senza, media dei grigi sul soggetto con tetto 4% |
+| Ombre (controluce) | lieve | media |
+| Flash (caduta ai bordi) | spento | acceso |
+| Nitidezza | lieve, se ammessa | media, se ammessa |
+
+**Render:**
+- La Standard si rende nel worker a fine generazione: la card si apre già pronta.
+- Spinta e Originale si rendono al primo clic (frazioni di secondo), poi restano in cache.
+- All'approvazione si salva il render della variante scelta, con la privacy, e la pubblicazione serve quel file (7.6).
+- La chiave del render è l'impronta di (comando della variante + privacy + versione dell'esecutore + file originale).
+
+### 12.6 Ingredienti aggiornati, in ordine (non sono task)
+
+1. **Colore sRGB** (12.1): da solo, subito, senza AI. Funzione unica, profilo P3 generato per i test.
+2. **Via l'autocontrasto per canale** ed esecutore con ordine fisso (7.5); test sulle 21 foto buone.
+3. **Anteprima reale e render salvato:** la card mostra la foto che esce, la pubblicazione serve il file approvato.
+4. **Fase 0:** prova sulle foto reali (schema compatto, con e senza segni, token reali, cache misurata).
+5. **L1 pre-analisi:** misure, fasce, candidati; numpy e OpenCV in `requirements.txt`.
+6. **Prompt `analisi_v4` compatto e schema** (12.2), regole di cache (12.3), colonna `token_in_cache`.
+7. **L2:** validatori, doppia chiave, tre comandi (12.5).
+8. **Esecutore completo:** finestra, raddrizzamento, luce, privacy.
+9. **Tre varianti nella card:** intervento `RITOCCA_FOTO`, migrazione `versione_post_foto.ritocco`, rotta di anteprima, frontend.
+10. **Privacy in Approva:** riepilogo e "Oscura tutte".
