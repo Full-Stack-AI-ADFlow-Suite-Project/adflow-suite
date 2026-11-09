@@ -8,6 +8,12 @@ import { defineConfig, devices } from "@playwright/test";
  * e il frontend Vite su :5173 con il proxy `/api` già configurato.
  * Video e traccia si salvano in `test-results/` (che non entra in git).
  */
+// Sull'Ubuntu di questa macchina `playwright install` non supporta la versione
+// del sistema: si usa il Chromium già in cache, se c'è.
+const launchOptions = process.env.PLAYWRIGHT_CHROMIUM
+  ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM }
+  : {};
+
 export default defineConfig({
   testDir: "./e2e",
   timeout: 120_000,
@@ -24,17 +30,19 @@ export default defineConfig({
     locale: "it-IT",
     timezoneId: "Europe/Rome",
   },
+  // Due progetti nello stesso database: la demo parte da vuoto e gira per prima;
+  // il percorso del ritocco ne riempie i dati (RT-10) e dipende dalla demo.
   projects: [
     {
       name: "chromium",
-      use: {
-        ...devices["Desktop Chrome"],
-        // Sull'Ubuntu di questa macchina `playwright install` non supporta la
-        // versione del sistema: si usa il Chromium già in cache, se c'è.
-        launchOptions: process.env.PLAYWRIGHT_CHROMIUM
-          ? { executablePath: process.env.PLAYWRIGHT_CHROMIUM }
-          : {},
-      },
+      testMatch: "percorso-demo.spec.ts",
+      use: { ...devices["Desktop Chrome"], launchOptions },
+    },
+    {
+      name: "ritocco",
+      testMatch: "ritocco.spec.ts",
+      dependencies: ["chromium"],
+      use: { ...devices["Desktop Chrome"], launchOptions },
     },
   ],
   webServer: [
