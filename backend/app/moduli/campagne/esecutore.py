@@ -8,7 +8,7 @@ decide il codice (nota 7.5), non l'AI e non l'operatore:
 | 1 | decodifica   | `colore.apri_in_srgb`: unico decoder, limiti di oggi |
 | 2 | srgb         | EXIF, poi conversione in sRGB (stessa funzione) |
 | 3 | ruota        | rotazione di 90° (`geometria.ruota_90`) |
-| 4 | privacy      | RT-18 (vuoto: nessuna zona sfocata) |
+| 4 | privacy      | sfocatura forte delle zone attive (`privacy.oscura_zone`) |
 | 5 | raddrizza    | rotazione fine o prospettiva (`geometria`); un controllo che fallisce salta il passo, non il comando |
 | 6 | finestra     | la `Finestra` esplicita del comando (`finestra.calcola_finestra`), con le barre se serve; o le regole di R-42 di oggi (variante Originale) |
 | 7 | lato_corto   | lato corto 1080 |
@@ -35,6 +35,7 @@ from app.core.errori import DatiNonValidi
 
 from . import geometria
 from . import luce as luce_foto
+from . import privacy
 from . import ritocco_catalogo as catalogo
 from . import sistemazione_foto as regole
 from .colore import apri_in_srgb, profilo_srgb_bytes
@@ -166,7 +167,10 @@ def _passo_ruota(
 def _passo_privacy(
     img: Image.Image, comando: Comando, canale: str | None, ctx: _Contesto
 ) -> Image.Image:
-    return img  # RT-18 (le zone arrivano a `esegui`)
+    """Sfoca le zone attive nel riferimento dell'originale, già ruotato di 90° (RT-18)."""
+    if not ctx.zone:
+        return img
+    return privacy.oscura_zone(img.copy(), ctx.zone, ctx.mappa)
 
 
 def _passo_raddrizza(
