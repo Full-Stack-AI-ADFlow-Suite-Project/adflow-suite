@@ -53,7 +53,8 @@ export default defineConfig({
       timeout: 180_000,
     },
     {
-      command: "npm run dev -- --port 5173 --strictPort",
+      // 127.0.0.1 esplicito: in CI "localhost" può risolvere a ::1 e Playwright guarda 127.0.0.1
+      command: "npm run dev -- --host 127.0.0.1 --port 5173 --strictPort",
       url: "http://127.0.0.1:5173",
       reuseExistingServer: true,
       timeout: 120_000,
