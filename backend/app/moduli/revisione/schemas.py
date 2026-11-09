@@ -273,6 +273,37 @@ class ErroreSchema(BaseModel):
     creata_il: datetime
 
 
+class FotoPrivacySchema(BaseModel):
+    """Una foto con zone di privacy da decidere (ADR-124, RT-29)."""
+
+    foto_id: int
+    post_ids: list[int]
+    zone: int
+    minori: int
+
+
+class PrivacyDaDecidereSchema(BaseModel):
+    """Il riepilogo che Approva mostra: quante foto e quante zone restano da decidere."""
+
+    foto: int = 0
+    zone: int = 0
+    minori: int = 0
+    dettaglio: list[FotoPrivacySchema] = []
+
+
+class CampagnaApprova(BaseModel):
+    """Corpo facoltativo di ``POST /campagne/{id}/approva`` (RT-29).
+
+    Con zone di privacy da decidere serve ``conferma_privacy`` (le lasci spente) oppure
+    ``oscura_tutte`` (le accende tutte e poi approva).
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    conferma_privacy: bool = False
+    oscura_tutte: bool = False
+
+
 class VediCampagnaSchema(BaseModel):
     """Risposta completa di Vedi campagna in ogni stato dopo l'invio."""
 
@@ -283,6 +314,8 @@ class VediCampagnaSchema(BaseModel):
     ultimo_errore: ErroreSchema | None
     # Totale in dollari delle chiamate all'AI della campagna (R-44)
     costo_ai: Decimal
+    # Le zone di privacy che Approva chiede di decidere (RT-29)
+    privacy_da_decidere: PrivacyDaDecidereSchema = PrivacyDaDecidereSchema()
 
 
 class ConteggiPost(BaseModel):

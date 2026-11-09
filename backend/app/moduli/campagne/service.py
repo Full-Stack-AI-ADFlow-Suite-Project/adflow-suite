@@ -1660,10 +1660,16 @@ def ricalcola_ritocco(db: Session, campagna_id: int | None = None) -> int:
     return fatte
 
 
+def zone_proposte(foto: Any) -> list[dict[str, Any]]:
+    """Le zone di privacy che la diagnosi propone per la foto (spente finché l'operatore non decide)."""
+    analisi = foto.analisi_ai if isinstance(foto.analisi_ai, dict) else {}
+    proposte = (analisi.get("ritocco") or {}).get("privacy")
+    return [dict(z) for z in proposte] if isinstance(proposte, list) else []
+
+
 def zone_attive(foto: Foto, privacy: Any) -> list[dict[str, Any]]:
     """Le zone di privacy che l'operatore ha acceso: tutte (``True``) o quelle con quegli id."""
-    analisi = foto.analisi_ai if isinstance(foto.analisi_ai, dict) else {}
-    proposte = (analisi.get("ritocco") or {}).get("privacy") or []
+    proposte = zone_proposte(foto)
     if privacy is True:
         return [dict(z) for z in proposte]
     if isinstance(privacy, (list, tuple, set)):

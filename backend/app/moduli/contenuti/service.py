@@ -133,7 +133,17 @@ def vista_foto(db: Session, post: Post) -> dict[str, Any] | None:
     if legame is None:
         return None
     disponibili, uguali = _varianti_della_foto(db, legame)
-    zone = (legame.ritocco or {}).get("privacy") or []
+    foto = campagne.foto_per_id(db, [legame.foto_id])[0]
+    proposte = campagne.zone_proposte(foto)
+    decisa = isinstance((legame.ritocco or {}).get("privacy"), bool)
+    ritocco = (
+        foto.analisi_ai.get("ritocco") if isinstance(foto.analisi_ai, dict) else None
+    )
+    avvisi = list((ritocco or {}).get("avvisi") or [])
+    if proposte and not decisa:
+        avvisi.append("privacy_da_decidere")
+    if any(z.get("ruolo") == "minore" for z in proposte) and not decisa:
+        avvisi.append("volto_minore")
     return {
         "anteprima_url": f"/api/post/{post.id}/foto/anteprima",
         "varianti": {
@@ -142,11 +152,41 @@ def vista_foto(db: Session, post: Post) -> dict[str, Any] | None:
             "scelta": _variante_scelta(legame),
         },
         "zone_privacy": {
-            "numero": len(zone),
-            "decise": sum(1 for zona in zone if zona.get("attiva") is not None),
+            "numero": len(proposte),
+            "decise": len(proposte) if decisa else 0,
         },
-        "avvisi": [],
+        "avvisi": avvisi,
     }
+
+
+def privacy_da_decidere(db: Session, campagna_id: int) -> list[dict[str, Any]]:
+    """Le foto dei post da approvare con zone di privacy non ancora decise (ADR-124, RT-29).
+
+    Una voce per foto (una foto su due canali conta una volta): ``foto_id``, ``post_ids``,
+    ``zone`` (quante) e ``minori`` (quante zone di minorenni). Una zona è decisa quando
+    l'operatore ha scelto di oscurarla o di lasciarla com'è con ``ritocca_foto``.
+    """
+    per_foto: dict[int, dict[str, Any]] = {}
+    for uno in post_della_campagna(db, campagna_id):
+        legame = _legame_principale(uno)
+        if uno.stato != DA_APPROVARE or legame is None:
+            continue
+        if isinstance((legame.ritocco or {}).get("privacy"), bool):
+            continue
+        proposte = campagne.zone_proposte(campagne.foto_per_id(db, [legame.foto_id])[0])
+        if not proposte:
+            continue
+        voce = per_foto.setdefault(
+            legame.foto_id,
+            {
+                "foto_id": legame.foto_id,
+                "post_ids": [],
+                "zone": len(proposte),
+                "minori": sum(1 for z in proposte if z.get("ruolo") == "minore"),
+            },
+        )
+        voce["post_ids"].append(uno.id)
+    return list(per_foto.values())
 
 
 def anteprima_foto(

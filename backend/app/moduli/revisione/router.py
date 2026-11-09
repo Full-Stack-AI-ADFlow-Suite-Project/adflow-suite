@@ -16,6 +16,7 @@ from app.moduli.accesso import service as accesso
 from . import decisioni, interventi, letture, service, sospensione
 from .schemas import (
     ArtigianoElenco,
+    CampagnaApprova,
     CampagnaDaApprovare,
     CampagnaNota,
     CampagnaRespingi,
@@ -74,9 +75,21 @@ def approva_campagna(
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
     ora: Annotated[datetime, Depends(adesso)],
+    corpo: CampagnaApprova | None = None,
 ) -> dict[str, str]:
-    """Approva in blocco: post approvati, campagna attiva (R-14, CA-21/22)."""
-    service.approva(db, campagna_id, utente, ora)
+    """Approva in blocco: post approvati, campagna attiva (R-14, CA-21/22).
+
+    Con zone di privacy da decidere serve `conferma_privacy` o `oscura_tutte` nel corpo
+    (RT-29); senza, 422 con il riepilogo."""
+    corpo = corpo or CampagnaApprova()
+    service.approva(
+        db,
+        campagna_id,
+        utente,
+        ora,
+        conferma_privacy=corpo.conferma_privacy,
+        oscura_tutte=corpo.oscura_tutte,
+    )
     return {"stato": "attiva"}
 
 

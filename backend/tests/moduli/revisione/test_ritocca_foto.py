@@ -102,7 +102,7 @@ def test_la_scelta_nasce_come_versione_ritocco_foto_per_tutti_i_post_con_la_stes
         assert (dopo.testo, dopo.hashtag) == (prima.testo, prima.hashtag)
         legame = dopo.legami_foto[0]
         assert legame.foto_id == prima.legami_foto[0].foto_id
-        assert legame.ritocco == {"variante": "spinta", "privacy": False}
+        assert legame.ritocco == {"variante": "spinta"}
         assert (
             legame.render is None
         )  # non è approvato: il render si fa all'approvazione
@@ -359,7 +359,7 @@ def test_dopo_l_approvazione_la_versione_nasce_approvata_e_con_il_render_nuovo(
     nuova = _versioni(db, post)[-1]
     assert nuova.tipo_intervento == "ritocco_foto"
     legame = nuova.legami_foto[0]
-    assert legame.ritocco == {"variante": "spinta", "privacy": False}
+    assert legame.ritocco == {"variante": "spinta"}
     assert legame.render is not None and legame.render != render_prima
     assert archivio.esiste_derivato(legame.foto_id, legame.render)
     # il render di prima non si cancella (§1.2)

@@ -4,7 +4,7 @@ from datetime import datetime
 
 from sqlalchemy.orm import Session
 
-from app.core.errori import StatoNonValido
+from app.core.errori import DatiNonValidi, StatoNonValido
 from app.core.orologio import adesso as ora_adesso
 from app.moduli.accesso import service as accesso
 from app.moduli.campagne import service as campagne
@@ -15,12 +15,14 @@ from .models import Approvazione
 from .schemas import (
     CampagnaSchema,
     ErroreSchema,
+    FotoPrivacySchema,
     FotoLegataSchema,
     FotoNonUsataSchema,
     GruppoFotoNonUsateSchema,
     GruppoSchema,
     PianoSchema,
     PostSchema,
+    PrivacyDaDecidereSchema,
     UscitaSchema,
     VediCampagnaSchema,
     VersionePostSchema,
@@ -150,6 +152,18 @@ def vedi_campagna(
             ErroreSchema.model_validate(errore) if errore is not None else None
         ),
         costo_ai=contenuti.costo_ai_della_campagna(db, campagna_id),
+        privacy_da_decidere=_riepilogo_privacy(
+            contenuti.privacy_da_decidere(db, campagna_id)
+        ),
+    )
+
+
+def _riepilogo_privacy(voci: list[dict]) -> PrivacyDaDecidereSchema:
+    return PrivacyDaDecidereSchema(
+        foto=len(voci),
+        zone=sum(v["zone"] for v in voci),
+        minori=sum(v["minori"] for v in voci),
+        dettaglio=[FotoPrivacySchema(**v) for v in voci],
     )
 
 
@@ -161,7 +175,12 @@ def anteprima_foto(
 
 
 def approva(
-    db: Session, campagna_id: int, utente: accesso.Utente, adesso: datetime
+    db: Session,
+    campagna_id: int,
+    utente: accesso.Utente,
+    adesso: datetime,
+    conferma_privacy: bool = False,
+    oscura_tutte: bool = False,
 ) -> None:
     """Approva in blocco una campagna in revisione (R-14, CA-21).
 
@@ -170,13 +189,30 @@ def approva(
     versione approvata ha la sua riga in ``approvazione`` e la campagna una
     decisione ``approvata`` prima di passare ad ``attiva``.
 
+    Con zone di privacy ancora da decidere (RT-29) serve ``conferma_privacy`` (restano
+    spente) oppure ``oscura_tutte`` (si accendono tutte, con una versione ``ritocco_foto``
+    per ogni foto, nella stessa transazione): altrimenti 422 con il riepilogo.
+
     Raises:
         StatoNonValido: campagna non in revisione, post da rivedere o con un
             intervento in corso, nessun post da approvare (409, CA-22).
+        DatiNonValidi: ci sono zone di privacy da decidere e manca la conferma (422).
     """
     record = campagne.campagna_bloccata(db, campagna_id)
     if record.stato != "in_revisione":
         raise StatoNonValido("La campagna non è in revisione.")
+    da_decidere = contenuti.privacy_da_decidere(db, campagna_id)
+    if da_decidere and not (conferma_privacy or oscura_tutte):
+        riepilogo = _riepilogo_privacy(da_decidere)
+        raise DatiNonValidi(
+            f"Ci sono {riepilogo.foto} foto con {riepilogo.zone} zone di privacy da "
+            "decidere: conferma che restano come sono oppure oscurale tutte."
+        )
+    if oscura_tutte:
+        for voce in da_decidere:
+            contenuti.ritocca_foto(
+                db, voce["post_ids"][0], None, True, utente.id, adesso
+            )
     for versione in contenuti.approva_post(db, campagna_id, adesso):
         db.add(
             Approvazione(

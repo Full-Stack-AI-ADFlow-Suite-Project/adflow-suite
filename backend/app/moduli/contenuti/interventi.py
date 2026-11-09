@@ -872,10 +872,12 @@ class EsitoRitocco(NamedTuple):
 
 
 def _scelta_di(legame: Any) -> dict[str, Any]:
+    """La scelta di adesso: la variante (Standard se non c'è) e la privacy (``None``: non decisa)."""
     ritocco = legame.ritocco if isinstance(legame.ritocco, dict) else {}
+    privacy = ritocco.get("privacy")
     return {
         "variante": ritocco.get("variante", "standard"),
-        "privacy": bool(ritocco.get("privacy", False)),
+        "privacy": privacy if isinstance(privacy, bool) else None,
     }
 
 
@@ -884,6 +886,11 @@ def _legame_della_foto(post: Post, foto_id: int) -> Any | None:
     if corrente is None:
         return None
     return next((l for l in corrente.legami_foto if l.foto_id == foto_id), None)
+
+
+def _da_salvare(scelta: dict[str, Any]) -> dict[str, Any]:
+    """Quello che va sul legame: la privacy c'è solo se l'operatore l'ha decisa."""
+    return {k: v for k, v in scelta.items() if k == "variante" or v is not None}
 
 
 def _ritocca_un_post(
@@ -909,7 +916,7 @@ def _ritocca_un_post(
                 versione_id=nuova.id,
                 posizione=legame.posizione,
                 foto_id=legame.foto_id,
-                ritocco=scelta if cambiata else legame.ritocco,
+                ritocco=_da_salvare(scelta) if cambiata else legame.ritocco,
                 render=None if cambiata else legame.render,  # il render nuovo si rifà
             )
         )
