@@ -49,7 +49,7 @@ def _versione(versione) -> VersionePostSchema:
     )
 
 
-def _post(post, stato_campagna: str, adesso: datetime) -> PostSchema:
+def _post(db, post, stato_campagna: str, adesso: datetime) -> PostSchema:
     corrente = post.versione_corrente
     return PostSchema(
         post_id=post.id,
@@ -66,7 +66,7 @@ def _post(post, stato_campagna: str, adesso: datetime) -> PostSchema:
         versione_corrente=_versione(corrente) if corrente is not None else None,
         versioni=[_versione(v) for v in post.versioni],
         interventi=contenuti.interventi_ammessi(post, stato_campagna, adesso),
-        foto=contenuti.vista_foto(post),
+        foto=contenuti.vista_foto(db, post),
     )
 
 
@@ -113,7 +113,7 @@ def vedi_campagna(
                 else None
             ),
             post=[
-                _post(uno, record.stato, adesso)
+                _post(db, uno, record.stato, adesso)
                 for uno in per_uscita.get(uscita.id, [])
             ],
         )

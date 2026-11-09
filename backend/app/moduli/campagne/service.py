@@ -9,6 +9,7 @@ import hashlib
 import json
 import logging
 from io import BytesIO
+from types import SimpleNamespace
 from typing import Any, NamedTuple
 
 from sqlalchemy import event, func, select, text
@@ -51,11 +52,13 @@ from .domain import (
     TRANSIZIONI,
 )
 from .immagini import MAX_FOTO_PER_GRUPPO, analizza_e_valida_immagine
+from . import analisi_locale
 from .colore import apri_in_srgb
+from .diagnosi import diagnosi as diagnosi_foto
+from .varianti import comando_per_variante, disponibilita, ritocco_di_foto
 from .esecutore import (
     VERSIONE_ESECUTORE,
     Comando,
-    comando_originale,
     esegui,
     sistema_foto_buffer,
 )
@@ -1574,12 +1577,103 @@ def rendi_per_canale(
 ) -> str:
     """Rende la foto per il canale secondo la scelta dell'operatore (``ritocco``) e dà la chiave.
 
-    Finché non ci sono le varianti (RT-25, D6) ogni scelta è la variante
-    Originale: le regole di R-42 senza ritocco, col riquadro del soggetto
-    dell'analisi.
+    ``ritocco`` è ``{"variante": "originale"|"standard"|"spinta", "privacy": …}``; senza
+    scelta vale la Standard. Il comando della variante sta in ``foto.analisi_ai["ritocco"]``
+    (``varianti``): per una foto senza varianti salvate (D6) è l'Originale. ``privacy`` è
+    ``True`` (tutte le zone proposte) o l'elenco degli id delle zone da oscurare.
     """
     foto = _foto_con_file(db, foto_id)
-    return rendi(db, foto_id, comando_originale(foto, canale=canale))
+    scelta = ritocco or {}
+    comando = comando_per_variante(foto, canale, scelta.get("variante"))
+    return rendi(db, foto_id, comando, zone_attive(foto, scelta.get("privacy")))
+
+
+def ritocco_della_foto(
+    foto: Any,
+    soggetto_box: dict[str, float] | None,
+    ai: dict[str, Any] | None,
+    locale: dict[str, Any] | None,
+    versione_prompt: str | None = None,
+) -> dict[str, Any] | None:
+    """La diagnosi e le tre varianti di una foto appena analizzata, pronte per ``foto.analisi_ai["ritocco"]``.
+
+    L2 e le varianti non fermano mai la generazione: se qualcosa va storto la foto resta con
+    l'analisi di oggi e la sola variante Originale (``None``, ADR-124, RT-26).
+    """
+    try:
+        diag = diagnosi_foto(ai, locale)
+        stand_in = SimpleNamespace(
+            larghezza=foto.larghezza,
+            altezza=foto.altezza,
+            analisi_ai={"soggetto_box": soggetto_box},
+        )
+        ritocco = ritocco_di_foto(stand_in, diag, locale)
+        ritocco["ai"] = ai
+        ritocco["versione_prompt"] = versione_prompt
+        return ritocco
+    except Exception:  # noqa: BLE001 - una foto senza ritocco è una foto in Originale
+        logger.warning(
+            "Ritocco non calcolato per la foto %s",
+            getattr(foto, "id", "?"),
+            exc_info=True,
+        )
+        return None
+
+
+def ricalcola_ritocco(db: Session, campagna_id: int | None = None) -> int:
+    """Calcola misure e varianti, senza AI, per le foto già analizzate che non le hanno (RT-27).
+
+    Sono le foto analizzate prima della corsia (analisi v3) o rimaste senza ritocco per un
+    errore: idonee, con ``analisi_ai`` ma senza ``ritocco``. Niente candidati (l'AI non li ha
+    citati: niente raddrizzamento né privacy proposta) e niente AI: la diagnosi non ha note,
+    quindi le correzioni di luce e di geometria non scattano; restano le regole di oggi e la
+    nitidezza. Si può rilanciare: le foto già fatte non si toccano. Restituisce quante ne ha
+    ricalcolate; una foto illeggibile si salta.
+    """
+    interrogazione = select(Foto).where(Foto.analisi_ai.is_not(None)).order_by(Foto.id)
+    if campagna_id is not None:
+        interrogazione = interrogazione.where(Foto.campagna_id == campagna_id)
+    archivio = ottieni_archivio()
+    fatte = 0
+    for foto in db.scalars(interrogazione):
+        analisi = foto.analisi_ai
+        if (
+            not isinstance(analisi, dict)
+            or analisi.get("idonea") is not True
+            or analisi.get("ritocco") is not None
+        ):
+            continue
+        try:
+            originale = archivio.leggi(foto.file)
+            copia = apri_in_srgb(originale, lato_max=analisi_locale.LATO_LAVORO)
+            locale, _, _ = analisi_locale.analisi_locale(
+                originale, copia, con_candidati=False
+            )
+        except (FileNotFoundError, DatiNonValidi):
+            continue
+        ritocco = ritocco_della_foto(foto, analisi.get("soggetto_box"), None, locale)
+        if ritocco is None:
+            continue
+        foto.analisi_ai = {**analisi, "locale": locale, "ritocco": ritocco}
+        fatte += 1
+    db.flush()
+    return fatte
+
+
+def zone_attive(foto: Foto, privacy: Any) -> list[dict[str, Any]]:
+    """Le zone di privacy che l'operatore ha acceso: tutte (``True``) o quelle con quegli id."""
+    analisi = foto.analisi_ai if isinstance(foto.analisi_ai, dict) else {}
+    proposte = (analisi.get("ritocco") or {}).get("privacy") or []
+    if privacy is True:
+        return [dict(z) for z in proposte]
+    if isinstance(privacy, (list, tuple, set)):
+        return [dict(z) for z in proposte if z.get("id") in privacy]
+    return []
+
+
+def disponibilita_varianti(db: Session, foto_id: int) -> tuple[list[str], list[str]]:
+    """(varianti disponibili, uguali alla precedente) di una foto: vedi ``varianti.disponibilita``."""
+    return disponibilita(_foto_con_file(db, foto_id))
 
 
 def leggi_render(foto_id: int, chiave: str) -> bytes:
@@ -1614,6 +1708,31 @@ def pota_anteprime(
         if archivio.elimina_derivato(derivato.foto_id, derivato.chiave):
             tolti += 1
     return tolti
+
+
+def prepara_analisi(db: Session, foto_ids: Iterable[int]) -> dict[int, dict[str, Any]]:
+    """Per ogni foto: ``{"immagine", "contesto", "locale"}`` per l'analisi dell'AI (ADR-124, RT-19).
+
+    Una decodifica per foto: da quella si ricavano la copia per l'AI, le misure, le fasce
+    e i candidati (vedi ``analisi_locale``). Una foto che non si trova o non si legge ha
+    ``immagine`` ``None``, ``contesto`` vuoto e ``locale`` ``None``: l'adattatore la
+    rifiuta come richiesta su quella foto e le altre vanno avanti (R-35). Un errore nella
+    sola pre-analisi lascia la foto senza contesto e senza ``locale``.
+    """
+    archivio = ottieni_archivio()
+    preparate: dict[int, dict[str, Any]] = {}
+    for foto_id in foto_ids:
+        vuota = {"immagine": None, "contesto": "", "locale": None}
+        foto = db.get(Foto, foto_id)
+        if foto is None:
+            preparate[foto_id] = vuota
+            continue
+        try:
+            originale = archivio.leggi(foto.file)
+            preparate[foto_id] = analisi_locale.prepara_foto(originale, foto_id)
+        except (FileNotFoundError, DatiNonValidi):
+            preparate[foto_id] = vuota
+    return preparate
 
 
 def foto_sistemata(

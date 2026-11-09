@@ -59,6 +59,9 @@ class FotoAI:
     # il modulo `campagne` (ADR-124, RT-03). L'adattatore non legge più l'archivio
     # e non decodifica: con ``immagine`` vuota la richiesta fallisce su questa foto.
     immagine: bytes | None = None
+    # Una riga di fatti misurati dal programma (fasce non normali e candidati), in testo
+    # semplice: la prepara `campagne` (ADR-124, RT-19). Vuota per una foto pulita.
+    contesto: str = ""
 
 
 @dataclass
@@ -152,6 +155,8 @@ class UsoAI:
     modello: str
     token_ingresso: int | None = None
     token_uscita: int | None = None
+    # Dei token d'ingresso, quelli serviti dalla cache del provider (RT-22): costano meno.
+    token_in_cache: int | None = None
     immagini: int | None = None
     costo_usd: Decimal = Decimal(0)
     versione_prompt: str | None = None

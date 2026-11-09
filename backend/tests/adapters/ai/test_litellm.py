@@ -7,6 +7,7 @@ errori, uno per ``ultimo_uso``.
 
 import base64
 import json
+import re
 from datetime import date, datetime, timedelta, timezone
 from decimal import Decimal
 from io import BytesIO
@@ -76,8 +77,11 @@ class Finta:
         return risposta
 
 
-def risposta(contenuto, *, fine="stop", rifiuto=None, token=(120, 30)):
+def risposta(contenuto, *, fine="stop", rifiuto=None, token=(120, 30), in_cache=None):
     testo = contenuto if isinstance(contenuto, str) else json.dumps(contenuto)
+    uso = SimpleNamespace(prompt_tokens=token[0], completion_tokens=token[1])
+    if in_cache is not None:  # come OpenAI: usage.prompt_tokens_details.cached_tokens
+        uso.prompt_tokens_details = SimpleNamespace(cached_tokens=in_cache)
     return SimpleNamespace(
         choices=[
             SimpleNamespace(
@@ -85,7 +89,7 @@ def risposta(contenuto, *, fine="stop", rifiuto=None, token=(120, 30)):
                 message=SimpleNamespace(content=testo, refusal=rifiuto),
             )
         ],
-        usage=SimpleNamespace(prompt_tokens=token[0], completion_tokens=token[1]),
+        usage=uso,
     )
 
 
@@ -155,9 +159,8 @@ def _voce(foto_id: int, **campi) -> dict:
         motivo=None,
         punteggio=4,
         simile_a=None,
-        soggetto_box={"x": 0.2, "y": 0.1, "larghezza": 0.6, "altezza": 0.7},
-        persone_riconoscibili=False,
-        marchi_visibili=False,
+        soggetto_box=[20, 10, 60, 70],
+        ritocco=None,
     )
     dati.update(campi)
     return dati
@@ -448,6 +451,7 @@ def test_analisi_una_chiamata_per_gruppo_con_le_foto_gia_pronte(
         "soggetto_box": {"x": 0.2, "y": 0.1, "larghezza": 0.6, "altezza": 0.7},
         "persone_riconoscibili": False,
         "marchi_visibili": False,
+        "ritocco": None,
     }
     assert analisi[2]["punteggio"] == 5
     assert ai.ultimo_uso.tipo == "analisi"
@@ -745,7 +749,7 @@ def test_i_tipi_di_foto_dello_schema_sono_quelli_di_campagne():
     assert set(TipoFoto.__args__) == set(TIPI_CONTENUTO)
 
 
-@pytest.mark.parametrize("nome", ["analisi_v3", "piano_v3", "post_v3"])
+@pytest.mark.parametrize("nome", ["analisi_v3", "analisi_v4", "piano_v3", "post_v3"])
 def test_i_prompt_esistono_e_hanno_la_versione_nel_nome(nome):
     assert modulo._prompt(nome).strip()
 
@@ -1164,14 +1168,15 @@ def test_gli_eventi_ricorrenti_entrano_solo_nel_periodo_giusto():
 @pytest.mark.parametrize(
     "riquadro",
     [
-        {"x": 0.5, "y": 0.1, "larghezza": 0.8, "altezza": 0.5},  # esce a destra
-        {"x": -0.1, "y": 0.1, "larghezza": 0.5, "altezza": 0.5},
-        {"x": 0.1, "y": 0.1, "larghezza": 0, "altezza": 0.5},
-        {"x": 0.1, "y": 0.1, "larghezza": 1.5, "altezza": 0.5},
-        {"x": 0.1, "y": 0.1, "larghezza": 0.5},  # manca un lato
-        {"x": "a", "y": 0.1, "larghezza": 0.5, "altezza": 0.5},
-        {"x": True, "y": 0.1, "larghezza": 0.5, "altezza": 0.5},
-        [0.1, 0.1, 0.5, 0.5],
+        [50, 10, 80, 50],  # esce a destra
+        [-10, 10, 50, 50],
+        [10, 10, 0, 50],
+        [10, 10, 150, 50],
+        [10, 10, 50],  # manca un lato
+        ["a", 10, 50, 50],
+        [True, 10, 50, 50],
+        [10.5, 10, 50, 50],
+        {"x": 0.1, "y": 0.1, "larghezza": 0.5, "altezza": 0.5},  # il formato vecchio
         "centro",
     ],
 )
@@ -1189,3 +1194,260 @@ def test_ca108_senza_soggetto_chiaro_il_riquadro_e_none(ai, completion, archivio
     completion.metti(risposta(_analisi_di(_voce(1, soggetto_box=None))))
 
     assert ai.analizza_gruppo(gruppo)[1]["soggetto_box"] is None
+
+
+# --- Il ritocco nell'analisi (RT-20) -----------------------------------------------
+
+
+def _ritocco(**campi) -> dict:
+    dati = {"note": [], "centro": None, "zone": [], "piana": None, "volti": []}
+    dati.update(campi)
+    return dati
+
+
+def test_rt20_il_ritocco_arriva_a_l2_cosi_com_e(ai, completion, archivio):
+    gruppo = _gruppo(archivio, 1)
+    ritocco = _ritocco(
+        note=["scura"],
+        centro=[62, 35],
+        zone=[{"ruolo": "neutro", "b": [41, 71, 6, 4]}],
+        piana="Q1",
+    )
+    completion.metti(risposta(_analisi_di(_voce(1, ritocco=ritocco))))
+    assert ai.analizza_gruppo(gruppo)[1]["ritocco"] == ritocco
+
+
+def test_rt20_un_ritocco_malformato_non_e_un_errore(ai, completion, archivio):
+    gruppo = _gruppo(archivio, 1)
+    completion.metti(risposta(_analisi_di(_voce(1, ritocco={"note": 7}))))
+    analisi = ai.analizza_gruppo(gruppo)
+    assert analisi[1]["ritocco"] is None and analisi[1]["idonea"] is True
+
+
+def test_rt20_marchi_visibili_viene_dal_codice_marchi(ai, completion, archivio):
+    gruppo = _gruppo(archivio, 2)
+    completion.metti(
+        risposta(_analisi_di(_voce(1, ritocco=_ritocco(note=["marchi"])), _voce(2)))
+    )
+    analisi = ai.analizza_gruppo(gruppo)
+    assert analisi[1]["marchi_visibili"] is True
+    assert analisi[2]["marchi_visibili"] is False
+
+
+@pytest.mark.parametrize(
+    ("contesto", "ritocco", "atteso"),
+    [
+        ("", None, False),
+        ("scura", _ritocco(), False),
+        ("candidati V1 V2", None, True),  # i volti non citati valgono "cliente"
+        ("candidati V1 V2", _ritocco(volti=["V1 no"]), True),  # V2 resta
+        ("candidati V1 V2", _ritocco(volti=["V1 no", "V2 no"]), False),
+        ("candidati V1", _ritocco(volti=["V1 staff"]), True),
+        ("", _ritocco(zone=[{"ruolo": "volto", "b": [83, 40, 4, 5]}]), True),
+        ("", _ritocco(zone=[{"ruolo": "targa", "b": [83, 40, 4, 5]}]), False),
+        ("candidati Q1", None, False),  # i quadrilateri non sono volti
+    ],
+)
+def test_rt20_persone_riconoscibili_e_derivato(
+    ai, completion, archivio, contesto, ritocco, atteso
+):
+    gruppo = _gruppo(archivio, 1)
+    gruppo.foto[0].contesto = contesto
+    completion.metti(risposta(_analisi_di(_voce(1, ritocco=ritocco))))
+    assert ai.analizza_gruppo(gruppo)[1]["persone_riconoscibili"] is atteso
+
+
+# --- Il prompt analisi_v4 e l'ordine dei messaggi (RT-21) --------------------------
+
+
+def _schema_json() -> str:
+    from app.adapters.ai.schemi import RispostaAnalisi
+
+    return json.dumps(RispostaAnalisi.model_json_schema(), sort_keys=True)
+
+
+def test_rt21_ogni_codice_e_ogni_ruolo_compare_nel_prompt():
+    from app.moduli.campagne import ritocco_catalogo as catalogo
+
+    prompt = modulo._prompt("analisi_v4")
+    for codice in list(catalogo.NOTE) + list(catalogo.RUOLI_ZONA):
+        assert re.search(rf"(?<![a-z_]){re.escape(codice)}(?![a-z_])", prompt), codice
+
+
+def test_rt21_il_prompt_e_statico_niente_segnaposto_ne_date():
+    prompt = modulo._prompt("analisi_v4")
+    assert "{" not in prompt and "}" not in prompt
+    assert "%s" not in prompt and "<<" not in prompt
+    assert not re.search(r"\b\d{4}-\d{2}-\d{2}\b", prompt)
+    assert not re.search(r"\b\d{1,2}/\d{1,2}/\d{2,4}\b", prompt)
+    # nessun dato di una bottega o di una campagna: due letture sono identiche byte per byte
+    assert modulo._prompt("analisi_v4") == prompt
+
+
+def test_rt21_il_prefisso_fisso_supera_la_soglia_della_cache():
+    """Sistema più schema: sopra i 1.024 token stimati (caratteri / 4)."""
+    prefisso = modulo._prompt("analisi_v4") + _schema_json()
+    assert len(prefisso) / 4 > 1024
+    # e v4 pesa circa 900 token più di v3 (la nota 12.2)
+    v3, v4 = (
+        len(modulo._prompt("analisi_v3")) / 4,
+        len(modulo._prompt("analisi_v4")) / 4,
+    )
+    assert 400 < v4 - v3 < 2000
+
+
+def test_rt21_il_messaggio_di_sistema_e_uguale_per_gruppi_diversi(
+    ai, completion, archivio
+):
+    completion.metti(risposta(_analisi_di(_voce(1))))
+    ai.analizza_gruppo(_gruppo(archivio, 1))
+    completion.metti(risposta(_analisi_di(_voce(7), _voce(8))))
+    altro = _gruppo(archivio, 2, da=7)
+    altro.descrizione = "Tutt'altro gruppo, con un'altra descrizione"
+    ai.analizza_gruppo(altro)
+
+    sistema = [c["messages"][0] for c in completion.chiamate]
+    assert sistema[0]["role"] == "system"
+    assert (
+        sistema[0]["content"] == sistema[1]["content"] == modulo._prompt("analisi_v4")
+    )
+
+
+def test_rt21_ordine_dei_messaggi_sistema_gruppo_poi_riga_contesto_immagine(
+    ai, completion, archivio
+):
+    gruppo = _gruppo(archivio, 2)
+    gruppo.foto[0].contesto = "scura, nitidezza bassa; candidati V1"
+    completion.metti(risposta(_analisi_di(_voce(1), _voce(2))))
+    ai.analizza_gruppo(gruppo)
+
+    messaggi = completion.chiamate[0]["messages"]
+    assert [m["role"] for m in messaggi] == ["system", "user"]
+    parti = messaggi[1]["content"]
+    assert (
+        json.loads(parti[0]["text"])["descrizione_del_gruppo"] == "Vasi in terracotta"
+    )
+    sequenza = [p["text"] if p["type"] == "text" else "<immagine>" for p in parti[1:]]
+    assert sequenza == [
+        "Foto 1:",
+        "Misurato dal programma: scura, nitidezza bassa; candidati V1",
+        "<immagine>",
+        "Foto 2:",  # nessun contesto per una foto pulita
+        "<immagine>",
+    ]
+
+
+def test_rt21_la_versione_del_prompt_e_analisi_v4(ai, completion, archivio):
+    completion.metti(risposta(_analisi_di(_voce(1))))
+    ai.analizza_gruppo(_gruppo(archivio, 1))
+    assert ai.ultimo_uso.versione_prompt == "analisi_v4"
+
+
+# --- Token in cache e costo (RT-22) -----------------------------------------------
+
+
+def _senza_prezzo(monkeypatch):
+    def sconosciuto(**_):
+        raise litellm.NotFoundError(message="senza prezzo", **ARGOMENTI)
+
+    monkeypatch.setattr(litellm, "completion_cost", sconosciuto)
+
+
+def test_rt22_i_token_in_cache_si_leggono_dalla_risposta(completion, ai):
+    completion.metti(
+        risposta({"testo": "Un vaso.", "hashtag": []}, token=(4000, 100), in_cache=3200)
+    )
+    ai.genera_post(SNAPSHOT, CAMPAGNA, _post(), domain.SCHEDE_CANALE["instagram"])
+    assert ai.ultimo_uso.token_ingresso == 4000
+    assert ai.ultimo_uso.token_in_cache == 3200
+
+
+@pytest.mark.parametrize("senza", [None])
+def test_rt22_senza_cached_tokens_il_campo_resta_vuoto(completion, ai, senza):
+    completion.metti(risposta({"testo": "Un vaso.", "hashtag": []}))
+    ai.genera_post(SNAPSHOT, CAMPAGNA, _post(), domain.SCHEDE_CANALE["instagram"])
+    assert ai.ultimo_uso.token_in_cache is None
+
+
+@pytest.mark.parametrize("valore", [None, "tanti", True, 1.5])
+def test_rt22_un_cached_tokens_strano_vale_none(completion, ai, valore):
+    completion.metti(risposta({"testo": "Un vaso.", "hashtag": []}, in_cache=valore))
+    ai.genera_post(SNAPSHOT, CAMPAGNA, _post(), domain.SCHEDE_CANALE["instagram"])
+    assert ai.ultimo_uso.token_in_cache is None
+
+
+def test_rt22_costo_di_riserva_senza_prezzo_in_cache_vale_come_prima(
+    completion, ai, monkeypatch
+):
+    """Il prezzo in cache non è configurato: i token in cache costano come l'ingresso (si sovrastima)."""
+    _senza_prezzo(monkeypatch)
+    completion.metti(
+        risposta(
+            {"testo": "Un vaso.", "hashtag": []},
+            token=(1_000_000, 500_000),
+            in_cache=600_000,
+        )
+    )
+    ai.genera_post(SNAPSHOT, CAMPAGNA, _post(), domain.SCHEDE_CANALE["instagram"])
+    assert ai.ultimo_uso.costo_usd == Decimal("7")
+
+
+def test_rt22_costo_di_riserva_con_il_prezzo_in_cache(completion, ai, monkeypatch):
+    _senza_prezzo(monkeypatch)
+    ai._prezzo_ingresso_cache = Decimal("1")
+    completion.metti(
+        risposta(
+            {"testo": "Un vaso.", "hashtag": []},
+            token=(1_000_000, 500_000),
+            in_cache=600_000,
+        )
+    )
+    ai.genera_post(SNAPSHOT, CAMPAGNA, _post(), domain.SCHEDE_CANALE["instagram"])
+    # 400.000 a 2 $ + 600.000 a 1 $ + 500.000 in uscita a 10 $ = 0,8 + 0,6 + 5
+    assert ai.ultimo_uso.costo_usd == Decimal("6.4")
+
+
+def test_rt22_i_token_in_cache_non_superano_l_ingresso_nel_costo(
+    completion, ai, monkeypatch
+):
+    _senza_prezzo(monkeypatch)
+    ai._prezzo_ingresso_cache = Decimal("1")
+    completion.metti(
+        risposta({"testo": "Un vaso.", "hashtag": []}, token=(1000, 0), in_cache=5000)
+    )
+    ai.genera_post(SNAPSHOT, CAMPAGNA, _post(), domain.SCHEDE_CANALE["instagram"])
+    assert ai.ultimo_uso.costo_usd == Decimal("0.005")
+
+
+def test_rt22_se_litellm_conosce_il_prezzo_nessuna_correzione_doppia(completion, ai):
+    """`completion_cost` conta già i token in cache: il costo è quello di LiteLLM, tale e quale."""
+    completion.metti(
+        risposta({"testo": "Un vaso.", "hashtag": []}, token=(4000, 100), in_cache=3200)
+    )
+    ai._prezzo_ingresso_cache = Decimal("0.1")
+    ai.genera_post(SNAPSHOT, CAMPAGNA, _post(), domain.SCHEDE_CANALE["instagram"])
+    assert ai.ultimo_uso.costo_usd == Decimal("0.0125")
+
+
+def test_rt22_litellm_conta_i_token_in_cache_a_prezzo_ridotto():
+    """La verifica dichiarata dal piano, sulla libreria installata (nessuna rete)."""
+    from litellm import ModelResponse
+    from litellm.types.utils import PromptTokensDetailsWrapper, Usage
+
+    def costo(in_cache: int) -> float:
+        uso = Usage(
+            prompt_tokens=10_000,
+            completion_tokens=500,
+            total_tokens=10_500,
+            prompt_tokens_details=PromptTokensDetailsWrapper(cached_tokens=in_cache),
+        )
+        risp = ModelResponse(
+            model="gpt-4o",
+            choices=[
+                {"message": {"content": "x"}, "finish_reason": "stop", "index": 0}
+            ],
+            usage=uso,
+        )
+        return litellm.completion_cost(completion_response=risp, model="gpt-4o")
+
+    assert costo(8_000) < costo(0)

@@ -122,17 +122,17 @@ def _variante_scelta(legame: Any) -> str:
     return scelta if scelta in VARIANTI_FOTO else "standard"
 
 
-def _varianti_della_foto(legame: Any) -> tuple[list[str], list[str]]:
-    """(disponibili, uguali all'Originale) per la foto del legame."""
-    return ["originale", "standard"], ["standard"]
+def _varianti_della_foto(db: Session, legame: Any) -> tuple[list[str], list[str]]:
+    """(disponibili, uguali alla precedente) per la foto del legame: lo dicono i comandi salvati (RT-25)."""
+    return campagne.disponibilita_varianti(db, legame.foto_id)
 
 
-def vista_foto(post: Post) -> dict[str, Any] | None:
+def vista_foto(db: Session, post: Post) -> dict[str, Any] | None:
     """Che cosa la card mostra della foto del post: anteprima, varianti, privacy, avvisi."""
     legame = _legame_principale(post)
     if legame is None:
         return None
-    disponibili, uguali = _varianti_della_foto(legame)
+    disponibili, uguali = _varianti_della_foto(db, legame)
     zone = (legame.ritocco or {}).get("privacy") or []
     return {
         "anteprima_url": f"/api/post/{post.id}/foto/anteprima",
@@ -182,7 +182,7 @@ def anteprima_foto(
     variante = variante or scelta
     if variante not in VARIANTI_FOTO:
         raise DatiNonValidi("Variante della foto non valida.")
-    if variante not in _varianti_della_foto(legame)[0]:
+    if variante not in _varianti_della_foto(db, legame)[0]:
         raise DatiNonValidi("Questa variante non è disponibile per la foto.")
     if post.stato in _STATI_CON_RENDER_VISIBILE and variante == scelta:
         return render_approvato(db, post, legame)[1]  # quello che uscirà o è uscito
@@ -417,6 +417,7 @@ def registra_chiamata_ai(
         tentativo=tentativo,
         token_ingresso=uso.token_ingresso,
         token_uscita=uso.token_uscita,
+        token_in_cache=uso.token_in_cache,
         n_immagini=uso.immagini,
         costo_usd=uso.costo_usd,
     )

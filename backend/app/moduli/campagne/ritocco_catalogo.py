@@ -112,8 +112,8 @@ RUOLI_ZONA: Final[dict[str, Codice]] = {
     "dati": Codice("altri dati personali scritti", "privacy"),
 }
 
-# Le note che non ammettono altro che l'Originale e le coppie in conflitto (le due si
-# scartano insieme: nota 12.2, validatori morbidi).
+# Le note che non ammettono altro che l'Originale e i gruppi in conflitto (se ne compaiono
+# due o più dello stesso gruppo si scartano tutte: nota 12.2, validatori morbidi).
 NOTE_SOLO_ORIGINALE: Final[frozenset[str]] = frozenset(
     codice for codice, c in NOTE.items() if c.effetto == "solo_originale"
 )
@@ -122,6 +122,7 @@ NOTE_IN_CONFLITTO: Final[tuple[frozenset[str], ...]] = (
     frozenset({"mossa_lieve", "mossa_forte"}),
     frozenset({"calda", "fredda"}),
     frozenset({"verde", "magenta"}),
+    frozenset({"ruota_90", "ruota_180", "ruota_270"}),
 )
 NOTE_DOMINANTE: Final[frozenset[str]] = frozenset(
     {"calda", "fredda", "verde", "magenta"}
@@ -276,6 +277,17 @@ SPINTA: Final[Parametri] = Parametri(
 
 # Soglia sotto la quale una rotazione non vale la pena (zona morta): vale per tutte.
 ROTAZIONE_MIN_GRADI: Final[float] = 0.5
+
+# La diagnosi (RT-24, doppia chiave): quando una misura conferma ciò che dice l'AI.
+DIAGNOSI_ROTAZIONE_MAX_GRADI: Final[
+    float
+] = 8.0  # il tetto della Spinta: oltre, non è un orizzonte storto
+DIAGNOSI_FLASH_CADUTA_MIN: Final[
+    float
+] = 0.10  # caduta di luce ai bordi che conferma il flash
+DIAGNOSI_LUCI_BRUCIATE_OK: Final[frozenset[str]] = frozenset(
+    {"nessuna", "poche"}
+)  # per schiarire... e scurire
 
 # Le correzioni di luce dell'esecutore (RT-17). Sotto queste dosi una correzione non si
 # fa: una foto buona esce com'è (zona morta). Le misure si fanno nella regione del soggetto.

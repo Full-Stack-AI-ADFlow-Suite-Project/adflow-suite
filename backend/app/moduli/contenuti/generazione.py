@@ -18,6 +18,7 @@ annulla e ``registra_errore()`` decide che cosa succede alla campagna (R-35).
 Si usa sempre la fotografia del profilo, mai il profilo corrente (R-11).
 """
 
+import logging
 import re
 from collections.abc import Iterator
 from contextlib import contextmanager
@@ -77,6 +78,8 @@ ATTACCO_LUNGHEZZA = 120
 MAX_PASSI = 1000
 
 AVVIO = "avvio"
+logger = logging.getLogger(__name__)
+
 ANALISI = "analisi"
 PIANO = "piano"
 IMMAGINI = "immagini"
@@ -200,6 +203,7 @@ def passo(
     if tappa == TESTI:
         _scrivi(db, campagna, _post_da_scrivere(db, campagna), esecuzione)
         return True
+    _rendi_la_standard(db, campagna)
     campagne.cambia_stato(db, campagna, "in_revisione")
     notifiche.crea(
         db,
@@ -211,6 +215,33 @@ def passo(
     return False
 
 
+def _rendi_la_standard(db: Session, campagna: Any) -> None:
+    """Rende la Standard delle foto usate dai post, così la card si apre già pronta (RT-26).
+
+    Sono anteprime: finiscono nella cache dei file derivati. Un render che non riesce non
+    ferma la generazione; l'anteprima si rende al primo apri.
+    """
+    fatti: set[tuple[int, str]] = set()
+    for post in service.post_della_campagna(db, campagna.id):
+        versione = post.versione_corrente
+        if versione is None:
+            continue
+        for legame in versione.legami_foto:
+            if (legame.foto_id, post.canale) in fatti:
+                continue
+            fatti.add((legame.foto_id, post.canale))
+            try:
+                campagne.rendi_per_canale(
+                    db, legame.foto_id, post.canale, {"variante": "standard"}
+                )
+            except Exception:  # noqa: BLE001 - l'anteprima si rende al primo apri
+                logger.warning(
+                    "Render Standard non riuscito: foto %s",
+                    legame.foto_id,
+                    exc_info=True,
+                )
+
+
 def _senza_campagna(contesto: dict[str, Any]) -> dict[str, Any]:
     return {chiave: v for chiave, v in contesto.items() if chiave != "campagna_id"}
 
@@ -218,38 +249,37 @@ def _senza_campagna(contesto: dict[str, Any]) -> dict[str, Any]:
 # --- Analisi ------------------------------------------------------------------
 
 
-def _foto_ai(foto: Any, immagine: bytes | None = None) -> FotoAI:
+def _foto_ai(foto: Any, immagine: bytes | None = None, contesto: str = "") -> FotoAI:
     analisi = foto.analisi_ai if isinstance(foto.analisi_ai, dict) else None
     return FotoAI(
-        id=foto.id, file=foto.file, mime=foto.mime, analisi=analisi, immagine=immagine
+        id=foto.id,
+        file=foto.file,
+        mime=foto.mime,
+        analisi=analisi,
+        immagine=immagine,
+        contesto=contesto,
     )
 
 
-def _copie_per_l_ai(db: Session, foto: list[Any]) -> dict[int, bytes | None]:
-    """La copia sRGB di ogni foto da analizzare, preparata dal modulo campagne (RT-03).
-
-    Una foto che non si trova o non si legge ha ``None``: l'adattatore la rifiuta
-    come richiesta su quella foto e la tappa continua con le altre (R-35).
-    """
-    copie: dict[int, bytes | None] = {}
-    for una in foto:
-        try:
-            copie[una.id] = campagne.copia_per_ai(db, una.id)
-        except (NonTrovato, DatiNonValidi):
-            copie[una.id] = None
-    return copie
-
-
 def _gruppo_ai(
-    gruppo: Any, foto: list[Any], copie: dict[int, bytes | None] | None = None
+    gruppo: Any,
+    foto: list[Any],
+    preparate: dict[int, dict[str, Any]] | None = None,
 ) -> GruppoAI:
-    """Il gruppo per l'AI; con ``copie`` le foto portano il JPEG da mandare (analisi)."""
-    copie = copie or {}
+    """Il gruppo per l'AI; con ``preparate`` le foto portano il JPEG e il contesto (analisi)."""
+    preparate = preparate or {}
     return GruppoAI(
         id=gruppo.id,
         descrizione=gruppo.descrizione,
         da_usare_il=gruppo.da_usare_il,
-        foto=[_foto_ai(una, copie.get(una.id)) for una in foto],
+        foto=[
+            _foto_ai(
+                una,
+                preparate.get(una.id, {}).get("immagine"),
+                preparate.get(una.id, {}).get("contesto", ""),
+            )
+            for una in foto
+        ],
     )
 
 
@@ -273,15 +303,18 @@ def _analizza(
     risultati: dict[int, dict[str, Any]] = {}
     with _nella_tappa(ANALISI):
         ai = ottieni_ai()
-        # Una decodifica per foto, anche se una richiesta fallita fa ripartire il gruppo.
-        copie = _copie_per_l_ai(db, da_fare)
+        # Una decodifica per foto, anche se una richiesta fallita fa ripartire il gruppo
+        # (ADR-124, RT-19): copia per l'AI, misure, fasce e candidati.
+        preparate = campagne.prepara_analisi(db, [una.id for una in da_fare])
         while da_fare:
             solo = da_fare[0].id if len(da_fare) == 1 else None
             try:
                 with service.contesto_chiamata_ai(
                     campagna_id, foto_id=solo, tentativo=esecuzione
                 ):
-                    risposta = ai.analizza_gruppo(_gruppo_ai(gruppo, da_fare, copie))
+                    risposta = ai.analizza_gruppo(
+                        _gruppo_ai(gruppo, da_fare, preparate)
+                    )
             except ErroreAI as errore:
                 ids = {foto.id for foto in da_fare}
                 if errore.tipo in ("richiesta", "rifiuto") and errore.foto_id in ids:
@@ -315,9 +348,21 @@ def _analizza(
                 risultati[foto.id]["soggetto_box"] = riquadro_valido(
                     analisi.get("soggetto_box")
                 )
+                # L2: diagnosi a doppia chiave e tre varianti (RT-26). Un errore qui non
+                # ferma niente: la foto resta con l'analisi di oggi e la sola Originale.
+                risultati[foto.id]["ritocco"] = campagne.ritocco_della_foto(
+                    foto,
+                    risultati[foto.id]["soggetto_box"],
+                    analisi.get("ritocco"),
+                    preparate.get(foto.id, {}).get("locale"),
+                    ai.ultimo_uso.versione_prompt if ai.ultimo_uso else None,
+                )
             break
 
     for foto in senza_analisi:
+        # `locale` è ciò che il programma ha misurato (L1), anche se l'AI ha rifiutato la foto.
+        risultati[foto.id]["locale"] = preparate.get(foto.id, {}).get("locale")
+        risultati[foto.id].setdefault("ritocco", None)
         campagne.aggiorna_foto(db, foto.id, risultati[foto.id], foto.n_utilizzi)
 
 

@@ -42,6 +42,7 @@ from .base import (
     UsoAI,
 )
 from .immagini import VERSIONE_PROMPT as VERSIONE_PROMPT_IMMAGINE
+from .analisi import analisi_da_risposta
 from .schemi import RispostaAnalisi, RispostaPiano, RispostaPost
 
 PROVIDER = "litellm"
@@ -94,6 +95,10 @@ _MODELLO_SBAGLIATO = (
 _IMMAGINE = ("image", "immagine")
 # Il filtro dei contenuti può arrivare come un 400 qualunque.
 _FILTRO = ("content_policy", "moderation_blocked", "safety system")
+
+
+# Il prompt dell'analisi (ADR-124, RT-21): v4 ha il ritocco a codici; analisi_v3.md resta.
+VERSIONE_PROMPT_ANALISI = "analisi_v4"
 
 
 @lru_cache
@@ -178,6 +183,19 @@ def traduci_errore(errore: Exception, *, foto_id: int | None = None) -> ErroreAI
     raise errore
 
 
+def _token_in_cache(uso: Any) -> int | None:
+    """I token d'ingresso serviti dalla cache (``usage.prompt_tokens_details.cached_tokens``), se il provider li dice."""
+    dettagli = getattr(uso, "prompt_tokens_details", None)
+    if dettagli is None and isinstance(uso, dict):
+        dettagli = uso.get("prompt_tokens_details")
+    valore = (
+        dettagli.get("cached_tokens")
+        if isinstance(dettagli, dict)
+        else getattr(dettagli, "cached_tokens", None)
+    )
+    return valore if isinstance(valore, int) and not isinstance(valore, bool) else None
+
+
 def _foto_per_ai(foto: FotoAI) -> dict[str, Any]:
     """La foto come ``image_url``: i byte JPEG preparati da ``campagne``, in base64, dettaglio alto."""
     if not foto.immagine:
@@ -196,23 +214,6 @@ def _foto_per_ai(foto: FotoAI) -> dict[str, Any]:
     }
 
 
-def _spezza_i_cicli(analisi: dict[int, dict[str, Any]]) -> None:
-    """Se due scatti (o più) si dicono doppioni a vicenda, la migliore resta libera.
-
-    Senza, tutte le foto del ciclo uscirebbero dalle disponibili (R-05).
-    """
-    for inizio in list(analisi):
-        visti = [inizio]
-        corrente = analisi[inizio]["simile_a"]
-        while corrente is not None and corrente not in visti:
-            visti.append(corrente)
-            corrente = analisi[corrente]["simile_a"]
-        if corrente != inizio:
-            continue
-        migliore = max(visti, key=lambda uno: (analisi[uno]["punteggio"], -uno))
-        analisi[migliore]["simile_a"] = None
-
-
 class AILiteLLM(AIAdapter):
     """Provider AI vero: modelli e chiave da ``backend/.env``."""
 
@@ -229,6 +230,7 @@ class AILiteLLM(AIAdapter):
             else (impostazioni.openai_api_key or impostazioni.openrouter_api_key)
         )
         self._prezzo_ingresso = impostazioni.ai_prezzo_ingresso_milione
+        self._prezzo_ingresso_cache = impostazioni.ai_prezzo_ingresso_cache_milione
         self._prezzo_uscita = impostazioni.ai_prezzo_uscita_milione
         self._modello_immagini = impostazioni.ai_modello_immagini
         self._prezzo_immagine = impostazioni.ai_prezzo_immagine
@@ -367,11 +369,21 @@ class AILiteLLM(AIAdapter):
         uso = getattr(risposta, "usage", None)
         ingresso = getattr(uso, "prompt_tokens", None)
         uscita = getattr(uso, "completion_tokens", None)
+        in_cache = _token_in_cache(uso)
         try:
+            # Per i modelli che LiteLLM conosce il prezzo in cache è già dentro: nessuna
+            # correzione doppia (verificato in RT-22 con `cached_tokens`).
             costo = Decimal(str(litellm.completion_cost(completion_response=risposta)))
         except Exception:  # noqa: BLE001 - modello di cui LiteLLM non sa il prezzo
+            prezzo_cache = (
+                self._prezzo_ingresso
+                if self._prezzo_ingresso_cache is None
+                else self._prezzo_ingresso_cache
+            )
+            pieni = max(0, (ingresso or 0) - (in_cache or 0))
             costo = (
-                Decimal(ingresso or 0) * self._prezzo_ingresso
+                Decimal(pieni) * self._prezzo_ingresso
+                + Decimal(in_cache or 0) * prezzo_cache
                 + Decimal(uscita or 0) * self._prezzo_uscita
             ) / Decimal(1_000_000)
         return UsoAI(
@@ -380,6 +392,7 @@ class AILiteLLM(AIAdapter):
             modello=modello,
             token_ingresso=ingresso,
             token_uscita=uscita,
+            token_in_cache=in_cache,
             costo_usd=costo,
         )
 
@@ -411,51 +424,33 @@ class AILiteLLM(AIAdapter):
                 ),
             }
         ]
+        # Ordine fisso per la cache del provider (nota 12.3, C3): prima il messaggio di
+        # sistema, uguale per ogni gruppo; poi ciò che cambia. Per ogni foto: la riga,
+        # il contesto misurato (solo se c'è qualcosa da dire) e l'immagine.
         for foto in gruppo.foto:
             contenuto.append({"type": "text", "text": f"Foto {foto.id}:"})
+            if foto.contesto:
+                contenuto.append(
+                    {"type": "text", "text": f"Misurato dal programma: {foto.contesto}"}
+                )
             contenuto.append(_foto_per_ai(foto))
         risposta = self._chiama(
             "analisi",
             self._modello_visione,
             [
-                {"role": "system", "content": _prompt("analisi_v3")},
+                {"role": "system", "content": _prompt(VERSIONE_PROMPT_ANALISI)},
                 {"role": "user", "content": contenuto},
             ],
             RispostaAnalisi,
-            versione_prompt="analisi_v3",
+            versione_prompt=VERSIONE_PROMPT_ANALISI,
             foto_id=gruppo.foto[0].id if len(gruppo.foto) == 1 else None,
         )
 
-        ids = [foto.id for foto in gruppo.foto]
-        per_id = {voce.foto_id: voce for voce in risposta.foto}
-        if len(risposta.foto) != len(ids) or set(per_id) != set(ids):
-            errore = ErroreAI(
-                "risposta", "L'analisi dell'AI non riguarda tutte le foto del gruppo."
-            )
+        try:
+            return analisi_da_risposta(risposta, gruppo.foto)
+        except ErroreAI as errore:
             self._segna_errore(errore)
-            raise errore
-        analisi = {}
-        for uno in ids:
-            voce = per_id[uno]
-            simile = voce.simile_a if voce.simile_a in per_id else None
-            analisi[uno] = {
-                "idonea": voce.idonea,
-                "simile_a": simile if simile != uno else None,
-                "tipo": voce.tipo,
-                "punteggio": voce.punteggio,
-                "motivo": voce.motivo if not voce.idonea else None,
-                "soggetto": voce.soggetto,
-                "descrizione": voce.descrizione,
-                "soggetto_box": (
-                    voce.soggetto_box.model_dump() if voce.soggetto_box else None
-                ),
-                "persone_riconoscibili": voce.persone_riconoscibili,
-                "marchi_visibili": voce.marchi_visibili,
-            }
-            if not voce.idonea and not voce.motivo:
-                analisi[uno]["motivo"] = "La foto non è adatta."
-        _spezza_i_cicli(analisi)
-        return analisi
+            raise
 
     def pianifica_campagna(
         self,

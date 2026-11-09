@@ -26,7 +26,7 @@ from typing import Any, Final
 
 import cv2
 import numpy as np
-from PIL import Image, ImageDraw, ImageFont
+from PIL import Image, ImageCms, ImageDraw, ImageFont
 
 from . import ritocco_catalogo as catalogo
 
@@ -219,6 +219,55 @@ def qualita_jpeg(tabelle: dict[int, Any] | None) -> int | None:
     fattore = max(fattore, 1.0)
     qualita = 5000.0 / fattore if fattore >= 100.0 else (200.0 - fattore) / 2.0
     return int(round(min(100.0, max(1.0, qualita))))
+
+
+def formato_e_colore(dati: bytes) -> dict[str, Any]:
+    """Dimensioni, orientamento EXIF e profilo colore dall'intestazione del file (nessuna decodifica)."""
+    vuoto: dict[str, Any] = {
+        "formato": {
+            "larghezza": None,
+            "altezza": None,
+            "rapporto": None,
+            "orientamento_exif": None,
+        },
+        "colore": {"profilo": None, "convertito_srgb": False},
+    }
+    try:
+        with Image.open(BytesIO(dati)) as aperta:
+            larghezza, altezza = aperta.size
+            orientamento = aperta.getexif().get(0x0112)
+            profilo_icc = aperta.info.get("icc_profile")
+            profilo = None
+            if profilo_icc:
+                try:
+                    profilo = (
+                        ImageCms.getProfileDescription(
+                            ImageCms.ImageCmsProfile(BytesIO(profilo_icc))
+                        ).strip()
+                        or None
+                    )
+                except (
+                    Exception
+                ):  # noqa: BLE001 - un profilo rotto non ferma la pre-analisi
+                    profilo = "illeggibile"
+    except Exception:  # noqa: BLE001
+        return vuoto
+    if orientamento in (5, 6, 7, 8):  # la foto, una volta dritta, ha i lati scambiati
+        larghezza, altezza = altezza, larghezza
+    return {
+        "formato": {
+            "larghezza": larghezza,
+            "altezza": altezza,
+            "rapporto": round(larghezza / altezza, 4) if altezza else None,
+            "orientamento_exif": int(orientamento) if orientamento else None,
+        },
+        "colore": {
+            "profilo": profilo,
+            "convertito_srgb": bool(
+                profilo and profilo != "illeggibile" and "srgb" not in profilo.lower()
+            ),
+        },
+    }
 
 
 def fatti_del_file(dati: bytes) -> dict[str, Any]:

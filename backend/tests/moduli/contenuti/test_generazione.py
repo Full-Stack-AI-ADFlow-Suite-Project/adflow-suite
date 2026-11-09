@@ -23,6 +23,7 @@ from app.core.config import leggi_impostazioni
 from app.core.coda import GENERA_CAMPAGNA, accoda
 from app.core.coda import app as coda_app
 from app.moduli.artigiani import service as artigiani
+from app.moduli.campagne import analisi_locale
 from app.moduli.campagne import service as campagne
 from app.moduli.contenuti import generazione, jobs
 from app.moduli.contenuti.models import ErroreGenerazione, Post
@@ -473,18 +474,19 @@ def test_rt03_la_copia_si_prepara_una_volta_per_foto_anche_se_il_gruppo_riparte(
     _metti_i_file(db, campagna, archivio)
     guasta = _foto_ids(db, campagna)[2]
     ai.comanda_errore("analizza_gruppo", "richiesta", volte=1, foto_id=guasta)
-    preparate: list[int] = []
-    originale = campagne.copia_per_ai
+    decodifiche: list[int] = []
+    originale = analisi_locale.apri_in_srgb
 
-    def conta(db_, foto_id):
-        preparate.append(foto_id)
-        return originale(db_, foto_id)
+    def conta(dati, *args, **kwargs):
+        decodifiche.append(len(dati))
+        return originale(dati, *args, **kwargs)
 
-    monkeypatch.setattr(campagne, "copia_per_ai", conta)
+    monkeypatch.setattr(analisi_locale, "apri_in_srgb", conta)
 
     assert _job(campagna.id) == 1
 
-    assert sorted(preparate) == sorted(set(preparate))  # nessuna foto due volte
+    # una sola decodifica per foto, anche se il gruppo è ripartito (RT-19)
+    assert len(decodifiche) == 6
     assert len(_chiamate(ai, "analizza_gruppo")) >= 2  # il gruppo è ripartito
 
 
@@ -1195,3 +1197,171 @@ def test_ca115_il_finto_non_mette_un_post_nella_stessa_ora_occupata(db, ai):
             and quando.date() == quando_occupato.date()
             and quando.hour == quando_occupato.hour
         )
+
+
+# --- Il ritocco nella generazione (RT-26) -------------------------------------------
+
+
+def _foto_con_file_scuri(db, campagna, archivio, dimensioni=(1600, 1200)) -> None:
+    """File veri e scuri: la Standard li schiarisce se l'AI e la misura sono d'accordo."""
+    scura = immagini.gradiente(dimensioni, (4, 4, 6), (60, 55, 50), verticale=True)
+    for una in campagne.foto_della_campagna(db, campagna.id):
+        una.file = archivio.salva(immagini.jpeg_qualita(scura, 92), "jpg")
+    db.commit()
+
+
+def test_rt26_la_campagna_generata_ha_locale_varianti_e_render_standard_pronti(
+    db, ai, archivio
+):
+    campagna = _campagna(db, n_foto=6)
+    _foto_con_file_scuri(db, campagna, archivio)
+    for foto_id in _foto_ids(db, campagna):
+        ai.comanda_analisi(
+            foto_id,
+            ritocco={
+                "note": ["scura"],
+                "centro": None,
+                "zone": [],
+                "piana": None,
+                "volti": [],
+            },
+        )
+
+    assert _job(campagna.id) == 1
+    assert campagna.stato == "in_revisione"
+
+    for una in campagne.foto_della_campagna(db, campagna.id):
+        analisi = una.analisi_ai
+        assert analisi["locale"]["versione"] == "locale-1"
+        ritocco = analisi["ritocco"]
+        assert set(ritocco["varianti"]) == {"originale", "standard", "spinta"}
+        assert ritocco["diagnosi"]["luce"]["esposizione"] == "su"
+        assert ritocco["ai"]["note"] == ["scura"]
+        assert ritocco["uguali"]["standard"] is False
+    # il render Standard di ogni foto usata è già nella cache: la card si apre pronta
+    usate = {
+        (f, p.canale)
+        for p in post_della_campagna(db, campagna.id)
+        for f in _foto_del_post(p)
+    }
+    assert usate
+    for foto_id, canale in usate:
+        chiave = campagne.rendi_per_canale(
+            db, foto_id, canale, {"variante": "standard"}
+        )
+        assert archivio.esiste_derivato(foto_id, chiave)
+    derivati_prima = len(archivio.elenca_derivati())
+    for foto_id, canale in usate:  # rendere ancora non crea altro
+        campagne.rendi_per_canale(db, foto_id, canale, {"variante": "standard"})
+    assert len(archivio.elenca_derivati()) == derivati_prima
+
+
+def test_rt26_un_errore_in_l1_lascia_la_foto_in_originale_e_la_generazione_completa(
+    db, ai, archivio, monkeypatch
+):
+    campagna = _campagna(db, n_foto=6)
+    _foto_con_file_scuri(db, campagna, archivio)
+
+    def rotta(*_args, **_kwargs):
+        raise RuntimeError("misura impazzita")
+
+    monkeypatch.setattr(analisi_locale.preanalisi, "misura", rotta)
+
+    assert _job(campagna.id) == 1
+    assert campagna.stato == "in_revisione"
+    for una in campagne.foto_della_campagna(db, campagna.id):
+        assert una.analisi_ai["locale"] is None
+        # senza misure nessuna correzione: la Standard è l'Originale
+        ritocco = una.analisi_ai["ritocco"]
+        assert ritocco["uguali"]["standard"] is True
+        assert una.analisi_ai["idonea"] is True  # e l'analisi di oggi c'è
+
+
+def test_rt26_un_errore_in_l2_lascia_il_ritocco_vuoto_e_la_generazione_completa(
+    db, ai, archivio, monkeypatch
+):
+    campagna = _campagna(db, n_foto=6)
+    _foto_con_file_scuri(db, campagna, archivio)
+
+    def rotta(*_args, **_kwargs):
+        raise RuntimeError("diagnosi impazzita")
+
+    monkeypatch.setattr(campagne, "diagnosi_foto", rotta)
+
+    assert _job(campagna.id) == 1
+    assert campagna.stato == "in_revisione"
+    for una in campagne.foto_della_campagna(db, campagna.id):
+        assert una.analisi_ai["ritocco"] is None
+        assert una.analisi_ai["locale"] is not None
+    # senza varianti salvate l'anteprima è l'Originale (D6)
+    post = post_della_campagna(db, campagna.id)[0]
+    chiavi = {
+        campagne.rendi_per_canale(
+            db, _foto_del_post(post)[0], post.canale, {"variante": v}
+        )
+        for v in ("originale", "standard", "spinta")
+    }
+    assert len(chiavi) == 1
+
+
+def test_rt26_le_foto_non_idonee_non_hanno_ritocco(db, ai, archivio):
+    campagna = _campagna(db, n_foto=6)
+    _foto_con_file_scuri(db, campagna, archivio)
+    guasta = _foto_ids(db, campagna)[2]
+    ai.comanda_errore("analizza_gruppo", "richiesta", volte=None, foto_id=guasta)
+
+    assert _job(campagna.id) == 1
+
+    analisi = {
+        f.id: f.analisi_ai for f in campagne.foto_della_campagna(db, campagna.id)
+    }
+    assert analisi[guasta]["idonea"] is False and analisi[guasta]["ritocco"] is None
+    assert analisi[guasta]["locale"] is not None  # le misure ci sono comunque
+
+
+def test_rt26_al_piano_arrivano_gli_stessi_campi_di_prima(db, ai, archivio):
+    """O9: `_valutazione` sceglie i suoi campi; locale e ritocco non vanno all'AI del piano."""
+    from app.adapters.ai.base import FotoAI
+    from app.adapters.ai.litellm import _valutazione
+
+    campagna = _campagna(db, n_foto=6)
+    _foto_con_file_scuri(db, campagna, archivio)
+    assert _job(campagna.id) == 1
+    una = campagne.foto_della_campagna(db, campagna.id)[0]
+    nuova = _valutazione(FotoAI(una.id, una.file, una.mime, analisi=una.analisi_ai))
+    vecchia = _valutazione(
+        FotoAI(
+            una.id,
+            una.file,
+            una.mime,
+            analisi={
+                k: v
+                for k, v in una.analisi_ai.items()
+                if k not in ("locale", "ritocco")
+            },
+        )
+    )
+    assert nuova == vecchia and "ritocco" not in nuova and "locale" not in nuova
+    assert set(vecchia) == {"soggetto", "descrizione", "tipo", "punteggio"}
+
+
+def test_rt26_il_tempo_di_20_foto_ha_un_margine_oltre_cinque_volte(
+    db, ai, archivio, capsys
+):
+    """L1 + L2 + render Standard di 20 foto contro il limite di 30 minuti di `ferma_generazione`."""
+    import time
+
+    campagna = _campagna(db, n_foto=20)
+    _foto_con_file_scuri(db, campagna, archivio, dimensioni=(3000, 2250))
+    inizio = time.perf_counter()
+    assert _job(campagna.id) == 1
+    secondi = time.perf_counter() - inizio
+    limite = 30 * 60
+    with capsys.disabled():
+        print(
+            f"\n[RT-26] 20 foto da 3000x2250: {secondi:.1f} s (limite {limite} s, margine {limite / secondi:.0f}×)"
+        )
+    assert campagna.stato == "in_revisione"
+    assert (
+        secondi * 5 < limite
+    ), "meno di 5× di margine: i render Standard vanno in un job separato"

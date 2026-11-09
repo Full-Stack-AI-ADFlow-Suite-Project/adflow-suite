@@ -116,6 +116,7 @@ class ChiamataAIRiga(BaseModel):
     durata_ms: int | None
     costo_usd: Decimal
     token_ingresso: int | None
+    token_in_cache: int | None = None
     token_uscita: int | None
     voto_medio: float | None
 

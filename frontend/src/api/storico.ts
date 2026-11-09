@@ -27,6 +27,8 @@ export interface ChiamataAIRiga {
   /** Decimal: arriva come stringa. */
   costo_usd: string;
   token_ingresso: number | null;
+  /** Dei token d'ingresso, quelli serviti dalla cache del provider (RT-22). */
+  token_in_cache: number | null;
   token_uscita: number | null;
   voto_medio: number | null;
 }

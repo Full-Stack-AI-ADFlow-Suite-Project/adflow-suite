@@ -10,6 +10,7 @@ from io import BytesIO
 from typing import Any
 
 from PIL import Image
+from pydantic import ValidationError
 
 from app.core.orologio import ROMA
 
@@ -25,7 +26,8 @@ from .base import (
     ImmagineAI,
     UsoAI,
 )
-from .schemi import INQUADRATURE
+from .analisi import analisi_da_risposta
+from .schemi import INQUADRATURE, RispostaAnalisi
 
 PROVIDER = "finto"
 MODELLO = "finto"
@@ -174,7 +176,13 @@ class AIFinto(AIAdapter):
         self._errori.append(_Errore(operazione, tipo, volte, foto_id, canale))
 
     def comanda_analisi(self, foto_id: int, **campi: Any) -> None:
-        """Cambia l'analisi di una foto, per esempio ``idonea=False, motivo=…``."""
+        """Cambia l'analisi di una foto, nel formato compatto dell'AI (RT-23).
+
+        Per esempio ``idonea=False, motivo=…``, ``punteggio=5`` (intero da 1 a 5),
+        ``soggetto_box=[x, y, larghezza, altezza]`` in centesimi, o ``ritocco={"note":
+        ["scura"], "centro": None, "zone": [], "piana": None, "volti": []}``. Passano per
+        lo stesso schema e gli stessi validatori dell'AI vera.
+        """
         self._analisi.setdefault(foto_id, {}).update(campi)
 
     def comanda_piano_non_valido(self, volte: int = 1) -> None:
@@ -263,26 +271,34 @@ class AIFinto(AIAdapter):
             "foto": [f"<foto {uno}>" for uno in ids],
         }
         self._solleva("analizza_gruppo", "analisi", richiesta, foto=ids)
-        risultato = {}
+        # Una risposta nel formato compatto, come la scriverebbe l'AI vera, che passa per
+        # lo stesso schema e la stessa conversione (RT-23).
+        voci = []
         for foto in gruppo.foto:
-            analisi = {
-                "idonea": True,
-                "simile_a": None,
-                "tipo": "pezzo_finito",
-                "punteggio": 0.8,
-                "motivo": None,
+            voce = {
+                "foto_id": foto.id,
                 "soggetto": gruppo.descrizione or "Foto della bottega",
                 "descrizione": gruppo.descrizione or "Foto della bottega",
-                # Un riquadro al centro, metà della foto.
-                "soggetto_box": {
-                    "x": 0.25,
-                    "y": 0.25,
-                    "larghezza": 0.5,
-                    "altezza": 0.5,
-                },
+                "tipo": "pezzo_finito",
+                "idonea": True,
+                "motivo": None,
+                "punteggio": 4,
+                "simile_a": None,
+                # Un riquadro al centro, metà della foto, in centesimi.
+                "soggetto_box": [25, 25, 50, 50],
+                # Niente da segnalare, se non si comanda altro (`comanda_analisi(ritocco=…)`).
+                "ritocco": None,
             }
-            analisi.update(self._analisi.get(foto.id, {}))
-            risultato[foto.id] = analisi
+            voce.update(self._analisi.get(foto.id, {}))
+            voci.append(voce)
+        try:
+            risposta = RispostaAnalisi.model_validate({"foto": voci})
+        except ValidationError as errore:
+            raise ErroreAI(
+                "risposta",
+                f"Risposta finta fuori schema: {errore.error_count()} errori.",
+            ) from errore
+        risultato = analisi_da_risposta(risposta, gruppo.foto)
         self.ultimo_uso = self._uso("analisi", richiesta, risultato)
         return risultato
 

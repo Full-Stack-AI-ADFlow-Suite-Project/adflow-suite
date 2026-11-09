@@ -103,6 +103,67 @@ class Comando:
     nitidezza: bool = False
     nitidezza_dose: float = catalogo.STANDARD.nitidezza_dose
 
+    def a_dict(self) -> dict[str, Any]:
+        """Il comando come dato JSON (si salva in ``foto.analisi_ai["ritocco"]``)."""
+        if isinstance(self.finestra, Finestra):
+            finestra: dict[str, Any] | None = {
+                "b": list(self.finestra.b),
+                "rapporto": self.finestra.rapporto,
+            }
+        elif isinstance(self.finestra, RegoleR42):
+            finestra = {
+                "regole": "r42",
+                "canale": self.finestra.canale,
+                "proporzione": self.finestra.proporzione,
+                "soggetto_box": self.finestra.soggetto_box,
+            }
+        else:
+            finestra = None
+        return {
+            "versione": self.versione,
+            "ruota": self.ruota,
+            "raddrizza": self.raddrizza,
+            "finestra": finestra,
+            "barre": self.barre,
+            "luce": self.luce,
+            "nitidezza": self.nitidezza,
+            "nitidezza_dose": self.nitidezza_dose,
+        }
+
+    @classmethod
+    def da_dict(cls, dati: dict[str, Any]) -> "Comando":
+        """Il comando salvato con ``a_dict``.
+
+        Raises:
+            DatiNonValidi: il dato non è un comando valido.
+        """
+        try:
+            f = dati.get("finestra")
+            if isinstance(f, dict) and f.get("regole") == "r42":
+                finestra: RegoleR42 | Finestra | None = RegoleR42(
+                    canale=f["canale"],
+                    proporzione=f.get("proporzione"),
+                    soggetto_box=f.get("soggetto_box"),
+                )
+            elif isinstance(f, dict):
+                finestra = Finestra(b=tuple(f["b"]), rapporto=float(f["rapporto"]))
+            else:
+                finestra = None
+            return cls(
+                versione=dati["versione"],
+                ruota=dati["ruota"],
+                raddrizza=dati.get("raddrizza"),
+                finestra=finestra,
+                barre=dati.get("barre"),
+                luce=dati.get("luce"),
+                nitidezza=bool(dati.get("nitidezza")),
+                nitidezza_dose=float(
+                    dati.get("nitidezza_dose", catalogo.STANDARD.nitidezza_dose)
+                ),
+            )
+        except (KeyError, TypeError, ValueError, AttributeError) as errore:
+            raise DatiNonValidi("Comando di ritocco non valido.") from errore
+
     def __post_init__(self) -> None:
         if self.barre not in (None, "sfocate", "neutre"):
             raise DatiNonValidi(f"Barre '{self.barre}' non ammesse: sfocate o neutre.")
