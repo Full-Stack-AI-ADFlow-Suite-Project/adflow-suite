@@ -18,12 +18,15 @@ I candidati (volti e quadrilateri) sono un altro pezzo (RT-14).
 from __future__ import annotations
 
 import math
+from collections.abc import Callable, Sequence
+from functools import lru_cache
 from io import BytesIO
+from pathlib import Path
 from typing import Any, Final
 
 import cv2
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 
 from . import ritocco_catalogo as catalogo
 
@@ -284,3 +287,271 @@ def fasce(misure: dict[str, Any]) -> dict[str, str]:
     normali = {nome: f.normali for nome, f in catalogo.FASCE.items()}
     normali["dominante"] = frozenset({"nessuna"})
     return {nome: f for nome, f in tutte.items() if f not in normali[nome]}
+
+
+# --- I candidati: volti e quadrilateri ---------------------------------------------
+# Il programma propone, l'AI conferma o scarta citando i codici (``V1``, ``Q1``...):
+# un candidato si congela con l'analisi, quindi ``V2`` resta quel volto per sempre.
+# Le coordinate sono normalizzate (0–1) sulla copia di lavoro.
+
+LATO_CANDIDATI: Final[int] = 1024
+MAX_VOLTI: Final[int] = 12
+MAX_QUADRILATERI: Final[int] = 3
+AREA_QUADRILATERO_MIN: Final[float] = 0.05  # in quota della foto
+AREA_QUADRILATERO_MAX: Final[float] = 0.97  # oltre, è la cornice della foto
+ANGOLO_QUADRILATERO: Final[tuple[float, float]] = (60.0, 120.0)  # gradi interni ammessi
+SOVRAPPOSIZIONE_MAX: Final[float] = 0.3  # IoU oltre cui due volti sono lo stesso
+PREFISSO_VOLTO: Final[str] = "V"
+PREFISSO_QUADRILATERO: Final[str] = "Q"
+
+# Un volto candidato: (x, y, larghezza, altezza) normalizzati e affidabilità 0–1.
+Volto = tuple[float, float, float, float, float]
+Rilevatore = Callable[[Image.Image], Sequence[Volto]]
+
+
+def _iou(a: Volto, b: Volto) -> float:
+    ax2, ay2, bx2, by2 = a[0] + a[2], a[1] + a[3], b[0] + b[2], b[1] + b[3]
+    larghezza = min(ax2, bx2) - max(a[0], b[0])
+    altezza = min(ay2, by2) - max(a[1], b[1])
+    if larghezza <= 0 or altezza <= 0:
+        return 0.0
+    comune = larghezza * altezza
+    return comune / (a[2] * a[3] + b[2] * b[3] - comune)
+
+
+def _senza_doppioni(volti: Sequence[Volto]) -> list[Volto]:
+    """Soppressione dei doppioni: fra due riquadri che si sovrappongono resta il più affidabile."""
+    tenuti: list[Volto] = []
+    for volto in sorted(volti, key=lambda v: -v[4]):
+        if all(_iou(volto, altro) <= SOVRAPPOSIZIONE_MAX for altro in tenuti):
+            tenuti.append(volto)
+    return tenuti
+
+
+@lru_cache(maxsize=2)
+def _cascata(nome: str) -> cv2.CascadeClassifier:
+    cascata = cv2.CascadeClassifier(str(Path(cv2.data.haarcascades) / nome))
+    if cascata.empty():
+        raise RuntimeError(f"Cascata di Haar non trovata: {nome}")
+    return cascata
+
+
+def _cerca(
+    cascata: cv2.CascadeClassifier, grigio: np.ndarray, specchia: bool
+) -> list[Volto]:
+    altezza, larghezza = grigio.shape
+    cerca_in = cv2.flip(grigio, 1) if specchia else grigio
+    lato_min = max(24, min(altezza, larghezza) // 30)
+    rettangoli, _, pesi = cascata.detectMultiScale3(
+        cerca_in,
+        scaleFactor=1.1,
+        minNeighbors=5,
+        minSize=(lato_min, lato_min),
+        outputRejectLevels=True,
+    )
+    trovati: list[Volto] = []
+    for (x, y, w, h), peso in zip(rettangoli, np.ravel(pesi)):
+        if specchia:
+            x = larghezza - x - w
+        affidabilita = 1.0 - math.exp(-max(float(peso), 0.0) / 3.0)
+        trovati.append(
+            (x / larghezza, y / altezza, w / larghezza, h / altezza, affidabilita)
+        )
+    return trovati
+
+
+def rileva_volti_haar(img: Image.Image) -> list[Volto]:
+    """I volti con le cascate di Haar di OpenCV: frontale e profilo (da entrambi i lati).
+
+    Un rilevatore semplice, senza modelli da scaricare (D7): trova bene i volti
+    frontali e grandi, meno quelli piccoli o di tre quarti. Si valuta in RT-34.
+    """
+    piccola = _ridotta(img, LATO_CANDIDATI)
+    grigio = cv2.equalizeHist(np.asarray(piccola.convert("L"), dtype=np.uint8))
+    frontale = _cascata("haarcascade_frontalface_default.xml")
+    profilo = _cascata("haarcascade_profileface.xml")
+    trovati = (
+        _cerca(frontale, grigio, False)
+        + _cerca(profilo, grigio, False)
+        + _cerca(profilo, grigio, True)
+    )
+    return _senza_doppioni(trovati)
+
+
+def _ordina_angoli(punti: np.ndarray) -> np.ndarray:
+    """Alto-sinistra, alto-destra, basso-destra, basso-sinistra."""
+    somma, differenza = punti.sum(axis=1), np.diff(punti, axis=1).ravel()
+    return np.array(
+        [
+            punti[np.argmin(somma)],
+            punti[np.argmin(differenza)],
+            punti[np.argmax(somma)],
+            punti[np.argmax(differenza)],
+        ],
+        dtype=np.float32,
+    )
+
+
+def _angoli_plausibili(angoli: np.ndarray) -> bool:
+    for i in range(4):
+        a, b, c = angoli[i - 1], angoli[i], angoli[(i + 1) % 4]
+        v1, v2 = a - b, c - b
+        coseno = float(
+            np.dot(v1, v2) / (np.linalg.norm(v1) * np.linalg.norm(v2) + 1e-9)
+        )
+        gradi = math.degrees(math.acos(max(-1.0, min(1.0, coseno))))
+        if not ANGOLO_QUADRILATERO[0] <= gradi <= ANGOLO_QUADRILATERO[1]:
+            return False
+    return True
+
+
+def _cerca_quadrilateri(img: Image.Image) -> list[dict[str, Any]]:
+    piccola = _ridotta(img, LATO_CANDIDATI)
+    grigio = np.asarray(piccola.convert("L"), dtype=np.uint8)
+    altezza, larghezza = grigio.shape
+    area_foto = float(altezza * larghezza)
+    bordi = cv2.Canny(cv2.GaussianBlur(grigio, (5, 5), 0), 50, 150)
+    bordi = cv2.dilate(bordi, np.ones((3, 3), np.uint8))
+    contorni, _ = cv2.findContours(bordi, cv2.RETR_LIST, cv2.CHAIN_APPROX_SIMPLE)
+    trovati: list[tuple[float, np.ndarray]] = []
+    for contorno in contorni:
+        area = cv2.contourArea(contorno)
+        if (
+            not AREA_QUADRILATERO_MIN * area_foto
+            <= area
+            <= AREA_QUADRILATERO_MAX * area_foto
+        ):
+            continue
+        poligono = cv2.approxPolyDP(
+            contorno, 0.02 * cv2.arcLength(contorno, True), True
+        )
+        if len(poligono) != 4 or not cv2.isContourConvex(poligono):
+            continue
+        angoli = _ordina_angoli(poligono.reshape(4, 2).astype(np.float32))
+        if _angoli_plausibili(angoli):
+            trovati.append((area, angoli))
+    trovati.sort(key=lambda t: -t[0])
+    scelti: list[tuple[float, np.ndarray]] = []
+    for area, angoli in trovati:
+        # il bordo di un oggetto dà due contorni quasi uguali (dentro e fuori): ne resta uno
+        if all(
+            np.abs(angoli - altri).max() > 0.03 * max(altezza, larghezza)
+            for _, altri in scelti
+        ):
+            scelti.append((area, angoli))
+        if len(scelti) == MAX_QUADRILATERI:
+            break
+    risultati = []
+    for indice, (area, angoli) in enumerate(scelti, start=1):
+        affinati = angoli.reshape(-1, 1, 2).copy()
+        criterio = (cv2.TERM_CRITERIA_EPS + cv2.TERM_CRITERIA_MAX_ITER, 30, 0.01)
+        cv2.cornerSubPix(grigio, affinati, (5, 5), (-1, -1), criterio)
+        punti = affinati.reshape(4, 2)
+        x0, y0, x1, y1 = (
+            punti[:, 0].min(),
+            punti[:, 1].min(),
+            punti[:, 0].max(),
+            punti[:, 1].max(),
+        )
+        risultati.append(
+            {
+                "id": f"{PREFISSO_QUADRILATERO}{indice}",
+                "angoli": [
+                    [float(x) / larghezza, float(y) / altezza] for x, y in punti
+                ],
+                "box": {
+                    "x": float(x0) / larghezza,
+                    "y": float(y0) / altezza,
+                    "larghezza": float(x1 - x0) / larghezza,
+                    "altezza": float(y1 - y0) / altezza,
+                },
+                "area": area / area_foto,
+            }
+        )
+    return risultati
+
+
+def candidati(
+    img: Image.Image, rilevatore_volti: Rilevatore | None = None
+) -> dict[str, list[dict[str, Any]]]:
+    """I volti (``V1``...) e i quadrilateri (``Q1``...) che il programma propone.
+
+    ``rilevatore_volti`` si inietta nei test (D8: nessuna foto con volti nel
+    repository); senza, le cascate di Haar. I codici dipendono dalla posizione, non
+    dall'ordine in cui il rilevatore li dà: da sinistra a destra, poi dall'alto.
+    """
+    rilevatore = rilevatore_volti or rileva_volti_haar
+    volti = _senza_doppioni(list(rilevatore(img)))
+    volti = sorted(
+        volti, key=lambda v: (round(v[0] + v[2] / 2, 3), round(v[1] + v[3] / 2, 3))
+    )
+    return {
+        "volti": [
+            {
+                "id": f"{PREFISSO_VOLTO}{i}",
+                "box": {"x": x, "y": y, "larghezza": w, "altezza": h},
+                "affidabilita": aff,
+            }
+            for i, (x, y, w, h, aff) in enumerate(volti[:MAX_VOLTI], start=1)
+        ],
+        "quadrilateri": _cerca_quadrilateri(img),
+    }
+
+
+# --- I segni sulla copia per l'AI (nota 9.6) ---------------------------------------
+
+COLORE_SEGNI: Final[tuple[int, int, int]] = (
+    255,
+    0,
+    255,
+)  # un colore solo, ad alto contrasto
+
+
+def disegna_segni(
+    copia_ai: Image.Image, trovati: dict[str, list[dict[str, Any]]]
+) -> Image.Image:
+    """Riquadri sottili con l'etichetta sui candidati, solo se ce ne sono.
+
+    Restituisce una copia disegnata; senza candidati, la stessa immagine. L'etichetta
+    sta fuori dal riquadro (sopra, o sotto se non c'è posto).
+    """
+    voci: list[
+        tuple[str, list[tuple[float, float]], tuple[float, float, float, float]]
+    ] = []
+    for volto in trovati.get("volti", []):
+        b = volto["box"]
+        angoli = [
+            (b["x"], b["y"]),
+            (b["x"] + b["larghezza"], b["y"]),
+            (b["x"] + b["larghezza"], b["y"] + b["altezza"]),
+            (b["x"], b["y"] + b["altezza"]),
+        ]
+        voci.append(
+            (volto["id"], angoli, (b["x"], b["y"], b["larghezza"], b["altezza"]))
+        )
+    for quadro in trovati.get("quadrilateri", []):
+        b = quadro["box"]
+        voci.append(
+            (
+                quadro["id"],
+                [tuple(p) for p in quadro["angoli"]],
+                (b["x"], b["y"], b["larghezza"], b["altezza"]),
+            )
+        )
+    if not voci:
+        return copia_ai
+    disegnata = copia_ai.convert("RGB").copy()
+    pennello = ImageDraw.Draw(disegnata)
+    larghezza, altezza = disegnata.size
+    spessore = max(1, round(max(larghezza, altezza) / 600))
+    corpo = max(10, round(max(larghezza, altezza) / 60))
+    carattere = ImageFont.load_default(size=corpo)
+    for etichetta, angoli, (x, y, w, h) in voci:
+        punti = [(px * larghezza, py * altezza) for px, py in angoli]
+        pennello.line(punti + [punti[0]], fill=COLORE_SEGNI, width=spessore)
+        sinistra = x * larghezza
+        sopra = y * altezza - corpo - 2
+        if sopra < 0:
+            sopra = (y + h) * altezza + 2
+        pennello.text((sinistra, sopra), etichetta, fill=COLORE_SEGNI, font=carattere)
+    return disegnata
