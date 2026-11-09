@@ -26,7 +26,13 @@ Come leggerla: le sezioni 1–4 sono la storia (mosaici, prima impostazione). Da
 | 9 nov | **L'operatore ha poche scelte a singolo clic**: si mostra una modifica Standard completa; un clic per una modifica Spinta, già pronta come comando strutturato; un clic per l'Originale | Il pannello Ritocca della 8.3 è sostituito dalle tre varianti (sezione 12.4) |
 | 9 nov | **Il colore delle foto iPhone va risolto** | Conversione ICC → sRGB obbligatoria e per prima (sezione 12.1) |
 
-Ancora aperte: l'autorizzazione a usare le foto reali raccolte con la PR #189 (consenso dei titolari); quando aggiornare R-42 nello `spec.md` (proposta: insieme al codice che lo cambia).
+| 9 nov | **Tutte le decisioni diventano operative**; si scrive il piano della corsia | [`ritocco-corsia.md`](ritocco-corsia.md) |
+| 9 nov | Il codice congelato (ADR-114) si può cambiare, se fatto bene e in modo chirurgico | Regola 4 della corsia |
+| 9 nov | Test seri anche per il frontend, con le dipendenze che servono | Vitest, Testing Library, MSW, Playwright (RT-09, RT-10) |
+| 9 nov | Soglie iniziali prudenti, taratura dopo | RT-34 dopo la corsia |
+| 9 nov | Una corsia con più task; la PR si apre solo a corsia completa | Regole 1–2 della corsia |
+
+Ancora aperte: l'autorizzazione a usare le foto reali raccolte con la PR #189 (consenso dei titolari); le scelte di default D1–D8 della corsia, da confermare.
 
 ---
 
