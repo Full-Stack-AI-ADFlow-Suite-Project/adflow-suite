@@ -1,8 +1,9 @@
 """Sistemazione delle foto per anteprima e pubblicazione.
 
 Implementa la logica locale con Pillow secondo spec R-21, R-42, CA-81 e CA-114 (ADR-119):
-1. Rotazione dell'immagine secondo i metadati di orientamento EXIF;
-2. Rimozione di qualsiasi metadato GPS e dato sensibile;
+1. Colore convertito in sRGB (`colore.apri_in_srgb`, ADR-124): un profilo Display P3 non si perde più;
+   rotazione dell'immagine secondo i metadati di orientamento EXIF;
+2. Rimozione di qualsiasi metadato GPS e dato sensibile (il JPEG porta solo il profilo sRGB);
 3. Adattamento alle proporzioni ammesse, da 4:5 a 1,91:1 (uguale per Facebook e Instagram):
    - Una foto dentro l'intervallo non si taglia;
    - Se fuori:
@@ -23,6 +24,8 @@ from typing import Any, Final
 from PIL import Image, ImageEnhance, ImageFilter, ImageOps
 
 from app.core.errori import DatiNonValidi
+
+from .colore import apri_in_srgb, profilo_srgb_bytes
 
 # Intervallo ammesso per entrambi i canali (R-21, R-42): da 4:5 a 1,91:1.
 RATIO_MINIMO: Final[float] = 4 / 5
@@ -282,64 +285,35 @@ def sistema_foto_buffer(
             f"Canale '{canale}' non valido. Canali ammessi: {', '.join(PROPORZIONI_CANALE.keys())}."
         )
 
-    try:
-        immagine_raw = Image.open(io.BytesIO(dati_foto))
-    except Exception as exc:
-        raise DatiNonValidi("File immagine non valido o corrotto.") from exc
+    # 1-2. Decodifica, rotazione da EXIF, trasparenza su bianco e conversione in sRGB
+    # (ADR-124, RT-02): una sola funzione per tutte le foto.
+    img = apri_in_srgb(dati_foto, max_pixel=MAX_PIXEL_TOTALI)
 
-    if immagine_raw.width <= 0 or immagine_raw.height <= 0:
-        immagine_raw.close()
-        raise DatiNonValidi("Dimensioni dell'immagine non valide (<= 0).")
+    # 3. Adattamento alle proporzioni: da 4:5 a 1,91:1 (R-21, R-42, ADR-119)
+    ratio_corrente = _calcola_ratio(img.width, img.height)
+    target = _ratio_target(
+        ratio_corrente=ratio_corrente,
+        proporzioni_ammesse=PROPORZIONI_CANALE[canale_norm],
+        proporzione_richiesta=proporzione,
+    )
 
-    if immagine_raw.width * immagine_raw.height > MAX_PIXEL_TOTALI:
-        w_curr, h_curr = immagine_raw.width, immagine_raw.height
-        immagine_raw.close()
-        raise DatiNonValidi(
-            f"Immagine troppo grande ({w_curr}x{h_curr} px). "
-            f"Il limite consentito è di {MAX_PIXEL_TOTALI} pixel."
-        )
+    if target is not None:
+        img = _adatta_alle_proporzioni(img, target, soggetto_box=soggetto_box)
 
-    try:
-        # 1. Rotazione secondo i metadati di orientamento (EXIF Orientation)
-        try:
-            img = ImageOps.exif_transpose(immagine_raw)
-        except Exception:
-            img = immagine_raw.copy()
+    # 4. Ridimensionamento con lato corto esattamente a 1080 px
+    img = _ridimensiona_lato_corto(img, LATO_CORTO_TARGET)
 
-        # 2. Conversione a RGB pulita (gestendo canale alpha / trasparenza su sfondo bianco)
-        ha_trasparenza = (
-            "A" in img.mode
-            or (img.mode == "P" and "transparency" in img.info)
-            or img.mode in ("RGBA", "LA", "PA")
-        )
-        if ha_trasparenza:
-            img_rgba = img.convert("RGBA")
-            sfondo = Image.new("RGBA", img_rgba.size, (255, 255, 255, 255))
-            sfondo.paste(img_rgba, mask=img_rgba.split()[3])
-            img = sfondo.convert("RGB")
-        elif img.mode != "RGB":
-            img = img.convert("RGB")
+    # 5. Autocontrasto leggero
+    img = ImageOps.autocontrast(img, cutoff=CUTOFF_AUTOCONTRASTO)
 
-        # 3. Adattamento alle proporzioni: da 4:5 a 1,91:1 (R-21, R-42, ADR-119)
-        ratio_corrente = _calcola_ratio(img.width, img.height)
-        target = _ratio_target(
-            ratio_corrente=ratio_corrente,
-            proporzioni_ammesse=PROPORZIONI_CANALE[canale_norm],
-            proporzione_richiesta=proporzione,
-        )
-
-        if target is not None:
-            img = _adatta_alle_proporzioni(img, target, soggetto_box=soggetto_box)
-
-        # 4. Ridimensionamento con lato corto esattamente a 1080 px
-        img = _ridimensiona_lato_corto(img, LATO_CORTO_TARGET)
-
-        # 5. Autocontrasto leggero
-        img = ImageOps.autocontrast(img, cutoff=CUTOFF_AUTOCONTRASTO)
-
-        # 6. Salvataggio in JPEG pulito (senza metadati EXIF né GPS)
-        output = io.BytesIO()
-        img.save(output, format="JPEG", quality=90, optimize=True)
-        return output.getvalue()
-    finally:
-        immagine_raw.close()
+    # 6. Salvataggio in JPEG pulito: senza EXIF né GPS, con il profilo sRGB
+    # incorporato, così nessuno deve indovinare lo spazio colore.
+    output = io.BytesIO()
+    img.save(
+        output,
+        format="JPEG",
+        quality=90,
+        optimize=True,
+        icc_profile=profilo_srgb_bytes(),
+    )
+    return output.getvalue()
