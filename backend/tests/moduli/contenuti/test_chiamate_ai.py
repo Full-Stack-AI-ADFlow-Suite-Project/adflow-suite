@@ -143,6 +143,15 @@ def test_registra_chiamata_ai_conserva_token_e_immagini(db):
     assert registra_chiamata_ai(db, campagna.id, None) is None
 
 
+def test_rt22_i_token_in_cache_si_salvano_e_senza_restano_vuoti(db):
+    bottega = profilo(db, canali=CANALI)
+    campagna = campagna_inviata(db, profilo_id=bottega.id)
+    con = UsoAI("analisi", "litellm", "m", token_ingresso=4000, token_in_cache=3200)
+    senza = UsoAI("analisi", "litellm", "m", token_ingresso=4000)
+    assert registra_chiamata_ai(db, campagna.id, con).token_in_cache == 3200
+    assert registra_chiamata_ai(db, campagna.id, senza).token_in_cache is None
+
+
 # --- Storico dell'AI (T3-916, R-50, CA-109) -----------------------------------
 
 

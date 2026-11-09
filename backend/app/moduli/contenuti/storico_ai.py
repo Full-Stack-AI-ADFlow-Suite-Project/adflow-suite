@@ -120,6 +120,7 @@ def _riga(chiamata: ChiamataAI, voto: Any, anagrafica: _Anagrafica) -> dict[str,
         durata_ms=chiamata.durata_ms,
         costo_usd=chiamata.costo_usd,
         token_ingresso=chiamata.token_ingresso,
+        token_in_cache=chiamata.token_in_cache,
         token_uscita=chiamata.token_uscita,
         voto_medio=_voto(voto),
     )

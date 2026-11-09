@@ -77,8 +77,11 @@ class Finta:
         return risposta
 
 
-def risposta(contenuto, *, fine="stop", rifiuto=None, token=(120, 30)):
+def risposta(contenuto, *, fine="stop", rifiuto=None, token=(120, 30), in_cache=None):
     testo = contenuto if isinstance(contenuto, str) else json.dumps(contenuto)
+    uso = SimpleNamespace(prompt_tokens=token[0], completion_tokens=token[1])
+    if in_cache is not None:  # come OpenAI: usage.prompt_tokens_details.cached_tokens
+        uso.prompt_tokens_details = SimpleNamespace(cached_tokens=in_cache)
     return SimpleNamespace(
         choices=[
             SimpleNamespace(
@@ -86,7 +89,7 @@ def risposta(contenuto, *, fine="stop", rifiuto=None, token=(120, 30)):
                 message=SimpleNamespace(content=testo, refusal=rifiuto),
             )
         ],
-        usage=SimpleNamespace(prompt_tokens=token[0], completion_tokens=token[1]),
+        usage=uso,
     )
 
 
@@ -1338,3 +1341,113 @@ def test_rt21_la_versione_del_prompt_e_analisi_v4(ai, completion, archivio):
     completion.metti(risposta(_analisi_di(_voce(1))))
     ai.analizza_gruppo(_gruppo(archivio, 1))
     assert ai.ultimo_uso.versione_prompt == "analisi_v4"
+
+
+# --- Token in cache e costo (RT-22) -----------------------------------------------
+
+
+def _senza_prezzo(monkeypatch):
+    def sconosciuto(**_):
+        raise litellm.NotFoundError(message="senza prezzo", **ARGOMENTI)
+
+    monkeypatch.setattr(litellm, "completion_cost", sconosciuto)
+
+
+def test_rt22_i_token_in_cache_si_leggono_dalla_risposta(completion, ai):
+    completion.metti(
+        risposta({"testo": "Un vaso.", "hashtag": []}, token=(4000, 100), in_cache=3200)
+    )
+    ai.genera_post(SNAPSHOT, CAMPAGNA, _post(), domain.SCHEDE_CANALE["instagram"])
+    assert ai.ultimo_uso.token_ingresso == 4000
+    assert ai.ultimo_uso.token_in_cache == 3200
+
+
+@pytest.mark.parametrize("senza", [None])
+def test_rt22_senza_cached_tokens_il_campo_resta_vuoto(completion, ai, senza):
+    completion.metti(risposta({"testo": "Un vaso.", "hashtag": []}))
+    ai.genera_post(SNAPSHOT, CAMPAGNA, _post(), domain.SCHEDE_CANALE["instagram"])
+    assert ai.ultimo_uso.token_in_cache is None
+
+
+@pytest.mark.parametrize("valore", [None, "tanti", True, 1.5])
+def test_rt22_un_cached_tokens_strano_vale_none(completion, ai, valore):
+    completion.metti(risposta({"testo": "Un vaso.", "hashtag": []}, in_cache=valore))
+    ai.genera_post(SNAPSHOT, CAMPAGNA, _post(), domain.SCHEDE_CANALE["instagram"])
+    assert ai.ultimo_uso.token_in_cache is None
+
+
+def test_rt22_costo_di_riserva_senza_prezzo_in_cache_vale_come_prima(
+    completion, ai, monkeypatch
+):
+    """Il prezzo in cache non è configurato: i token in cache costano come l'ingresso (si sovrastima)."""
+    _senza_prezzo(monkeypatch)
+    completion.metti(
+        risposta(
+            {"testo": "Un vaso.", "hashtag": []},
+            token=(1_000_000, 500_000),
+            in_cache=600_000,
+        )
+    )
+    ai.genera_post(SNAPSHOT, CAMPAGNA, _post(), domain.SCHEDE_CANALE["instagram"])
+    assert ai.ultimo_uso.costo_usd == Decimal("7")
+
+
+def test_rt22_costo_di_riserva_con_il_prezzo_in_cache(completion, ai, monkeypatch):
+    _senza_prezzo(monkeypatch)
+    ai._prezzo_ingresso_cache = Decimal("1")
+    completion.metti(
+        risposta(
+            {"testo": "Un vaso.", "hashtag": []},
+            token=(1_000_000, 500_000),
+            in_cache=600_000,
+        )
+    )
+    ai.genera_post(SNAPSHOT, CAMPAGNA, _post(), domain.SCHEDE_CANALE["instagram"])
+    # 400.000 a 2 $ + 600.000 a 1 $ + 500.000 in uscita a 10 $ = 0,8 + 0,6 + 5
+    assert ai.ultimo_uso.costo_usd == Decimal("6.4")
+
+
+def test_rt22_i_token_in_cache_non_superano_l_ingresso_nel_costo(
+    completion, ai, monkeypatch
+):
+    _senza_prezzo(monkeypatch)
+    ai._prezzo_ingresso_cache = Decimal("1")
+    completion.metti(
+        risposta({"testo": "Un vaso.", "hashtag": []}, token=(1000, 0), in_cache=5000)
+    )
+    ai.genera_post(SNAPSHOT, CAMPAGNA, _post(), domain.SCHEDE_CANALE["instagram"])
+    assert ai.ultimo_uso.costo_usd == Decimal("0.005")
+
+
+def test_rt22_se_litellm_conosce_il_prezzo_nessuna_correzione_doppia(completion, ai):
+    """`completion_cost` conta già i token in cache: il costo è quello di LiteLLM, tale e quale."""
+    completion.metti(
+        risposta({"testo": "Un vaso.", "hashtag": []}, token=(4000, 100), in_cache=3200)
+    )
+    ai._prezzo_ingresso_cache = Decimal("0.1")
+    ai.genera_post(SNAPSHOT, CAMPAGNA, _post(), domain.SCHEDE_CANALE["instagram"])
+    assert ai.ultimo_uso.costo_usd == Decimal("0.0125")
+
+
+def test_rt22_litellm_conta_i_token_in_cache_a_prezzo_ridotto():
+    """La verifica dichiarata dal piano, sulla libreria installata (nessuna rete)."""
+    from litellm import ModelResponse
+    from litellm.types.utils import PromptTokensDetailsWrapper, Usage
+
+    def costo(in_cache: int) -> float:
+        uso = Usage(
+            prompt_tokens=10_000,
+            completion_tokens=500,
+            total_tokens=10_500,
+            prompt_tokens_details=PromptTokensDetailsWrapper(cached_tokens=in_cache),
+        )
+        risp = ModelResponse(
+            model="gpt-4o",
+            choices=[
+                {"message": {"content": "x"}, "finish_reason": "stop", "index": 0}
+            ],
+            usage=uso,
+        )
+        return litellm.completion_cost(completion_response=risp, model="gpt-4o")
+
+    assert costo(8_000) < costo(0)

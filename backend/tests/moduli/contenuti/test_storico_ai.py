@@ -341,3 +341,17 @@ def test_ca112_chiamata_che_non_c_e_404_e_artigiano_403(db, client, utente_di_pr
         client.post(f"/api/storico-ai/{chiamata.id}/voto", json={"voto": 3}).status_code
         == 200
     )
+
+
+def test_rt22_la_riga_dello_storico_porta_i_token_in_cache(db, client, utente_di_prova):
+    utente_di_prova("operatore")
+    campagna = campagna_in_revisione(db)
+    con = chiamata_ai(db, campagna, token_ingresso=4000, token_in_cache=3200)
+    senza = chiamata_ai(db, campagna, token_ingresso=900)
+    db.commit()
+
+    voci = {v["id"]: v for v in client.get("/api/storico-ai").json()["voci"]}
+    assert voci[con.id]["token_in_cache"] == 3200
+    assert voci[senza.id]["token_in_cache"] is None
+    dettaglio = client.get(f"/api/storico-ai/{con.id}").json()
+    assert (dettaglio["token_ingresso"], dettaglio["token_in_cache"]) == (4000, 3200)

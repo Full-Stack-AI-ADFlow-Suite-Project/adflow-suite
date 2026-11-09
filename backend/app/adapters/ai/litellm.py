@@ -187,6 +187,19 @@ def traduci_errore(errore: Exception, *, foto_id: int | None = None) -> ErroreAI
     raise errore
 
 
+def _token_in_cache(uso: Any) -> int | None:
+    """I token d'ingresso serviti dalla cache (``usage.prompt_tokens_details.cached_tokens``), se il provider li dice."""
+    dettagli = getattr(uso, "prompt_tokens_details", None)
+    if dettagli is None and isinstance(uso, dict):
+        dettagli = uso.get("prompt_tokens_details")
+    valore = (
+        dettagli.get("cached_tokens")
+        if isinstance(dettagli, dict)
+        else getattr(dettagli, "cached_tokens", None)
+    )
+    return valore if isinstance(valore, int) and not isinstance(valore, bool) else None
+
+
 def _persone_riconoscibili(ritocco: Any, contesto: str) -> bool:
     """Derivato (nota 12.2): c'è un volto riconoscibile se una zona lo dice, se l'AI cita un volto
     dello staff o minorenne, o se un candidato ``V`` del contesto non è stato escluso con ``no``.
@@ -256,6 +269,7 @@ class AILiteLLM(AIAdapter):
             else (impostazioni.openai_api_key or impostazioni.openrouter_api_key)
         )
         self._prezzo_ingresso = impostazioni.ai_prezzo_ingresso_milione
+        self._prezzo_ingresso_cache = impostazioni.ai_prezzo_ingresso_cache_milione
         self._prezzo_uscita = impostazioni.ai_prezzo_uscita_milione
         self._modello_immagini = impostazioni.ai_modello_immagini
         self._prezzo_immagine = impostazioni.ai_prezzo_immagine
@@ -394,11 +408,21 @@ class AILiteLLM(AIAdapter):
         uso = getattr(risposta, "usage", None)
         ingresso = getattr(uso, "prompt_tokens", None)
         uscita = getattr(uso, "completion_tokens", None)
+        in_cache = _token_in_cache(uso)
         try:
+            # Per i modelli che LiteLLM conosce il prezzo in cache è già dentro: nessuna
+            # correzione doppia (verificato in RT-22 con `cached_tokens`).
             costo = Decimal(str(litellm.completion_cost(completion_response=risposta)))
         except Exception:  # noqa: BLE001 - modello di cui LiteLLM non sa il prezzo
+            prezzo_cache = (
+                self._prezzo_ingresso
+                if self._prezzo_ingresso_cache is None
+                else self._prezzo_ingresso_cache
+            )
+            pieni = max(0, (ingresso or 0) - (in_cache or 0))
             costo = (
-                Decimal(ingresso or 0) * self._prezzo_ingresso
+                Decimal(pieni) * self._prezzo_ingresso
+                + Decimal(in_cache or 0) * prezzo_cache
                 + Decimal(uscita or 0) * self._prezzo_uscita
             ) / Decimal(1_000_000)
         return UsoAI(
@@ -407,6 +431,7 @@ class AILiteLLM(AIAdapter):
             modello=modello,
             token_ingresso=ingresso,
             token_uscita=uscita,
+            token_in_cache=in_cache,
             costo_usd=costo,
         )
 

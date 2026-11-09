@@ -90,6 +90,9 @@ class Impostazioni(BaseSettings):
     # prezzo del modello (spec R-44).
     ai_prezzo_ingresso_milione: Decimal = Decimal(0)
     ai_prezzo_uscita_milione: Decimal = Decimal(0)
+    # Dollari per milione di token d'ingresso serviti dalla cache del provider (RT-22):
+    # senza, valgono come l'ingresso (nel dubbio si sovrastima il costo).
+    ai_prezzo_ingresso_cache_milione: Decimal | None = Field(default=None, ge=0)
     # Dollari per immagine creata, con lo stesso scopo (spec R-44).
     ai_prezzo_immagine: Decimal = Decimal(0)
 

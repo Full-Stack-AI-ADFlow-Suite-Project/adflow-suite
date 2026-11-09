@@ -155,6 +155,8 @@ class UsoAI:
     modello: str
     token_ingresso: int | None = None
     token_uscita: int | None = None
+    # Dei token d'ingresso, quelli serviti dalla cache del provider (RT-22): costano meno.
+    token_in_cache: int | None = None
     immagini: int | None = None
     costo_usd: Decimal = Decimal(0)
     versione_prompt: str | None = None

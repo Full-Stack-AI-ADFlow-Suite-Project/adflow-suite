@@ -58,6 +58,7 @@ function riga(n: number): ChiamataAIRiga {
     durata_ms: fallita ? 1200 + n * 11 : 2400 + ((n * 373) % 9000),
     costo_usd: fallita ? "0" : (0.004 + (n % 6) * 0.011).toFixed(4),
     token_ingresso: fallita ? 900 : 1200 + ((n * 91) % 3000),
+    token_in_cache: fallita || n % 3 ? null : 900,
     token_uscita: fallita ? null : 150 + ((n * 53) % 700),
     voto_medio: !fallita && n % 4 === 0 ? 3 + (n % 3) * 0.5 : null,
   };

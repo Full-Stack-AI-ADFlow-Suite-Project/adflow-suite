@@ -110,8 +110,10 @@ export function StoricoAIDettaglio() {
               <Dato nome="Durata" valore={durata(c.durata_ms)} />
               <Dato nome="Costo" valore={costo(c.costo_usd)} />
               <Dato
-                nome="Token (ingresso / uscita)"
-                valore={`${c.token_ingresso ?? "—"} / ${c.token_uscita ?? "—"}`}
+                nome="Token (ingresso / in cache / uscita)"
+                valore={`${c.token_ingresso ?? "—"} / ${c.token_in_cache ?? "—"} / ${
+                  c.token_uscita ?? "—"
+                }`}
               />
               {c.tentativo !== null && (
                 <Dato nome="Tentativo" valore={String(c.tentativo)} />

@@ -417,6 +417,7 @@ def registra_chiamata_ai(
         tentativo=tentativo,
         token_ingresso=uso.token_ingresso,
         token_uscita=uso.token_uscita,
+        token_in_cache=uso.token_in_cache,
         n_immagini=uso.immagini,
         costo_usd=uso.costo_usd,
     )
