@@ -42,7 +42,12 @@ from .base import (
     UsoAI,
 )
 from .immagini import VERSIONE_PROMPT as VERSIONE_PROMPT_IMMAGINE
-from .schemi import RispostaAnalisi, RispostaPiano, RispostaPost
+from .schemi import (
+    RispostaAnalisi,
+    RispostaPiano,
+    RispostaPost,
+    riquadro_da_centesimi,
+)
 
 PROVIDER = "litellm"
 CARTELLA_PROMPT = Path(__file__).parent / "prompts"
@@ -176,6 +181,24 @@ def traduci_errore(errore: Exception, *, foto_id: int | None = None) -> ErroreAI
             "Il servizio AI non ha risposto in tempo o non è disponibile: riprova.",
         )
     raise errore
+
+
+def _persone_riconoscibili(ritocco: Any, contesto: str) -> bool:
+    """Derivato (nota 12.2): c'è un volto riconoscibile se una zona lo dice, se l'AI cita un volto
+    dello staff o minorenne, o se un candidato ``V`` del contesto non è stato escluso con ``no``.
+    """
+    if ritocco is not None:
+        if any(zona.ruolo == "volto" for zona in ritocco.zone):
+            return True
+        if any(voce.endswith((" staff", " minore")) for voce in ritocco.volti):
+            return True
+    candidati = set(re.findall(r"\bV\d+\b", contesto))
+    esclusi = {
+        voce.split()[0]
+        for voce in (ritocco.volti if ritocco else [])
+        if voce.endswith(" no")
+    }
+    return bool(candidati - esclusi)
 
 
 def _foto_per_ai(foto: FotoAI) -> dict[str, Any]:
@@ -435,6 +458,7 @@ class AILiteLLM(AIAdapter):
             self._segna_errore(errore)
             raise errore
         analisi = {}
+        contesti = {foto.id: foto.contesto for foto in gruppo.foto}
         for uno in ids:
             voce = per_id[uno]
             simile = voce.simile_a if voce.simile_a in per_id else None
@@ -446,11 +470,14 @@ class AILiteLLM(AIAdapter):
                 "motivo": voce.motivo if not voce.idonea else None,
                 "soggetto": voce.soggetto,
                 "descrizione": voce.descrizione,
-                "soggetto_box": (
-                    voce.soggetto_box.model_dump() if voce.soggetto_box else None
+                # Il formato di oggi, 0–1: chi legge `analisi_ai` non cambia (RT-20).
+                "soggetto_box": riquadro_da_centesimi(voce.soggetto_box),
+                "persone_riconoscibili": _persone_riconoscibili(
+                    voce.ritocco, contesti.get(uno, "")
                 ),
-                "persone_riconoscibili": voce.persone_riconoscibili,
-                "marchi_visibili": voce.marchi_visibili,
+                "marchi_visibili": bool(voce.ritocco and "marchi" in voce.ritocco.note),
+                # Per L2 (diagnosi) così com'è, già validato in modo morbido.
+                "ritocco": voce.ritocco.model_dump() if voce.ritocco else None,
             }
             if not voce.idonea and not voce.motivo:
                 analisi[uno]["motivo"] = "La foto non è adatta."

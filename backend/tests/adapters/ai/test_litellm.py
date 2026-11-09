@@ -155,9 +155,8 @@ def _voce(foto_id: int, **campi) -> dict:
         motivo=None,
         punteggio=4,
         simile_a=None,
-        soggetto_box={"x": 0.2, "y": 0.1, "larghezza": 0.6, "altezza": 0.7},
-        persone_riconoscibili=False,
-        marchi_visibili=False,
+        soggetto_box=[20, 10, 60, 70],
+        ritocco=None,
     )
     dati.update(campi)
     return dati
@@ -448,6 +447,7 @@ def test_analisi_una_chiamata_per_gruppo_con_le_foto_gia_pronte(
         "soggetto_box": {"x": 0.2, "y": 0.1, "larghezza": 0.6, "altezza": 0.7},
         "persone_riconoscibili": False,
         "marchi_visibili": False,
+        "ritocco": None,
     }
     assert analisi[2]["punteggio"] == 5
     assert ai.ultimo_uso.tipo == "analisi"
@@ -1164,14 +1164,15 @@ def test_gli_eventi_ricorrenti_entrano_solo_nel_periodo_giusto():
 @pytest.mark.parametrize(
     "riquadro",
     [
-        {"x": 0.5, "y": 0.1, "larghezza": 0.8, "altezza": 0.5},  # esce a destra
-        {"x": -0.1, "y": 0.1, "larghezza": 0.5, "altezza": 0.5},
-        {"x": 0.1, "y": 0.1, "larghezza": 0, "altezza": 0.5},
-        {"x": 0.1, "y": 0.1, "larghezza": 1.5, "altezza": 0.5},
-        {"x": 0.1, "y": 0.1, "larghezza": 0.5},  # manca un lato
-        {"x": "a", "y": 0.1, "larghezza": 0.5, "altezza": 0.5},
-        {"x": True, "y": 0.1, "larghezza": 0.5, "altezza": 0.5},
-        [0.1, 0.1, 0.5, 0.5],
+        [50, 10, 80, 50],  # esce a destra
+        [-10, 10, 50, 50],
+        [10, 10, 0, 50],
+        [10, 10, 150, 50],
+        [10, 10, 50],  # manca un lato
+        ["a", 10, 50, 50],
+        [True, 10, 50, 50],
+        [10.5, 10, 50, 50],
+        {"x": 0.1, "y": 0.1, "larghezza": 0.5, "altezza": 0.5},  # il formato vecchio
         "centro",
     ],
 )
@@ -1189,3 +1190,64 @@ def test_ca108_senza_soggetto_chiaro_il_riquadro_e_none(ai, completion, archivio
     completion.metti(risposta(_analisi_di(_voce(1, soggetto_box=None))))
 
     assert ai.analizza_gruppo(gruppo)[1]["soggetto_box"] is None
+
+
+# --- Il ritocco nell'analisi (RT-20) -----------------------------------------------
+
+
+def _ritocco(**campi) -> dict:
+    dati = {"note": [], "centro": None, "zone": [], "piana": None, "volti": []}
+    dati.update(campi)
+    return dati
+
+
+def test_rt20_il_ritocco_arriva_a_l2_cosi_com_e(ai, completion, archivio):
+    gruppo = _gruppo(archivio, 1)
+    ritocco = _ritocco(
+        note=["scura"],
+        centro=[62, 35],
+        zone=[{"ruolo": "neutro", "b": [41, 71, 6, 4]}],
+        piana="Q1",
+    )
+    completion.metti(risposta(_analisi_di(_voce(1, ritocco=ritocco))))
+    assert ai.analizza_gruppo(gruppo)[1]["ritocco"] == ritocco
+
+
+def test_rt20_un_ritocco_malformato_non_e_un_errore(ai, completion, archivio):
+    gruppo = _gruppo(archivio, 1)
+    completion.metti(risposta(_analisi_di(_voce(1, ritocco={"note": 7}))))
+    analisi = ai.analizza_gruppo(gruppo)
+    assert analisi[1]["ritocco"] is None and analisi[1]["idonea"] is True
+
+
+def test_rt20_marchi_visibili_viene_dal_codice_marchi(ai, completion, archivio):
+    gruppo = _gruppo(archivio, 2)
+    completion.metti(
+        risposta(_analisi_di(_voce(1, ritocco=_ritocco(note=["marchi"])), _voce(2)))
+    )
+    analisi = ai.analizza_gruppo(gruppo)
+    assert analisi[1]["marchi_visibili"] is True
+    assert analisi[2]["marchi_visibili"] is False
+
+
+@pytest.mark.parametrize(
+    ("contesto", "ritocco", "atteso"),
+    [
+        ("", None, False),
+        ("scura", _ritocco(), False),
+        ("candidati V1 V2", None, True),  # i volti non citati valgono "cliente"
+        ("candidati V1 V2", _ritocco(volti=["V1 no"]), True),  # V2 resta
+        ("candidati V1 V2", _ritocco(volti=["V1 no", "V2 no"]), False),
+        ("candidati V1", _ritocco(volti=["V1 staff"]), True),
+        ("", _ritocco(zone=[{"ruolo": "volto", "b": [83, 40, 4, 5]}]), True),
+        ("", _ritocco(zone=[{"ruolo": "targa", "b": [83, 40, 4, 5]}]), False),
+        ("candidati Q1", None, False),  # i quadrilateri non sono volti
+    ],
+)
+def test_rt20_persone_riconoscibili_e_derivato(
+    ai, completion, archivio, contesto, ritocco, atteso
+):
+    gruppo = _gruppo(archivio, 1)
+    gruppo.foto[0].contesto = contesto
+    completion.metti(risposta(_analisi_di(_voce(1, ritocco=ritocco))))
+    assert ai.analizza_gruppo(gruppo)[1]["persone_riconoscibili"] is atteso

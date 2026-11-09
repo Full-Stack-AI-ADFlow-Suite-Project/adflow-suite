@@ -112,8 +112,8 @@ RUOLI_ZONA: Final[dict[str, Codice]] = {
     "dati": Codice("altri dati personali scritti", "privacy"),
 }
 
-# Le note che non ammettono altro che l'Originale e le coppie in conflitto (le due si
-# scartano insieme: nota 12.2, validatori morbidi).
+# Le note che non ammettono altro che l'Originale e i gruppi in conflitto (se ne compaiono
+# due o più dello stesso gruppo si scartano tutte: nota 12.2, validatori morbidi).
 NOTE_SOLO_ORIGINALE: Final[frozenset[str]] = frozenset(
     codice for codice, c in NOTE.items() if c.effetto == "solo_originale"
 )
@@ -122,6 +122,7 @@ NOTE_IN_CONFLITTO: Final[tuple[frozenset[str], ...]] = (
     frozenset({"mossa_lieve", "mossa_forte"}),
     frozenset({"calda", "fredda"}),
     frozenset({"verde", "magenta"}),
+    frozenset({"ruota_90", "ruota_180", "ruota_270"}),
 )
 NOTE_DOMINANTE: Final[frozenset[str]] = frozenset(
     {"calda", "fredda", "verde", "magenta"}

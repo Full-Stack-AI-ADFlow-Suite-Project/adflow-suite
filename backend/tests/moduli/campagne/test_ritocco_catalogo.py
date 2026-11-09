@@ -41,7 +41,7 @@ def test_i_codici_attesi_dalla_nota():
 def test_i_gruppi_derivati_usano_solo_codici_veri():
     for gruppo in catalogo.NOTE_IN_CONFLITTO:
         assert gruppo <= set(catalogo.NOTE)
-        assert len(gruppo) == 2
+        assert len(gruppo) >= 2
     assert catalogo.NOTE_SOLO_ORIGINALE == {"screenshot", "grafica"}
     assert catalogo.NOTE_DOMINANTE <= set(catalogo.NOTE)
     assert set(catalogo.DOMINANTE_ASSI.values()) == catalogo.NOTE_DOMINANTE
