@@ -10,7 +10,7 @@ decide il codice (nota 7.5), non l'AI e non l'operatore:
 | 3 | ruota        | rotazione di 90° (`geometria.ruota_90`) |
 | 4 | privacy      | RT-18 (vuoto: nessuna zona sfocata) |
 | 5 | raddrizza    | rotazione fine o prospettiva (`geometria`); un controllo che fallisce salta il passo, non il comando |
-| 6 | finestra     | le regole di R-42 di oggi (`sistemazione_foto`); RT-16 aggiunge la finestra esplicita |
+| 6 | finestra     | la `Finestra` esplicita del comando (`finestra.calcola_finestra`), con le barre se serve; o le regole di R-42 di oggi (variante Originale) |
 | 7 | lato_corto   | lato corto 1080 |
 | 8 | luce         | RT-17 (vuoto) |
 | 9 | nitidezza    | RT-17 (vuoto) |
@@ -37,6 +37,7 @@ from . import geometria
 from . import ritocco_catalogo as catalogo
 from . import sistemazione_foto as regole
 from .colore import apri_in_srgb, profilo_srgb_bytes
+from .finestra import Finestra
 
 # Cambia quando cambia l'uscita dell'esecutore: entra nella chiave dei render (RT-06).
 VERSIONE_ESECUTORE: Final[str] = "ritocco-1"
@@ -76,7 +77,11 @@ class RegoleR42:
 class Comando:
     """Che cosa fare a una foto. Dato puro: lo stesso comando dà sempre gli stessi pixel.
 
-    ``finestra`` vuota vuol dire nessun taglio (solo il lato corto a 1080).
+    ``finestra`` è ``RegoleR42`` (le regole di R-42 di oggi: la variante Originale), una
+    ``Finestra`` esplicita già calcolata (``finestra.calcola_finestra``, nella foto dopo
+    i passi geometrici) o vuota, e allora nessun taglio (solo il lato corto a 1080).
+    ``barre`` (``"sfocate"`` o ``"neutre"``) dice come riempire se la finestra da sola
+    esce dall'intervallo dei rapporti.
     ``ruota`` è in gradi, in senso orario (0, 90, 180, 270): la correzione di una
     foto girata. ``raddrizza`` è ``{"tipo": "rotazione", "gradi": g}`` (``g`` come
     lo misura ``preanalisi``) oppure ``{"tipo": "prospettiva", "angoli": [[x, y]×4]}``
@@ -89,12 +94,18 @@ class Comando:
     versione: str = VERSIONE_ESECUTORE
     ruota: int = 0
     raddrizza: dict[str, Any] | None = None
-    finestra: RegoleR42 | None = None
+    finestra: RegoleR42 | Finestra | None = None
     barre: str | None = None
     luce: dict[str, Any] | None = None
     nitidezza: bool = False
 
     def __post_init__(self) -> None:
+        if self.barre not in (None, "sfocate", "neutre"):
+            raise DatiNonValidi(f"Barre '{self.barre}' non ammesse: sfocate o neutre.")
+        if isinstance(self.finestra, Finestra):
+            x, y, w, h = self.finestra.b
+            if not (0 <= x < 1 and 0 <= y < 1 and w > 0 and h > 0):
+                raise DatiNonValidi("La finestra deve stare dentro la foto.")
         if self.ruota not in _ROTAZIONI_AMMESSE:
             raise DatiNonValidi(
                 f"Rotazione {self.ruota}° non ammessa: valori validi 0, 90, 180, 270."
@@ -186,10 +197,45 @@ def _passo_raddrizza(
     return img
 
 
+def _applica_finestra(
+    img: Image.Image, finestra: Finestra, barre: str | None
+) -> Image.Image:
+    """Ritaglia il riquadro calcolato; se il rapporto esce dall'intervallo, barre (o, senza, taglio al centro)."""
+    larghezza, altezza = img.size
+    x, y, w, h = finestra.b
+    x0, y0 = min(larghezza - 1, max(0, round(x * larghezza))), min(
+        altezza - 1, max(0, round(y * altezza))
+    )
+    x1, y1 = max(x0 + 1, min(larghezza, round((x + w) * larghezza))), max(
+        y0 + 1, min(altezza, round((y + h) * altezza))
+    )
+    ritagliata = (
+        img.crop((x0, y0, x1, y1))
+        if (x0, y0, x1, y1) != (0, 0, larghezza, altezza)
+        else img
+    )
+    rapporto = ritagliata.width / ritagliata.height
+    tolleranza = regole.TOLLERANZA_PROPORZIONE
+    if (
+        regole.RATIO_MINIMO - tolleranza
+        <= rapporto
+        <= regole.RATIO_MASSIMO + tolleranza
+    ):
+        return ritagliata
+    target = (
+        regole.RATIO_MINIMO if rapporto < regole.RATIO_MINIMO else regole.RATIO_MASSIMO
+    )
+    if barre is None:  # difesa: un comando senza barre non esce mai dall'intervallo
+        return regole._ritaglia_al_centro(ritagliata, target)
+    return regole.tela_con_barre(ritagliata, target, neutre=barre == "neutre")
+
+
 def _passo_finestra(
     img: Image.Image, comando: Comando, canale: str | None, ctx: _Contesto
 ) -> Image.Image:
     """Le regole di R-42: rapporto più vicino nell'intervallo, soggetto, centro, bordi sfocati."""
+    if isinstance(comando.finestra, Finestra):
+        return _applica_finestra(img, comando.finestra, comando.barre)
     r42 = comando.finestra
     if r42 is None or canale is None:
         return img
@@ -264,7 +310,11 @@ def esegui(
     """
     if not dati:
         raise DatiNonValidi("Nessun dato immagine fornito.")
-    canale = _canale_valido(comando.finestra.canale) if comando.finestra else None
+    canale = (
+        _canale_valido(comando.finestra.canale)
+        if isinstance(comando.finestra, RegoleR42)
+        else None
+    )
     passi = traccia if traccia is not None else []
 
     # 1-2. Decodifica, EXIF e sRGB: una funzione sola per tutte le foto (RT-02).

@@ -42,6 +42,9 @@ SOGLIA_TAGLIO_SOGGETTO: Final[float] = 0.35
 SOGLIA_TAGLIO_SENZA_SOGGETTO: Final[float] = 0.10
 TOLLERANZA_TAGLIO: Final[float] = 0.02
 
+# Il grigio delle barre neutre (RT-16): scuro, non attira l'occhio sul feed.
+COLORE_BARRE_NEUTRE: Final[tuple[int, int, int]] = (38, 38, 38)
+
 
 def _calcola_ratio(larghezza: int, altezza: int) -> float:
     """Calcola il rapporto larghezza / altezza."""
@@ -189,6 +192,19 @@ def _adatta_alle_proporzioni(
         return _ritaglia_al_centro(img, target_ratio)
 
     # (c) Altrimenti bordi sfocati: tela della proporzione
+    return tela_con_barre(img, target_ratio)
+
+
+def tela_con_barre(
+    img: Image.Image, target_ratio: float, neutre: bool = False
+) -> Image.Image:
+    """La foto intera, centrata su una tela del rapporto ``target_ratio``.
+
+    Le barre sono la foto stessa ingrandita a coprire, sfocata (GaussianBlur 30) e
+    scurita del 15%; con ``neutre`` un grigio uniforme (RT-16, nota 7.5 passo 6).
+    """
+    w, h = img.width, img.height
+    current_ratio = w / h
     if current_ratio < target_ratio:
         # Foto più stretta/alta della proporzione: l'altezza resta h, la larghezza cresce
         h_canvas = h
@@ -197,6 +213,11 @@ def _adatta_alle_proporzioni(
         # Foto più larga della proporzione: la larghezza resta w, l'altezza cresce
         w_canvas = w
         h_canvas = round(w / target_ratio)
+
+    if neutre:
+        tela = Image.new("RGB", (w_canvas, h_canvas), COLORE_BARRE_NEUTRE)
+        tela.paste(img, ((w_canvas - w) // 2, (h_canvas - h) // 2))
+        return tela
 
     # Sotto: la foto stessa ingrandita a coprire
     scale = max(w_canvas / w, h_canvas / h)
