@@ -10,8 +10,8 @@ Rivisto il 9 novembre 2026 dopo il confronto con il codice: archivio dei file de
 
 ## 1. Regole della corsia
 
-1. **Un branch per la corsia**, `feature/ritocco-foto` (nelle sessioni cloud quello indicato dalla sessione), preso dalla punta del branch dei documenti della corsia (PR #190) finché questa non è in `main`. Ogni task è uno o più commit su quel branch, in italiano all'imperativo (`feat:`, `fix:`, `test:`, `docs:`, `refactor:`, `chore:`).
-2. **La PR verso `main` si apre solo a corsia completa** (decisione del 9 novembre). **Alla fine di ogni ondata (§5) si apre una PR intermedia verso il branch della corsia, mai verso `main`**: i workflow partono su ogni `pull_request` qualunque sia il ramo di destinazione, e senza PR nessun controllo di GitHub gira per 34 task.
+1. **Branch.** `feature/ritocco-foto` è la base della corsia (la punta dei documenti, PR #190); ogni ondata (§5) lavora su un suo branch `ritocco/ondata-a`, `ritocco/ondata-b`… ognuno preso dalla punta del precedente. Ogni task è uno o più commit, in italiano all'imperativo (`feat:`, `fix:`, `test:`, `docs:`, `refactor:`, `chore:`).
+2. **PR a catena, una per ondata.** A fine ondata si spinge il branch e si apre una PR con base il branch dell'ondata precedente (la A ha base `feature/ritocco-foto`), così i workflow girano a ogni ondata (partono su ogni `pull_request`, qualunque sia la base). **Le PR intermedie non si uniscono da sole.** La PR verso `main` si apre solo a corsia completa (decisione del 9 novembre), come bozza, dal branch dell'ultima ondata.
 3. **Ogni task chiude verde.** Alla fine di ogni task: da `backend/` `uv run alembic upgrade head`, `uv run pytest`, `uv run black --check .`; da `frontend/` `npm run lint`, `npm run build` e, da RT-09, `npm test`; da RT-10 anche i test end-to-end.
 4. **Il codice congelato si tocca** (decisione del 9 novembre), ma solo dove il task lo dice e in modo chirurgico: il commento "Congelato per l'MVP, ADR-114" si aggiorna in quel punto e la modifica si elenca nella PR.
 5. **Nessuna chiamata reale ad AI, Meta o email nei test.** L'AI vera si usa solo in RT-32, a mano.
