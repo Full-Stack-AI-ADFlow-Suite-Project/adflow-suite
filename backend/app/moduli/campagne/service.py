@@ -53,10 +53,10 @@ from .domain import (
 from .immagini import MAX_FOTO_PER_GRUPPO, analizza_e_valida_immagine
 from . import analisi_locale
 from .colore import apri_in_srgb
+from .varianti import comando_per_variante, disponibilita
 from .esecutore import (
     VERSIONE_ESECUTORE,
     Comando,
-    comando_originale,
     esegui,
     sistema_foto_buffer,
 )
@@ -1575,12 +1575,31 @@ def rendi_per_canale(
 ) -> str:
     """Rende la foto per il canale secondo la scelta dell'operatore (``ritocco``) e dà la chiave.
 
-    Finché non ci sono le varianti (RT-25, D6) ogni scelta è la variante
-    Originale: le regole di R-42 senza ritocco, col riquadro del soggetto
-    dell'analisi.
+    ``ritocco`` è ``{"variante": "originale"|"standard"|"spinta", "privacy": …}``; senza
+    scelta vale la Standard. Il comando della variante sta in ``foto.analisi_ai["ritocco"]``
+    (``varianti``): per una foto senza varianti salvate (D6) è l'Originale. ``privacy`` è
+    ``True`` (tutte le zone proposte) o l'elenco degli id delle zone da oscurare.
     """
     foto = _foto_con_file(db, foto_id)
-    return rendi(db, foto_id, comando_originale(foto, canale=canale))
+    scelta = ritocco or {}
+    comando = comando_per_variante(foto, canale, scelta.get("variante"))
+    return rendi(db, foto_id, comando, zone_attive(foto, scelta.get("privacy")))
+
+
+def zone_attive(foto: Foto, privacy: Any) -> list[dict[str, Any]]:
+    """Le zone di privacy che l'operatore ha acceso: tutte (``True``) o quelle con quegli id."""
+    analisi = foto.analisi_ai if isinstance(foto.analisi_ai, dict) else {}
+    proposte = (analisi.get("ritocco") or {}).get("privacy") or []
+    if privacy is True:
+        return [dict(z) for z in proposte]
+    if isinstance(privacy, (list, tuple, set)):
+        return [dict(z) for z in proposte if z.get("id") in privacy]
+    return []
+
+
+def disponibilita_varianti(db: Session, foto_id: int) -> tuple[list[str], list[str]]:
+    """(varianti disponibili, uguali alla precedente) di una foto: vedi ``varianti.disponibilita``."""
+    return disponibilita(_foto_con_file(db, foto_id))
 
 
 def leggi_render(foto_id: int, chiave: str) -> bytes:
