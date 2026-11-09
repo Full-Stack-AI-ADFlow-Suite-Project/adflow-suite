@@ -45,7 +45,7 @@ Le sigle `RT-` non sono lette da `allinea.py` (come le `P-` della corsia della p
 
 Regressione delle foto buone: un insieme sintetico di "foto buone" (esposizione e colori normali, nessun difetto) deve uscire dalla Standard con ΔE medio < 1 e lo stesso rapporto. Vale come test fisso di ogni task che tocca l'esecutore.
 
-## 4. Scelte di default (da confermare o cambiare in chat)
+## 4. Scelte di default (approvate il 9 novembre)
 
 | # | Scelta | Motivo |
 |---|---|---|

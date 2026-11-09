@@ -32,7 +32,7 @@ Come leggerla: le sezioni 1–4 sono la storia (mosaici, prima impostazione). Da
 | 9 nov | Soglie iniziali prudenti, taratura dopo | RT-34 dopo la corsia |
 | 9 nov | Una corsia con più task; la PR si apre solo a corsia completa | Regole 1–2 della corsia |
 
-Ancora aperte: l'autorizzazione a usare le foto reali raccolte con la PR #189 (consenso dei titolari); le scelte di default D1–D8 della corsia, da confermare.
+Ancora aperte: l'autorizzazione a usare le foto reali raccolte con la PR #189 (consenso dei titolari); nessun'altra: le scelte di default D1–D8 della corsia sono approvate (9 novembre).
 
 ---
 
