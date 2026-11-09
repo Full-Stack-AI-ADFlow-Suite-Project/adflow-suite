@@ -43,9 +43,12 @@ Utenti di esempio, password `prova`:
 ```bash
 npm run lint
 npm run build
+npm test
 ```
 
 Gli stessi comandi girano a ogni PR (`.github/workflows/frontend.yml`).
+
+`npm test` lancia i test dei componenti (Vitest, Testing Library, MSW): `src/**/*.test.tsx`, accanto al componente. `src/test/` ha il finto server (`server.ts`, ogni test dichiara le sue risposte con `server.use(...)`; una richiesta non prevista è un errore), l'avvio (`setup.ts`) e `disegna()` (tema, router in memoria e sessione finta). I test end-to-end sono un'altra cosa: `npm run test:e2e`.
 
 ## Struttura
 

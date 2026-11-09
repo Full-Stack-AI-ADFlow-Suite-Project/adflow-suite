@@ -30,3 +30,7 @@ jobs:
       - name: Build
         working-directory: frontend
         run: npm run build
+
+      - name: Test dei componenti
+        working-directory: frontend
+        run: npm test
