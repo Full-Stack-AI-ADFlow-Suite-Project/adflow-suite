@@ -7,9 +7,9 @@ decide il codice (nota 7.5), non l'AI e non l'operatore:
 |---|--------------|-------|
 | 1 | decodifica   | `colore.apri_in_srgb`: unico decoder, limiti di oggi |
 | 2 | srgb         | EXIF, poi conversione in sRGB (stessa funzione) |
-| 3 | ruota        | RT-15 (vuoto: nessuna rotazione di 90°) |
+| 3 | ruota        | rotazione di 90° (`geometria.ruota_90`) |
 | 4 | privacy      | RT-18 (vuoto: nessuna zona sfocata) |
-| 5 | raddrizza    | RT-15 (vuoto: nessun raddrizzamento) |
+| 5 | raddrizza    | rotazione fine o prospettiva (`geometria`); un controllo che fallisce salta il passo, non il comando |
 | 6 | finestra     | le regole di R-42 di oggi (`sistemazione_foto`); RT-16 aggiunge la finestra esplicita |
 | 7 | lato_corto   | lato corto 1080 |
 | 8 | luce         | RT-17 (vuoto) |
@@ -26,13 +26,15 @@ from __future__ import annotations
 
 import io
 from collections.abc import Callable, Sequence
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import Any, Final
 
 from PIL import Image
 
 from app.core.errori import DatiNonValidi
 
+from . import geometria
+from . import ritocco_catalogo as catalogo
 from . import sistemazione_foto as regole
 from .colore import apri_in_srgb, profilo_srgb_bytes
 
@@ -74,8 +76,14 @@ class RegoleR42:
 class Comando:
     """Che cosa fare a una foto. Dato puro: lo stesso comando dà sempre gli stessi pixel.
 
-    ``finestra`` vuota vuol dire nessun taglio (solo il lato corto a 1080). Gli
-    altri campi sono per i task successivi e oggi non hanno effetto.
+    ``finestra`` vuota vuol dire nessun taglio (solo il lato corto a 1080).
+    ``ruota`` è in gradi, in senso orario (0, 90, 180, 270): la correzione di una
+    foto girata. ``raddrizza`` è ``{"tipo": "rotazione", "gradi": g}`` (``g`` come
+    lo misura ``preanalisi``) oppure ``{"tipo": "prospettiva", "angoli": [[x, y]×4]}``
+    (alto-sx, alto-dx, basso-dx, basso-sx, normalizzati nel riferimento dopo EXIF e
+    sRGB), con ``max`` facoltativo: i gradi o la deformazione oltre cui il passo si
+    salta (senza, i tetti della variante Standard). Gli altri campi sono per i task
+    successivi e oggi non hanno effetto.
     """
 
     versione: str = VERSIONE_ESECUTORE
@@ -119,24 +127,67 @@ def comando_originale(
 # --- I passi ---------------------------------------------------------------------
 
 
-def _passo_ruota(img: Image.Image, comando: Comando, canale: str | None) -> Image.Image:
-    return img  # RT-15
+@dataclass
+class _Contesto:
+    """Quello che i passi si passano: dove sono finiti i punti del riferimento di partenza."""
+
+    mappa: geometria.Mappa
+    zone: Sequence[Any] = ()
+    avvisi: list[str] = field(default_factory=list)
+
+
+_Passo = Callable[[Image.Image, Comando, "str | None", _Contesto], Image.Image]
+
+
+def _passo_ruota(
+    img: Image.Image, comando: Comando, canale: str | None, ctx: _Contesto
+) -> Image.Image:
+    img, ctx.mappa = geometria.ruota_90(img, comando.ruota, ctx.mappa)
+    return img
 
 
 def _passo_privacy(
-    img: Image.Image, comando: Comando, canale: str | None
+    img: Image.Image, comando: Comando, canale: str | None, ctx: _Contesto
 ) -> Image.Image:
     return img  # RT-18 (le zone arrivano a `esegui`)
 
 
 def _passo_raddrizza(
-    img: Image.Image, comando: Comando, canale: str | None
+    img: Image.Image, comando: Comando, canale: str | None, ctx: _Contesto
 ) -> Image.Image:
-    return img  # RT-15
+    """Rotazione fine o prospettiva; se un controllo non passa il passo si salta."""
+    r = comando.raddrizza
+    if not r:
+        return img
+    tipo = r.get("tipo")
+    if tipo == "rotazione":
+        gradi = r.get("gradi")
+        massimo = r.get("max", catalogo.STANDARD.rotazione_max_gradi)
+        if not isinstance(gradi, (int, float)) or not (
+            catalogo.ROTAZIONE_MIN_GRADI <= abs(gradi) <= massimo
+        ):
+            ctx.avvisi.append("raddrizza_saltato")
+            return img
+        img, ctx.mappa = geometria.raddrizza_rotazione(img, float(gradi), ctx.mappa)
+        return img
+    if tipo == "prospettiva":
+        esito = geometria.raddrizza_prospettiva(
+            img,
+            r.get("angoli") or [],
+            ctx.mappa,
+            r.get("max", catalogo.STANDARD.prospettiva_deformazione_max),
+        )
+        if esito is None:
+            ctx.avvisi.append("raddrizza_saltato")
+            return img
+        img, ctx.mappa = esito
+        return img
+    ctx.avvisi.append("raddrizza_saltato")
+    return img
 
 
 def _passo_finestra(
-    img: Image.Image, comando: Comando, canale: str | None
+    img: Image.Image, comando: Comando, canale: str | None, ctx: _Contesto
 ) -> Image.Image:
     """Le regole di R-42: rapporto più vicino nell'intervallo, soggetto, centro, bordi sfocati."""
     r42 = comando.finestra
@@ -149,28 +200,30 @@ def _passo_finestra(
     )
     if target is None:
         return img
-    return regole._adatta_alle_proporzioni(img, target, soggetto_box=r42.soggetto_box)
+    # Il riquadro del soggetto è nel riferimento di partenza: lo si porta sulla foto di adesso.
+    soggetto = ctx.mappa.box_norm(r42.soggetto_box) if r42.soggetto_box else None
+    return regole._adatta_alle_proporzioni(img, target, soggetto_box=soggetto)
 
 
 def _passo_lato_corto(
-    img: Image.Image, comando: Comando, canale: str | None
+    img: Image.Image, comando: Comando, canale: str | None, ctx: _Contesto
 ) -> Image.Image:
     return regole._ridimensiona_lato_corto(img, regole.LATO_CORTO_TARGET)
 
 
-def _passo_luce(img: Image.Image, comando: Comando, canale: str | None) -> Image.Image:
-    return img  # RT-17
-
-
-def _passo_nitidezza(
-    img: Image.Image, comando: Comando, canale: str | None
+def _passo_luce(
+    img: Image.Image, comando: Comando, canale: str | None, ctx: _Contesto
 ) -> Image.Image:
     return img  # RT-17
 
 
-_DOPO_LA_DECODIFICA: Final[
-    tuple[tuple[str, Callable[[Image.Image, Comando, str | None], Image.Image]], ...]
-] = (
+def _passo_nitidezza(
+    img: Image.Image, comando: Comando, canale: str | None, ctx: _Contesto
+) -> Image.Image:
+    return img  # RT-17
+
+
+_DOPO_LA_DECODIFICA: Final[tuple[tuple[str, _Passo], ...]] = (
     ("ruota", _passo_ruota),
     ("privacy", _passo_privacy),
     ("raddrizza", _passo_raddrizza),
@@ -197,11 +250,13 @@ def esegui(
     zone_privacy: Sequence[Any] = (),
     *,
     traccia: list[str] | None = None,
+    avvisi: list[str] | None = None,
 ) -> bytes:
     """Applica ``comando`` ai byte di una foto e restituisce il JPEG (sRGB, senza metadati).
 
     Su una copia in memoria: l'originale non cambia (§1.3). Se ``traccia`` è una
-    lista, ci si scrivono i nomi dei passi nell'ordine in cui girano.
+    lista, ci si scrivono i nomi dei passi nell'ordine in cui girano; se ``avvisi``
+    è una lista, ci si scrivono i passi saltati per un controllo (``raddrizza_saltato``).
 
     Raises:
         DatiNonValidi: dati vuoti, file non valido o troppo grande, canale o
@@ -216,11 +271,14 @@ def esegui(
     # Il limite si legge qui, a ogni chiamata (così i test lo possono abbassare).
     img = apri_in_srgb(dati, max_pixel=regole.MAX_PIXEL_TOTALI)
     passi.extend(("decodifica", "srgb"))
+    ctx = _Contesto(geometria.Mappa.identita(*img.size), zone_privacy)
 
     # 3-9. In ordine fisso; i passi non ancora scritti non fanno nulla.
     for nome, passo in _DOPO_LA_DECODIFICA:
-        img = passo(img, comando, canale)
+        img = passo(img, comando, canale, ctx)
         passi.append(nome)
+    if avvisi is not None:
+        avvisi.extend(ctx.avvisi)
 
     # 10. JPEG pulito: senza EXIF né GPS, con il profilo sRGB incorporato.
     uscita = io.BytesIO()

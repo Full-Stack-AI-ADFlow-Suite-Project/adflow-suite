@@ -71,9 +71,12 @@ NOTE: Final[dict[str, Codice]] = {
     "non_tagliare": Codice(
         "tagliare toglierebbe qualcosa di importante", "nessun_avvicinamento"
     ),
-    "ruota_90": Codice("la foto è girata di 90°", "ruota"),
-    "ruota_180": Codice("la foto è capovolta", "ruota"),
-    "ruota_270": Codice("la foto è girata di 270°", "ruota"),
+    "ruota_90": Codice("va ruotata di 90° in senso orario per tornare dritta", "ruota"),
+    "ruota_180": Codice("è capovolta: va ruotata di 180°", "ruota"),
+    "ruota_270": Codice(
+        "va ruotata di 270° in senso orario (90° antiorario) per tornare dritta",
+        "ruota",
+    ),
     # luce
     "scura": Codice("difetto di esposizione, non il buio voluto", "esposizione"),
     "chiara": Codice("troppo chiara, non il chiaro voluto", "esposizione"),
