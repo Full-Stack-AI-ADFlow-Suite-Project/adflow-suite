@@ -87,6 +87,17 @@ def test_upgrade_downgrade_completo_e_ultimo_passaggio(motore_test):
     command.upgrade(config, "head")
     command.downgrade(config, "-1")
     with motore_test.connect() as conn:
+        assert not {"ritocco", "render"} & {
+            c["name"] for c in inspect(conn).get_columns("versione_post_foto")
+        }
+        assert "token_in_cache" not in {
+            c["name"] for c in inspect(conn).get_columns("chiamata_ai")
+        }
+        assert "chiamata_il" in {
+            c["name"] for c in inspect(conn).get_columns("pubblicazione")
+        }
+    command.downgrade(config, "-1")
+    with motore_test.connect() as conn:
         assert "chiamata_il" not in {
             c["name"] for c in inspect(conn).get_columns("pubblicazione")
         }
@@ -126,11 +137,14 @@ def test_upgrade_downgrade_completo_e_ultimo_passaggio(motore_test):
         assert "pubblicazione" not in inspect(conn).get_table_names()
     command.upgrade(config, "head")
     with motore_test.connect() as conn:
+        assert {"ritocco", "render"} <= {
+            c["name"] for c in inspect(conn).get_columns("versione_post_foto")
+        }
         assert (
             set(inspect(conn).get_table_names()) - {"alembic_version"}
             == TABELLE | TABELLE_CODA
         )
-        assert conn.scalar(text("select version_num from alembic_version")) == "014"
+        assert conn.scalar(text("select version_num from alembic_version")) == "015"
         contesto = MigrationContext.configure(conn, opts={"include_name": del_modello})
         assert compare_metadata(contesto, metadata) == []
 

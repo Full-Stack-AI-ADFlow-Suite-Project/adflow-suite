@@ -167,6 +167,10 @@ class VersionePostFoto(Base):
     foto_id: Mapped[int] = mapped_column(
         Integer, ForeignKey("foto.id"), nullable=False, index=True
     )
+    # Scelta dell'operatore sulla foto (variante, zone di privacy) e chiave del
+    # render approvato (RT-05; la corsia del ritocco).
+    ritocco: Mapped[dict[str, Any] | None] = mapped_column(JSONB, nullable=True)
+    render: Mapped[str | None] = mapped_column(Text, nullable=True)
 
 
 class ErroreGenerazione(Base):
@@ -214,6 +218,7 @@ class ChiamataAI(Base):
     tentativo: Mapped[int | None] = mapped_column(Integer, nullable=True)
     token_ingresso: Mapped[int | None] = mapped_column(Integer, nullable=True)
     token_uscita: Mapped[int | None] = mapped_column(Integer, nullable=True)
+    token_in_cache: Mapped[int | None] = mapped_column(Integer, nullable=True)
     n_immagini: Mapped[int | None] = mapped_column(Integer, nullable=True)
     costo_usd: Mapped[Decimal] = mapped_column(Numeric(12, 6), nullable=False)
     creata_il: Mapped[datetime] = mapped_column(

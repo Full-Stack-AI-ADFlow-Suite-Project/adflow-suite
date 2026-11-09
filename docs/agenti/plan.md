@@ -22,7 +22,7 @@ Ogni variabile di `backend/.env` è un campo di `core/config.py` ed è in `.env.
 
 Nulla si cancella: versioni, piani, decisioni ed errori restano. La versione corrente di un post è l'ultima; il piano corrente è l'ultimo. La richiesta all'artigiano (R-46) non ha tabella: si ricava dalle decisioni `integrazione*`. I valori ammessi di ogni campo stanno nel `domain.py` del modulo della tabella; la scheda per canale è `SCHEDE_CANALE` in `contenuti/domain.py` (valori in spec R-21).
 
-**Migrazioni**, una catena Alembic, ognuna con lo schema per esteso: 001–006 i moduli · 007 coda Procrastinate 3.10.0 · 008 riallineamento · 009 `limite_login` · 010 `foto.pubblicata_su` · 011 `notifica` · 012 `chiamata_ai` · 013 storico dell'AI · 014 `pubblicazione.chiamata_il` · *in arrivo (RT-05, ADR-124)* 015 `versione_post_foto.ritocco` e `.render`, `chiamata_ai.token_in_cache`.
+**Migrazioni**, una catena Alembic, ognuna con lo schema per esteso: 001–006 i moduli · 007 coda Procrastinate 3.10.0 · 008 riallineamento · 009 `limite_login` · 010 `foto.pubblicata_su` · 011 `notifica` · 012 `chiamata_ai` · 013 storico dell'AI · 014 `pubblicazione.chiamata_il` · 015 `versione_post_foto.ritocco` e `.render`, `chiamata_ai.token_in_cache` (RT-05, ADR-124).
 
 **Stati** (`campagne/domain.py`, `contenuti/domain.py`):
 - campagna: bozza → inviata → in_generazione → in_revisione → attiva → conclusa · inviata / in_generazione → generazione_fallita → inviata · in_revisione → respinta · prima dell'approvazione → scaduta · attiva ⇄ sospesa · attiva / sospesa → annullata. `piano_da_rivedere` resta solo per le righe vecchie.
