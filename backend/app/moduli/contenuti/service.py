@@ -22,6 +22,7 @@ from .domain import (
     APPROVATO,
     ANNULLATO,
     DA_APPROVARE,
+    PUBBLICATO,
     RIPROGRAMMA,
     SPOSTA,
     SCADUTO,
@@ -98,6 +99,97 @@ def render_approvato(db: Session, post: Post, legame: Any) -> tuple[str, bytes]:
     chiave = _rendi_legame(db, post, legame)
     db.flush()
     return chiave, campagne.leggi_render(legame.foto_id, chiave)
+
+
+# --- L'anteprima della foto del post (RT-08) ---------------------------------
+# Le varianti: fino a RT-25 (D6) c'è solo Originale; la Standard è uguale a
+# Originale e la Spinta è spenta.
+
+VARIANTI_FOTO = ("originale", "standard", "spinta")
+_STATI_CON_RENDER_VISIBILE = (APPROVATO, PUBBLICATO, FALLITO, ANNULLATO)
+
+
+def _legame_principale(post: Post) -> Any | None:
+    """La prima foto della versione corrente: nell'MVP un post ha una foto sola."""
+    versione = post.versione_corrente
+    if versione is None or not versione.legami_foto:
+        return None
+    return min(versione.legami_foto, key=lambda legame: legame.posizione)
+
+
+def _variante_scelta(legame: Any) -> str:
+    scelta = (legame.ritocco or {}).get("variante")
+    return scelta if scelta in VARIANTI_FOTO else "standard"
+
+
+def _varianti_della_foto(legame: Any) -> tuple[list[str], list[str]]:
+    """(disponibili, uguali all'Originale) per la foto del legame."""
+    return ["originale", "standard"], ["standard"]
+
+
+def vista_foto(post: Post) -> dict[str, Any] | None:
+    """Che cosa la card mostra della foto del post: anteprima, varianti, privacy, avvisi."""
+    legame = _legame_principale(post)
+    if legame is None:
+        return None
+    disponibili, uguali = _varianti_della_foto(legame)
+    zone = (legame.ritocco or {}).get("privacy") or []
+    return {
+        "anteprima_url": f"/api/post/{post.id}/foto/anteprima",
+        "varianti": {
+            "disponibili": disponibili,
+            "uguali": uguali,
+            "scelta": _variante_scelta(legame),
+        },
+        "zone_privacy": {
+            "numero": len(zone),
+            "decise": sum(1 for zona in zone if zona.get("attiva") is not None),
+        },
+        "avvisi": [],
+    }
+
+
+def anteprima_foto(
+    db: Session,
+    post_id: int,
+    variante: str | None,
+    ruolo: str,
+    utente_id: int,
+) -> bytes:
+    """Il JPEG della foto del post, come esce (ADR-124, RT-08, D1).
+
+    L'operatore vede la variante chiesta (senza, quella scelta); l'artigiano
+    solo il render approvato, e solo sui post approvati.
+
+    Raises:
+        NonTrovato: il post non c'è, non è dell'artigiano o non ha la foto.
+        StatoNonValido: l'artigiano chiede un post non ancora approvato.
+        DatiNonValidi: variante non ammessa o non disponibile.
+    """
+    post = _post(db, post_id)
+    if ruolo == "artigiano":
+        # La proprietà prima dello stato (R-45): una bottega altrui è un 404.
+        campagne.campagna_per_calendario(db, post.campagna_id, utente_id, ruolo)
+        if post.stato not in _STATI_CON_RENDER_VISIBILE:
+            raise StatoNonValido("La foto si vede dopo l'approvazione.")
+    legame = _legame_principale(post)
+    if legame is None:
+        raise NonTrovato("Il post non ha una foto.")
+    if ruolo == "artigiano":
+        return render_approvato(db, post, legame)[1]
+
+    scelta = _variante_scelta(legame)
+    variante = variante or scelta
+    if variante not in VARIANTI_FOTO:
+        raise DatiNonValidi("Variante della foto non valida.")
+    if variante not in _varianti_della_foto(legame)[0]:
+        raise DatiNonValidi("Questa variante non è disponibile per la foto.")
+    if post.stato in _STATI_CON_RENDER_VISIBILE and variante == scelta:
+        return render_approvato(db, post, legame)[1]  # quello che uscirà o è uscito
+    chiave = campagne.rendi_per_canale(
+        db, legame.foto_id, post.canale, {"variante": variante}
+    )
+    return campagne.leggi_render(legame.foto_id, chiave)
 
 
 def post_della_campagna(

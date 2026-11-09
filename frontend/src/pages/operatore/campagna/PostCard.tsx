@@ -72,7 +72,8 @@ function AnteprimaPost({
         // L'immagine intera, come esce: anche quella creata con AI (R-28).
         <Box mt="xs">
           <img
-            src={`/api/foto/${foto.foto_id}/file`}
+            // Il render che esce (RT-08); senza, l'originale come prima.
+            src={post.foto?.anteprima_url ?? `/api/foto/${foto.foto_id}/file`}
             alt={isAi ? "Immagine creata con AI" : `Foto ${foto.foto_id}`}
             style={{
               width: "100%",

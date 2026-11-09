@@ -45,6 +45,7 @@ Nulla si cancella: versioni, piani, decisioni ed errori restano. La versione cor
 | contenuti | `GET /storico-ai` · `/storico-ai/numeri` · `/storico-ai/{id}` · `POST /storico-ai/{id}/voto` | operatore |
 | revisione | `GET /da-approvare` · `GET /artigiani` · `GET /campagne/{id}/post` · `POST /campagne/{id}/approva` · `/respingi` · `/sospendi` · `/riattiva` · `/annulla` | operatore |
 | revisione | `POST /post/{id}/modifica` · `/rigenera` · `/rigenera-immagine` · `GET /post/{id}/foto-possibili` · `POST /post/{id}/cambia-foto` · `/sposta` · `/annulla` · `/riprogramma` | operatore |
+| revisione | `GET /post/{id}/foto/anteprima?variante=` (JPEG sRGB della foto come esce; l'artigiano solo il render dei post approvati, RT-08, D1) | proprietario, operatore |
 | revisione | *in arrivo (ADR-124):* `GET /post/{id}/foto/anteprima?variante=` (RT-08; l'artigiano solo sui post approvati) · `POST /post/{id}/ritocca-foto` (RT-28) | operatore (anteprima anche artigiano) |
 | congelato | `/archivio` e `/archivio/*` · `POST /campagne/{id}/nota` · `/togli-canale` · `POST /post/{id}/controllato` | — |
 

@@ -1,9 +1,10 @@
 """Endpoint del modulo revisione: chiamano service.py, senza logica di business."""
 
 from datetime import datetime
-from typing import Annotated
+from typing import Annotated, Literal
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Query
+from fastapi.responses import Response
 from sqlalchemy.orm import Session
 
 from app.core.db import get_db
@@ -272,6 +273,32 @@ def foto_possibili_post(
 ) -> list[FotoPossibile]:
     """Le foto con cui si può cambiare quella del post (R-36, CA-71)."""
     return interventi.foto_possibili(db, post_id, ora)
+
+
+@router.get("/post/{post_id}/foto/anteprima")
+def anteprima_foto_post(
+    post_id: IdPercorso,
+    db: Annotated[Session, Depends(get_db)],
+    utente: Annotated[
+        accesso.Utente, Depends(accesso.richiede_ruolo("operatore", "artigiano"))
+    ],
+    variante: Annotated[
+        Literal["originale", "standard", "spinta"] | None, Query()
+    ] = None,
+) -> Response:
+    """La foto del post come esce: JPEG sRGB (ADR-124, RT-08, D1).
+
+    L'operatore sceglie la ``variante``; l'artigiano vede solo il render dei
+    post approvati e ignora il parametro. Una bottega altrui è un 404.
+    """
+    return Response(
+        content=service.anteprima_foto(db, post_id, variante, utente),
+        media_type="image/jpeg",
+        headers={
+            "X-Content-Type-Options": "nosniff",
+            "Cache-Control": "private, no-cache",
+        },
+    )
 
 
 @router.post("/post/{post_id}/cambia-foto")

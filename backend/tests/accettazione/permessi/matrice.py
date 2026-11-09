@@ -1,4 +1,4 @@
-"""Matrice dei permessi di tutte le 57 operazioni dell'API (T4-102, corsia 10).
+"""Matrice dei permessi di tutte le 58 operazioni dell'API (T4-102, corsia 10).
 
 L'esito atteso di ogni cella viene da costituzione §3 («Permessi controllati
 sul server a ogni richiesta: 401 senza sessione, 403 ruolo, 404 per risorse di
@@ -145,6 +145,7 @@ MATRICE: dict[tuple[str, str], dict[str, str]] = {
     ("post", "/api/post/{post_id}/sposta"): _operatore(),
     ("post", "/api/post/{post_id}/annulla"): _operatore(),
     ("post", "/api/post/{post_id}/cambia-foto"): _operatore(),
+    ("get", "/api/post/{post_id}/foto/anteprima"): _proprietario_e_operatore(),
     ("get", "/api/post/{post_id}/foto-possibili"): _operatore(),
     # storico AI (R-50: l'operatore la legge)
     ("get", "/api/storico-ai"): _operatore(),
@@ -153,4 +154,4 @@ MATRICE: dict[tuple[str, str], dict[str, str]] = {
     ("post", "/api/storico-ai/{id}/voto"): _operatore(),
 }
 
-assert len(MATRICE) == 57, f"la matrice deve avere 57 operazioni, ne ha {len(MATRICE)}"
+assert len(MATRICE) == 58, f"la matrice deve avere 58 operazioni, ne ha {len(MATRICE)}"

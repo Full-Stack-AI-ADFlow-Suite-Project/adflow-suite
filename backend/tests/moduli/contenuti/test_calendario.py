@@ -66,7 +66,7 @@ def test_ca56_soli_stati_visibili_versione_corrente_e_numero_scaduti(
     assert corrente["testo"] == "Testo corrente pubblico" and corrente["hashtag"] == [
         "corrente"
     ]
-    assert corrente["foto"][0]["url"] == f"/api/foto/{legame.foto_id}/file"
+    assert corrente["foto"][0]["url"] == f"/api/post/{post.id}/foto/anteprima"
     assert "Nota privata" not in risposta.text
     assert "versioni" not in risposta.text and "profilo_snapshot" not in risposta.text
     assert risposta.headers["cache-control"] == "no-store"

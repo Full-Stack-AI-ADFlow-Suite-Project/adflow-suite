@@ -51,7 +51,7 @@ def due_botteghe(db: Session, client: TestClient, utente_di_prova):
     # una campagna attiva di A con un post approvato nella settimana nota
     attiva_a = campagna_attiva(db, profilo_id=bottega_a.id)
     lunedi = date(2030, 1, 7)  # un lunedì della campagna di A
-    post_approvato(
+    approvato_a = post_approvato(
         db,
         campagna_id=attiva_a.id,
         data_ora=datetime(2030, 1, 9, 12, tzinfo=timezone.utc),
@@ -70,6 +70,7 @@ def due_botteghe(db: Session, client: TestClient, utente_di_prova):
         "campagna_b": campagna_b.id,
         "post_a": post_a.id,
         "post_b": post_b.id,
+        "approvato_a": approvato_a.id,
         "archivio_a": archivio_a.id,
         "archivio_b": archivio_b.id,
         "chiamata_a": chiamata_a.id,
@@ -168,3 +169,19 @@ def test_lo_storico_ai_di_a_non_si_legge_da_artigiano(due_botteghe, client):
     assert risposta.status_code == 403
     risposta = client.get("/api/storico-ai")
     assert risposta.status_code == 403
+
+
+def test_anteprima_della_foto_di_un_post_di_a_non_si_legge_da_b(due_botteghe, client):
+    """RT-08: l'anteprima è del proprietario e dell'operatore; B riceve 404, mai la foto."""
+    _entra_da(due_botteghe["b"])
+    for post in (due_botteghe["approvato_a"], due_botteghe["post_a"]):
+        risposta = client.get(f"/api/post/{post}/foto/anteprima")
+        assert risposta.status_code == 404, risposta.text
+
+
+def test_anteprima_dell_artigiano_solo_sui_post_approvati(due_botteghe, client):
+    """D1: A vede il render dei suoi post approvati; il post ancora in revisione dà 409."""
+    _entra_da(due_botteghe["a"])
+    risposta = client.get(f"/api/post/{due_botteghe['post_a']}/foto/anteprima")
+    assert risposta.status_code == 409
+    assert "image" not in risposta.headers.get("content-type", "")

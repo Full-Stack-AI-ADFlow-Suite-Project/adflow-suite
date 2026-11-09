@@ -147,6 +147,28 @@ class FotoLegataSchema(BaseModel):
     posizione: int
 
 
+class VariantiFotoSchema(BaseModel):
+    """Le varianti della foto del post (ADR-124, RT-08)."""
+
+    disponibili: list[str]
+    uguali: list[str]  # le disponibili che escono uguali all'Originale
+    scelta: str
+
+
+class ZonePrivacySchema(BaseModel):
+    numero: int
+    decise: int
+
+
+class FotoPostSchema(BaseModel):
+    """Come esce la foto del post: l'anteprima, le varianti, le zone di privacy, gli avvisi."""
+
+    anteprima_url: str
+    varianti: VariantiFotoSchema
+    zone_privacy: ZonePrivacySchema
+    avvisi: list[str]
+
+
 class VersionePostSchema(BaseModel):
     """Una versione del post con autore, foto e risultati del validatore."""
 
@@ -186,6 +208,8 @@ class PostSchema(BaseModel):
     versioni: list[VersionePostSchema]
     # Gli interventi che l'operatore può fare adesso (R-16): valori di INTERVENTI.
     interventi: list[str] = []
+    # La foto come esce (RT-08); vuoto se il post non ha foto.
+    foto: FotoPostSchema | None = None
 
 
 class GruppoSchema(BaseModel):
