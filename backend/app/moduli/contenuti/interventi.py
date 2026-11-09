@@ -23,8 +23,10 @@ from .domain import (
     MODIFICA,
     RIGENERA,
     RIGENERA_IMMAGINE,
+    RITOCCA_FOTO,
     SCHEDE_CANALE,
     STATI_CHE_USANO_LA_FOTO,
+    STATI_CHIUSI,
     TIPI_INTERVENTO_IN_CORSO,
 )
 from .generazione import (
@@ -47,6 +49,7 @@ from .service import (
     _azzera_spunta,
     _intervento_attivo,
     _post,
+    post_della_campagna as service_post_della_campagna,
     contesto_chiamata_ai,
     registra_chiamata_ai,
     rendi_versione,
@@ -74,12 +77,20 @@ def interventi_ammessi(post: Post, stato_campagna: str, adesso: datetime) -> lis
     if post.stato == APPROVATO and post.data_ora < adesso + margine:
         return []
     if post.versione_corrente is None:
-        ammessi -= {MODIFICA, RIGENERA, RIGENERA_IMMAGINE, CAMBIA_FOTO}
+        ammessi -= {MODIFICA, RIGENERA, RIGENERA_IMMAGINE, CAMBIA_FOTO, RITOCCA_FOTO}
+    # Si ritoccano le foto vere: non le immagini create con l'AI né le cartoline (ADR-124).
+    if post.riempitivo in (IMMAGINE_AI, "cartolina") or not _ha_una_foto(post):
+        ammessi -= {RITOCCA_FOTO}
     if post.n_rigenerazioni_testo >= MAX_RIGENERAZIONI:
         ammessi -= {RIGENERA}
     if _rigenerazioni_immagine(post) >= MAX_RIGENERAZIONI_IMMAGINE:
         ammessi -= {RIGENERA_IMMAGINE}
     return [uno for uno in INTERVENTI if uno in ammessi]
+
+
+def _ha_una_foto(post: Post) -> bool:
+    corrente = post.versione_corrente
+    return corrente is not None and bool(corrente.legami_foto)
 
 
 def verifica_intervento(
@@ -122,6 +133,10 @@ def verifica_intervento(
             )
         if post.versione_corrente is None:
             raise StatoNonValido("Il post non ha ancora un testo.")
+        if intervento == RITOCCA_FOTO:
+            raise StatoNonValido(
+                "Questa foto non si ritocca: è un'immagine creata con l'AI o manca."
+            )
     raise StatoNonValido(
         f"Questo intervento non è ammesso: la campagna è «{campagna.stato}», "
         f"il post è «{post.stato}»."
@@ -844,3 +859,132 @@ def rigenera(
             db, record, nuova
         )  # R-16: una versione approvata ha il suo render
     return nuova
+
+
+# --- Ritocca foto (ADR-124, RT-28) ---------------------------------------------------
+
+
+class EsitoRitocco(NamedTuple):
+    """Le versioni nate e i post della campagna con la stessa foto dove l'intervento non si poteva fare."""
+
+    versioni: list[VersionePost]
+    non_aggiornati: list[tuple[int, str]]  # (post_id, motivo)
+
+
+def _scelta_di(legame: Any) -> dict[str, Any]:
+    ritocco = legame.ritocco if isinstance(legame.ritocco, dict) else {}
+    return {
+        "variante": ritocco.get("variante", "standard"),
+        "privacy": bool(ritocco.get("privacy", False)),
+    }
+
+
+def _legame_della_foto(post: Post, foto_id: int) -> Any | None:
+    corrente = post.versione_corrente
+    if corrente is None:
+        return None
+    return next((l for l in corrente.legami_foto if l.foto_id == foto_id), None)
+
+
+def _ritocca_un_post(
+    db: Session, record: Post, foto_id: int, scelta: dict[str, Any], utente_id: int
+) -> VersionePost:
+    """La versione ``ritocco_foto`` di un post: stesso testo e stessi avvisi, la scelta sulla foto."""
+    corrente = record.versione_corrente
+    nuova = VersionePost(
+        post_id=record.id,
+        numero=corrente.numero + 1,
+        testo=corrente.testo,
+        hashtag=list(corrente.hashtag),
+        autore_id=utente_id,
+        tipo_intervento="ritocco_foto",
+        errori_validazione=corrente.errori_validazione,  # il testo non cambia: stesso esito
+    )
+    db.add(nuova)
+    db.flush()
+    for legame in corrente.legami_foto:
+        cambiata = legame.foto_id == foto_id
+        db.add(
+            VersionePostFoto(
+                versione_id=nuova.id,
+                posizione=legame.posizione,
+                foto_id=legame.foto_id,
+                ritocco=scelta if cambiata else legame.ritocco,
+                render=None if cambiata else legame.render,  # il render nuovo si rifà
+            )
+        )
+    _azzera_spunta(record)
+    db.flush()
+    db.expire(record, ["versioni"])
+    db.expire(nuova, ["legami_foto"])
+    if record.stato == APPROVATO:
+        rendi_versione(
+            db, record, nuova
+        )  # R-16: una versione approvata ha il suo render
+    return nuova
+
+
+def ritocca_foto(
+    db: Session,
+    post_id: int,
+    variante: str | None,
+    privacy: bool | None,
+    utente_id: int,
+    adesso: datetime,
+) -> EsitoRitocco:
+    """Sceglie la variante della foto (Originale, Standard, Spinta) e se oscurare le zone (ADR-124, RT-28).
+
+    Nasce una versione ``ritocco_foto`` con lo stesso testo e gli stessi hashtag, la scelta
+    sul legame della foto e ``utente_id`` come autore; la spunta cade; non conta cicli (R-03)
+    e non chiama l'AI. La scelta vale per **tutti** i post della campagna che usano la stessa
+    foto (altro canale, stesso risultato: l'intervallo dei rapporti è unico); quelli dove
+    l'intervento non è ammesso restano come sono e la risposta lo dice. Dopo l'approvazione la
+    versione nasce approvata e la sua foto si rende subito (RT-07).
+
+    ``variante`` o ``privacy`` mancanti restano quelli di adesso.
+
+    Raises:
+        NonTrovato: il post non esiste.
+        StatoNonValido: ``ritocca_foto`` non è ammesso sul post (409), oppure la scelta è già
+            quella del post.
+        DatiNonValidi: variante non ammessa o non disponibile per la foto; niente da cambiare
+            (422).
+    """
+    record = _post(db, post_id)
+    verifica_intervento(db, record, RITOCCA_FOTO, adesso)
+    if variante is None and privacy is None:
+        raise DatiNonValidi("Dì quale variante o se oscurare le zone.")
+    principale = min(record.versione_corrente.legami_foto, key=lambda l: l.posizione)
+    foto_id = principale.foto_id
+    disponibili, _ = campagne.disponibilita_varianti(db, foto_id)
+    if variante is not None and variante not in disponibili:
+        raise DatiNonValidi("Questa variante non è disponibile per la foto.")
+    if privacy and not campagne.zone_attive(
+        campagne.foto_per_id(db, [foto_id])[0], True
+    ):
+        raise DatiNonValidi("Questa foto non ha zone di privacy da oscurare.")
+
+    scelta_attuale = _scelta_di(principale)
+    scelta = {
+        "variante": variante if variante is not None else scelta_attuale["variante"],
+        "privacy": privacy if privacy is not None else scelta_attuale["privacy"],
+    }
+    if scelta == scelta_attuale:
+        raise StatoNonValido("La foto è già così.")
+
+    versioni: list[VersionePost] = []
+    non_aggiornati: list[tuple[int, str]] = []
+    for uno in service_post_della_campagna(db, record.campagna_id):
+        legame = _legame_della_foto(uno, foto_id)
+        if legame is None or uno.stato in STATI_CHIUSI:
+            continue
+        if uno.id != record.id:
+            if _scelta_di(legame) == scelta:
+                continue
+            try:
+                verifica_intervento(db, uno, RITOCCA_FOTO, adesso)
+            except StatoNonValido as motivo:
+                non_aggiornati.append((uno.id, str(motivo)))
+                continue
+        versioni.append(_ritocca_un_post(db, uno, foto_id, scelta, utente_id))
+    return EsitoRitocco(versioni, non_aggiornati)

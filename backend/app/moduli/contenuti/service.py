@@ -905,6 +905,25 @@ def cambia_foto(
     return _cambia_foto(db, post_id, foto_id, utente_id, adesso, riscrivi_testo)
 
 
+def ritocca_foto(
+    db: Session,
+    post_id: int,
+    variante: str | None,
+    privacy: bool | None,
+    utente_id: int,
+    adesso: datetime,
+):
+    """Sceglie la variante della foto e le zone di privacy: nasce una versione ``ritocco_foto`` (RT-28).
+
+    Usata da ``revisione`` per ``POST /post/{id}/ritocca-foto`` (plan §6). Vale per tutti i
+    post della campagna con la stessa foto; ritorna le versioni nate e i post dove l'intervento
+    non era ammesso. Vedi ``interventi.ritocca_foto``.
+    """
+    from .interventi import ritocca_foto as _ritocca_foto  # importa questo modulo
+
+    return _ritocca_foto(db, post_id, variante, privacy, utente_id, adesso)
+
+
 def puo_rigenerare(db: Session, post_id: int, adesso: datetime) -> bool:
     """Vero se per il post si può chiedere una rigenerazione del testo (R-03, R-31).
 

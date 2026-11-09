@@ -30,6 +30,7 @@ from .schemas import (
     PostRigenera,
     PostRigeneraImmagine,
     PostRiprogramma,
+    PostRitoccaFoto,
     PostSposta,
     VediCampagnaSchema,
 )
@@ -298,6 +299,21 @@ def anteprima_foto_post(
             "X-Content-Type-Options": "nosniff",
             "Cache-Control": "private, no-cache",
         },
+    )
+
+
+@router.post("/post/{post_id}/ritocca-foto")
+def ritocca_foto_post(
+    post_id: IdPercorso,
+    corpo: PostRitoccaFoto,
+    db: Annotated[Session, Depends(get_db)],
+    utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
+    ora: Annotated[datetime, Depends(adesso)],
+) -> dict:
+    """Sceglie la variante della foto e le zone di privacy: versione `ritocco_foto`
+    (ADR-124, RT-28). Vale per i post della campagna con la stessa foto."""
+    return interventi.ritocca_foto(
+        db, post_id, corpo.variante, corpo.privacy, utente, ora
     )
 
 

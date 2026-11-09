@@ -18,13 +18,14 @@ from tests.moduli.contenuti.fabbrica import (
 ADESSO = datetime(2030, 1, 5, 9, tzinfo=timezone.utc)
 
 
-def test_in_revisione_cinque_interventi(db):
+def test_in_revisione_sei_interventi(db):
     uno = post_da_approvare(db)
     assert interventi_ammessi(uno, "in_revisione", ADESSO) == [
         "modifica",
         "rigenera",
         "rigenera_immagine",
         "cambia_foto",
+        "ritocca_foto",
         "sposta",
     ]
 
@@ -37,6 +38,7 @@ def test_approvato_oltre_il_margine(db):
         assert interventi_ammessi(uno, stato, ADESSO) == [
             "modifica",
             "cambia_foto",
+            "ritocca_foto",
             "sposta",
             "annulla",
         ]
@@ -60,7 +62,7 @@ def test_con_un_intervento_in_corso_nessuno(db):
         verifica_intervento(db, uno, "sposta", ADESSO)
     # Dopo 10 minuti vale come fallito (R-31).
     uno.intervento_dal = ADESSO - timedelta(minutes=11)
-    assert len(interventi_ammessi(uno, "in_revisione", ADESSO)) == 5
+    assert len(interventi_ammessi(uno, "in_revisione", ADESSO)) == 6
 
 
 def test_fallito_solo_riprogramma(db):
@@ -79,7 +81,7 @@ def test_immagine_ai_ammette_cambia_foto(db):
         "rigenera_immagine",
         "cambia_foto",
         "sposta",
-    ]
+    ]  # un'immagine AI si rigenera o si cambia, ma non si ritocca (RT-28)
 
 
 def test_rigenerazioni_finite_senza_rigenera(db):
@@ -88,6 +90,7 @@ def test_rigenerazioni_finite_senza_rigenera(db):
         "modifica",
         "rigenera_immagine",
         "cambia_foto",
+        "ritocca_foto",
         "sposta",
     ]
     with pytest.raises(StatoNonValido, match="Le 3 rigenerazioni"):

@@ -115,6 +115,32 @@ def cambia_foto(
     return nuova
 
 
+def ritocca_foto(
+    db: Session,
+    post_id: int,
+    variante: str | None,
+    privacy: bool | None,
+    utente: accesso.Utente,
+    adesso: datetime,
+) -> dict:
+    """Sceglie la variante della foto e se oscurare le zone: versione ``ritocco_foto`` (ADR-124, RT-28).
+
+    I controlli e le versioni sono in ``contenuti.ritocca_foto()``: vale per tutti i post
+    della campagna con la stessa foto, e la risposta dice quali non si sono potuti
+    aggiornare. Dopo l'approvazione le versioni nuove hanno subito la riga ``approvazione``.
+    """
+    esito = contenuti.ritocca_foto(db, post_id, variante, privacy, utente.id, adesso)
+    for versione in esito.versioni:
+        _approva_se_approvata(db, versione, utente)
+    return {
+        "stato": "ok",
+        "post_aggiornati": [versione.post_id for versione in esito.versioni],
+        "post_non_aggiornati": [
+            {"post_id": uno, "motivo": motivo} for uno, motivo in esito.non_aggiornati
+        ],
+    }
+
+
 def sposta(
     db: Session, post_id: int, utente_id: int, data_ora: datetime, adesso: datetime
 ):

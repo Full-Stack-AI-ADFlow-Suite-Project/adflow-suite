@@ -63,6 +63,7 @@ MODIFICA = "modifica"
 RIGENERA = "rigenera"
 RIGENERA_IMMAGINE = "rigenera_immagine"
 CAMBIA_FOTO = "cambia_foto"
+RITOCCA_FOTO = "ritocca_foto"  # ADR-124: scegliere la variante della foto e la privacy
 SPOSTA = "sposta"
 ANNULLA = "annulla"
 RIPROGRAMMA = "riprogramma"
@@ -71,6 +72,7 @@ INTERVENTI = (
     RIGENERA,
     RIGENERA_IMMAGINE,
     CAMBIA_FOTO,
+    RITOCCA_FOTO,
     SPOSTA,
     ANNULLA,
     RIPROGRAMMA,
@@ -84,10 +86,14 @@ MAX_RIGENERAZIONI_IMMAGINE = 3
 # Gli stati della campagna si scrivono per nome (plan §6).
 INTERVENTI_AMMESSI: dict[tuple[str, str], frozenset[str]] = {
     ("in_revisione", DA_APPROVARE): frozenset(
-        {MODIFICA, RIGENERA, RIGENERA_IMMAGINE, CAMBIA_FOTO, SPOSTA}
+        {MODIFICA, RIGENERA, RIGENERA_IMMAGINE, CAMBIA_FOTO, RITOCCA_FOTO, SPOSTA}
     ),
-    ("attiva", APPROVATO): frozenset({MODIFICA, CAMBIA_FOTO, SPOSTA, ANNULLA}),
-    ("sospesa", APPROVATO): frozenset({MODIFICA, CAMBIA_FOTO, SPOSTA, ANNULLA}),
+    ("attiva", APPROVATO): frozenset(
+        {MODIFICA, CAMBIA_FOTO, RITOCCA_FOTO, SPOSTA, ANNULLA}
+    ),
+    ("sospesa", APPROVATO): frozenset(
+        {MODIFICA, CAMBIA_FOTO, RITOCCA_FOTO, SPOSTA, ANNULLA}
+    ),
     ("attiva", FALLITO): frozenset({RIPROGRAMMA}),
     ("sospesa", FALLITO): frozenset({RIPROGRAMMA}),
 }

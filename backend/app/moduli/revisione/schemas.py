@@ -81,6 +81,19 @@ class PostAnnulla(_TestiSicuri):
     nota: str = Field(min_length=1)
 
 
+class PostRitoccaFoto(BaseModel):
+    """Corpo di ``POST /post/{id}/ritocca-foto`` (ADR-124, RT-28).
+
+    ``variante`` è la scelta fra Originale, Standard e Spinta; ``privacy`` dice se
+    oscurare le zone proposte. Quello che manca resta com'è; almeno uno dei due.
+    """
+
+    model_config = ConfigDict(extra="forbid")
+
+    variante: Literal["originale", "standard", "spinta"] | None = None
+    privacy: bool | None = None
+
+
 class PostCambiaFoto(_TestiSicuri):
     """Corpo di ``POST /post/{id}/cambia-foto`` (R-36, ADR-119).
 
