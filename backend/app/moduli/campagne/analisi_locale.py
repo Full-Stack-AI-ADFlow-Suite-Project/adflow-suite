@@ -76,12 +76,20 @@ def _arrotonda(valore: Any) -> Any:
 
 
 def analisi_locale(
-    originale: bytes, copia: Image.Image
+    originale: bytes, copia: Image.Image, con_candidati: bool = True
 ) -> tuple[dict[str, Any], dict[str, str], dict[str, Any]]:
-    """(locale, fasce, candidati) di una foto: misure, fasce e candidati sulla copia di lavoro."""
+    """(locale, fasce, candidati) di una foto: misure, fasce e candidati sulla copia di lavoro.
+
+    Senza ``con_candidati`` (il ricalcolo di una foto già analizzata, RT-27) i candidati sono
+    vuoti: nessuna risposta dell'AI li cita, quindi un ``V1`` nuovo non avrebbe senso.
+    """
     misure = preanalisi.misura(copia, originale)
     fasce = preanalisi.fasce(misure)
-    trovati = preanalisi.candidati(copia)
+    trovati = (
+        preanalisi.candidati(copia)
+        if con_candidati
+        else {"volti": [], "quadrilateri": []}
+    )
     esif = misure.pop("exif")
     locale = _arrotonda(
         {

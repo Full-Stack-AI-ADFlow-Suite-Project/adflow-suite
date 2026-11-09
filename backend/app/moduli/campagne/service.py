@@ -1620,6 +1620,46 @@ def ritocco_della_foto(
         return None
 
 
+def ricalcola_ritocco(db: Session, campagna_id: int | None = None) -> int:
+    """Calcola misure e varianti, senza AI, per le foto già analizzate che non le hanno (RT-27).
+
+    Sono le foto analizzate prima della corsia (analisi v3) o rimaste senza ritocco per un
+    errore: idonee, con ``analisi_ai`` ma senza ``ritocco``. Niente candidati (l'AI non li ha
+    citati: niente raddrizzamento né privacy proposta) e niente AI: la diagnosi non ha note,
+    quindi le correzioni di luce e di geometria non scattano; restano le regole di oggi e la
+    nitidezza. Si può rilanciare: le foto già fatte non si toccano. Restituisce quante ne ha
+    ricalcolate; una foto illeggibile si salta.
+    """
+    interrogazione = select(Foto).where(Foto.analisi_ai.is_not(None)).order_by(Foto.id)
+    if campagna_id is not None:
+        interrogazione = interrogazione.where(Foto.campagna_id == campagna_id)
+    archivio = ottieni_archivio()
+    fatte = 0
+    for foto in db.scalars(interrogazione):
+        analisi = foto.analisi_ai
+        if (
+            not isinstance(analisi, dict)
+            or analisi.get("idonea") is not True
+            or analisi.get("ritocco") is not None
+        ):
+            continue
+        try:
+            originale = archivio.leggi(foto.file)
+            copia = apri_in_srgb(originale, lato_max=analisi_locale.LATO_LAVORO)
+            locale, _, _ = analisi_locale.analisi_locale(
+                originale, copia, con_candidati=False
+            )
+        except (FileNotFoundError, DatiNonValidi):
+            continue
+        ritocco = ritocco_della_foto(foto, analisi.get("soggetto_box"), None, locale)
+        if ritocco is None:
+            continue
+        foto.analisi_ai = {**analisi, "locale": locale, "ritocco": ritocco}
+        fatte += 1
+    db.flush()
+    return fatte
+
+
 def zone_attive(foto: Foto, privacy: Any) -> list[dict[str, Any]]:
     """Le zone di privacy che l'operatore ha acceso: tutte (``True``) o quelle con quegli id."""
     analisi = foto.analisi_ai if isinstance(foto.analisi_ai, dict) else {}

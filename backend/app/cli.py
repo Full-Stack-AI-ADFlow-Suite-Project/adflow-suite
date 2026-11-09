@@ -8,6 +8,7 @@ Da ``backend/``::
     python -m app.cli prova-ai --campagna ID
     python -m app.cli prova-prompt --da-campagna ID
     python -m app.cli demo --foto CARTELLA [--quante N]
+    python -m app.cli ricalcola-ritocco [--campagna ID]
     python -m app.cli pubblica-ora
 
 La password si chiede a terminale: non passa dagli argomenti né finisce in git.
@@ -25,6 +26,11 @@ Va lanciato a worker fermo: l'invio mette in coda anche il job di generazione.
 seed, la bottega della demo con il profilo e una campagna in bozza pronta da
 inviare, con le foto vere prese dalla cartella. Profilo e testi si cambiano con
 un ``demo.json`` nella stessa cartella. Le foto non entrano in git.
+
+``ricalcola-ritocco`` (ADR-124, RT-27) calcola misure e varianti, **senza AI**, per le foto
+già analizzate che non le hanno (analisi precedenti alla corsia del ritocco): niente
+candidati, quindi niente raddrizzamento né privacy proposta. Si può rilanciare: le foto già
+fatte non si toccano.
 
 ``pubblica-ora`` è per le prove a mano: pubblica subito tutti i post approvati
 delle campagne attive, senza aspettare la loro data, con il provider social di
@@ -569,6 +575,13 @@ def _parser() -> argparse.ArgumentParser:
         default=None,
         help="foto da caricare (default e 0: tutte quelle valide della cartella)",
     )
+    ricalcolo = comandi.add_parser(
+        "ricalcola-ritocco",
+        help="misure e varianti, senza AI, per le foto già analizzate che non le hanno",
+    )
+    ricalcolo.add_argument(
+        "--campagna", type=int, default=None, help="solo le foto di questa campagna"
+    )
     comandi.add_parser(
         "pubblica-ora",
         help="pubblica subito i post approvati delle campagne attive (prove a mano)",
@@ -612,6 +625,10 @@ def main(argv: Sequence[str] | None = None) -> int:
                 prima = riepilogo_ai_della_campagna(db, argomenti.da_campagna)
             print("\n" + rapporto_confronto(prima, esito.riepilogo))
             return 0 if esito.errore is None else 1
+        elif argomenti.comando == "ricalcola-ritocco":
+            with transazione() as db:
+                fatte = campagne.ricalcola_ritocco(db, argomenti.campagna)
+            print(f"Ricalcolate {fatte} foto.")
         elif argomenti.comando == "pubblica-ora":
             ora = adesso() + timedelta(days=366)
             with transazione() as db:
