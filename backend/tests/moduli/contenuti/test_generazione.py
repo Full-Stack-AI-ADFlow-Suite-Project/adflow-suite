@@ -23,6 +23,7 @@ from app.core.config import leggi_impostazioni
 from app.core.coda import GENERA_CAMPAGNA, accoda
 from app.core.coda import app as coda_app
 from app.moduli.artigiani import service as artigiani
+from app.moduli.campagne import analisi_locale
 from app.moduli.campagne import service as campagne
 from app.moduli.contenuti import generazione, jobs
 from app.moduli.contenuti.models import ErroreGenerazione, Post
@@ -473,18 +474,19 @@ def test_rt03_la_copia_si_prepara_una_volta_per_foto_anche_se_il_gruppo_riparte(
     _metti_i_file(db, campagna, archivio)
     guasta = _foto_ids(db, campagna)[2]
     ai.comanda_errore("analizza_gruppo", "richiesta", volte=1, foto_id=guasta)
-    preparate: list[int] = []
-    originale = campagne.copia_per_ai
+    decodifiche: list[int] = []
+    originale = analisi_locale.apri_in_srgb
 
-    def conta(db_, foto_id):
-        preparate.append(foto_id)
-        return originale(db_, foto_id)
+    def conta(dati, *args, **kwargs):
+        decodifiche.append(len(dati))
+        return originale(dati, *args, **kwargs)
 
-    monkeypatch.setattr(campagne, "copia_per_ai", conta)
+    monkeypatch.setattr(analisi_locale, "apri_in_srgb", conta)
 
     assert _job(campagna.id) == 1
 
-    assert sorted(preparate) == sorted(set(preparate))  # nessuna foto due volte
+    # una sola decodifica per foto, anche se il gruppo è ripartito (RT-19)
+    assert len(decodifiche) == 6
     assert len(_chiamate(ai, "analizza_gruppo")) >= 2  # il gruppo è ripartito
 
 

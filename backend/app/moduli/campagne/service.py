@@ -51,6 +51,7 @@ from .domain import (
     TRANSIZIONI,
 )
 from .immagini import MAX_FOTO_PER_GRUPPO, analizza_e_valida_immagine
+from . import analisi_locale
 from .colore import apri_in_srgb
 from .esecutore import (
     VERSIONE_ESECUTORE,
@@ -1614,6 +1615,31 @@ def pota_anteprime(
         if archivio.elimina_derivato(derivato.foto_id, derivato.chiave):
             tolti += 1
     return tolti
+
+
+def prepara_analisi(db: Session, foto_ids: Iterable[int]) -> dict[int, dict[str, Any]]:
+    """Per ogni foto: ``{"immagine", "contesto", "locale"}`` per l'analisi dell'AI (ADR-124, RT-19).
+
+    Una decodifica per foto: da quella si ricavano la copia per l'AI, le misure, le fasce
+    e i candidati (vedi ``analisi_locale``). Una foto che non si trova o non si legge ha
+    ``immagine`` ``None``, ``contesto`` vuoto e ``locale`` ``None``: l'adattatore la
+    rifiuta come richiesta su quella foto e le altre vanno avanti (R-35). Un errore nella
+    sola pre-analisi lascia la foto senza contesto e senza ``locale``.
+    """
+    archivio = ottieni_archivio()
+    preparate: dict[int, dict[str, Any]] = {}
+    for foto_id in foto_ids:
+        vuota = {"immagine": None, "contesto": "", "locale": None}
+        foto = db.get(Foto, foto_id)
+        if foto is None:
+            preparate[foto_id] = vuota
+            continue
+        try:
+            originale = archivio.leggi(foto.file)
+            preparate[foto_id] = analisi_locale.prepara_foto(originale, foto_id)
+        except (FileNotFoundError, DatiNonValidi):
+            preparate[foto_id] = vuota
+    return preparate
 
 
 def foto_sistemata(

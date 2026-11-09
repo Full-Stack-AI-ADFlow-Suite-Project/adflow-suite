@@ -218,38 +218,37 @@ def _senza_campagna(contesto: dict[str, Any]) -> dict[str, Any]:
 # --- Analisi ------------------------------------------------------------------
 
 
-def _foto_ai(foto: Any, immagine: bytes | None = None) -> FotoAI:
+def _foto_ai(foto: Any, immagine: bytes | None = None, contesto: str = "") -> FotoAI:
     analisi = foto.analisi_ai if isinstance(foto.analisi_ai, dict) else None
     return FotoAI(
-        id=foto.id, file=foto.file, mime=foto.mime, analisi=analisi, immagine=immagine
+        id=foto.id,
+        file=foto.file,
+        mime=foto.mime,
+        analisi=analisi,
+        immagine=immagine,
+        contesto=contesto,
     )
 
 
-def _copie_per_l_ai(db: Session, foto: list[Any]) -> dict[int, bytes | None]:
-    """La copia sRGB di ogni foto da analizzare, preparata dal modulo campagne (RT-03).
-
-    Una foto che non si trova o non si legge ha ``None``: l'adattatore la rifiuta
-    come richiesta su quella foto e la tappa continua con le altre (R-35).
-    """
-    copie: dict[int, bytes | None] = {}
-    for una in foto:
-        try:
-            copie[una.id] = campagne.copia_per_ai(db, una.id)
-        except (NonTrovato, DatiNonValidi):
-            copie[una.id] = None
-    return copie
-
-
 def _gruppo_ai(
-    gruppo: Any, foto: list[Any], copie: dict[int, bytes | None] | None = None
+    gruppo: Any,
+    foto: list[Any],
+    preparate: dict[int, dict[str, Any]] | None = None,
 ) -> GruppoAI:
-    """Il gruppo per l'AI; con ``copie`` le foto portano il JPEG da mandare (analisi)."""
-    copie = copie or {}
+    """Il gruppo per l'AI; con ``preparate`` le foto portano il JPEG e il contesto (analisi)."""
+    preparate = preparate or {}
     return GruppoAI(
         id=gruppo.id,
         descrizione=gruppo.descrizione,
         da_usare_il=gruppo.da_usare_il,
-        foto=[_foto_ai(una, copie.get(una.id)) for una in foto],
+        foto=[
+            _foto_ai(
+                una,
+                preparate.get(una.id, {}).get("immagine"),
+                preparate.get(una.id, {}).get("contesto", ""),
+            )
+            for una in foto
+        ],
     )
 
 
@@ -273,15 +272,18 @@ def _analizza(
     risultati: dict[int, dict[str, Any]] = {}
     with _nella_tappa(ANALISI):
         ai = ottieni_ai()
-        # Una decodifica per foto, anche se una richiesta fallita fa ripartire il gruppo.
-        copie = _copie_per_l_ai(db, da_fare)
+        # Una decodifica per foto, anche se una richiesta fallita fa ripartire il gruppo
+        # (ADR-124, RT-19): copia per l'AI, misure, fasce e candidati.
+        preparate = campagne.prepara_analisi(db, [una.id for una in da_fare])
         while da_fare:
             solo = da_fare[0].id if len(da_fare) == 1 else None
             try:
                 with service.contesto_chiamata_ai(
                     campagna_id, foto_id=solo, tentativo=esecuzione
                 ):
-                    risposta = ai.analizza_gruppo(_gruppo_ai(gruppo, da_fare, copie))
+                    risposta = ai.analizza_gruppo(
+                        _gruppo_ai(gruppo, da_fare, preparate)
+                    )
             except ErroreAI as errore:
                 ids = {foto.id for foto in da_fare}
                 if errore.tipo in ("richiesta", "rifiuto") and errore.foto_id in ids:
