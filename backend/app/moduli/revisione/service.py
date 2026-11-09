@@ -178,6 +178,7 @@ def approva(
                 esito="approvato",
             )
         )
+    contenuti.rendi_foto_approvate(db, campagna_id)
     campagne.registra_decisione(
         db, record, utente.id, "approvata", motivo=None, nota=None, foto_segnate=[]
     )

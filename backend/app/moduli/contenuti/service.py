@@ -4,6 +4,7 @@ from collections.abc import Iterable, Iterator
 from contextlib import contextmanager
 from datetime import datetime, timedelta
 from decimal import Decimal
+import logging
 from typing import Any
 
 from sqlalchemy import select, or_, and_, func
@@ -42,6 +43,61 @@ from .schemas import (
     RiepilogoAI,
     ValutazioneAISchema,
 )
+
+logger = logging.getLogger(__name__)
+
+# Render delle foto approvate (ADR-124, RT-07). Il legame foto-versione porta la
+# scelta dell'operatore (`ritocco`) e la chiave del render approvato (`render`):
+# la foto che esce è sempre quella approvata, mai una nuova.
+
+
+def _rendi_legame(db: Session, post: Post, legame: Any) -> str:
+    chiave = campagne.rendi_per_canale(db, legame.foto_id, post.canale, legame.ritocco)
+    legame.render = chiave
+    return chiave
+
+
+def rendi_versione(db: Session, post: Post, versione: VersionePost) -> None:
+    """Rende e fissa il render di ogni foto della versione che non ce l'ha ancora.
+
+    Se un render non si riesce a fare (file perso o illeggibile) il legame resta
+    senza `render` e la pubblicazione lo rende in quel momento; l'approvazione
+    non si ferma per questo.
+    """
+    for legame in versione.legami_foto:
+        if legame.render is not None:
+            continue
+        try:
+            _rendi_legame(db, post, legame)
+        except (NonTrovato, DatiNonValidi):
+            logger.warning(
+                "Render non riuscito: post %s, foto %s", post.id, legame.foto_id
+            )
+    db.flush()
+
+
+def rendi_foto_approvate(db: Session, campagna_id: int) -> None:
+    """Rende e fissa le foto di tutti i post approvati della campagna (R-14, RT-07)."""
+    for uno in post_della_campagna(db, campagna_id):
+        if uno.stato == APPROVATO and uno.versione_corrente is not None:
+            rendi_versione(db, uno, uno.versione_corrente)
+
+
+def render_approvato(db: Session, post: Post, legame: Any) -> tuple[str, bytes]:
+    """La chiave e i byte del render approvato del legame, per la pubblicazione.
+
+    Se il post era stato approvato prima della corsia (nessun `render`), o il
+    file non c'è più, si rende in quel momento e si fissa la chiave. Un render
+    già fissato non si rifà mai con un'altra versione dell'esecutore.
+    """
+    if legame.render is not None:
+        try:
+            return legame.render, campagne.leggi_render(legame.foto_id, legame.render)
+        except NonTrovato:
+            pass
+    chiave = _rendi_legame(db, post, legame)
+    db.flush()
+    return chiave, campagne.leggi_render(legame.foto_id, chiave)
 
 
 def post_della_campagna(

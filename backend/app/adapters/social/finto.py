@@ -22,6 +22,8 @@ class SocialFinto(SocialAdapter):
     def __init__(self) -> None:
         self._conta = 0
         self.pubblicazioni: list[dict] = []
+        # I byte inviati a ogni chiamata, per i test sul render pubblicato (RT-07).
+        self.foto_inviate: list[list[bytes]] = []
 
     def pubblica(
         self,
@@ -33,6 +35,7 @@ class SocialFinto(SocialAdapter):
     ) -> EsitoPubblicazione:
         if not foto:
             raise ValueError("La pubblicazione richiede almeno una foto.")
+        self.foto_inviate.append([bytes(f) for f in foto])
         self.pubblicazioni.append(
             {
                 "canale": canale,

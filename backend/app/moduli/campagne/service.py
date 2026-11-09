@@ -52,7 +52,13 @@ from .domain import (
 )
 from .immagini import MAX_FOTO_PER_GRUPPO, analizza_e_valida_immagine
 from .colore import apri_in_srgb
-from .esecutore import VERSIONE_ESECUTORE, Comando, esegui, sistema_foto_buffer
+from .esecutore import (
+    VERSIONE_ESECUTORE,
+    Comando,
+    comando_originale,
+    esegui,
+    sistema_foto_buffer,
+)
 from .foto_pubblica import (
     DURATA_PREDEFINITA_SECONDI,
     componi_firma as componi_firma_foto,
@@ -1563,6 +1569,19 @@ def rendi(db: Session, foto_id: int, comando: Comando, zone: Iterable[Any] = ())
     return chiave
 
 
+def rendi_per_canale(
+    db: Session, foto_id: int, canale: str, ritocco: dict[str, Any] | None = None
+) -> str:
+    """Rende la foto per il canale secondo la scelta dell'operatore (``ritocco``) e dà la chiave.
+
+    Finché non ci sono le varianti (RT-25, D6) ogni scelta è la variante
+    Originale: le regole di R-42 senza ritocco, col riquadro del soggetto
+    dell'analisi.
+    """
+    foto = _foto_con_file(db, foto_id)
+    return rendi(db, foto_id, comando_originale(foto, canale=canale))
+
+
 def leggi_render(foto_id: int, chiave: str) -> bytes:
     """I byte del render salvato.
 
@@ -1636,8 +1655,12 @@ def url_foto_pubblica(
     canale: str = "instagram",
     durata_secondi: int = DURATA_PREDEFINITA_SECONDI,
     url_base: str | None = None,
+    chiave: str | None = None,
 ) -> str:
     """Restituisce l'URL pubblico firmato a tempo per il canale (spec R-42, CA-81).
+
+    Con ``chiave`` l'indirizzo serve il render salvato e la firma lo copre
+    (ADR-124, RT-07); senza, la foto sistemata al volo come prima.
 
     Usato da ``pubblicazione`` e dall'adattatore Meta per Instagram (plan §5, brief-meta §1).
     Verifica che la foto esista nel database prima di generare l'indirizzo.
@@ -1653,6 +1676,7 @@ def url_foto_pubblica(
         canale=canale,
         durata_secondi=durata_secondi,
         url_base=url_base,
+        chiave=chiave,
     )
 
 

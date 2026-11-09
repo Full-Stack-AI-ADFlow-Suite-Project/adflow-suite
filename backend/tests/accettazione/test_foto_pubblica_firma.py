@@ -121,3 +121,76 @@ def test_i_tempi_dei_404_non_si_distinguono(due_foto, client):
     # soft: i 404 devono restare dello stesso ordine tra loro (nessuno 10 volte
     # più lento degli altri rivelerebbe quale controllo ha fermato la richiesta)
     assert max(rifiutate) < 10 * (min(rifiutate) + 1), medie
+
+
+# --- Il render salvato (RT-07, ADR-124): la firma copre anche la chiave ------------
+
+
+def _url_render(foto_id: int, firma: str, chiave: str) -> str:
+    return (
+        f"/api/foto/{foto_id}/pubblica?canale=instagram&firma={firma}&chiave={chiave}"
+    )
+
+
+@pytest.fixture
+def render_di_a(db: Session, due_foto):
+    """Il render salvato della foto A e la sua chiave."""
+    from app.moduli.campagne.esecutore import Comando, comando_originale
+
+    chiave = service.rendi(db, due_foto["a"], comando_originale())
+    altra = service.rendi(db, due_foto["a"], Comando(ruota=90))
+    return {"chiave": chiave, "altra": altra}
+
+
+def test_con_la_chiave_giusta_serve_il_render_salvato(due_foto, render_di_a, client):
+    chiave = render_di_a["chiave"]
+    scadenza = int((datetime.now(timezone.utc) + timedelta(minutes=30)).timestamp())
+    firma = foto_pubblica.componi_firma(due_foto["a"], "instagram", scadenza, chiave)
+    risposta = client.get(_url_render(due_foto["a"], firma, chiave))
+    assert risposta.status_code == 200
+    assert risposta.content == service.leggi_render(due_foto["a"], chiave)
+
+
+def test_la_chiave_alterata_nell_url_da_404(due_foto, render_di_a, client):
+    """La firma copre la chiave: scambiarla con quella di un altro render non basta."""
+    scadenza = int((datetime.now(timezone.utc) + timedelta(minutes=30)).timestamp())
+    firma = foto_pubblica.componi_firma(
+        due_foto["a"], "instagram", scadenza, render_di_a["chiave"]
+    )
+    assert (
+        client.get(_url_render(due_foto["a"], firma, render_di_a["altra"])).status_code
+        == 404
+    )
+
+
+def test_chiave_mancante_o_non_valida_con_firma_della_chiave_da_404(
+    due_foto, render_di_a, client
+):
+    scadenza = int((datetime.now(timezone.utc) + timedelta(minutes=30)).timestamp())
+    firma = foto_pubblica.componi_firma(
+        due_foto["a"], "instagram", scadenza, render_di_a["chiave"]
+    )
+    assert client.get(_url(due_foto["a"], firma)).status_code == 404
+    for chiave in ("", "abc", "../" * 22, "G" * 64, "a" * 64):
+        assert client.get(_url_render(due_foto["a"], firma, chiave)).status_code == 404
+
+
+def test_la_firma_con_chiave_non_apre_la_foto_di_un_altra(
+    due_foto, render_di_a, client
+):
+    scadenza = int((datetime.now(timezone.utc) + timedelta(minutes=30)).timestamp())
+    firma = foto_pubblica.componi_firma(
+        due_foto["a"], "instagram", scadenza, render_di_a["chiave"]
+    )
+    risposta = client.get(_url_render(due_foto["b"], firma, render_di_a["chiave"]))
+    assert risposta.status_code == 404
+
+
+def test_la_firma_senza_chiave_non_vale_con_una_chiave(due_foto, render_di_a, client):
+    """Un vecchio indirizzo non si può trasformare in uno che serve un render."""
+    scadenza = int((datetime.now(timezone.utc) + timedelta(minutes=30)).timestamp())
+    firma = foto_pubblica.componi_firma(due_foto["a"], "instagram", scadenza)
+    assert (
+        client.get(_url_render(due_foto["a"], firma, render_di_a["chiave"])).status_code
+        == 404
+    )

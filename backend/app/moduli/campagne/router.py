@@ -249,8 +249,13 @@ def scarica_foto_pubblica(
     canale: Annotated[str | None, Query()] = None,
     firma: Annotated[str | None, Query()] = None,
     scadenza: Annotated[str | None, Query()] = None,
+    chiave: Annotated[str | None, Query()] = None,
 ) -> Response:
-    """Restituisce la foto sistemata per il canale con firma a tempo (spec R-42, CA-81).
+    """Restituisce la foto per il canale con firma a tempo (spec R-42, CA-81).
+
+    Con ``chiave`` serve il render salvato che la firma copre (ADR-124, RT-07);
+    senza, gli indirizzi emessi prima continuano a servire la foto sistemata al
+    volo, finché non scadono.
 
     Accessibile senza autenticazione o sessione (utilizzato da Meta/Instagram per scaricare la foto).
     Se la firma è alterata, scaduta, mancante o la foto non esiste, risponde con 404
@@ -272,11 +277,15 @@ def scarica_foto_pubblica(
         firma=firma,
         scadenza_ts=scadenza_ts,
         ora=ora,
+        chiave=chiave,
     ):
         raise NonTrovato("Foto non trovata.")
 
     try:
-        dati_jpeg, mime = service.foto_sistemata(db, foto_id=id, canale=canale)
+        if chiave is not None:
+            dati_jpeg, mime = service.leggi_render(id, chiave), "image/jpeg"
+        else:
+            dati_jpeg, mime = service.foto_sistemata(db, foto_id=id, canale=canale)
     except (DatiNonValidi, NonTrovato, ValueError):
         raise NonTrovato("Foto non trovata.")
 

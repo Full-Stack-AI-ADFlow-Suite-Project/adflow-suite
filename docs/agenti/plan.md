@@ -40,7 +40,7 @@ Nulla si cancella: versioni, piani, decisioni ed errori restano. La versione cor
 | campagne | `POST /campagne/{id}/riprova` · `POST /campagne/{id}/richiesta` | operatore |
 | campagne | `POST /campagne/{id}/richiesta/foto` · `POST /campagne/{id}/richiesta/invia` | artigiano |
 | campagne | `GET /foto/{id}/file` · `GET /archivio-foto` | proprietario, operatore |
-| campagne | `GET /foto/{id}/pubblica?canale=&firma=` (indirizzo firmato per Instagram, HMAC da `LOGIN_LIMITE_SEGRETO`); *in arrivo (RT-07)*: `&chiave=` del render, coperta dalla firma | senza sessione |
+| campagne | `GET /foto/{id}/pubblica?canale=&firma=` (indirizzo firmato per Instagram, HMAC da `LOGIN_LIMITE_SEGRETO`); con `&chiave=` serve il render salvato e la firma copre anche la chiave (RT-07); senza chiave, la foto sistemata al volo (indirizzi già emessi) | senza sessione |
 | contenuti | `GET /campagne/{id}/calendario` · `GET /calendario?dal=` | proprietario, operatore |
 | contenuti | `GET /storico-ai` · `/storico-ai/numeri` · `/storico-ai/{id}` · `POST /storico-ai/{id}/voto` | operatore |
 | revisione | `GET /da-approvare` · `GET /artigiani` · `GET /campagne/{id}/post` · `POST /campagne/{id}/approva` · `/respingi` · `/sospendi` · `/riattiva` · `/annulla` | operatore |
@@ -78,7 +78,7 @@ Un modulo legge i dati di un altro solo con le funzioni del `service.py` di quel
 | revisione | `scadenze` (per il tick). È revisione a scrivere le righe `approvazione`, anche quelle delle versioni nate dopo l'approvazione: contenuti non conosce quella tabella |
 | pubblicazione | `pubblica_dovuti` e le sue fasi: `prepara_tentativi`, `avvia_chiamata`, `chiama_social`, `registra_esito`, `chiudi_campagne` |
 
-*In arrivo con la corsia del ritocco (ADR-124):* campagne `copia_per_ai` e `prepara_analisi` (RT-03, RT-19), `rendi`, `leggi_render`, `chiave_render`, `pota_anteprime` (RT-06, fatte); contenuti `rendi_foto_approvate` (RT-07), `ritocca_foto` (RT-28); revisione `approva` che chiama `contenuti.rendi_foto_approvate`. Nessuna modifica a `core/`.
+*In arrivo con la corsia del ritocco (ADR-124):* campagne `copia_per_ai` e `prepara_analisi` (RT-03, RT-19), `rendi`, `leggi_render`, `chiave_render`, `pota_anteprime` (RT-06, fatte), `rendi_per_canale` (RT-07, fatta); contenuti `rendi_foto_approvate`, `rendi_versione`, `render_approvato` (RT-07, fatte; `approva` di revisione le chiama), `ritocca_foto` (RT-28). Nessuna modifica a `core/`.
 
 Una firma si cambia nel task che ne ha bisogno, dicendolo nella PR.
 

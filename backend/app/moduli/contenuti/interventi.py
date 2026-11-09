@@ -49,6 +49,7 @@ from .service import (
     _post,
     contesto_chiamata_ai,
     registra_chiamata_ai,
+    rendi_versione,
 )
 from .validatore import BLOCCO, testo_salvabile, valida_testo
 
@@ -350,8 +351,11 @@ def rigenera_immagine(
         (esito.foto.n_utilizzi or 0) + len(toccati),
     )
     db.flush()
-    for uno in toccati:
+    for uno, nuova in zip(toccati, versioni):
         db.expire(uno, ["versioni"])
+        db.expire(nuova, ["legami_foto"])
+        if uno.stato == APPROVATO:
+            rendi_versione(db, uno, nuova)  # il render della foto nuova (RT-07)
 
     if riscrivi_testo:
         for uno in toccati:
@@ -545,6 +549,9 @@ def cambia_foto(
                 versione_id=nuova.id,
                 posizione=legame.posizione,
                 foto_id=scelta.id if legame.posizione == sostituita else legame.foto_id,
+                # la foto che resta porta la sua scelta e il suo render (RT-05)
+                ritocco=None if legame.posizione == sostituita else legame.ritocco,
+                render=None if legame.posizione == sostituita else legame.render,
             )
         )
     campagne.aggiorna_foto(db, scelta.id, scelta.analisi_ai, scelta.n_utilizzi + 1)
@@ -558,6 +565,10 @@ def cambia_foto(
     db.flush()
     db.expire(record, ["versioni"])
     db.expire(nuova, ["legami_foto"])
+    if record.stato == APPROVATO:
+        rendi_versione(
+            db, record, nuova
+        )  # R-16: una versione approvata ha il suo render
     return nuova
 
 
@@ -623,6 +634,8 @@ def modifica(
                 versione_id=nuova.id,
                 posizione=legame.posizione,
                 foto_id=legame.foto_id,
+                ritocco=legame.ritocco,
+                render=legame.render,
             )
         )
     record.da_rivedere = False
@@ -630,6 +643,10 @@ def modifica(
     db.flush()
     db.expire(record, ["versioni"])
     db.expire(nuova, ["legami_foto"])
+    if record.stato == APPROVATO:
+        rendi_versione(
+            db, record, nuova
+        )  # R-16: una versione approvata ha il suo render
     return nuova
 
 
@@ -810,6 +827,8 @@ def rigenera(
                 versione_id=nuova.id,
                 posizione=legame.posizione,
                 foto_id=legame.foto_id,
+                ritocco=legame.ritocco,
+                render=legame.render,
             )
         )
     record.n_rigenerazioni_testo += 1
@@ -820,4 +839,8 @@ def rigenera(
     db.flush()
     db.expire(record, ["versioni"])
     db.expire(nuova, ["legami_foto"])
+    if record.stato == APPROVATO:
+        rendi_versione(
+            db, record, nuova
+        )  # R-16: una versione approvata ha il suo render
     return nuova
