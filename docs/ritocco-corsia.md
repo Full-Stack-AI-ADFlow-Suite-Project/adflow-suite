@@ -89,7 +89,7 @@ Regressione delle foto buone: un insieme sintetico di "foto buone" (esposizione 
 | RT-09 | **Test dei componenti**: Vitest, Testing Library, MSW, in CI | §3 qui | RT-08 | `npm test` in CI con i primi test della card | ☑ |
 | RT-10 | **Test end-to-end in CI**: workflow per il Playwright già presente, dati di prova del ritocco | §3 qui | RT-08 | `percorso-demo` e un percorso del ritocco verdi in CI | ☑ |
 | RT-11 | **OpenCV** e regola "Pillow unico decoder" | nota §2.2 | RT-01 | dipendenza in `requirements.txt`; la regola fallisce su `cv2.imread` | ☑ |
-| RT-12 | **Catalogo del ritocco** | nota §12.2, §12.5 | RT-00 | codici, fasce, parametri e versioni in un solo file, con i test di coerenza | ☐ |
+| RT-12 | **Catalogo del ritocco** | nota §12.2, §12.5 | RT-00 | codici, fasce, parametri e versioni in un solo file, con i test di coerenza | ☑ |
 | RT-13 | **Misure e fasce** | nota §7.2, §9.5 | RT-11, RT-12 | ogni misura provata su un'immagine sintetica con valore noto | ☐ |
 | RT-14 | **Candidati e segni** | nota §7.2, §9.6 | RT-13 | quadrilatero sintetico trovato con errore < 1% del lato | ☐ |
 | RT-15 | **Geometria**: rotazioni, prospettiva | nota §7.5 passi 3, 5 | RT-04, RT-14 | rettangolo inclinato raddrizzato entro 0,5° | ☐ |
