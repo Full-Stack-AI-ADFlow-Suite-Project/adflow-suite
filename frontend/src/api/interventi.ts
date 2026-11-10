@@ -6,7 +6,7 @@
  * non si legge il corpo della risposta.
  */
 import { richiesta } from "./http";
-import type { FotoPossibile } from "./revisione";
+import type { FotoPossibile, VarianteFoto } from "./revisione";
 import { esempiInterventi } from "./esempi/interventi";
 import { USA_ESEMPI } from "./esempi/accesso";
 
@@ -111,4 +111,26 @@ export async function sposta(postId: number, locale: string): Promise<void> {
 export async function annullaPost(postId: number, nota: string): Promise<void> {
   if (USA_ESEMPI) return esempiInterventi.annullaPost(postId, nota);
   await richiesta<unknown>("POST", `/post/${postId}/annulla`, { nota });
+}
+
+/** La risposta di POST /post/{id}/ritocca-foto: vale per i post con la stessa foto (RT-28). */
+export interface EsitoRitocco {
+  post_aggiornati: number[];
+  post_non_aggiornati: { post_id: number; motivo: string }[];
+}
+
+/**
+ * POST /post/{id}/ritocca-foto: sceglie la variante e/o oscura le zone di privacy
+ * (ADR-124). Quello che manca resta com'è; senza AI.
+ */
+export async function ritoccaFoto(
+  postId: number,
+  variante: VarianteFoto | null,
+  privacy: boolean | null = null,
+): Promise<EsitoRitocco> {
+  if (USA_ESEMPI) return { post_aggiornati: [postId], post_non_aggiornati: [] };
+  return richiesta<EsitoRitocco>("POST", `/post/${postId}/ritocca-foto`, {
+    variante,
+    privacy,
+  });
 }

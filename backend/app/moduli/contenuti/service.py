@@ -154,6 +154,8 @@ def vista_foto(db: Session, post: Post) -> dict[str, Any] | None:
         "zone_privacy": {
             "numero": len(proposte),
             "decise": len(proposte) if decisa else 0,
+            "oscurate": bool(proposte)
+            and (legame.ritocco or {}).get("privacy") is True,
         },
         "avvisi": avvisi,
     }

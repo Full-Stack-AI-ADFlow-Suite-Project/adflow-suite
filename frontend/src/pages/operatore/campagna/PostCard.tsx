@@ -19,6 +19,7 @@ import { Link } from "react-router-dom";
 import type { PostVista } from "../../../api/revisione";
 import { StatoBadge } from "../../../components/StatoBadge";
 import { FotoAnteprima } from "./FotoAnteprima";
+import { RitoccoFoto } from "../vedi-campagna/post/RitoccoFoto";
 import { AzioniPost } from "../vedi-campagna/post/AzioniPost";
 import { conCancelletto, interventoAttivo } from "../vedi-campagna/post/regole";
 import { StoricoVersioni } from "../vedi-campagna/post/StoricoVersioni";
@@ -73,7 +74,8 @@ function AnteprimaPost({
         // L'immagine intera, come esce: anche quella creata con AI (R-28).
         <Box mt="xs">
           <FotoAnteprima
-            key={post.foto?.anteprima_url ?? foto.foto_id}
+            // La versione nel key: dopo un ritocco l'immagine si ricarica (RT-30).
+            key={`${post.foto?.anteprima_url ?? foto.foto_id}-${v?.id}`}
             // Il render che esce (RT-08); senza, l'originale come prima.
             src={post.foto?.anteprima_url ?? `/api/foto/${foto.foto_id}/file`}
             alt={isAi ? "Immagine creata con AI" : `Foto ${foto.foto_id}`}
@@ -143,8 +145,8 @@ export function PostCard({
         post.da_rivedere
           ? { border: "1px solid var(--mantine-color-red-5)" }
           : inCorso
-          ? { border: "1px solid var(--mantine-color-yellow-5)" }
-          : undefined
+            ? { border: "1px solid var(--mantine-color-yellow-5)" }
+            : undefined
       }
     >
       <Stack gap="sm">
@@ -196,6 +198,10 @@ export function PostCard({
             citta={citta}
             tema={tema}
           />
+        )}
+
+        {post.foto && (post.interventi ?? []).includes("ritocca_foto") && (
+          <RitoccoFoto post={post} ricarica={ricarica} />
         )}
 
         {blocchi.map((b) => (

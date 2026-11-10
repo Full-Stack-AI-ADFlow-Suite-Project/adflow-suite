@@ -161,5 +161,5 @@ def test_la_vista_del_post_porta_anteprima_e_varianti(mondo, client):
         "uguali": ["standard"],
         "scelta": "standard",
     }
-    assert foto["zone_privacy"] == {"numero": 0, "decise": 0}
+    assert foto["zone_privacy"] == {"numero": 0, "decise": 0, "oscurate": False}
     assert foto["avvisi"] == []

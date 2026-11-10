@@ -81,6 +81,7 @@ export type Intervento =
   | "rigenera"
   | "rigenera_immagine"
   | "cambia_foto"
+  | "ritocca_foto"
   | "sposta"
   | "annulla"
   | "riprogramma";
@@ -106,7 +107,7 @@ export interface FotoPost {
     uguali: VarianteFoto[];
     scelta: VarianteFoto;
   };
-  zone_privacy: { numero: number; decise: number };
+  zone_privacy: { numero: number; decise: number; oscurate?: boolean };
   avvisi: string[];
 }
 
@@ -175,6 +176,21 @@ export interface VediCampagna {
   foto_non_usate: GruppoFotoNonUsate[];
   ultimo_errore: ErroreGenerazione | null;
   costo_ai: number;
+  /** Le zone di privacy che Approva chiede di decidere (RT-29). */
+  privacy_da_decidere?: PrivacyDaDecidere;
+}
+
+/** PrivacyDaDecidereSchema: quante foto e quante zone restano da decidere. */
+export interface PrivacyDaDecidere {
+  foto: number;
+  zone: number;
+  minori: number;
+  dettaglio: {
+    foto_id: number;
+    post_ids: number[];
+    zone: number;
+    minori: number;
+  }[];
 }
 
 /** Una riga di GET /artigiani (ArtigianoElenco di schemas.py, spec R-38). */
@@ -205,11 +221,21 @@ export function vediCampagna(campagnaId: number): Promise<VediCampagna> {
   return richiesta<VediCampagna>("GET", `/campagne/${campagnaId}/post`);
 }
 
-export function approva(campagnaId: number): Promise<{ stato: string }> {
+/** Come si decidono le zone di privacy in Approva (RT-29, RT-31). */
+export interface OpzioniApprova {
+  conferma_privacy?: boolean;
+  oscura_tutte?: boolean;
+}
+
+export function approva(
+  campagnaId: number,
+  opzioni: OpzioniApprova = {},
+): Promise<{ stato: string }> {
   if (USA_ESEMPI) return esempiRevisione.approva(campagnaId);
   return richiesta<{ stato: string }>(
     "POST",
     `/campagne/${campagnaId}/approva`,
+    opzioni,
   );
 }
 

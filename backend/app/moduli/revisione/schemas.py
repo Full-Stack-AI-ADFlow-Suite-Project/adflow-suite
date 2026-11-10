@@ -171,6 +171,7 @@ class VariantiFotoSchema(BaseModel):
 class ZonePrivacySchema(BaseModel):
     numero: int
     decise: int
+    oscurate: bool = False  # la scelta presa: zone sfocate nel render
 
 
 class FotoPostSchema(BaseModel):
