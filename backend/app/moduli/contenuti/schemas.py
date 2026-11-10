@@ -74,6 +74,7 @@ class ChiamateAIDiUnTipo(BaseModel):
     token_uscita: int
     immagini: int
     costo_usd: Decimal
+    token_in_cache: int = 0  # già compresi in token_ingresso (RT-32)
 
 
 class PostSegnalato(BaseModel):

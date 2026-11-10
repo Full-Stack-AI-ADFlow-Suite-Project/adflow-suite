@@ -535,7 +535,7 @@ def riepilogo_ai_della_campagna(db: Session, campagna_id: int) -> RiepilogoAI:
     ogni post. Dei post segnalati conta la versione corrente.
     """
     per_tipo = []
-    for tipo, chiamate, ingresso, uscita, immagini, costo in db.execute(
+    for tipo, chiamate, ingresso, uscita, immagini, costo, in_cache in db.execute(
         select(
             ChiamataAI.tipo,
             func.count(),
@@ -543,6 +543,7 @@ def riepilogo_ai_della_campagna(db: Session, campagna_id: int) -> RiepilogoAI:
             func.coalesce(func.sum(ChiamataAI.token_uscita), 0),
             func.coalesce(func.sum(ChiamataAI.n_immagini), 0),
             func.coalesce(func.sum(ChiamataAI.costo_usd), 0),
+            func.coalesce(func.sum(ChiamataAI.token_in_cache), 0),
         )
         .where(ChiamataAI.campagna_id == campagna_id)
         .group_by(ChiamataAI.tipo)
@@ -562,6 +563,7 @@ def riepilogo_ai_della_campagna(db: Session, campagna_id: int) -> RiepilogoAI:
                 token_uscita=uscita,
                 immagini=immagini,
                 costo_usd=Decimal(costo),
+                token_in_cache=in_cache,
             )
         )
     ordine = {tipo: posto for posto, tipo in enumerate(TIPI_USO)}
