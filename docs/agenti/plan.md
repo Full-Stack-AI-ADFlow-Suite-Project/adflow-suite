@@ -47,7 +47,6 @@ Nulla si cancella: versioni, piani, decisioni ed errori restano. La versione cor
 | revisione | `POST /post/{id}/modifica` · `/rigenera` · `/rigenera-immagine` · `GET /post/{id}/foto-possibili` · `POST /post/{id}/cambia-foto` · `/ritocca-foto` (variante e privacy della foto, RT-28) · `/sposta` · `/annulla` · `/riprogramma` | operatore |
 | revisione | `POST /campagne/{id}/approva` accetta `{conferma_privacy, oscura_tutte}` (RT-29): con zone di privacy da decidere senza una delle due, 422; Vedi campagna porta `privacy_da_decidere` | operatore |
 | revisione | `GET /post/{id}/foto/anteprima?variante=` (JPEG sRGB della foto come esce; l'artigiano solo il render dei post approvati, RT-08, D1) | proprietario, operatore |
-| revisione | *in arrivo (ADR-124):* `GET /post/{id}/foto/anteprima?variante=` (RT-08; l'artigiano solo sui post approvati) · `POST /post/{id}/ritocca-foto` (RT-28) | operatore (anteprima anche artigiano) |
 | congelato | `/archivio` e `/archivio/*` · `POST /campagne/{id}/nota` · `/togli-canale` · `POST /post/{id}/controllato` | — |
 
 Errori: 401 non autenticato, 403 ruolo, 404 risorsa di un altro o inesistente, 409 stato (le regole R-xx), 422 dati. Una richiesta oltre 12 MiB riceve 413; il login oltre il limite dei tentativi 429 con `Retry-After`.
@@ -80,7 +79,7 @@ Un modulo legge i dati di un altro solo con le funzioni del `service.py` di quel
 | revisione | `scadenze` (per il tick). È revisione a scrivere le righe `approvazione`, anche quelle delle versioni nate dopo l'approvazione: contenuti non conosce quella tabella |
 | pubblicazione | `pubblica_dovuti` e le sue fasi: `prepara_tentativi`, `avvia_chiamata`, `chiama_social`, `registra_esito`, `chiudi_campagne` |
 
-*In arrivo con la corsia del ritocco (ADR-124):* campagne `copia_per_ai` e `prepara_analisi` (RT-03, RT-19), `rendi`, `leggi_render`, `chiave_render`, `pota_anteprime` (RT-06, fatte), `rendi_per_canale` (RT-07, fatta); contenuti `rendi_foto_approvate`, `rendi_versione`, `render_approvato` (RT-07, fatte; `approva` di revisione le chiama), `ritocca_foto` (RT-28). Nessuna modifica a `core/`.
+*Dalla corsia del ritocco (ADR-124):* campagne `copia_per_ai` e `prepara_analisi` (RT-03, RT-19), `rendi`, `leggi_render`, `chiave_render`, `pota_anteprime` (RT-06, fatte), `rendi_per_canale` (RT-07, fatta); contenuti `rendi_foto_approvate`, `rendi_versione`, `render_approvato` (RT-07, fatte; `approva` di revisione le chiama), `ritocca_foto` (RT-28), `privacy_da_decidere` (RT-29); `riepilogo_ai_della_campagna` somma anche `token_in_cache` (RT-32). La CLI ha `ricalcola-ritocco` (RT-27) e `prova-ritocco` (RT-32, `app/prova_ritocco.py`). Nessuna modifica a `core/`.
 
 Una firma si cambia nel task che ne ha bisogno, dicendolo nella PR.
 
@@ -96,7 +95,7 @@ Una firma si cambia nel task che ne ha bisogno, dicendolo nella PR.
 | `core/transizioni.py` | `verifica_transizione()` con il dizionario del `domain.py` |
 | `core/coda.py` · `worker.py` | `accoda()` (si chiama per ultima: scrive fuori dalla transazione), nomi dei job; i job in `jobs.py` di ogni modulo, `def` normali |
 | `tabelle.py` · `main.py` | i `models.py` per Alembic; i router montati sotto `/api` |
-| `tests/immagini.py` *(in arrivo, RT-01)* | profili ICC e immagini sintetiche (tinta unita, gradienti, rettangolo inclinato, JPEG di qualità data, EXIF), `delta_e` e `media_lab`; mai foto reali nel repository |
+| `tests/immagini.py` *(RT-01)* | profili ICC e immagini sintetiche (tinta unita, gradienti, rettangolo inclinato, JPEG di qualità data, EXIF), `delta_e` e `media_lab`; mai foto reali nel repository |
 | `tests/conftest.py` | fixture `db` (su `adflow_test`, annullata a fine test), `client`, `coda` (in memoria), `utente_di_prova(ruolo)`; fabbriche in `tests/moduli/<modulo>/fabbrica.py`, con `flush` e mai `commit` |
 
 A ogni `pytest` il database `adflow_test` si svuota e torna all'ultima migrazione.

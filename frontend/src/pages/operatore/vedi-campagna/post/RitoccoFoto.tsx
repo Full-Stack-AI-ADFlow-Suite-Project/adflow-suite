@@ -77,7 +77,7 @@ export function RitoccoFoto({
   };
 
   return (
-    <Stack gap="xs" aria-label="Ritocco della foto">
+    <Stack gap="xs" role="group" aria-label="Ritocco della foto">
       <SegmentedControl
         size="xs"
         aria-label="Variante della foto"
