@@ -486,10 +486,17 @@ def test_vedi_campagna_dice_gli_interventi_ammessi(db, client, utente_di_prova):
         "rigenera",
         "rigenera_immagine",
         "cambia_foto",
+        "ritocca_foto",
         "sposta",
     ]
     per_post = interventi(attiva)
-    assert per_post[lontano.id] == ["modifica", "cambia_foto", "sposta", "annulla"]
+    assert per_post[lontano.id] == [
+        "modifica",
+        "cambia_foto",
+        "ritocca_foto",
+        "sposta",
+        "annulla",
+    ]
     assert per_post[vicino.id] == []
     assert per_post[fallito.id] == ["riprogramma"]
 

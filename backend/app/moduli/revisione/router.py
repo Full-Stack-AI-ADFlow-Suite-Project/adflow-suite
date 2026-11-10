@@ -16,6 +16,7 @@ from app.moduli.accesso import service as accesso
 from . import decisioni, interventi, letture, service, sospensione
 from .schemas import (
     ArtigianoElenco,
+    CampagnaApprova,
     CampagnaDaApprovare,
     CampagnaNota,
     CampagnaRespingi,
@@ -30,6 +31,7 @@ from .schemas import (
     PostRigenera,
     PostRigeneraImmagine,
     PostRiprogramma,
+    PostRitoccaFoto,
     PostSposta,
     VediCampagnaSchema,
 )
@@ -73,9 +75,21 @@ def approva_campagna(
     db: Annotated[Session, Depends(get_db)],
     utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
     ora: Annotated[datetime, Depends(adesso)],
+    corpo: CampagnaApprova | None = None,
 ) -> dict[str, str]:
-    """Approva in blocco: post approvati, campagna attiva (R-14, CA-21/22)."""
-    service.approva(db, campagna_id, utente, ora)
+    """Approva in blocco: post approvati, campagna attiva (R-14, CA-21/22).
+
+    Con zone di privacy da decidere serve `conferma_privacy` o `oscura_tutte` nel corpo
+    (RT-29); senza, 422 con il riepilogo."""
+    corpo = corpo or CampagnaApprova()
+    service.approva(
+        db,
+        campagna_id,
+        utente,
+        ora,
+        conferma_privacy=corpo.conferma_privacy,
+        oscura_tutte=corpo.oscura_tutte,
+    )
     return {"stato": "attiva"}
 
 
@@ -298,6 +312,21 @@ def anteprima_foto_post(
             "X-Content-Type-Options": "nosniff",
             "Cache-Control": "private, no-cache",
         },
+    )
+
+
+@router.post("/post/{post_id}/ritocca-foto")
+def ritocca_foto_post(
+    post_id: IdPercorso,
+    corpo: PostRitoccaFoto,
+    db: Annotated[Session, Depends(get_db)],
+    utente: Annotated[accesso.Utente, Depends(accesso.richiede_ruolo("operatore"))],
+    ora: Annotated[datetime, Depends(adesso)],
+) -> dict:
+    """Sceglie la variante della foto e le zone di privacy: versione `ritocco_foto`
+    (ADR-124, RT-28). Vale per i post della campagna con la stessa foto."""
+    return interventi.ritocca_foto(
+        db, post_id, corpo.variante, corpo.privacy, utente, ora
     )
 
 

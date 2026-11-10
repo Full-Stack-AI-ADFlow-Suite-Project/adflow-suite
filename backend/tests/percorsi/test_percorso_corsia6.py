@@ -161,7 +161,8 @@ def test_ca91_dopo_l_approvazione_modifica_sposta_annulla_sospendi_riattiva(
     )
     primo, secondo, terzo = facebook
     assert all(
-        set(uno["interventi"]) == {"modifica", "cambia_foto", "sposta", "annulla"}
+        set(uno["interventi"])
+        == {"modifica", "cambia_foto", "ritocca_foto", "sposta", "annulla"}
         for uno in facebook
     )
 

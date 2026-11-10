@@ -21,7 +21,7 @@ import { useState } from "react";
 import type { CampagnaDettaglio } from "../../../api/campagne";
 import { ApiErrore } from "../../../api/http";
 import type { VediCampagna } from "../../../api/revisione";
-import { approva, riprova } from "../../../api/revisione";
+import { approva, riprova, type OpzioniApprova } from "../../../api/revisione";
 import { Riga } from "../../artigiano/campagna/Riga";
 import { ChiediArtigiano } from "../vedi-campagna/decisioni/ChiediArtigiano";
 import { Respingi } from "../vedi-campagna/decisioni/Respingi";
@@ -140,6 +140,11 @@ export function Decidi({
     }
   };
 
+  const privacy = vista.privacy_da_decidere;
+  const primoPostPrivacy = privacy?.dettaglio?.[0]?.post_ids?.[0] ?? null;
+  const approvaCon = (opzioni: OpzioniApprova) =>
+    agisci(() => approva(vista.campagna.id, opzioni));
+
   let contenuto = null;
   if (stato === "inviata" || stato === "in_generazione") {
     contenuto = (
@@ -190,7 +195,7 @@ export function Decidi({
               <Riga
                 nome="Dove"
                 valore={`Tappa: ${e.tappa} · canale: ${
-                  e.canale ? NOME_CANALE[e.canale] ?? e.canale : "—"
+                  e.canale ? (NOME_CANALE[e.canale] ?? e.canale) : "—"
                 } · ${dataOra(e.creata_il)}`}
               />
             </Stack>
@@ -321,14 +326,58 @@ export function Decidi({
               stabilite. Dopo l'approvazione puoi ancora intervenire sui post
               che escono tra almeno 15 minuti.
             </Text>
-            <Group mt="sm">
-              <Button
-                color="verde"
-                loading={occupato}
-                onClick={() => void agisci(() => approva(vista.campagna.id))}
+            {privacy && privacy.zone > 0 && (
+              <Alert
+                color="yellow"
+                variant="light"
+                mt="sm"
+                aria-label="Privacy"
               >
-                Conferma: approva {daApprovare.length} post
-              </Button>
+                <b>
+                  {privacy.foto} foto con {privacy.zone}{" "}
+                  {privacy.zone === 1 ? "zona" : "zone"} da decidere
+                </b>
+                {privacy.minori > 0 &&
+                  ` (${privacy.minori} con un volto che sembra di un minore)`}
+                . Oscurandole la parte resta illeggibile nella foto che esce.{" "}
+                {primoPostPrivacy != null && (
+                  <Anchor
+                    href={`#post-${primoPostPrivacy}`}
+                    onClick={() => setConferma(false)}
+                  >
+                    Rivedi
+                  </Anchor>
+                )}
+              </Alert>
+            )}
+            <Group mt="sm">
+              {privacy && privacy.zone > 0 ? (
+                <>
+                  <Button
+                    color="verde"
+                    loading={occupato}
+                    onClick={() => void approvaCon({ oscura_tutte: true })}
+                  >
+                    Oscura tutte e approva {daApprovare.length} post
+                  </Button>
+                  <Button
+                    color="verde"
+                    variant="light"
+                    loading={occupato}
+                    onClick={() => void approvaCon({ conferma_privacy: true })}
+                  >
+                    Lascia le zone come sono e approva
+                  </Button>
+                </>
+              ) : (
+                <Button
+                  color="verde"
+                  loading={occupato}
+                  onClick={() => void approvaCon({})}
+                >
+                  Conferma: approva {daApprovare.length} post
+                </Button>
+              )}
               <Button variant="light" onClick={() => setConferma(false)}>
                 Annulla
               </Button>

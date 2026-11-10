@@ -9,6 +9,7 @@ Da ``backend/``::
     python -m app.cli prova-prompt --da-campagna ID
     python -m app.cli demo --foto CARTELLA [--quante N]
     python -m app.cli ricalcola-ritocco [--campagna ID]
+    python -m app.cli prova-ritocco --cartella PERCORSO [--verita FILE.json] [--uscita CARTELLA]
     python -m app.cli pubblica-ora
 
 La password si chiede a terminale: non passa dagli argomenti né finisce in git.
@@ -68,6 +69,7 @@ from app.moduli.artigiani.service import post_a_settimana, salva_profilo_persona
 from app.moduli.campagne import service as campagne
 from app.moduli.campagne.domain import INVIATA, IN_GENERAZIONE
 from app.moduli.campagne.schemas import CampagnaCrea, GruppoCrea
+from app import prova_ritocco
 from app.moduli.contenuti import generazione
 from app.moduli.contenuti.schemas import RiepilogoAI
 from app.moduli.contenuti.service import post_dovuti, riepilogo_ai_della_campagna
@@ -491,6 +493,49 @@ def clona_e_invia(db: Session, da_campagna_id: int, ora: datetime) -> EsitoClone
     return esito
 
 
+@dataclass
+class EsitoProvaRitocco:
+    """Com'è andata ``prova-ritocco``: la generazione, il rapporto e il foglio di confronto."""
+
+    prova: EsitoProva
+    rapporto: str
+    foglio: str
+    caricate: int
+
+
+def esegui_prova_ritocco(
+    cartella: Path,
+    email: str,
+    verita: Path | None,
+    *,
+    ora: Callable[[], datetime] = adesso,
+) -> EsitoProvaRitocco:
+    """Carica le foto, genera la campagna di prova e prepara rapporto e foglio (RT-32).
+
+    Come ``prova-ai`` si ferma al primo errore della generazione e lo riporta; il rapporto
+    c'è comunque, con ciò che è già stato speso e analizzato.
+    """
+    dati_verita = prova_ritocco.leggi_verita(verita) if verita is not None else None
+    with transazione() as db:
+        caricate = prova_ritocco.carica_cartella(db, cartella, email, ora())
+    prova = esegui_prova_ai(caricate.campagna_id, ora=ora)
+    with transazione() as db:
+        foto = prova_ritocco.raccogli(db, caricate.caricate)
+        riepilogo = riepilogo_ai_della_campagna(db, caricate.campagna_id)
+    confronto = (
+        prova_ritocco.confronta(foto, dati_verita) if dati_verita is not None else None
+    )
+    testo = prova_ritocco.rapporto(riepilogo, foto, caricate.scartate, confronto)
+    if prova.errore is not None:
+        testo += f"\n\nGenerazione interrotta: {prova.errore}"
+    return EsitoProvaRitocco(
+        prova=prova,
+        rapporto=testo,
+        foglio=prova_ritocco.foglio_html(foto),
+        caricate=len(caricate.caricate),
+    )
+
+
 def rapporto_confronto(prima: RiepilogoAI, dopo: RiepilogoAI) -> str:
     """Due campagne a confronto per tipo di chiamata, da riportare nella PR (T3-925)."""
 
@@ -582,6 +627,30 @@ def _parser() -> argparse.ArgumentParser:
     ricalcolo.add_argument(
         "--campagna", type=int, default=None, help="solo le foto di questa campagna"
     )
+    prova_r = comandi.add_parser(
+        "prova-ritocco",
+        help="carica le foto di una cartella, le genera e scrive rapporto e foglio di confronto",
+    )
+    prova_r.add_argument(
+        "--cartella", required=True, type=Path, help="cartella con le foto di prova"
+    )
+    prova_r.add_argument(
+        "--verita",
+        type=Path,
+        default=None,
+        help="file JSON con la verità scritta a mano",
+    )
+    prova_r.add_argument(
+        "--artigiano",
+        default=DEMO_EMAIL,
+        help="email dell'artigiano la cui bottega ospita la prova (default: la demo)",
+    )
+    prova_r.add_argument(
+        "--uscita",
+        type=Path,
+        default=Path("prova-ritocco"),
+        help="cartella dove scrivere rapporto.txt e confronto.html (default: ./prova-ritocco)",
+    )
     comandi.add_parser(
         "pubblica-ora",
         help="pubblica subito i post approvati delle campagne attive (prove a mano)",
@@ -629,6 +698,20 @@ def main(argv: Sequence[str] | None = None) -> int:
             with transazione() as db:
                 fatte = campagne.ricalcola_ritocco(db, argomenti.campagna)
             print(f"Ricalcolate {fatte} foto.")
+        elif argomenti.comando == "prova-ritocco":
+            esito = esegui_prova_ritocco(
+                argomenti.cartella, argomenti.artigiano, argomenti.verita
+            )
+            argomenti.uscita.mkdir(parents=True, exist_ok=True)
+            (argomenti.uscita / "rapporto.txt").write_text(
+                esito.rapporto, encoding="utf-8"
+            )
+            (argomenti.uscita / "confronto.html").write_text(
+                esito.foglio, encoding="utf-8"
+            )
+            print(esito.rapporto)
+            print(f"\nScritti rapporto.txt e confronto.html in {argomenti.uscita}.")
+            return 0 if esito.prova.errore is None else 1
         elif argomenti.comando == "pubblica-ora":
             ora = adesso() + timedelta(days=366)
             with transazione() as db:

@@ -185,8 +185,8 @@ def test_la_matrice_copre_esattamente_le_operazioni_dello_schema():
         not senza_operazione
     ), f"righe senza operazione nello schema: {senza_operazione}"
     assert (
-        len(dello_schema) == 58
-    ), f"attese 58 operazioni, ce ne sono {len(dello_schema)}"
+        len(dello_schema) == 59
+    ), f"attese 59 operazioni, ce ne sono {len(dello_schema)}"
 
 
 @pytest.mark.parametrize("metodo,percorso", sorted(MATRICE))
