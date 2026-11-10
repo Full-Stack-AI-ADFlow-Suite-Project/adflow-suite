@@ -107,8 +107,8 @@ Regressione delle foto buone: un insieme sintetico di "foto buone" (esposizione 
 | RT-27 | **Ricalcolo locale** per le foto già analizzate (comando, senza AI) | nota §10.12 | RT-25 | foto v3 con varianti; nessuna chiamata AI | ☑ |
 | RT-28 | **Intervento `RITOCCA_FOTO`** (backend) | nota §8.5, §12.4 | RT-07, RT-26 | versioni, stati, altro canale, BOLA verdi | ☑ |
 | RT-29 | **Privacy in Approva** (backend) | nota §8.4, §12.4 | RT-28 | Approva chiede la conferma con zone da decidere | ☑ |
-| RT-30 | **Card con tre varianti** (frontend) | nota §12.4 | RT-09, RT-28 | test dei componenti verdi | ☐ |
-| RT-31 | **Riepilogo privacy in Approva** (frontend) | nota §8.4 | RT-09, RT-29 | test dei componenti verdi | ☐ |
+| RT-30 | **Card con tre varianti** (frontend) | nota §12.4 | RT-09, RT-28 | test dei componenti verdi | ☑ |
+| RT-31 | **Riepilogo privacy in Approva** (frontend) | nota §8.4 | RT-09, RT-29 | test dei componenti verdi | ☑ |
 | RT-32 | **Strumento di prova `prova-ritocco`** | nota §9.10 | RT-26 | gira con il finto in pytest; rapporto e foglio di confronto | ☐ |
 | RT-33 | **Prova della corsia** e documentazione | tutto | RT-10, RT-27…RT-32 | end-to-end completo verde; percorso a mano; README; descrizione della PR | ☐ |
 | RT-34 | *Dopo la corsia:* **taratura sulle foto reali** | nota §9.10 | RT-33, consenso dei titolari | soglie ritarate con il rapporto di RT-32 | ☐ |
