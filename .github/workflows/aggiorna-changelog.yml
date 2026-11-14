@@ -1,0 +1,45 @@
+# Workflow di aggiornamento automatico del registro modifiche (CHANGELOG.md).
+# Si attiva ad ogni push sul branch main e rigenera la cronologia ufficiale.
+name: Aggiorna Changelog
+
+on:
+  push:
+    branches:
+      - main
+    paths-ignore:
+      - 'CHANGELOG.md'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  aggiorna-changelog:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout del repository con cronologia completa
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configurazione ambiente Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Rigenerazione CHANGELOG.md
+        run: python scripts/aggiorna_changelog.py
+
+      - name: Commit e Push automatico delle modifiche
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          if ! git diff --quiet CHANGELOG.md; then
+            echo "Rilevate nuove modifiche in CHANGELOG.md. Esecuzione commit e push automatico..."
+            git add CHANGELOG.md
+            git commit -m "docs: aggiorna CHANGELOG.md automaticamente [skip ci]"
+            git push
+          else
+            echo "CHANGELOG.md e' gia' allineato all'ultimo commit. Nessun commit necessario."
+          fi
