@@ -184,7 +184,7 @@ def cartella_demo(tmp_path: Path) -> Iterator[Path]:
     """Tre foto valide, una troppo piccola e un file che non è un'immagine."""
     for nome in ("a.jpg", "c.jpg", "e.jpg"):
         _jpeg(tmp_path / nome, 1200)
-    _jpeg(tmp_path / "b-piccola.jpg", 800)
+    _jpeg(tmp_path / "b-piccola.jpg", 400)
     (tmp_path / "d-nota.txt").write_text("non è una foto")
     with usa_archivio(ArchivioFinto()):
         yield tmp_path

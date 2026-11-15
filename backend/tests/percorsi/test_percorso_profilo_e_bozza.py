@@ -306,8 +306,8 @@ def test_percorso_profilo_bozza_e_archivio(
     assert r_gruppo_arc.status_code == 201
     gruppo_arc_id = r_gruppo_arc.json()["id"]
 
-    # - Foto archivio con lato corto < 1080 px
-    foto_piccola = _foto_jpeg(10, larghezza=800, altezza=1200)
+    # - Foto archivio con lato corto < 480 px
+    foto_piccola = _foto_jpeg(10, larghezza=400, altezza=600)
     r_foto_piccola = _carica_foto_archivio(api, gruppo_arc_id, foto_piccola)
     assert r_foto_piccola.status_code == 422
 

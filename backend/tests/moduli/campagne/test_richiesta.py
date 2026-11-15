@@ -243,7 +243,7 @@ def test_ca87_file_non_valido_422(db, client, utente_di_prova, archivio_finto):
     richiesta(db, campagna, [foto[0]], operatore=operatore)
     _entra(artigiano)
     non_immagine = _carica(client, campagna, foto[0].id, contenuto=b"testo")
-    piccola = _carica(client, campagna, foto[0].id, contenuto=_immagine(600))
+    piccola = _carica(client, campagna, foto[0].id, contenuto=_immagine(400))
     assert (non_immagine.status_code, piccola.status_code) == (422, 422)
     assert _decisioni(db, campagna, "integrazione_foto") == []
     assert list(archivio_finto.iterdir()) == []
