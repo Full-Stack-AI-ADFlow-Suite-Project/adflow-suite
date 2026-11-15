@@ -407,21 +407,44 @@ def test_api_post_archivio_foto_successo_e_controlli_r13(
     assert dati["mime"] == "image/png"
 
 
-def test_api_post_archivio_foto_lato_corto_sotto_1080_da_422(
+def test_api_post_archivio_foto_lato_corto_sotto_minimo_da_422(
     client: TestClient, utente_di_prova, db: Session
 ):
-    """POST /api/archivio/foto rifiuta immagini con lato corto < 1080 px (R-13)."""
+    """POST /api/archivio/foto rifiuta immagini con lato corto < 480 px (R-13)."""
     artigiano = utente_di_prova("artigiano")
     bottega = profilo(db, utente_id=artigiano.id)
     mazzo = gruppo_di_archivio(db, profilo_id=bottega.id, n_foto=0)
 
-    png_piccolo = _crea_png(800, 1200)
+    png_piccolo = _crea_png(400, 600)
     r = client.post(
         "/api/archivio/foto",
         data={"gruppo_id": str(mazzo.id)},
         files={"file": ("piccola.png", BytesIO(png_piccolo), "image/png")},
     )
     assert r.status_code == 422
+
+
+def test_api_post_archivio_foto_risoluzione_web_800x1200_accettata(
+    client: TestClient, utente_di_prova, db: Session, tmp_path: Path
+):
+    """POST /api/archivio/foto accetta immagini web legittime (es. 800x1200, lato corto 800 >= 480)."""
+    from app.adapters.archivio import ArchivioDisco, usa_archivio
+
+    archivio_test = ArchivioDisco(tmp_path)
+    with usa_archivio(archivio_test):
+        artigiano = utente_di_prova("artigiano")
+        bottega = profilo(db, utente_id=artigiano.id)
+        mazzo = gruppo_di_archivio(db, profilo_id=bottega.id, n_foto=0)
+
+        png_web = _crea_png(800, 1200)
+        r = client.post(
+            "/api/archivio/foto",
+            data={"gruppo_id": str(mazzo.id)},
+            files={"file": ("web.png", BytesIO(png_web), "image/png")},
+        )
+        assert r.status_code == 201
+        assert r.json()["larghezza"] == 800
+        assert r.json()["altezza"] == 1200
 
 
 def test_api_post_archivio_foto_gruppo_altrui_o_con_campagna_da_404(

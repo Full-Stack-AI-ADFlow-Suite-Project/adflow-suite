@@ -4,9 +4,9 @@ Implementato interamente con la libreria standard di Python (`struct`),
 senza dipendenze esterne, garantendo:
 - Ispezione ad alte prestazioni dei formati PNG, JPEG e WEBP;
 - Estrazione esatta di larghezza e altezza da header e metadati binari;
-- Validazione delle regole di business (Spec R-13, CA-13): lato corto >= 1080 px;
+- Validazione delle regole di business (Spec R-13, CA-13): lato corto >= 480 px;
 - Sicurezza e protezione DoS (Defense in Depth): limiti massimi su larghezza,
-  altezza e pixel totali (anti-decompression bomb).
+  altezza, pixel totali (anti-decompression bomb) e rapporto d'aspetto (anti-spaghetti).
 """
 
 import struct
@@ -15,7 +15,8 @@ from typing import NamedTuple
 from app.core.errori import DatiNonValidi
 
 # Limiti dimensionali e quantitativi (Spec R-13 e vincoli di sicurezza)
-MIN_LATO_CORTO: int = 1080
+MIN_LATO_CORTO: int = 480
+MAX_ASPECT_RATIO: float = 8.0
 MAX_WIDTH: int = 8192
 MAX_HEIGHT: int = 8192
 MAX_PIXELS: int = 36_000_000
@@ -199,11 +200,19 @@ def analizza_e_valida_immagine(contenuto: bytes) -> InfoImmagine:
             "Il file non è un'immagine valida o supportata (ammessi JPG, PNG, WEBP)."
         )
 
-    # Validazione dimensioni minime (Spec R-13, CA-13: lato corto >= 1080 px)
+    # Validazione dimensioni minime (Spec R-13, CA-13: lato corto >= 480 px)
     lato_corto = min(larghezza, altezza)
     if lato_corto < MIN_LATO_CORTO:
         raise DatiNonValidi(
             f"Il lato corto dell'immagine ({lato_corto} px) è inferiore al minimo richiesto di {MIN_LATO_CORTO} px."
+        )
+
+    # Protezione anti-DoS: rapporto d'aspetto anomalo o esasperato (anti-spaghetti)
+    ratio = larghezza / altezza
+    if ratio < (1.0 / MAX_ASPECT_RATIO) or ratio > MAX_ASPECT_RATIO:
+        raise DatiNonValidi(
+            f"Le proporzioni dell'immagine ({larghezza}x{altezza} px, rapporto {ratio:.2f}) "
+            f"sono troppo estreme (rapporto massimo ammesso 1:{int(MAX_ASPECT_RATIO)} o {int(MAX_ASPECT_RATIO)}:1)."
         )
 
     # Protezione anti-DoS: limiti dimensionali massimi (anti-ratio estremi)
