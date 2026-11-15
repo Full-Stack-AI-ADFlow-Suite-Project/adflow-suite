@@ -11,6 +11,7 @@ import {
   Button,
   Divider,
   Group,
+  Image,
   Paper,
   Stack,
   Text,
@@ -19,6 +20,7 @@ import {
   Title,
 } from "@mantine/core";
 
+import { urlFotoFile } from "../../../api/archivio";
 import {
   aggiornaGruppo,
   caricaFoto,
@@ -37,7 +39,7 @@ const TIPI_AMMESSI = ["image/jpeg", "image/png", "image/webp"];
 
 function latoCorto(file: File): Promise<number> {
   return new Promise((risolvi) => {
-    const img = new Image();
+    const img = new window.Image();
     img.onload = () => {
       risolvi(Math.min(img.width, img.height));
       URL.revokeObjectURL(img.src);
@@ -309,14 +311,14 @@ function Thumb({
       p={4}
       style={{ position: "relative", overflow: "hidden" }}
     >
-      <Text
-        ff="monospace"
-        size="10px"
-        ta="center"
-        style={{ wordBreak: "break-all", lineHeight: 1.3 }}
-      >
-        {foto.file}
-      </Text>
+      <Image
+        src={urlFotoFile(foto.file, foto.id)}
+        alt={`Foto ${foto.id}`}
+        h={74}
+        w={74}
+        fit="cover"
+        radius="xs"
+      />
       <Text
         component="button"
         aria-label="Rimuovi foto"
