@@ -248,3 +248,41 @@ def test_didascalia_con_e_senza_hashtag():
     assert _didascalia("Testo", []) == "Testo"
     assert _didascalia("Testo", ["a", "b"]) == "Testo\n\n#a #b"
     assert _didascalia("Testo", ["#gia"]) == "Testo\n\n#gia"
+
+
+def test_instagram_non_pubblica_nessun_campo_di_luogo():
+    """Il tag del luogo di Instagram non si scrive: nessuna delle tre chiamate lo porta."""
+    from app.adapters.social.meta import CAMPI_LUOGO_INSTAGRAM
+
+    richieste = []
+
+    def handler(request: httpx.Request) -> httpx.Response:
+        richieste.append(request)
+        if request.url.path.endswith("/media"):
+            return httpx.Response(200, json={"id": "cont-1"})
+        if request.url.path.endswith("/media_publish"):
+            return httpx.Response(200, json={"id": "media-9"})
+        return httpx.Response(200, json={"status_code": "FINISHED"})
+
+    esito = _meta(handler).pubblica(
+        "instagram", "Un vaso fatto a Deruta, in Umbria.", HASHTAG, FOTO, URL_FOTO
+    )
+
+    assert esito.ok is True
+    assert len(richieste) == 3
+    for richiesta in richieste:
+        scritto = (str(richiesta.url) + richiesta.content.decode()).lower()
+        for campo in CAMPI_LUOGO_INSTAGRAM:
+            assert campo not in scritto
+    # la didascalia, invece, il luogo lo può dire
+    assert "Deruta" in richieste[0].content.decode("utf-8").replace("%20", " ").replace(
+        "+", " "
+    )
+
+
+def test_senza_luogo_toglie_i_campi_del_luogo_e_lascia_gli_altri():
+    from app.adapters.social.meta import _senza_luogo
+
+    dati = {"caption": "x", "Location_ID": "123", "place": "p", "image_url": "u"}
+
+    assert _senza_luogo(dati) == {"caption": "x", "image_url": "u"}
