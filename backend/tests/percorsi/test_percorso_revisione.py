@@ -608,7 +608,10 @@ def test_percorso_completo_revisione(
 
     # Sospendi: il tick non pubblica neanche i post dovuti di questa campagna.
     assert api("POST", f"/campagne/{c_id}/sospendi").status_code == 200
-    orologio.avanti(timedelta(days=15))  # ora siamo oltre l'inizio di A e di C
+    # Ora siamo oltre l'inizio di A e di C, ma prima dell'ultima uscita di C
+    # (a ogni uscita i post escono tutti nello stesso giorno): a C resta un
+    # post da far uscire, così si può ancora annullare.
+    orologio.avanti(timedelta(days=14))
     _tick()  # pubblica A fino a concluderla; C resta sospesa
     assert entra(OPERATORE)  # la sessione è scaduta con l'avanzamento
     assert _stato(api, a_id) == "conclusa"

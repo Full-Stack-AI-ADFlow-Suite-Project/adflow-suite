@@ -331,6 +331,24 @@ class AIFinto(AIAdapter):
         for indice in range(n_uscite):
             post = []
             gruppo = None
+            # Un'uscita esce tutta nello stesso giorno, su ogni canale.
+            # R-12, T3-922: niente stessa ora dello stesso canale di un post
+            # già in programma; l'uscita intera va al primo giorno libero.
+            canali_uscita = [
+                canale
+                for canale, limite in limiti.items()
+                if indice < limite["post_chiesti"]
+            ]
+            base = min(indice * len(giorni) // n_uscite, len(giorni) - 1)
+            giorno = giorni[base]
+            for scatto in range(len(giorni)):
+                candidato = giorni[(base + scatto) % len(giorni)]
+                if all(
+                    (canale, (candidato, ORA_DI_USCITA.hour)) not in occupati
+                    for canale in canali_uscita
+                ):
+                    giorno = candidato
+                    break
             for canale, limite in limiti.items():
                 chiesti = limite["post_chiesti"]
                 if indice >= chiesti:
@@ -352,18 +370,6 @@ class AIFinto(AIAdapter):
                     foto = foto + [disponibili[chiesti]]
                 if foto and gruppo is None:
                     gruppo = gruppo_della_foto.get(foto[0])
-                sfasamento = 1 if canale == "instagram" and "facebook" in limiti else 0
-                base = min(
-                    indice * len(giorni) // n_uscite + sfasamento, len(giorni) - 1
-                )
-                giorno = giorni[base]
-                # R-12, T3-922: niente stessa ora dello stesso canale di un
-                # post già in programma; si sposta al primo giorno libero.
-                for scatto in range(len(giorni)):
-                    candidato = giorni[(base + scatto) % len(giorni)]
-                    if (canale, (candidato, ORA_DI_USCITA.hour)) not in occupati:
-                        giorno = candidato
-                        break
                 post.append(
                     {
                         "canale": canale,

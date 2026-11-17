@@ -772,3 +772,114 @@ def test_ca71_cambia_foto_riservato_all_operatore(db, client, utente_di_prova):
         client.post("/api/post/99999/cambia-foto", json={"foto_id": 1}).status_code
         == 404
     )
+
+
+# --- Un'uscita esce tutta nello stesso giorno ---------------------------------
+
+
+def _uscita_con_due_post(db, campagna, *, stato="da_approvare", **per_facebook):
+    """Instagram alle 13:00 e Facebook alle 17:00 di Roma, lo stesso giorno, in una uscita."""
+    instagram = post_da_approvare(db, campagna_id=campagna.id, stato=stato)
+    facebook = post_da_approvare(
+        db,
+        campagna_id=campagna.id,
+        stato=per_facebook.pop("stato", stato),
+        canale="facebook",
+        uscita_id=instagram.uscita_id,
+        data_ora=per_facebook.pop(
+            "data_ora", datetime(2030, 1, 5, 16, tzinfo=timezone.utc)
+        ),
+        **per_facebook,
+    )
+    return instagram, facebook
+
+
+def test_sposta_a_un_altro_giorno_porta_con_se_gli_altri_post_dell_uscita(
+    db, client, utente_di_prova
+):
+    """Cambia il giorno: Facebook va con Instagram, alla sua ora; la nota li racconta."""
+    campagna = campagna_in_revisione(db)
+    operatore = utente_di_prova("operatore")
+    instagram, facebook = _uscita_con_due_post(db, campagna)
+    facebook.controllato_da = operatore.id
+    facebook.controllato_il = _tra_poco()
+    db.flush()
+
+    risposta = client.post(
+        f"/api/post/{instagram.id}/sposta", json={"data_ora": DENTRO}
+    )
+
+    assert risposta.status_code == 200
+    db.refresh(instagram)
+    db.refresh(facebook)
+    assert instagram.data_ora == datetime(2030, 1, 10, 12, tzinfo=timezone.utc)
+    assert facebook.data_ora == datetime(2030, 1, 10, 16, tzinfo=timezone.utc)
+    assert (facebook.controllato_da, facebook.controllato_il) == (None, None)
+    [decisione] = _decisioni(db, campagna)
+    assert decisione.post_id == instagram.id
+    assert decisione.nota == (
+        "Spostato dal 05/01/2030 13:00 al 10/01/2030 13:00; "
+        "con lui il post su facebook, dal 05/01/2030 17:00 al 10/01/2030 17:00"
+    )
+
+
+def test_sposta_solo_l_ora_non_muove_gli_altri_post_dell_uscita(
+    db, client, utente_di_prova
+):
+    campagna = campagna_in_revisione(db)
+    utente_di_prova("operatore")
+    instagram, facebook = _uscita_con_due_post(db, campagna)
+
+    risposta = client.post(
+        f"/api/post/{instagram.id}/sposta",
+        json={"data_ora": "2030-01-05T19:00:00+00:00"},
+    )
+
+    assert risposta.status_code == 200
+    db.refresh(instagram)
+    db.refresh(facebook)
+    assert instagram.data_ora == datetime(2030, 1, 5, 19, tzinfo=timezone.utc)
+    assert facebook.data_ora == datetime(2030, 1, 5, 16, tzinfo=timezone.utc)
+    [decisione] = _decisioni(db, campagna)
+    assert "con lui" not in decisione.nota
+
+
+def test_sposta_di_giorno_non_muove_i_post_gia_usciti_dell_uscita(
+    db, client, utente_di_prova
+):
+    campagna = campagna_attiva(db)
+    utente_di_prova("operatore")
+    instagram, facebook = _uscita_con_due_post(db, campagna, stato="approvato")
+    facebook.stato = "pubblicato"
+    db.flush()
+
+    risposta = client.post(
+        f"/api/post/{instagram.id}/sposta", json={"data_ora": DENTRO}
+    )
+
+    assert risposta.status_code == 200
+    db.refresh(facebook)
+    assert facebook.data_ora == datetime(2030, 1, 5, 16, tzinfo=timezone.utc)
+
+
+def test_sposta_di_giorno_non_si_fa_se_un_altro_post_dell_uscita_non_puo_seguire(
+    db, client, utente_di_prova
+):
+    """Facebook esce tra 5 minuti: non si tocca più, quindi non si sposta niente."""
+    campagna = campagna_attiva(db)
+    utente_di_prova("operatore")
+    instagram, facebook = _uscita_con_due_post(
+        db, campagna, stato="approvato", data_ora=_tra_poco()
+    )
+    prima_instagram, prima_facebook = instagram.data_ora, facebook.data_ora
+
+    risposta = client.post(
+        f"/api/post/{instagram.id}/sposta", json={"data_ora": DENTRO}
+    )
+
+    assert risposta.status_code == 409
+    assert "facebook" in risposta.json()["detail"]
+    db.refresh(instagram)
+    db.refresh(facebook)
+    assert (instagram.data_ora, facebook.data_ora) == (prima_instagram, prima_facebook)
+    assert _decisioni(db, campagna) == []

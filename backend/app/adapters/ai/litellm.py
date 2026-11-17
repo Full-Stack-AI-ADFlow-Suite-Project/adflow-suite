@@ -101,7 +101,7 @@ _FILTRO = ("content_policy", "moderation_blocked", "safety system")
 
 @lru_cache
 def _prompt(nome: str) -> str:
-    """Il testo di ``prompts/<nome>.md``; il nome porta la versione (``piano_v3``)."""
+    """Il testo di ``prompts/<nome>.md``; il nome porta la versione (``piano_v4``)."""
     return (CARTELLA_PROMPT / f"{nome}.md").read_text(encoding="utf-8")
 
 
@@ -530,17 +530,17 @@ class AILiteLLM(AIAdapter):
             "piano",
             self._modello_testo,
             [
-                {"role": "system", "content": _prompt("piano_v3")},
+                {"role": "system", "content": _prompt("piano_v4")},
                 {"role": "user", "content": _json(richiesta)},
             ],
             RispostaPiano,
-            versione_prompt="piano_v3",
+            versione_prompt="piano_v4",
         )
         return PianoAI(
             contenuto=risposta.model_dump(),
             provider=PROVIDER,
             modello=self._modello_testo,
-            versione_prompt="piano_v3",
+            versione_prompt="piano_v4",
         )
 
     def genera_post(

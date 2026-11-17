@@ -121,13 +121,20 @@ def sposta(
     """Sposta il post a un'altra data e ora, con la decisione ``riprogrammato`` (R-36, CA-72).
 
     I controlli (``sposta`` ammesso, data nel periodo e dopo il margine, data
-    diversa) sono in ``contenuti.sposta_post()``. La nota dice da quando a quando.
+    diversa) sono in ``contenuti.sposta_post()``. La nota dice da quando a quando,
+    e quali altri post della stessa uscita sono andati con lui nello stesso giorno.
     """
-    post, prima = contenuti.sposta_post(db, post_id, data_ora, adesso)
+    post, prima, seguiti = contenuti.sposta_post(db, post_id, data_ora, adesso)
     nota = (
         f"Spostato dal {prima.astimezone(ROMA).strftime(FORMATO_DATA)} "
         f"al {post.data_ora.astimezone(ROMA).strftime(FORMATO_DATA)}"
     )
+    for altro, era in seguiti:
+        nota += (
+            f"; con lui il post su {altro.canale}, dal "
+            f"{era.astimezone(ROMA).strftime(FORMATO_DATA)} al "
+            f"{altro.data_ora.astimezone(ROMA).strftime(FORMATO_DATA)}"
+        )
     campagne.registra_decisione(
         db,
         campagne.campagna(db, post.campagna_id),

@@ -382,6 +382,97 @@ def test_piano_valido_con_un_carosello_dove_non_ci_sono_riempitivi():
     assert _controlla(contenuto, limiti, gruppi) == []
 
 
+def test_uscita_con_orari_diversi_nello_stesso_giorno_e_valida():
+    """Facebook di mattina e Instagram di sera, stesso giorno: va bene."""
+    limiti, gruppi = _limiti(5)
+    contenuto = _piano_valido(limiti)
+    for uscita in contenuto["uscite"]:
+        for uno in uscita["post"]:
+            if uno["canale"] == "instagram":
+                giorno = INIZIO + timedelta(days=uscita["numero"] - 1)
+                uno["data_ora"] = datetime.combine(
+                    giorno, time(20, 30), tzinfo=ROMA
+                ).isoformat()
+
+    assert _controlla(contenuto, limiti, gruppi) == []
+
+
+def test_regola_uscita_giorni_diversi_dice_quali_giorni():
+    limiti, gruppi = _limiti(5)
+    contenuto = _piano_valido(limiti)
+    contenuto["uscite"][2]["post"][1]["data_ora"] = _quando(5)
+
+    violazioni = _controlla(contenuto, limiti, gruppi)
+
+    assert _regole(violazioni) == ["uscita_giorni_diversi"]
+    assert violazioni[0]["canale"] is None
+    assert violazioni[0]["messaggio"].startswith("Uscita 3:")
+    assert "facebook il 2030-01-09" in violazioni[0]["messaggio"]
+    assert "instagram il 2030-01-11" in violazioni[0]["messaggio"]
+
+
+def test_il_giorno_dell_uscita_si_conta_a_roma_non_in_utc():
+    """23:30 e 00:15 di Roma sono due giorni, anche se in UTC cadono entrambi il 7."""
+    limiti, gruppi = _limiti(5)
+    contenuto = _piano_valido(limiti)
+    primo = contenuto["uscite"][0]["post"]
+    primo[0]["data_ora"] = "2030-01-07T23:30:00+01:00"
+    primo[1]["data_ora"] = "2030-01-08T00:15:00+01:00"
+
+    violazioni = _controlla(contenuto, limiti, gruppi)
+
+    assert _regole(violazioni) == ["uscita_giorni_diversi"]
+
+
+def test_stesso_giorno_a_roma_con_offset_diversi_e_valido():
+    """Lo stesso istante scritto in UTC e in ora di Roma è lo stesso giorno."""
+    limiti, gruppi = _limiti(5)
+    contenuto = _piano_valido(limiti)
+    primo = contenuto["uscite"][0]["post"]
+    primo[0]["data_ora"] = "2030-01-07T23:30:00+01:00"
+    primo[1]["data_ora"] = "2030-01-07T22:45:00+00:00"  # le 23:45 a Roma
+
+    assert _controlla(contenuto, limiti, gruppi) == []
+
+
+def test_post_scambiati_tra_uscite_con_i_conti_giusti_sono_giorni_diversi():
+    """Facebook e Instagram scambiati tra due uscite: i conti tornano, i giorni no."""
+    limiti, gruppi = _limiti(5)
+    contenuto = _piano_valido(limiti)
+    prima, seconda = contenuto["uscite"][0], contenuto["uscite"][1]
+    ig_prima = next(p for p in prima["post"] if p["canale"] == "instagram")
+    ig_seconda = next(p for p in seconda["post"] if p["canale"] == "instagram")
+    prima["post"].remove(ig_prima)
+    seconda["post"].remove(ig_seconda)
+    prima["post"].append(ig_seconda)
+    seconda["post"].append(ig_prima)
+
+    violazioni = _controlla(contenuto, limiti, gruppi)
+
+    assert _regole(violazioni) == ["uscita_giorni_diversi", "uscita_giorni_diversi"]
+
+
+def test_regola_uscita_incompleta_anche_a_conti_giusti():
+    """Un'uscita con il solo Facebook e un'altra con il solo Instagram: i conti tornano, le uscite no."""
+    limiti, gruppi = _limiti(5)
+    contenuto = _piano_valido(limiti)
+    prima = contenuto["uscite"][0]
+    prima["post"] = [p for p in prima["post"] if p["canale"] == "facebook"]
+    contenuto["uscite"].append(
+        _uscita(7, [_post("instagram", giorno=7)], gruppo_id=None)
+    )
+
+    violazioni = _controlla(contenuto, limiti, gruppi)
+
+    assert "post_per_canale" not in _regole(violazioni)
+    assert [(v["regola"], v["canale"]) for v in violazioni] == [
+        ("uscita_incompleta", "instagram"),
+        ("uscita_incompleta", "facebook"),
+    ]
+    assert violazioni[0]["messaggio"].startswith("Uscita 1:")
+    assert violazioni[1]["messaggio"].startswith("Uscita 7:")
+
+
 def test_il_controllo_non_cambia_il_piano():
     limiti, gruppi = _limiti(5)
     contenuto = _piano_valido(limiti)
@@ -398,12 +489,21 @@ def test_regola_post_per_canale_con_un_post_in_meno():
 
     violazioni = _controlla(contenuto, limiti, gruppi)
 
+    # Il conto dice che mancano post; la regola dell'uscita dice in quale.
     assert violazioni == [
         {
             "regola": "post_per_canale",
             "canale": "instagram",
             "messaggio": "Su instagram i post devono essere 6: sono 5.",
-        }
+        },
+        {
+            "regola": "uscita_incompleta",
+            "canale": "instagram",
+            "messaggio": (
+                "Uscita 6: manca il post su instagram. Ogni uscita ha un post "
+                "per ciascun canale della campagna."
+            ),
+        },
     ]
 
 
@@ -414,8 +514,9 @@ def test_regola_post_per_canale_con_un_post_in_piu():
 
     violazioni = _controlla(contenuto, limiti, gruppi)
 
-    assert _regole(violazioni) == ["post_per_canale"]
+    assert _regole(violazioni) == ["post_per_canale", "uscita_incompleta"]
     assert violazioni[0]["canale"] == "facebook"
+    assert violazioni[1]["canale"] == "instagram"
 
 
 def test_regola_post_per_canale_con_un_canale_che_la_campagna_non_ha():
@@ -752,7 +853,12 @@ def test_ogni_regola_ha_un_nome_e_le_violazioni_si_salvano_come_json():
 
     violazioni = _controlla(contenuto, limiti, gruppi)
 
-    assert _regole(violazioni) == ["foto_non_disponibile", "data_fuori_periodo"]
+    # La data fuori periodo di un solo post sposta anche l'uscita su due giorni.
+    assert _regole(violazioni) == [
+        "uscita_giorni_diversi",
+        "foto_non_disponibile",
+        "data_fuori_periodo",
+    ]
     assert set(_regole(violazioni)) <= set(piano.REGOLE)
     assert json.loads(json.dumps(violazioni)) == violazioni
 

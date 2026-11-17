@@ -426,7 +426,7 @@ def test_piano_uguale_a_parita_di_dati():
     assert primo == secondo
 
 
-def test_piano_date_distribuite_e_instagram_il_giorno_dopo_facebook():
+def test_piano_date_distribuite_e_instagram_lo_stesso_giorno_di_facebook():
     piano, _ = _pianifica(AIFinto(), [_gruppo(6)])
 
     facebook = [
@@ -446,7 +446,7 @@ def test_piano_date_distribuite_e_instagram_il_giorno_dopo_facebook():
         date(2030, 1, 16),
         date(2030, 1, 18),
     ]
-    assert all(i - f == timedelta(days=1) for f, i in zip(facebook, instagram))
+    assert [d.date() for d in instagram] == [d.date() for d in facebook]
     assert {d.hour for d in facebook + instagram} == {10}
 
 

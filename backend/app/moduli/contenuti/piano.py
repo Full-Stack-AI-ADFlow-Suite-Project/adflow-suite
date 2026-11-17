@@ -44,6 +44,8 @@ FOTO_NON_DISPONIBILE = "foto_non_disponibile"
 DATA_FUORI_PERIODO = "data_fuori_periodo"
 DATA_NEL_PASSATO = "data_nel_passato"
 TROPPE_FOTO = "troppe_foto"
+USCITA_INCOMPLETA = "uscita_incompleta"
+USCITA_GIORNI_DIVERSI = "uscita_giorni_diversi"
 REGOLE = (
     PIANO_MALFORMATO,
     POST_PER_CANALE,
@@ -53,6 +55,8 @@ REGOLE = (
     DATA_FUORI_PERIODO,
     DATA_NEL_PASSATO,
     TROPPE_FOTO,
+    USCITA_INCOMPLETA,
+    USCITA_GIORNI_DIVERSI,
 )
 
 
@@ -280,6 +284,37 @@ def _violazione(regola: str, canale: str | None, messaggio: str) -> Violazione:
     return Violazione(regola=regola, canale=canale, messaggio=messaggio)
 
 
+def _violazioni_dell_uscita(
+    uscita: dict[str, Any], canali: list[str]
+) -> list[Violazione]:
+    """Una uscita ha un post per ogni canale della campagna, tutti nello stesso giorno."""
+    numero = uscita["numero"]
+    violazioni: list[Violazione] = []
+    presenti = {uno["canale"] for uno in uscita["post"]}
+    for canale in canali:
+        if canale not in presenti:
+            messaggio = (
+                f"Uscita {numero}: manca il post su {canale}. Ogni uscita ha un "
+                f"post per ciascun canale della campagna."
+            )
+            violazioni.append(_violazione(USCITA_INCOMPLETA, canale, messaggio))
+    giorni = {
+        uno["canale"]: _data_ora(uno["data_ora"]).astimezone(ROMA).date()
+        for uno in uscita["post"]
+    }
+    if len(set(giorni.values())) > 1:
+        elenco = ", ".join(
+            f"{canale} il {giorno.isoformat()}" for canale, giorno in giorni.items()
+        )
+        messaggio = (
+            f"Uscita {numero}: tutti i post di un'uscita devono uscire nello "
+            f"stesso giorno (data di Europe/Rome), invece sono {elenco}. "
+            f"Gli orari possono essere diversi, il giorno no."
+        )
+        violazioni.append(_violazione(USCITA_GIORNI_DIVERSI, None, messaggio))
+    return violazioni
+
+
 def controlla_piano(
     contenuto: Any,
     *,
@@ -333,6 +368,12 @@ def controlla_piano(
                 f"{limiti[canale]['post_chiesti']}: sono {presenti}."
             )
             violazioni.append(_violazione(POST_PER_CANALE, canale, messaggio))
+
+    # Un'uscita è un tema raccontato su tutti i canali della campagna, nello
+    # stesso giorno di calendario (Europe/Rome); l'ora può cambiare da un post
+    # all'altro. Il piano è fatto solo di uscite.
+    for uscita in contenuto["uscite"]:
+        violazioni += _violazioni_dell_uscita(uscita, list(limiti))
 
     # R-28: nessun tetto alle immagini AI. Quante siano non è una regola: un
     # post senza foto è `immagine_ai`, uno con foto la prende tra quelle
