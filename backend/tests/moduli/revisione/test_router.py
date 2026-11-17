@@ -120,6 +120,54 @@ def test_vedi_campagna_foto_non_usata_con_motivo(db, client, utente_di_prova):
     assert scartate[esclusa.id] == "Sfocata"
 
 
+def test_vedi_campagna_foto_escluse_con_la_causa(db, client, utente_di_prova):
+    """Non idonea, doppione, in eccesso, non analizzata: ognuna dice perché è fuori."""
+    campagna = campagna_in_revisione(db)
+    post_da_approvare(db, campagna_id=campagna.id)
+    buia = foto(db, campagna=campagna)
+    buia.analisi_ai = {"idonea": False, "motivo": "Troppo buia", "simile_a": None}
+    migliore = foto(db, campagna=campagna)
+    migliore.analisi_ai = {"idonea": True, "punteggio": 5, "simile_a": None}
+    doppia = foto(db, campagna=campagna)
+    doppia.analisi_ai = {"idonea": True, "punteggio": 2, "simile_a": migliore.id}
+    in_piu = foto(db, campagna=campagna)
+    in_piu.analisi_ai = {"idonea": True, "punteggio": 3, "simile_a": None}
+    nuova = foto(db, campagna=campagna)
+    nuova.analisi_ai = {}
+    db.flush()
+    utente_di_prova("operatore")
+
+    dati = _dettaglio(client, campagna.id).json()
+    per_id = {f["foto_id"]: f for g in dati["foto_non_usate"] for f in g["foto"]}
+
+    assert per_id[buia.id]["causa"] == "non_idonea"
+    assert per_id[buia.id]["motivo"] == "Troppo buia"
+    assert per_id[doppia.id]["causa"] == "doppione"
+    assert per_id[doppia.id]["simile_a"] == migliore.id
+    assert per_id[in_piu.id]["causa"] == "in_eccesso"
+    assert per_id[in_piu.id]["simile_a"] is None
+    assert per_id[nuova.id]["causa"] == "non_analizzata"
+
+
+def test_vedi_campagna_foto_non_idonea_vale_piu_del_doppione(
+    db, client, utente_di_prova
+):
+    """Una foto sfocata che è anche simile a un'altra si dice sfocata: è il motivo più grave."""
+    campagna = campagna_in_revisione(db)
+    post_da_approvare(db, campagna_id=campagna.id)
+    una = foto(db, campagna=campagna)
+    una.analisi_ai = {"idonea": False, "motivo": "Sfocata", "simile_a": 1}
+    db.flush()
+    utente_di_prova("operatore")
+
+    dati = _dettaglio(client, campagna.id).json()
+    [voce] = [
+        f for g in dati["foto_non_usate"] for f in g["foto"] if f["foto_id"] == una.id
+    ]
+
+    assert voce["causa"] == "non_idonea"
+
+
 def test_vedi_campagna_filtra_per_stato(db, client, utente_di_prova):
     campagna = campagna_in_revisione(db)
     da_approvare = post_da_approvare(db, campagna_id=campagna.id)
