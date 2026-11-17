@@ -38,7 +38,7 @@ uv run python -m app.cli demo --foto CARTELLA_FOTO              # tutte le foto 
 uv run python -m app.cli demo --foto CARTELLA_FOTO --quante 3   # solo le prime 3: gli altri post avranno un'immagine AI
 ```
 
-Le foto passano gli stessi controlli del caricamento (JPEG, PNG o WebP; lato corto da 1080 px; al massimo 36 megapixel) e quelle scartate si stampano con il motivo. La cartella non è in git: finora si è usata una cartella di 13 foto di mosaici (`mosaico-01.jpg` … `mosaico-13.jpg`), di cui non sono scritti né l'autore né il posto (voce P-02 della corsia della presentazione in `docs/agenti/tasks.md`). Un `demo.json` nella cartella cambia i campi della bottega (quelli del profilo sono in plan §2):
+Le foto passano gli stessi controlli del caricamento (JPEG, PNG o WebP; lato corto da 480 px; al massimo 36 megapixel) e quelle scartate si stampano con il motivo. La cartella non è in git: finora si è usata una cartella di 13 foto di mosaici (`mosaico-01.jpg` … `mosaico-13.jpg`), di cui non sono scritti né l'autore né il posto (voce P-02 della corsia della presentazione in `docs/agenti/tasks.md`). Un `demo.json` nella cartella cambia i campi della bottega (quelli del profilo sono in plan §2):
 
 ```json
 {

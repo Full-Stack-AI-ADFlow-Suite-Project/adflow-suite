@@ -32,7 +32,7 @@ import {
 import { ApiErrore } from "../../../api/http";
 
 const MAX_MB = 10;
-const MIN_LATO = 1080;
+const MIN_LATO = 480;
 const TIPI_AMMESSI = ["image/jpeg", "image/png", "image/webp"];
 
 function latoCorto(file: File): Promise<number> {

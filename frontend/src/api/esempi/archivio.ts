@@ -116,11 +116,11 @@ function validaImmagineFile(
     img.onload = () => {
       URL.revokeObjectURL(url);
       const minLato = Math.min(img.naturalWidth, img.naturalHeight);
-      if (minLato < 1080) {
+      if (minLato < 480) {
         reject(
           new ApiErrore(
             422,
-            "Il lato corto della foto deve essere di almeno 1080 px.",
+            "Il lato corto della foto deve essere di almeno 480 px.",
           ),
         );
         return;

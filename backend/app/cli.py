@@ -209,7 +209,7 @@ def esegui_demo(
     """Seed, bottega della demo e campagna in bozza con le foto della cartella.
 
     Le foto passano per ``campagne.carica_foto()``, con i suoi controlli: quelle
-    che non li superano (formato, lato corto sotto i 1080 px, troppi pixel) si
+    che non li superano (formato, lato corto sotto i 480 px, troppi pixel) si
     scartano con il motivo. ``quante`` = None o 0 carica tutte quelle valide: i
     post che le foto non coprono hanno un'immagine AI, quanti che siano.
     La demo si prepara una volta sola, da database vuoto.
