@@ -9,15 +9,22 @@ garantendo:
 """
 
 from abc import ABC, abstractmethod
+from datetime import datetime
 from pathlib import Path
 import re
+import unicodedata
 import uuid
+from zoneinfo import ZoneInfo
 
 # Limite di specifica R-13: immagini <= 10 MB
 DIMENSIONE_MAX_BYTE: int = 10 * 1024 * 1024
 
 # Estensioni supportate dal dominio (Spec R-13)
 ESTENSIONI_AMMESSE: frozenset[str] = frozenset({".jpg", ".jpeg", ".png", ".webp"})
+
+# Un nome leggibile ha un prefisso (la bottega) lungo al più questo.
+LUNGHEZZA_MAX_PREFISSO: int = 40
+_ROMA = ZoneInfo("Europe/Rome")
 
 CARATTERI_VIETATI_NEL_NOME: tuple[str, ...] = (
     "/",
@@ -137,19 +144,42 @@ class ArchivioAdapter(ABC):
         cls.valida_magic_bytes(contenuto, ext_normalizzata)
         return ext_normalizzata
 
+    @staticmethod
+    def prefisso_leggibile(testo: str) -> str:
+        """Riduce un testo libero (es. il nome della bottega) a minuscole, cifre e trattini.
+
+        Toglie accenti e simboli, così il risultato è sempre un pezzo di nome file
+        sicuro. Se non resta nulla, restituisce una stringa vuota.
+        """
+        senza_accenti = (
+            unicodedata.normalize("NFKD", str(testo or ""))
+            .encode("ascii", "ignore")
+            .decode()
+        )
+        pulito = re.sub(r"[^a-z0-9]+", "-", senza_accenti.lower()).strip("-")
+        return pulito[:LUNGHEZZA_MAX_PREFISSO].strip("-")
+
     @classmethod
-    def genera_nome_file(cls, estensione: str) -> str:
+    def genera_nome_file(cls, estensione: str, prefisso: str = "") -> str:
         """Genera un nome file univoco e sicuro generato dal server.
 
         Args:
             estensione: estensione del file (es. 'jpg', '.png', '.webp').
+            prefisso: testo libero che dice di chi è la foto (di norma il nome della
+                bottega); passa sempre da ``prefisso_leggibile``. Mai il nome del file
+                scelto dall'utente: il nome lo decide solo il server (Costituzione §3).
 
         Returns:
-            Nome file univoco nel formato '<uuid>.<estensione_sanitizzata>'.
+            Senza prefisso ``<uuid>.<estensione>``; con prefisso
+            ``<bottega>_<AAAAMMGG>-<HHMMSS>_<8 caratteri casuali>.<estensione>``
+            (data e ora di Roma): leggibile, tracciabile e senza doppioni.
         """
         ext_pulita = cls.normalizza_e_valida_estensione(estensione)
-        identificativo = uuid.uuid4().hex
-        return f"{identificativo}{ext_pulita}"
+        pezzo = cls.prefisso_leggibile(prefisso)
+        if not pezzo:
+            return f"{uuid.uuid4().hex}{ext_pulita}"
+        quando = datetime.now(_ROMA).strftime("%Y%m%d-%H%M%S")
+        return f"{pezzo}_{quando}_{uuid.uuid4().hex[:8]}{ext_pulita}"
 
     @staticmethod
     def valida_nome_file(nome_file: str) -> str:
@@ -180,8 +210,11 @@ class ArchivioAdapter(ABC):
         return nome_file
 
     @abstractmethod
-    def salva(self, contenuto: bytes, estensione: str) -> str:
-        """Salva il contenuto di un file e restituisce il nome generato dal server."""
+    def salva(self, contenuto: bytes, estensione: str, prefisso: str = "") -> str:
+        """Salva il contenuto di un file e restituisce il nome generato dal server.
+
+        ``prefisso`` apre il nome del file (vedi ``genera_nome_file``).
+        """
         raise NotImplementedError
 
     @abstractmethod

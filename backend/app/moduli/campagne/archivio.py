@@ -91,7 +91,7 @@ def carica_foto_archivio(
     info = analizza_e_valida_immagine(contenuto)
 
     archivio = ottieni_archivio()
-    nome_file = archivio.salva(contenuto, info.estensione)
+    nome_file = archivio.salva(contenuto, info.estensione, profilo.nome)
     _al_termine_transazione(db, su_rollback=lambda: archivio.elimina(nome_file))
 
     try:

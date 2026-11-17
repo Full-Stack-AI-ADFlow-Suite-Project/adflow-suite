@@ -342,6 +342,16 @@ def aggiungi_foto(
     return record
 
 
+def prefisso_file(db: Session, campagna_id: int) -> str:
+    """Il nome della bottega della campagna, con cui si aprono i nomi dei file.
+
+    Usata da ``contenuti`` per salvare le immagini AI (plan §6). Vuota se la
+    bottega non si trova: il file prende allora un nome senza prefisso.
+    """
+    bottega = artigiani_service.profilo(db, campagna(db, campagna_id).profilo_id)
+    return bottega.nome if bottega else ""
+
+
 def post_chiesti(post_a_settimana: int, inizio: date, fine: date) -> int:
     """Post chiesti su un canale: post/settimana × giorni ÷ 7, per difetto (R-05).
 
@@ -1187,9 +1197,12 @@ def _salva_foto_caricata(
     """
     info = analizza_e_valida_immagine(contenuto)
 
+    bottega = artigiani_service.profilo(db, campagna.profilo_id)
     archivio = ottieni_archivio()
     try:
-        nome_file = archivio.salva(contenuto, info.estensione)
+        nome_file = archivio.salva(
+            contenuto, info.estensione, bottega.nome if bottega else ""
+        )
     except OSError as errore:
         if errore.errno == errno.ENOSPC:
             raise ServizioNonDisponibile(

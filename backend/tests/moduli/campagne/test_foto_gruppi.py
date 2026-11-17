@@ -12,6 +12,7 @@ Verifica:
 - Compensazione anti-TOCTOU: se il database fallisce, il file su disco viene rimosso.
 """
 
+import re
 from io import BytesIO
 from pathlib import Path
 import struct
@@ -155,6 +156,30 @@ def test_ca13_rifiuto_lato_corto_inferiore_1080px(
     dettaglio = risposta.json()["detail"]
     assert "1000 px" in dettaglio
     assert "inferiore al minimo richiesto di 1080 px" in dettaglio
+
+
+def test_nome_file_caricato_porta_bottega_data_e_codice(
+    client: TestClient, utente_di_prova, db: Session, tmp_path: Path
+):
+    """La foto caricata prende il nome ``bottega_AAAAMMGG-HHMMSS_codice.ext``, scelto dal server."""
+    with usa_archivio(ArchivioDisco(tmp_path)):
+        artigiano = utente_di_prova("artigiano")
+        prof = profilo(db, utente_id=artigiano.id)
+        camp = campagna_in_bozza(db, profilo_id=prof.id)
+
+        risposta = client.post(
+            f"/api/campagne/{camp.id}/foto",
+            data={"gruppo_id": _gruppo_caricate(db, camp)},
+            files={
+                "file": ("../IMG_0001.PNG", BytesIO(_crea_png(1080, 1080)), "image/png")
+            },
+        )
+
+        assert risposta.status_code == 201
+        nome = risposta.json()["file"]
+        assert re.fullmatch(r"[a-z0-9-]+_\d{8}-\d{6}_[0-9a-f]{8}\.png", nome)
+        assert "img" not in nome
+        assert (tmp_path / nome).is_file()
 
 
 def test_ca13_accettazione_png_jpeg_webp_conformi(

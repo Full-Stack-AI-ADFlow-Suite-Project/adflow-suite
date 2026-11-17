@@ -10,6 +10,7 @@ Copre:
 """
 
 from pathlib import Path
+import re
 import pytest
 
 from app.adapters.archivio import (
@@ -40,6 +41,61 @@ def test_generazione_nome_file_sicuro():
     assert nome4.endswith(".webp")
     assert len(nome1) > 32  # UUID esadecimale + estensione
     assert nome1 != nome2
+
+
+def test_nome_file_leggibile_con_prefisso_data_e_codice():
+    """Con un prefisso il nome è ``bottega_AAAAMMGG-HHMMSS_codice.ext``, senza accenti né simboli."""
+    nome = ArchivioAdapter.genera_nome_file(".jpg", "Ceramiche D'Èrùta & Figli!")
+
+    assert re.fullmatch(r"ceramiche-d-eruta-figli_\d{8}-\d{6}_[0-9a-f]{8}\.jpg", nome)
+    ArchivioAdapter.valida_nome_file(nome)
+
+
+def test_nome_file_con_prefisso_non_scappa_dalla_cartella():
+    """Il prefisso passa dal filtro: niente separatori, risalite o caratteri riservati."""
+    nome = ArchivioAdapter.genera_nome_file("png", "../../etc/passwd\x00:*?")
+
+    assert "/" not in nome and "\\" not in nome and ".." not in nome
+    ArchivioAdapter.valida_nome_file(nome)
+
+
+def test_nome_file_prefisso_vuoto_o_senza_lettere_torna_al_codice():
+    """Un prefisso che non lascia lettere o cifre dà il vecchio nome ``<uuid>.ext``."""
+    for prefisso in ("", "   ", "§§§", None):
+        nome = ArchivioAdapter.genera_nome_file(".webp", prefisso)  # type: ignore[arg-type]
+        assert re.fullmatch(r"[0-9a-f]{32}\.webp", nome)
+
+
+def test_nome_file_prefisso_lungo_viene_accorciato():
+    """Il pezzo della bottega non supera 40 caratteri."""
+    nome = ArchivioAdapter.genera_nome_file(".jpg", "a" * 200)
+
+    assert nome.split("_")[0] == "a" * 40
+
+
+def test_due_salvataggi_nello_stesso_secondo_hanno_nomi_diversi(tmp_path: Path):
+    """Stessa bottega, stesso secondo: il codice casuale evita i doppioni, anche su disco."""
+    for archivio in (ArchivioDisco(tmp_path), ArchivioFinto()):
+        nomi = {archivio.salva(JPEG_TEST, ".jpg", "Bottega Rossi") for _ in range(50)}
+        assert len(nomi) == 50
+        assert all(archivio.esiste(n) for n in nomi)
+
+
+def test_disco_non_sovrascrive_un_nome_gia_preso(tmp_path: Path, monkeypatch):
+    """Se il nome generato esiste già, ArchivioDisco ne genera un altro senza toccare il file."""
+    archivio = ArchivioDisco(tmp_path)
+    (tmp_path / "occupato.jpg").write_bytes(b"originale")
+    nomi = iter(["occupato.jpg", "libero.jpg"])
+    monkeypatch.setattr(
+        ArchivioAdapter,
+        "genera_nome_file",
+        classmethod(lambda cls, e, p="": next(nomi)),
+    )
+
+    nome = archivio.salva(JPEG_TEST, ".jpg", "x")
+
+    assert nome == "libero.jpg"
+    assert (tmp_path / "occupato.jpg").read_bytes() == b"originale"
 
 
 def test_estensioni_rifiutate_se_non_in_whitelist():

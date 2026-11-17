@@ -62,13 +62,23 @@ class ArchivioDisco(ArchivioAdapter):
 
         return percorso_risolto
 
-    def salva(self, contenuto: bytes, estensione: str) -> str:
-        """Salva il contenuto su disco con un nome sicuro generato dal server."""
+    def salva(self, contenuto: bytes, estensione: str, prefisso: str = "") -> str:
+        """Salva il contenuto su disco con un nome sicuro generato dal server.
+
+        Il file si crea in esclusiva (``xb``): un nome già preso non si
+        sovrascrive mai, se ne genera un altro.
+        """
         ext_normalizzata = self.valida_payload(contenuto, estensione)
-        nome_file = self.genera_nome_file(ext_normalizzata)
-        percorso = self._valida_e_risolvi_percorso(nome_file)
-        percorso.write_bytes(contenuto)
-        return nome_file
+        for _ in range(5):
+            nome_file = self.genera_nome_file(ext_normalizzata, prefisso)
+            percorso = self._valida_e_risolvi_percorso(nome_file)
+            try:
+                with percorso.open("xb") as aperto:
+                    aperto.write(contenuto)
+            except FileExistsError:
+                continue
+            return nome_file
+        raise OSError("Impossibile generare un nome file libero.")
 
     def leggi(self, nome_file: str) -> bytes:
         """Legge i byte del file specificato da disco."""
