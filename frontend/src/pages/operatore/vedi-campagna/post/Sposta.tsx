@@ -40,7 +40,9 @@ export function Sposta({
       <Stack gap="sm">
         <Text size="sm" c="dimmed">
           La nuova data deve rientrare nella campagna ed essere tra almeno 15
-          minuti.
+          minuti. I post di un&apos;uscita escono tutti nello stesso giorno: se
+          cambi giorno, gli altri post della stessa uscita vengono con questo,
+          ciascuno alla sua ora.
         </Text>
         <TextInput
           type="datetime-local"

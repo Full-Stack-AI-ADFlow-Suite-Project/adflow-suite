@@ -578,7 +578,7 @@ def riprogramma_post(
 
 def sposta_post(
     db: Session, post_id: int, data_ora: datetime, adesso: datetime
-) -> tuple[Post, datetime]:
+) -> tuple[Post, datetime, list[tuple[Post, datetime]]]:
     """Sposta un post a un'altra data e ora, dove R-16 lo ammette (R-36, CA-72).
 
     Usata da ``revisione`` per ``POST /post/{id}/sposta``: in revisione su un
@@ -586,17 +586,28 @@ def sposta_post(
     tra almeno 15 minuti. Lo stato del post non cambia; la spunta cade. La
     decisione ``riprogrammato`` la registra chi chiama.
 
+    I post di un'uscita escono tutti nello stesso giorno (data di Roma): se il
+    giorno cambia, gli altri post ancora da fare della stessa uscita (``da_approvare``
+    e ``approvato``) vanno con lui, ciascuno alla sua ora. Se anche uno solo non
+    si può spostare, non si sposta niente. Cambiare solo l'ora non muove nessun
+    altro post. I post già usciti, falliti, annullati o scartati restano dove sono.
+
     Returns:
-        Il post e la data che aveva prima.
+        Il post, la data che aveva prima e gli altri post spostati con lui, ognuno
+        con la sua data di prima.
 
     Raises:
         NonTrovato: se non esiste nessun post con quell'id.
-        StatoNonValido: ``sposta`` non è ammesso sul post (409).
+        StatoNonValido: ``sposta`` non è ammesso sul post, o su un altro post
+            dell'uscita che dovrebbe seguirlo (409).
         DatiNonValidi: la nuova data non ha il fuso, è a meno di 15 minuti da
             ``adesso``, cade fuori dal periodo della campagna o è uguale a
-            quella di prima (422).
+            quella di prima (422); lo stesso vale per un post che lo segue.
     """
-    from .interventi import verifica_intervento  # interventi importa questo modulo
+    from .interventi import (  # interventi importa questo modulo
+        interventi_ammessi,
+        verifica_intervento,
+    )
 
     record = _post(db, post_id)
     campagna = verifica_intervento(db, record, SPOSTA, adesso)
@@ -604,10 +615,45 @@ def sposta_post(
     prima = record.data_ora
     if data_ora == prima:
         raise DatiNonValidi("La nuova data è uguale a quella di prima.")
+
+    nuovo_giorno = data_ora.astimezone(ROMA).date()
+    seguono: list[tuple[Post, datetime]] = []
+    if prima.astimezone(ROMA).date() != nuovo_giorno:
+        altri = db.scalars(
+            select(Post)
+            .where(Post.uscita_id == record.uscita_id, Post.id != record.id)
+            .order_by(Post.id)
+        ).all()
+        for altro in altri:
+            if altro.stato not in (DA_APPROVARE, APPROVATO):
+                continue
+            ora_sua = altro.data_ora.astimezone(ROMA).timetz().replace(tzinfo=None)
+            sua_data = datetime.combine(nuovo_giorno, ora_sua, tzinfo=ROMA)
+            if sua_data == altro.data_ora:
+                continue
+            if SPOSTA not in interventi_ammessi(altro, campagna.stato, adesso):
+                raise StatoNonValido(
+                    f"Il giorno cambia anche per il post su {altro.canale} della "
+                    f"stessa uscita, ma quel post non si può più spostare."
+                )
+            try:
+                _verifica_nuova_data(campagna, sua_data, adesso)
+            except DatiNonValidi as errore:
+                raise DatiNonValidi(
+                    f"Il giorno cambia anche per il post su {altro.canale} della "
+                    f"stessa uscita: {errore}"
+                ) from errore
+            seguono.append((altro, sua_data))
+
     record.data_ora = data_ora
     _azzera_spunta(record)
+    spostati = []
+    for altro, sua_data in seguono:
+        spostati.append((altro, altro.data_ora))
+        altro.data_ora = sua_data
+        _azzera_spunta(altro)
     db.flush()
-    return record, prima
+    return record, prima, spostati
 
 
 def annulla_un_post(db: Session, post_id: int, adesso: datetime) -> Post:
