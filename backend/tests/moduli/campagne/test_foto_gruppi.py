@@ -135,16 +135,16 @@ def test_ca13_rifiuto_payload_oltre_10mb(
     assert "supera il limite massimo di 10 MB" in risposta.json()["detail"]
 
 
-def test_ca13_rifiuto_lato_corto_inferiore_1080px(
+def test_ca13_rifiuto_lato_corto_inferiore_minimo(
     client: TestClient, utente_di_prova, db: Session
 ):
-    """CA-13: Immagine con lato corto < 1080 px solleva 422 con motivo descrittivo."""
+    """CA-13: Immagine con lato corto < 480 px solleva 422 con motivo descrittivo."""
     artigiano = utente_di_prova("artigiano")
     prof = profilo(db, utente_id=artigiano.id)
     camp = campagna_in_bozza(db, profilo_id=prof.id)
 
-    # Larghezza 1000 px, altezza 1500 px -> min = 1000 < 1080
-    png_piccolo = _crea_png(1000, 1500)
+    # Larghezza 400 px, altezza 600 px -> min = 400 < 480
+    png_piccolo = _crea_png(400, 600)
     risposta = client.post(
         f"/api/campagne/{camp.id}/foto",
         data={"gruppo_id": _gruppo_caricate(db, camp)},
@@ -153,8 +153,8 @@ def test_ca13_rifiuto_lato_corto_inferiore_1080px(
 
     assert risposta.status_code == 422
     dettaglio = risposta.json()["detail"]
-    assert "1000 px" in dettaglio
-    assert "inferiore al minimo richiesto di 1080 px" in dettaglio
+    assert "400 px" in dettaglio
+    assert "inferiore al minimo richiesto di 480 px" in dettaglio
 
 
 def test_ca13_accettazione_png_jpeg_webp_conformi(
@@ -720,31 +720,31 @@ def test_debug_webp_chunk_sconosciuto(client: TestClient, utente_di_prova, db: S
     assert "Formato WEBP non supportato" in res.json()["detail"]
 
 
-def test_debug_confini_esatti_1080_e_1079(
+def test_debug_confini_esatti_480_e_479(
     client: TestClient, utente_di_prova, db: Session, tmp_path: Path
 ):
-    """Debug: Confini esatti al pixel per lato minimo, massimo e pixel totali."""
+    """Debug: Confini esatti al pixel per lato minimo (480), massimo (8192) e pixel totali."""
     archivio_test = ArchivioDisco(tmp_path)
     with usa_archivio(archivio_test):
         art = utente_di_prova("artigiano")
         prof = profilo(db, utente_id=art.id)
         camp = campagna_in_bozza(db, profilo_id=prof.id)
 
-        # 1. 1080x1080 esatto -> OK (201)
-        res_1080 = client.post(
+        # 1. 480x480 esatto -> OK (201)
+        res_480 = client.post(
             f"/api/campagne/{camp.id}/foto",
             data={"gruppo_id": _gruppo_caricate(db, camp)},
-            files={"file": ("1080.png", BytesIO(_crea_png(1080, 1080)), "image/png")},
+            files={"file": ("480.png", BytesIO(_crea_png(480, 480)), "image/png")},
         )
-        assert res_1080.status_code == 201
+        assert res_480.status_code == 201
 
-        # 2. 1079x1080 (1 px sotto minimo) -> Rifiutato (422)
-        res_1079 = client.post(
+        # 2. 479x480 (1 px sotto minimo) -> Rifiutato (422)
+        res_479 = client.post(
             f"/api/campagne/{camp.id}/foto",
             data={"gruppo_id": _gruppo_caricate(db, camp)},
-            files={"file": ("1079.png", BytesIO(_crea_png(1079, 1080)), "image/png")},
+            files={"file": ("479.png", BytesIO(_crea_png(479, 480)), "image/png")},
         )
-        assert res_1079.status_code == 422
+        assert res_479.status_code == 422
 
         # 3. 8192x1080 esatto -> OK (201)
         res_8192 = client.post(
@@ -779,6 +779,27 @@ def test_debug_confini_esatti_1080_e_1079(
             },
         )
         assert res_36m_plus.status_code == 422
+
+        # 7. Rapporto d'aspetto estremo (480x4000, ratio 8.33 > 8.0) -> Rifiutato (422)
+        res_spaghetti = client.post(
+            f"/api/campagne/{camp.id}/foto",
+            data={"gruppo_id": _gruppo_caricate(db, camp)},
+            files={
+                "file": ("spaghetti.png", BytesIO(_crea_png(480, 4000)), "image/png")
+            },
+        )
+        assert res_spaghetti.status_code == 422
+        assert "troppo estreme" in res_spaghetti.json()["detail"]
+
+        # 8. Risoluzione web comune (640x480, rapporto 1.33) -> OK (201)
+        res_web = client.post(
+            f"/api/campagne/{camp.id}/foto",
+            data={"gruppo_id": _gruppo_caricate(db, camp)},
+            files={"file": ("web_vga.png", BytesIO(_crea_png(640, 480)), "image/png")},
+        )
+        assert res_web.status_code == 201
+        assert res_web.json()["larghezza"] == 640
+        assert res_web.json()["altezza"] == 480
 
 
 def test_debug_gruppo_di_altra_campagna_vietato(

@@ -256,6 +256,19 @@ class TestSistemazioneFotoRegole:
         with pytest.raises(DatiNonValidi, match="troppo grande"):
             service.sistema_foto(buf.getvalue(), canale="instagram")
 
+    def test_foto_risoluzione_bassa_480px_viene_ridimensionata_a_1080px(self):
+        """Una foto web legittima da 480x480 px viene ricampionata (upscaled) a 1080x1080."""
+        img = Image.new("RGB", (480, 480), color=(80, 140, 190))
+        buf = io.BytesIO()
+        img.save(buf, format="JPEG")
+        dati_in = buf.getvalue()
+
+        dati_out = service.sistema_foto(dati_in, canale="instagram")
+        img_out = Image.open(io.BytesIO(dati_out))
+        assert img_out.width == 1080
+        assert img_out.height == 1080
+        assert img_out.format == "JPEG"
+
     def test_ritaglio_centrato_simmetrico(self):
         """Verifica che il ritaglio sia centrato simmetricamente rispetto all'originale."""
         # Creiamo un'immagine 3000x2000 con un punto centrale identificabile

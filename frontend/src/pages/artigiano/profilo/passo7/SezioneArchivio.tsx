@@ -274,7 +274,7 @@ export function SezioneArchivio() {
                     ) : (
                       <Text size="xs" c="dimmed" mt={2}>
                         Nessuna foto in questo gruppo. Carica JPG, PNG o WEBP
-                        (fino a 10 MB, lato corto ≥ 1080 px).
+                        (fino a 10 MB, lato corto ≥ 480 px).
                       </Text>
                     )}
                   </Stack>
@@ -328,7 +328,7 @@ export function SezioneArchivio() {
             )}
 
             <Text size="xs" c="dimmed">
-              Requisiti foto: JPG, PNG o WEBP, fino a 10 MB, lato corto ≥ 1080
+              Requisiti foto: JPG, PNG o WEBP, fino a 10 MB, lato corto ≥ 480
               px, massimo 20 foto per gruppo (spec R-13).
             </Text>
           </Stack>

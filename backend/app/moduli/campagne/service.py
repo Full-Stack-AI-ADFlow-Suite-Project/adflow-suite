@@ -1134,8 +1134,8 @@ def carica_foto(
     Verifiche di sicurezza e conformità:
     - Solo l'artigiano proprietario della bottega può caricare foto (CA-04).
     - La campagna deve essere nello stato 'bozza' (altrimenti StatoNonValido 409).
-    - Ispezione binaria e limiti dimensionali (R-13, CA-13): lato corto >= 1080 px,
-      max 8192x8192, max 36 MPixel, max 10 MB.
+    - Ispezione binaria e limiti dimensionali (R-13, CA-13): lato corto >= 480 px,
+      rapporto d'aspetto max 8:1, max 8192x8192, max 36 MPixel, max 10 MB.
     - La foto entra in un gruppo `caricate` già creato (plan §3): un gruppo
       `create_ai` solleva DatiNonValidi (CA-47).
     - Max 20 foto per gruppo (CA-13).
