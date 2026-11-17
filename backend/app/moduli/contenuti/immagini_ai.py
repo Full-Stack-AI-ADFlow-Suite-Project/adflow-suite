@@ -318,7 +318,11 @@ def _salva(
     with Image.open(BytesIO(immagine.contenuto)) as aperta:
         larghezza, altezza = aperta.size
     archivio = ottieni_archivio()
-    file = archivio.salva(immagine.contenuto, ESTENSIONI[immagine.mime])
+    file = archivio.salva(
+        immagine.contenuto,
+        ESTENSIONI[immagine.mime],
+        f"{campagne.prefisso_file(db, campagna_id)} ai",
+    )
     try:
         foto = campagne.aggiungi_foto(
             db, campagna_id, ORIGINE, file, immagine.mime, larghezza, altezza

@@ -12,10 +12,12 @@ class ArchivioFinto(ArchivioAdapter):
     def __init__(self) -> None:
         self._archivio: dict[str, bytes] = {}
 
-    def salva(self, contenuto: bytes, estensione: str) -> str:
+    def salva(self, contenuto: bytes, estensione: str, prefisso: str = "") -> str:
         """Salva il contenuto in memoria generando un nome univoco."""
         ext_normalizzata = self.valida_payload(contenuto, estensione)
-        nome_file = self.genera_nome_file(ext_normalizzata)
+        nome_file = self.genera_nome_file(ext_normalizzata, prefisso)
+        while nome_file in self._archivio:
+            nome_file = self.genera_nome_file(ext_normalizzata, prefisso)
         self._archivio[nome_file] = bytes(contenuto)
         return nome_file
 
