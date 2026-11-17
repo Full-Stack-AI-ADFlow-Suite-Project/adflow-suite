@@ -138,12 +138,18 @@ def vedi_campagna(
             continue
         analisi = foto.analisi_ai if isinstance(foto.analisi_ai, dict) else {}
         simile_a = analisi.get("simile_a")
+        causa = _causa_non_usata(foto.origine, analisi)
         non_usate.setdefault(foto.gruppo_id, []).append(
             FotoNonUsataSchema(
                 foto_id=foto.id,
                 motivo=analisi.get("motivo"),
-                causa=_causa_non_usata(foto.origine, analisi),
-                simile_a=simile_a if isinstance(simile_a, int) else None,
+                causa=causa,
+                # La foto simile si dice solo per un doppione.
+                simile_a=(
+                    simile_a
+                    if causa == "doppione" and isinstance(simile_a, int)
+                    else None
+                ),
             )
         )
     foto_non_usate = [
