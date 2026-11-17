@@ -39,6 +39,7 @@ import {
   type DatiProfilo,
 } from "../../../api/artigiani";
 import { Passo7 } from "./passo7";
+import { ScegliAbbonamento } from "./ScegliAbbonamento";
 
 const DESCRIZIONI_PASSI = [
   "Presenta la tua bottega: useremo questi dati nel profilo e nelle campagne.",
@@ -424,12 +425,13 @@ export function Profilo() {
                       Sono le preferenze per le campagne. Il collegamento degli
                       account è gestito dal consorzio.
                     </Text>
-                    {scelta(
-                      "frequenza",
-                      "Quanti post vuoi a settimana su ogni social?",
-                    )}
+                    <ScegliAbbonamento
+                      value={dati.frequenza || null}
+                      error={errori.frequenza}
+                      onChange={(v) => cambia("frequenza", v)}
+                    />
                     <Text c="dimmed" size="xs">
-                      La frequenza è un impegno: i post che le foto non coprono
+                      L'abbonamento è un impegno: i post che le foto non coprono
                       avranno un'immagine creata con l'AI.
                     </Text>
                     <Checkbox.Group
@@ -688,7 +690,7 @@ function Riepilogo({ dati: p, passo }: { dati: DatiProfilo; passo: number }) {
     case 5:
       righe = [
         ["Canali", p.canali.map((v) => etichetta("canali", v)).join(", ")],
-        ["Frequenza", etichetta("frequenza", p.frequenza)],
+        ["Abbonamento", etichetta("frequenza", p.frequenza)],
         [
           "Social già usati",
           Array.isArray(p.social_esistenti?.canali)

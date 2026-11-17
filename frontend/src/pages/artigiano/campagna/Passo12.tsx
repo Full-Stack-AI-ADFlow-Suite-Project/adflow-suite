@@ -24,13 +24,10 @@ import {
 } from "../../../api/artigiani";
 import { ApiErrore } from "../../../api/http";
 import { Riga } from "./Riga";
+import { RiepilogoPost } from "./RiepilogoPost";
+import { useAltreCampagne } from "./useAltreCampagne";
+import { postASettimana } from "../../../api/abbonamento";
 
-const POST_A_SETTIMANA: Record<string, number> = {
-  f1_2: 2,
-  f3_4: 3,
-  f5_piu: 5,
-  decidete_voi: 3,
-};
 
 /** I testi degli avvisi di R-25; `foto_poche` dice quanti post avranno un'immagine AI. */
 function testoAvviso(avviso: string, daCreareConAI: number): string | null {
@@ -95,7 +92,8 @@ export function Passo12({
     ...Object.values(campagna.post_chiesti_per_canale),
   );
   const mancanti = Math.max(0, chiesti - nFoto);
-  const postSett = POST_A_SETTIMANA[campagna.frequenza ?? ""] ?? 3;
+  const postSett = postASettimana(campagna.frequenza);
+  const altre = useAltreCampagne(campagna.id);
   const giorni =
     Math.round(
       (new Date(campagna.fine + "T00:00:00").getTime() -
@@ -181,8 +179,15 @@ export function Passo12({
           <Title order={4} mb={4}>
             Quanti post usciranno?
           </Title>
+          <RiepilogoPost
+            frequenza={campagna.frequenza}
+            inizio={campagna.inizio}
+            fine={campagna.fine}
+            canali={campagna.canali ?? []}
+            altre={altre}
+          />
           <Riga
-            nome="Ritmo scelto"
+            nome="Abbonamento"
             valore={`${postSett} a settimana per canale · con ${
               (campagna.canali ?? []).length
             } canali ${
