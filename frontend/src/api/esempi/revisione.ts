@@ -359,8 +359,15 @@ function seed(): Record<number, RevisioneRecord> {
             {
               foto_id: 102,
               motivo: "Non servita: i temi del piano erano già coperti.",
+              causa: "in_eccesso",
+              simile_a: null,
             },
-            { foto_id: 107, motivo: "Sfocata: la decorazione non si legge." },
+            {
+              foto_id: 107,
+              motivo: "Sfocata: la decorazione non si legge.",
+              causa: "non_idonea",
+              simile_a: null,
+            },
           ],
         },
       ],

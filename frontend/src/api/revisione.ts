@@ -130,9 +130,20 @@ export interface Uscita {
   post: PostVista[];
 }
 
+/** Perché una foto della campagna non è in nessun post. */
+export type CausaNonUsata =
+  | "non_idonea"
+  | "doppione"
+  | "in_eccesso"
+  | "non_analizzata"
+  | "altro";
+
 export interface FotoNonUsata {
   foto_id: number;
   motivo: string | null;
+  causa: CausaNonUsata;
+  /** Per un doppione: la foto simile che il piano può usare. */
+  simile_a: number | null;
 }
 
 export interface GruppoFotoNonUsate {

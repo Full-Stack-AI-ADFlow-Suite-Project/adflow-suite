@@ -27,6 +27,7 @@ import { Guscio } from "../../components/Guscio";
 import { StatoBadge } from "../../components/StatoBadge";
 import { AvanzamentoCampagna } from "../../components/AvanzamentoCampagna";
 import { Decidi } from "./campagna/Decidi";
+import { FotoEscluse } from "./campagna/FotoEscluse";
 import { Materiali } from "./campagna/Materiali";
 import { PianoCard } from "./campagna/PianoCard";
 import { UscitaCard } from "./campagna/UscitaCard";
@@ -138,6 +139,7 @@ export function VediCampagna() {
           </div>
 
           <Decidi vista={vista} campagna={campagna} ricarica={carica} />
+          <FotoEscluse vista={vista} campagna={campagna} />
           <AzioniCampagna vista={vista} ricarica={carica} />
           {/* Congelato per l'MVP, ADR-114: nota interna e togli canale restano nascosti */}
           <PianoCard

@@ -69,6 +69,19 @@ def _post(post, stato_campagna: str, adesso: datetime) -> PostSchema:
     )
 
 
+def _causa_non_usata(origine: str, analisi: dict) -> str:
+    """Perché una foto della campagna non è in nessun post (stessi criteri del piano)."""
+    if origine != "caricata":
+        return "altro"
+    if analisi.get("idonea") is False:
+        return "non_idonea"
+    if analisi.get("simile_a"):
+        return "doppione"
+    if not analisi:
+        return "non_analizzata"
+    return "in_eccesso" if analisi.get("idonea") is True else "altro"
+
+
 def vedi_campagna(
     db: Session,
     campagna_id: int,
@@ -123,9 +136,21 @@ def vedi_campagna(
     for foto in campagne.foto_della_campagna(db, campagna_id):
         if foto.id in usate:
             continue
-        motivo = (foto.analisi_ai or {}).get("motivo")
+        analisi = foto.analisi_ai if isinstance(foto.analisi_ai, dict) else {}
+        simile_a = analisi.get("simile_a")
+        causa = _causa_non_usata(foto.origine, analisi)
         non_usate.setdefault(foto.gruppo_id, []).append(
-            FotoNonUsataSchema(foto_id=foto.id, motivo=motivo)
+            FotoNonUsataSchema(
+                foto_id=foto.id,
+                motivo=analisi.get("motivo"),
+                causa=causa,
+                # La foto simile si dice solo per un doppione.
+                simile_a=(
+                    simile_a
+                    if causa == "doppione" and isinstance(simile_a, int)
+                    else None
+                ),
+            )
         )
     foto_non_usate = [
         GruppoFotoNonUsateSchema(

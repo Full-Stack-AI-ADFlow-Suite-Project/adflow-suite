@@ -210,10 +210,21 @@ class UscitaSchema(BaseModel):
 
 
 class FotoNonUsataSchema(BaseModel):
-    """Una foto che il piano non usa, con il motivo dell'analisi."""
+    """Una foto che il piano non usa, con la causa e il motivo dell'analisi.
+
+    ``causa``: ``non_idonea`` (l'analisi la scarta, con il suo ``motivo``),
+    ``doppione`` (quasi uguale a ``simile_a``, che è la migliore delle due),
+    ``in_eccesso`` (idonea, ma i post chiesti sono già coperti da foto migliori),
+    ``non_analizzata`` (senza analisi) o ``altro`` (per esempio un'immagine AI
+    che non serve più).
+    """
 
     foto_id: int
     motivo: str | None
+    causa: Literal[
+        "non_idonea", "doppione", "in_eccesso", "non_analizzata", "altro"
+    ] = "altro"
+    simile_a: int | None = None
 
 
 class GruppoFotoNonUsateSchema(BaseModel):

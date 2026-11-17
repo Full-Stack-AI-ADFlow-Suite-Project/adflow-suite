@@ -17,7 +17,7 @@ import {
 } from "@mantine/core";
 
 import type { CampagnaDettaglio } from "../../../api/campagne";
-import type { VediCampagna } from "../../../api/revisione";
+import type { CausaNonUsata, VediCampagna } from "../../../api/revisione";
 import { SCELTE } from "../../../api/artigiani";
 import { data, NOME_CANALE } from "./util";
 
@@ -48,6 +48,22 @@ const ESITI: Record<string, string> = {
   riprogrammato: "Riprogrammato",
 };
 
+/** Perché una foto non è in nessun post, in una riga. */
+function motivoNonUsata(causa: CausaNonUsata, motivo: string | null): string {
+  switch (causa) {
+    case "non_idonea":
+      return motivo ? `non idonea (${motivo})` : "non idonea";
+    case "doppione":
+      return "doppione di un'altra foto della serie";
+    case "in_eccesso":
+      return "in eccesso rispetto ai post chiesti";
+    case "non_analizzata":
+      return "non analizzata";
+    default:
+      return motivo ?? "senza motivo";
+  }
+}
+
 export function Materiali({
   campagna,
   vista,
@@ -69,7 +85,8 @@ export function Materiali({
 
   const nonUsate = new Map<number, string>();
   for (const g of vista.foto_non_usate)
-    for (const f of g.foto) nonUsate.set(f.foto_id, f.motivo ?? "senza motivo");
+    for (const f of g.foto)
+      nonUsate.set(f.foto_id, motivoNonUsata(f.causa, f.motivo));
 
   const immaginiAi = vista.uscite
     .flatMap((u) =>
