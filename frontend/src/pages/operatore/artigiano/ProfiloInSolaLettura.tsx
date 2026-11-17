@@ -53,7 +53,7 @@ function passi(p: ProfiloPubblico): Righe[] {
     ],
     [
       ["Canali preferiti", elenco("canali", p.canali)],
-      ["Frequenza", scelta("frequenza", p.frequenza)],
+      ["Abbonamento", scelta("frequenza", p.frequenza)],
       [
         "Social già usati",
         Array.isArray(social.canali) ? social.canali.join(", ") : null,

@@ -21,6 +21,8 @@ import {
 } from "@mantine/core";
 
 import type { CampagnaCrea, CampagnaDettaglio } from "../../../api/campagne";
+import { RiepilogoPost } from "./RiepilogoPost";
+import { useAltreCampagne } from "./useAltreCampagne";
 import {
   canali as apiCanali,
   type CanaleCollegato,
@@ -89,6 +91,7 @@ export function Passo10({
   }, []);
 
   const durata = giorniTra(inizio, fine);
+  const altre = useAltreCampagne(campagna?.id);
 
   const scegliDurata = (giorni: number) => {
     const d = new Date(inizio + "T00:00:00");
@@ -228,9 +231,17 @@ export function Passo10({
           )}
           <Text size="xs" c="dimmed" mt={6}>
             Ritrovi i social scelti nel profilo: puoi usare quelli collegati. Il
-            numero di post a settimana vale per ciascun social.
+            numero di post a settimana (il tuo abbonamento) vale per ciascun
+            social.
           </Text>
         </div>
+        <RiepilogoPost
+          frequenza={profilo.frequenza}
+          inizio={inizio}
+          fine={fine}
+          canali={scelti}
+          altre={altre}
+        />
         <Textarea
           label="Cosa vuoi raccontare ai tuoi clienti in questo periodo?"
           required

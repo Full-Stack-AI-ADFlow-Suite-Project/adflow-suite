@@ -21,6 +21,7 @@ import {
 import { urlFotoFile } from "../../../../api/archivio";
 import type { CampagnaDettaglio } from "../../../../api/campagne";
 import { Riga } from "../Riga";
+import { postASettimana } from "../../../../api/abbonamento";
 import { CanaliTolti } from "./CanaliTolti";
 import { ContattoConsorzio } from "./ContattoConsorzio";
 import { RichiestaConsorzio } from "./RichiestaConsorzio";
@@ -32,12 +33,6 @@ const MOTIVO: Record<string, string> = {
   altro: "altro",
 };
 
-const POST_A_SETTIMANA: Record<string, number> = {
-  f1_2: 2,
-  f3_4: 3,
-  f5_piu: 5,
-  decidete_voi: 3,
-};
 
 function dataOraIT(iso: string | null): string {
   if (!iso) return "—";
@@ -82,7 +77,7 @@ function Passi({
 
 function RiepilogoLettura({ campagna }: { campagna: CampagnaDettaglio }) {
   const nFoto = campagna.gruppi.reduce((n, g) => n + g.foto.length, 0);
-  const postSett = POST_A_SETTIMANA[campagna.frequenza ?? ""] ?? 3;
+  const postSett = postASettimana(campagna.frequenza);
   const chiesti = Math.max(
     0,
     ...Object.values(campagna.post_chiesti_per_canale),
