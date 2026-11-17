@@ -33,6 +33,17 @@ CODICI_TEMPORANEI: Final[frozenset[int]] = frozenset({1, 2, 4, 17, 32, 613})
 # Controlli dello stato del contenitore: il primo più due nuovi tentativi
 CONTENITORE_CONTROLLI: Final[int] = 3
 CONTENITORE_ATTESA_SECONDI: Final[float] = 3.0
+# Campi con cui Instagram può legare un luogo a un post: per ora non si pubblica
+# nessun luogo (la didascalia può nominarlo, il campo del luogo no). Si tolgono
+# da ogni richiesta Instagram, qualunque cosa ci finisca dentro.
+CAMPI_LUOGO_INSTAGRAM: Final[frozenset[str]] = frozenset(
+    {"location_id", "location", "place_id", "place", "geotag", "location_name"}
+)
+
+
+def _senza_luogo(dati: dict) -> dict:
+    """I dati di una richiesta Instagram senza i campi che pubblicano un luogo."""
+    return {k: v for k, v in dati.items() if k.lower() not in CAMPI_LUOGO_INSTAGRAM}
 
 
 class SocialMeta(SocialAdapter):
@@ -127,11 +138,13 @@ class SocialMeta(SocialAdapter):
             )
         esito = self._post(
             f"{self._instagram_id}/media",
-            data={
-                "image_url": url_foto[0],
-                "caption": didascalia,
-                "access_token": self._token,
-            },
+            data=_senza_luogo(
+                {
+                    "image_url": url_foto[0],
+                    "caption": didascalia,
+                    "access_token": self._token,
+                }
+            ),
         )
         if isinstance(esito, EsitoPubblicazione):
             return esito
@@ -143,7 +156,9 @@ class SocialMeta(SocialAdapter):
             return pronto
         esito = self._post(
             f"{self._instagram_id}/media_publish",
-            data={"creation_id": contenitore, "access_token": self._token},
+            data=_senza_luogo(
+                {"creation_id": contenitore, "access_token": self._token}
+            ),
         )
         if isinstance(esito, EsitoPubblicazione):
             return esito
