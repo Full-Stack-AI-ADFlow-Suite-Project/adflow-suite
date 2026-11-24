@@ -309,11 +309,11 @@ def test_comando_pubblica_ora(
     codice: int,
 ) -> None:
     ora = datetime(2026, 10, 28, 12, tzinfo=timezone.utc)
-    posts = [SimpleNamespace(stato="approvato") for _ in esiti]
-    chiamate: list[datetime] = []
+    posts = [SimpleNamespace(stato="approvato", canale="facebook") for _ in esiti]
+    chiamate: list[tuple[datetime, object]] = []
 
-    def pubblica(_db: Session, adesso: datetime) -> None:
-        chiamate.append(adesso)
+    def pubblica(_db: Session, adesso: datetime, canali: object = None) -> None:
+        chiamate.append((adesso, canali))
         for post, esito in zip(posts, esiti):
             post.stato = esito
 
@@ -323,7 +323,43 @@ def test_comando_pubblica_ora(
 
     assert cli.main(["pubblica-ora"]) == codice
 
-    # Tutti i post approvati, anche quelli con la data lontana.
-    assert chiamate[0] - ora > timedelta(days=365)
+    # Tutti i post approvati, anche quelli con la data lontana, su ogni canale.
+    assert chiamate[0][0] - ora > timedelta(days=365)
+    assert chiamate[0][1] is None
     pubblicati = esiti.count("pubblicato")
     assert f"Pubblicati {pubblicati} post su 2." in capsys.readouterr().out
+
+
+def test_comando_pubblica_ora_solo_facebook(
+    cli_sul_db_di_test: None,
+    monkeypatch: pytest.MonkeyPatch,
+    capsys: pytest.CaptureFixture[str],
+) -> None:
+    ora = datetime(2026, 10, 28, 12, tzinfo=timezone.utc)
+    su_facebook = SimpleNamespace(stato="approvato", canale="facebook")
+    su_instagram = SimpleNamespace(stato="approvato", canale="instagram")
+    chiamate: list[object] = []
+
+    def pubblica(_db: Session, _adesso: datetime, canali: object = None) -> None:
+        chiamate.append(canali)
+        su_facebook.stato = "pubblicato"
+
+    monkeypatch.setattr(cli, "adesso", lambda: ora)
+    monkeypatch.setattr(
+        cli, "post_dovuti", lambda _db, _ora: [su_facebook, su_instagram]
+    )
+    monkeypatch.setattr(cli, "pubblica_dovuti", pubblica)
+
+    assert cli.main(["pubblica-ora", "--canale", "facebook"]) == 0
+
+    assert chiamate == [["facebook"]]
+    assert su_instagram.stato == "approvato"
+    # Instagram non conta tra i post richiesti: l'esito è 1 su 1.
+    assert "Pubblicati 1 post su 1." in capsys.readouterr().out
+
+
+def test_comando_pubblica_ora_rifiuta_un_canale_sconosciuto(
+    cli_sul_db_di_test: None,
+) -> None:
+    with pytest.raises(SystemExit):
+        cli.main(["pubblica-ora", "--canale", "tiktok"])

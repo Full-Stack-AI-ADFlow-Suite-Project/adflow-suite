@@ -8,7 +8,7 @@ Da ``backend/``::
     python -m app.cli prova-ai --campagna ID
     python -m app.cli prova-prompt --da-campagna ID
     python -m app.cli demo --foto CARTELLA [--quante N]
-    python -m app.cli pubblica-ora
+    python -m app.cli pubblica-ora [--canale facebook]
 
 La password si chiede a terminale: non passa dagli argomenti né finisce in git.
 
@@ -28,8 +28,11 @@ un ``demo.json`` nella stessa cartella. Le foto non entrano in git.
 
 ``pubblica-ora`` è per le prove a mano: pubblica subito tutti i post approvati
 delle campagne attive, senza aspettare la loro data, con il provider social di
-``backend/.env`` (``SOCIAL_PROVIDER=meta`` per la pagina vera). Non prende il
-lock del tick: va lanciato a worker fermo.
+``backend/.env`` (``SOCIAL_PROVIDER=meta`` per la pagina vera). Con
+``--canale facebook`` pubblica solo i post di Facebook e lascia gli altri
+approvati: è il comando della presentazione, dopo la generazione e
+l'approvazione, senza spostare l'orologio. Non prende il lock del tick: va
+lanciato a worker fermo.
 """
 
 import argparse
@@ -56,6 +59,7 @@ from app.core.orologio import ROMA, adesso
 from app.core.security import hash_password
 from app.moduli.accesso.models import Utente
 from app.moduli.accesso.service import crea_utente, cambia_password
+from app.moduli.artigiani.domain import CANALI
 from app.moduli.artigiani.models import ProfiloBottega, AccountSocial
 from app.moduli.artigiani.profilo_schemas import ProfiloScrittura
 from app.moduli.artigiani.service import post_a_settimana, salva_profilo_personale
@@ -569,9 +573,15 @@ def _parser() -> argparse.ArgumentParser:
         default=None,
         help="foto da caricare (default e 0: tutte quelle valide della cartella)",
     )
-    comandi.add_parser(
+    pubblica = comandi.add_parser(
         "pubblica-ora",
         help="pubblica subito i post approvati delle campagne attive (prove a mano)",
+    )
+    pubblica.add_argument(
+        "--canale",
+        action="append",
+        choices=CANALI,
+        help="pubblica solo i post di questo canale (si ripete); default: tutti",
     )
     return parser
 
@@ -614,9 +624,14 @@ def main(argv: Sequence[str] | None = None) -> int:
             return 0 if esito.errore is None else 1
         elif argomenti.comando == "pubblica-ora":
             ora = adesso() + timedelta(days=366)
+            canali = argomenti.canale or None
             with transazione() as db:
-                dovuti = post_dovuti(db, ora)
-                pubblica_dovuti(db, ora)
+                dovuti = [
+                    post
+                    for post in post_dovuti(db, ora)
+                    if canali is None or post.canale in canali
+                ]
+                pubblica_dovuti(db, ora, canali)
                 pubblicati = sum(1 for post in dovuti if post.stato == "pubblicato")
             print(f"Pubblicati {pubblicati} post su {len(dovuti)}.")
             return 0 if pubblicati == len(dovuti) else 1

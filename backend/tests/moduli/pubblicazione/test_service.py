@@ -8,11 +8,13 @@ from sqlalchemy import select
 
 from app.adapters.archivio import ArchivioFinto, usa_archivio
 from app.adapters.social import SocialFinto, usa_social
+from app.moduli.artigiani.models import ProfiloBottega
 from app.moduli.campagne import service as campagne
 from app.moduli.campagne.models import Foto
 from app.moduli.contenuti.models import VersionePostFoto
 from app.moduli.pubblicazione.models import Pubblicazione
 from app.moduli.pubblicazione.service import pubblica_dovuti
+from tests.moduli.artigiani.fabbrica import account_social
 from tests.moduli.campagne.fabbrica import (
     campagna_attiva,
     campagna_conclusa,
@@ -101,6 +103,30 @@ def test_ca37_post_da_approvare_non_viene_pubblicato(db, social, archivio):
 
     assert _pubblicazioni(db, post.id) == []
     assert social.pubblicazioni == []
+
+
+def test_con_canali_pubblica_solo_quelli_e_lascia_gli_altri_approvati(
+    db, social, archivio
+):
+    """``pubblica-ora --canale facebook``: Instagram resta approvato per il suo turno."""
+    campagna = campagna_attiva(db)
+    account_social(db, db.get(ProfiloBottega, campagna.profilo_id))
+    su_facebook = post_approvato(
+        db, campagna_id=campagna.id, data_ora=PASSATO, canale="facebook"
+    )
+    su_instagram = post_approvato(
+        db, campagna_id=campagna.id, data_ora=PASSATO, canale="instagram"
+    )
+    _archivia_foto(db, archivio, campagna.id)
+
+    pubblica_dovuti(db, ADESSO, ["facebook"])
+
+    db.refresh(su_facebook)
+    db.refresh(su_instagram)
+    assert su_facebook.stato == "pubblicato"
+    assert su_instagram.stato == "approvato"
+    assert _pubblicazioni(db, su_instagram.id) == []
+    assert [p["canale"] for p in social.pubblicazioni] == ["facebook"]
 
 
 def test_ca37_post_approvato_non_ancora_dovuto(db, social, archivio):
