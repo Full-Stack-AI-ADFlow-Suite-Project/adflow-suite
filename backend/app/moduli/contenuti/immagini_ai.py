@@ -109,6 +109,29 @@ def scena_dell_uscita(db: Session, uscita: Any) -> dict[str, Any] | None:
     return None
 
 
+def contesto_della_campagna(db: Session, campagna_id: int) -> dict[str, Any] | None:
+    """Il contesto visivo del piano corrente, se c'è ed è ben formato (ADR-125).
+
+    Dice che attività è e che cosa si fotografa in essa; sta dentro
+    ``piano.contenuto`` come le scene. Un piano senza contesto (scritto prima
+    di ADR-125) o con un contesto malformato vale ``None``: il prompt ricava
+    l'attività dal profilo.
+    """
+    piano = service.piano_corrente(db, campagna_id)
+    if piano is None or not isinstance(piano.contenuto, dict):
+        return None
+    contesto = piano.contenuto.get("contesto_visivo")
+    if not isinstance(contesto, dict):
+        return None
+    for campo in ("attivita", "mondo_visivo"):
+        valore = contesto.get(campo)
+        if not isinstance(valore, str) or not valore.strip():
+            return None
+    if not isinstance(contesto.get("da_non_mostrare", ""), str):
+        return None
+    return contesto
+
+
 def blocco_immagine_non_creata(errore: str) -> dict[str, str]:
     """La voce di ``errori_validazione`` di un post la cui immagine non è nata."""
     return {
@@ -159,6 +182,7 @@ def descrizione_immagine(db: Session, campagna: Any, post: Post, tema: str) -> s
         campagna=_campagna_immagine(campagna),
         scena=_scena_del_post(db, post),
         stile=stile_delle_foto(db, campagna.id),
+        contesto=contesto_della_campagna(db, campagna.id),
     )
 
 
@@ -203,6 +227,7 @@ def immagine_del_post(
     scena = _scena_del_post(db, post)
     stile = stile_delle_foto(db, campagna.id)
     dati_campagna = _campagna_immagine(campagna)
+    contesto = contesto_della_campagna(db, campagna.id)
 
     ultimo: ErroreAI | None = None
     for semplice in (False, True):
@@ -214,6 +239,7 @@ def immagine_del_post(
             campagna=dati_campagna,
             scena=scena,
             stile=stile,
+            contesto=contesto,
         )
         try:
             with service.contesto_chiamata_ai(
@@ -261,6 +287,7 @@ def immagine_rigenerata(
     scena = _scena_del_post(db, post)
     stile = stile_delle_foto(db, campagna.id)
     dati_campagna = _campagna_immagine(campagna)
+    contesto = contesto_della_campagna(db, campagna.id)
 
     ultimo: ErroreAI | None = None
     for semplice in (False, True):
@@ -274,6 +301,7 @@ def immagine_rigenerata(
             campagna=dati_campagna,
             scena=scena,
             stile=stile,
+            contesto=contesto,
         )
         try:
             with service.contesto_chiamata_ai(

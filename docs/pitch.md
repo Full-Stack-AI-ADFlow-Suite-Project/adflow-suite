@@ -87,7 +87,7 @@
 - **Tutela legale e privacy per il consorzio**:
   - Rimozione automatica dei metadati EXIF/GPS da tutte le foto pubblicate (CA-81);
   - Dichiarazione obbligatoria dell'artigiano a ogni invio e a ogni sostituzione foto;
-  - Immagini AI prive di prodotti finiti falsi, persone o marchi, e sempre accompagnate dalla dicitura trasparente nel post;
+  - Immagini AI coerenti con l'attività, senza persone riconoscibili o marchi, e sempre accompagnate dalla dicitura trasparente nel post;
   - Interventi anche **dopo l'approvazione** (modifica, cambio foto, spostamento, annullamento post o sospensione campagna fino a 15 minuti prima dell'uscita).
 - **Osservabilità completa nello Storico AI**:
   - Ogni chiamata registra modello, versione del prompt (`v3`), prompt e risposta completi (solo su DB, mai nei log), durata, costo ed esito, con voto 1–5 stelle e statistiche per versione di prompt.

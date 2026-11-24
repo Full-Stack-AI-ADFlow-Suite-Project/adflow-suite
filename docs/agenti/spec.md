@@ -63,7 +63,7 @@ AdFlow prepara e pubblica le campagne social degli artigiani di un consorzio. L'
 | R-38 | Da approvare ordinate per "entro quando". Elenco degli artigiani con canali, campagne e prossima scadenza; pagina e campagne dell'artigiano (ADR-117). |
 | R-41 | Dichiarazione obbligatoria all'invio e su ogni foto di una richiesta: prodotti della bottega, consenso delle persone. |
 | R-42 | Sistemazione locale delle foto: rotazione, GPS tolto, lato corto **1080 px**, JPEG; da 4:5 a 1,91:1 nessun taglio; fuori, ritaglio sul soggetto se toglie al più il **35%**, al centro se al più il **10%**, altrimenti bordi sfocati. Mai deformata; l'originale resta. |
-| R-43 | Immagini AI: ambienti, materiali, lavorazioni, atmosfere; mai un prodotto presentato come della bottega, persone, testi, marchi. Il testo porta "Immagine creata con AI". |
+| R-43 | Immagini AI: l'attività del profilo, i suoi ambienti, i suoi prodotti e le sue atmosfere (ADR-125); mai persone riconoscibili, testi, marchi. Il piano scrive prima un contesto visivo (che attività è, che cosa si fotografa, che cosa è fuori luogo) e poi la scena di ogni uscita, con una delle sei inquadrature neutre. Il testo porta "Immagine creata con AI" e non presenta l'immagine come una foto vera. |
 | R-44 | Ogni chiamata all'AI registra tipo, modello e costo stimato; Vedi campagna mostra il totale. Nessun tetto di spesa nel codice. |
 | R-45 | Calendario della campagna: i post approvati, pubblicati, falliti o annullati, per giorno, dopo l'approvazione. |
 | R-46 | Richiesta all'artigiano, in revisione: una domanda e da **0** a **3** foto da sostituire; l'artigiano carica una foto per ognuna e risponde. Stato `aperta`, `inviata` o `decaduta`, ricavato dalle decisioni. Non blocca Approva né Respingi; nessuna email. |

@@ -33,7 +33,7 @@ Un "ufficio stampa del consorzio": l'artigiano dà solo le foto e i dati della b
 
 - Interfaccia e dominio in italiano; testi visibili scritti nel frontend con il tono scelto; restano i testi fissi di `brief-interfaccia.md` §1.4.
 - Comportamento invariato (perimetro I6): rotte, chiamate, campi, validazioni, stati, ordine di sezioni e passi non si toccano con interventi visivi.
-- Un post = una foto; l'immagine AI è sempre quadrata 1:1 e porta l'indicazione "Immagine creata con AI". Le immagini AI non mostrano mai prodotti finiti spacciati per la bottega, persone riconoscibili, testi o marchi.
+- Un post = una foto; l'immagine AI è sempre quadrata 1:1 e porta l'indicazione "Immagine creata con AI". Le immagini AI mostrano l'attività del profilo (ambienti, prodotti, atmosfere), mai persone riconoscibili, testi o marchi, e non sono presentate come foto vere.
 - Le foto appaiono nelle proporzioni dei canali (da 4:5 a 1,91:1) senza deformazioni: ritaglio sul soggetto o bordi con la foto sfocata.
 - Niente si cancella: versioni, decisioni e campagne chiuse restano visibili.
 - Tema scuro in roadmap: il tema è uno solo, chiaro.

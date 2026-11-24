@@ -245,11 +245,11 @@ export function Passo12({
         )}
         {mancanti > 0 && (
           <Alert color="verde" variant="light">
-            Le immagini create dall'AI mostrano ambienti, materiali, attrezzi,
-            lavorazioni, atmosfere e stagioni: mai un prodotto finito come se
-            fosse tuo, mai persone riconoscibili, testi o marchi. Sono quadrate
-            e il post dice "Immagine creata con AI". Le controlla il consorzio
-            prima che escano.
+            Le immagini create dall'AI mostrano l'ambiente, i prodotti e
+            l'atmosfera della tua attività, senza persone riconoscibili, testi
+            o marchi. Non sono foto del tuo lavoro: sono quadrate e il post dice
+            "Immagine creata con AI". Le controlla il consorzio prima che
+            escano.
           </Alert>
         )}
         <Checkbox

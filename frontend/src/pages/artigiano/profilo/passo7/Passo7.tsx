@@ -56,9 +56,10 @@ export function Passo7({
       <Alert color="verde" variant="light">
         In ogni campagna puoi caricare le tue foto, raccolte in serie. Se in una
         campagna le foto non bastano per i post a settimana che hai scelto, per
-        quelli che mancano creiamo un'immagine con l'AI: ambienti, materiali,
-        attrezzi e atmosfere, mai un prodotto che non è tuo. Se hai un logo,
-        caricalo come una foto qualsiasi.
+        quelli che mancano creiamo un'immagine con l'AI, pensata per la tua
+        attività: i suoi ambienti, i suoi prodotti e le sue atmosfere, mai
+        persone riconoscibili. Se hai un logo, caricalo come una foto
+        qualsiasi.
       </Alert>
     </Stack>
   );

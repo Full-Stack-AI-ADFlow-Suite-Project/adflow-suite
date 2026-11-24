@@ -11,6 +11,8 @@ genera non lo passa, e ``limiti_per_canale()`` lavora con un archivio vuoto.
 Il piano è il JSON come lo ha scritto l'AI (``piano.contenuto``):
 
     {"strategia": "...",
+     "contesto_visivo": {"attivita": "...", "mondo_visivo": "...",
+                         "da_non_mostrare": "..."},
      "uscite": [{"numero": 1, "tema": "...", "gruppo_id": 3,
                  "post": [{"canale": "facebook", "formato": "singola",
                            "foto": [12], "riempitivo": null,
@@ -18,8 +20,9 @@ Il piano è il JSON come lo ha scritto l'AI (``piano.contenuto``):
 
 Un post con `riempitivo` = `immagine_ai` non ha foto: la sua immagine nasce dopo
 il piano (R-28). Gli altri post hanno la loro foto, tra quelle preselezionate.
-La `scena` delle uscite con immagine AI (T3-910) non si controlla: mancante o
-malformata, l'immagine parte dal tema e il piano resta valido.
+La `scena` delle uscite con immagine AI (T3-910) e il `contesto_visivo` della
+campagna (ADR-125) non si controllano: mancanti o malformati, l'immagine parte
+dal tema e dal profilo e il piano resta valido.
 """
 
 from collections import Counter

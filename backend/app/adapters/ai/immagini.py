@@ -1,10 +1,11 @@
 """Il prompt delle immagini AI di rimpiazzo (spec R-43, brief-ai T3-34, T3-920).
 
 Lo scrive il codice, non l'AI. Parte dalla scena dell'uscita (soggetto,
-inquadratura, luce, colori) e, senza scena, dal tema; aggiunge la bottega, la
-campagna, la stagione e lo stile delle foto vere. Il file
-``prompts/immagine_v3.md`` ha il testo; la riga di stagione e quella di tono si
-tolgono nella versione semplice, per la seconda prova dopo un rifiuto (R-35).
+inquadratura, luce, colori) e, senza scena, dal tema; aggiunge l'attività (il
+contesto visivo che l'AI del piano ricava dal profilo, ADR-125), la campagna, la
+stagione e lo stile delle foto vere. Il file ``prompts/immagine_v4.md`` ha il
+testo; la riga di stagione e quella di tono si tolgono nella versione semplice,
+per la seconda prova dopo un rifiuto (R-35).
 """
 
 from collections.abc import Mapping
@@ -13,15 +14,14 @@ from functools import lru_cache
 from pathlib import Path
 from typing import Any
 
-VERSIONE_PROMPT = "immagine_v3"
+VERSIONE_PROMPT = "immagine_v4"
 _FILE = Path(__file__).parent / "prompts" / f"{VERSIONE_PROMPT}.md"
 # Righe del prompt che la versione semplice non ha.
 _RIGHE_FACOLTATIVE = ("{stagione}", "{tono}")
 # Righe che mancano quando non c'è niente da dire.
 _RIGHE_SE_MANCANO = (
-    "{origine}",
+    "{mondo_visivo}",
     "{gamma}",
-    "{stagionalita}",
     "{eventi}",
     "{campagna_titolo}",
     "{campagna_descrizione}",
@@ -32,6 +32,7 @@ _RIGHE_SE_MANCANO = (
     "{stile}",
     "{nota}",
     "{da_evitare}",
+    "{da_non_mostrare}",
 )
 _MAX_TEMA = 200
 _MAX_SCENA = 200
@@ -69,15 +70,18 @@ _MESI = (
     "novembre",
     "dicembre",
 )
-# Le sei inquadrature (T3-910) come si leggono in un prompt.
+# Le sei inquadrature (T3-910, ADR-125) come si leggono in un prompt: valgono per
+# ogni attività; che cosa ritraggono lo dice il soggetto della scena.
 _INQUADRATURE = {
-    "dettaglio_materia": "dettaglio ravvicinato della materia",
-    "banco_dall_alto": "il banco di lavoro ripreso dall'alto",
-    "attrezzi_still_life": "natura morta degli attrezzi della bottega",
-    "bottega_campo_largo": "campo largo dell'interno della bottega",
-    "materie_prime": "le materie prime accostate sul piano di lavoro",
-    "atmosfera_stagione": "l'atmosfera della stagione dentro la bottega",
+    "dettaglio": "dettaglio ravvicinato",
+    "ambiente_interno": "l'ambiente interno, in campo largo",
+    "ambiente_esterno": "l'esterno e i dintorni del luogo",
+    "materie_prime": "le materie prime o gli ingredienti, accostati",
+    "momento_d_uso": "un momento d'uso o di consumo, senza persone riconoscibili",
+    "atmosfera_stagione": "l'atmosfera della stagione",
 }
+# Come si legge il tipo di prodotto del profilo in una frase.
+_TIPI_PRODOTTO = {"alimentare": "prodotti alimentari"}
 
 
 @lru_cache
@@ -89,7 +93,22 @@ def _tipo_prodotto(valore: Any) -> str:
     """``ceramica_vetro`` come «ceramica e vetro»; senza tipo, prodotti artigianali."""
     if not isinstance(valore, str) or valore in ("", "altro"):
         return "prodotti artigianali"
-    return valore.replace("_", " e ")
+    return _TIPI_PRODOTTO.get(valore, valore.replace("_", " e "))
+
+
+def _attivita(snapshot: Mapping[str, Any], contesto: Mapping[str, Any]) -> str:
+    """Che attività è: la frase del contesto visivo, o un ripiego dal profilo.
+
+    Il ripiego serve alle campagne con un piano senza contesto (scritto prima
+    di ADR-125): dice il tipo di prodotto e, se c'è, il nome.
+    """
+    scritta = _breve(contesto.get("attivita"), _MAX_CAMPO)
+    if scritta:
+        return scritta
+    tipo = _tipo_prodotto(snapshot.get("tipo_prodotto"))
+    nome = _breve(snapshot.get("nome"), _MAX_CAMPO)
+    base = f"un'attività artigiana di {tipo}"
+    return f"{nome}, {base}" if nome else base
 
 
 def _breve(valore: Any, massimo: int) -> str:
@@ -137,13 +156,16 @@ def prompt_immagine(
     campagna: Mapping[str, Any] | None = None,
     scena: Mapping[str, Any] | None = None,
     stile: str | None = None,
+    contesto: Mapping[str, Any] | None = None,
 ) -> str:
     """Il prompt dell'immagine di un'uscita.
 
     ``snapshot`` è la fotografia del profilo salvata all'invio; ``giorno`` è la
     data del post, che dà stagione ed eventi ricorrenti. Con ``scena`` il
     soggetto, l'inquadratura, la luce e i colori sono quelli dell'uscita
-    (T3-910); senza, il soggetto parte dal ``tema``. ``campagna`` è
+    (T3-910); senza, il soggetto è il ``tema``. ``contesto`` è il contesto
+    visivo del piano, ``{"attivita", "mondo_visivo", "da_non_mostrare"}``
+    (ADR-125); senza, l'attività si ricava dal profilo. ``campagna`` è
     ``{"titolo", "descrizione", "obiettivo"}``; ``stile`` è ciò che le
     descrizioni delle foto vere dicono di luce, sfondi e colori (T3-920).
     Con ``semplice`` mancano stagione e tono (R-35). ``nota`` è l'indicazione
@@ -156,13 +178,9 @@ def prompt_immagine(
     evitare = " · ".join(_breve(uno, _MAX_CAMPO) for uno in da_evitare if uno)
     campagna = campagna or {}
     scena = scena or {}
+    contesto = contesto or {}
 
-    soggetto = _breve(scena.get("soggetto"), _MAX_SCENA)
-    if not soggetto:
-        soggetto = (
-            f"{_breve(tema, _MAX_TEMA)}, mostrato attraverso ambiente, "
-            "materiali o attrezzi della lavorazione"
-        )
+    soggetto = _breve(scena.get("soggetto"), _MAX_SCENA) or _breve(tema, _MAX_TEMA)
     inquadratura = _breve(scena.get("inquadratura"), _MAX_CAMPO)
     if inquadratura:
         leggibile = _INQUADRATURE.get(inquadratura)
@@ -170,11 +188,11 @@ def prompt_immagine(
             inquadratura = f"{inquadratura} ({leggibile})"
 
     valori = {
-        "tipo_prodotto": _tipo_prodotto(snapshot.get("tipo_prodotto")),
+        "attivita": _attivita(snapshot, contesto),
         "luogo": f" a {citta}" if isinstance(citta, str) and citta.strip() else "",
-        "origine": _breve(snapshot.get("origine"), _MAX_CAMPO),
+        "mondo_visivo": _breve(contesto.get("mondo_visivo"), _MAX_CAMPAGNA),
+        "da_non_mostrare": _breve(contesto.get("da_non_mostrare"), _MAX_CAMPO),
         "gamma": _breve(snapshot.get("gamma"), _MAX_CAMPO),
-        "stagionalita": _breve(snapshot.get("stagionalita"), _MAX_CAMPO),
         "eventi": _eventi_del_periodo(snapshot, giorno),
         "campagna_titolo": _breve(campagna.get("titolo"), _MAX_CAMPO),
         "campagna_descrizione": _breve(campagna.get("descrizione"), _MAX_CAMPAGNA),

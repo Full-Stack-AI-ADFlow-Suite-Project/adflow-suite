@@ -162,7 +162,8 @@ def test_il_prompt_parte_dal_profilo_dal_tema_e_dalla_stagione_del_post(db, ai):
 
     for chiamata in _chiamate(ai, "genera_immagine"):
         prompt = chiamata["prompt"]
-        assert "bottega di ceramica e vetro a Deruta" in prompt
+        assert "un'attività artigiana a Deruta." in prompt
+        assert "Che cosa si fotografa in questa attività:" in prompt
         assert "Stagione: inverno." in prompt
         assert "Tono: caldo, professionale." in prompt
         assert "nessuna persona riconoscibile" in prompt
@@ -413,7 +414,7 @@ def test_ca106_scena_dell_uscita_legge_la_scena_del_piano(db):
 
     scena = {
         "soggetto": "il banco di lavoro con gli attrezzi",
-        "inquadratura": "banco_dall_alto",
+        "inquadratura": "ambiente_interno",
         "luce": "luce del mattino",
         "colori": "legno e ferro",
     }
@@ -426,7 +427,12 @@ def test_ca106_scena_dell_uscita_legge_la_scena_del_piano(db):
     [
         None,
         {},
-        {"soggetto": 42, "inquadratura": "banco_dall_alto", "luce": "l", "colori": "c"},
+        {
+            "soggetto": 42,
+            "inquadratura": "ambiente_interno",
+            "luce": "l",
+            "colori": "c",
+        },
         {
             "soggetto": "il banco",
             "inquadratura": "inquadratura_che_non_esiste",
@@ -435,7 +441,7 @@ def test_ca106_scena_dell_uscita_legge_la_scena_del_piano(db):
         },
         {
             "soggetto": "il banco",
-            "inquadratura": "banco_dall_alto",
+            "inquadratura": "ambiente_interno",
             "luce": "",
             "colori": "c",
         },
@@ -456,6 +462,56 @@ def test_ca106_scena_senza_piano_vale_none(db):
     campagna = campagna_inviata(db)
     uscita = fabbrica_uscita(db, campagna)
     assert scena_dell_uscita(db, uscita) is None
+
+
+# --- Il contesto visivo del piano (ADR-125) ------------------------------------
+
+
+def _piano_con_contesto(db, contesto):
+    from tests.moduli.contenuti.fabbrica import piano as fabbrica_piano
+
+    campagna = campagna_inviata(db)
+    fabbrica_piano(db, campagna, contenuto={"uscite": [], "contesto_visivo": contesto})
+    return campagna
+
+
+def test_il_contesto_visivo_si_legge_dal_piano_corrente(db):
+    from app.moduli.contenuti.immagini_ai import contesto_della_campagna
+
+    contesto = {
+        "attivita": "gelateria artigianale",
+        "mondo_visivo": "vetrina dei gusti, coni, frutta fresca",
+        "da_non_mostrare": "",
+    }
+    campagna = _piano_con_contesto(db, contesto)
+
+    assert contesto_della_campagna(db, campagna.id) == contesto
+
+
+@pytest.mark.parametrize(
+    "contesto",
+    [
+        None,
+        "una gelateria",
+        {},
+        {"attivita": "gelateria", "mondo_visivo": "  "},
+        {"attivita": 3, "mondo_visivo": "coni"},
+        {"attivita": "gelateria", "mondo_visivo": "coni", "da_non_mostrare": 7},
+    ],
+)
+def test_un_contesto_mancante_o_malformato_vale_none(db, contesto):
+    """Il prompt allora ricava l'attività dal profilo: non è un errore del piano."""
+    from app.moduli.contenuti.immagini_ai import contesto_della_campagna
+
+    campagna = _piano_con_contesto(db, contesto)
+
+    assert contesto_della_campagna(db, campagna.id) is None
+
+
+def test_un_piano_senza_contesto_non_fa_fallire_la_generazione(db):
+    from app.moduli.contenuti.immagini_ai import contesto_della_campagna
+
+    assert contesto_della_campagna(db, campagna_inviata(db).id) is None
 
 
 # --- Prompt v3: scena, campagna e stile (T3-920, CA-113) -----------------------
@@ -501,8 +557,8 @@ def test_ca113_il_prompt_della_generazione_ha_scena_campagna_e_stile(db, ai):
     prompt = _chiamate(ai, "genera_immagine")[0]["prompt"]
     assert "Campagna: Campagna di prova" in prompt
     assert "Obiettivo della campagna: notorieta" in prompt
-    assert "Stile delle foto vere della bottega:" in prompt
-    assert "la materia prima sul banco" in prompt
+    assert "Stile delle foto vere dell'attività:" in prompt
+    assert "un particolare dei prodotti, visto da vicino" in prompt
     assert "Stagione: inverno." in prompt
     assert "sfondo semplice e leggermente sfocato" not in prompt
     assert "colori fedeli e caldi" not in prompt

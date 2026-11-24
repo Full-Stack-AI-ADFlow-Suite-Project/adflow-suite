@@ -101,7 +101,7 @@ _FILTRO = ("content_policy", "moderation_blocked", "safety system")
 
 @lru_cache
 def _prompt(nome: str) -> str:
-    """Il testo di ``prompts/<nome>.md``; il nome porta la versione (``piano_v4``)."""
+    """Il testo di ``prompts/<nome>.md``; il nome porta la versione (``piano_v5``)."""
     return (CARTELLA_PROMPT / f"{nome}.md").read_text(encoding="utf-8")
 
 
@@ -431,11 +431,11 @@ class AILiteLLM(AIAdapter):
             "analisi",
             self._modello_visione,
             [
-                {"role": "system", "content": _prompt("analisi_v3")},
+                {"role": "system", "content": _prompt("analisi_v4")},
                 {"role": "user", "content": contenuto},
             ],
             RispostaAnalisi,
-            versione_prompt="analisi_v3",
+            versione_prompt="analisi_v4",
             foto_id=gruppo.foto[0].id if len(gruppo.foto) == 1 else None,
         )
 
@@ -489,7 +489,7 @@ class AILiteLLM(AIAdapter):
             foto for limite in limiti.values() for foto in limite["foto_disponibili"]
         }
         richiesta: dict[str, Any] = {
-            "bottega": _del_profilo(snapshot),
+            "profilo": _del_profilo(snapshot),
             "campagna": {
                 "titolo": campagna.titolo,
                 "inizio": campagna.inizio,
@@ -530,17 +530,17 @@ class AILiteLLM(AIAdapter):
             "piano",
             self._modello_testo,
             [
-                {"role": "system", "content": _prompt("piano_v4")},
+                {"role": "system", "content": _prompt("piano_v5")},
                 {"role": "user", "content": _json(richiesta)},
             ],
             RispostaPiano,
-            versione_prompt="piano_v4",
+            versione_prompt="piano_v5",
         )
         return PianoAI(
             contenuto=risposta.model_dump(),
             provider=PROVIDER,
             modello=self._modello_testo,
-            versione_prompt="piano_v4",
+            versione_prompt="piano_v5",
         )
 
     def genera_post(
@@ -559,7 +559,7 @@ class AILiteLLM(AIAdapter):
     ) -> PostScritto:
         self.ultimo_uso = None
         richiesta: dict[str, Any] = {
-            "bottega": _del_profilo(snapshot),
+            "profilo": _del_profilo(snapshot),
             "campagna": {
                 "titolo": campagna.titolo,
                 "descrizione": campagna.descrizione,
@@ -594,11 +594,11 @@ class AILiteLLM(AIAdapter):
             "testo",
             self._modello_testo,
             [
-                {"role": "system", "content": _prompt("post_v3")},
+                {"role": "system", "content": _prompt("post_v4")},
                 {"role": "user", "content": _json(richiesta)},
             ],
             RispostaPost,
-            versione_prompt="post_v3",
+            versione_prompt="post_v4",
         )
         hashtag = [uno.strip().lstrip("#").strip() for uno in risposta.hashtag]
         return PostScritto(
@@ -606,7 +606,7 @@ class AILiteLLM(AIAdapter):
             hashtag=[uno for uno in hashtag if uno],
             provider=PROVIDER,
             modello=self._modello_testo,
-            versione_prompt="post_v3",
+            versione_prompt="post_v4",
         )
 
     def genera_immagine(self, prompt: str) -> ImmagineAI:
