@@ -16,6 +16,13 @@ arresto è una riga di `logs/registro_avvii.log`, legata al PID di `avvia.py`:
 un avvio rimasto senza arresto (processo ucciso, spegnimento) viene chiuso come
 "interrotto" al giro successivo. La cartella `logs/` è in `.gitignore`.
 
+Pubblicare dalla presentazione. Dopo aver generato e approvato una campagna,
+`uv run python pubblica.py` (da un altro terminale) chiede a questo avvia.py di
+fermare API, worker e frontend, far uscire subito sulla Pagina i post approvati
+di Facebook (`app.cli pubblica-ora --canale facebook`, che vuole il worker
+fermo) e rilanciare tutto. La richiesta passa da un file in `logs/`, che non
+è in git; una richiesta rimasta lì da prima non viene mai eseguita.
+
 Il worker esegue anche il tick di pubblicazione ogni minuto. Con
 `OROLOGIO_GIORNI_AVANTI` in `backend/.env` API e worker leggono la stessa ora
 spostata: dopo averlo cambiato basta riavviare con questo comando.
@@ -28,6 +35,7 @@ from __future__ import annotations
 import argparse
 from dataclasses import dataclass
 from datetime import datetime
+import json
 import logging
 from logging.handlers import RotatingFileHandler
 import os
@@ -51,9 +59,13 @@ CARTELLA_LOGS = RADICE / "logs"
 FILE_LOG_RUNTIME = CARTELLA_LOGS / "app_runtime.log"
 FILE_REGISTRO_AVVII = CARTELLA_LOGS / "registro_avvii.log"
 FILE_PID = CARTELLA_LOGS / "avvia.pid"
+FILE_RICHIESTA_PUBBLICAZIONE = CARTELLA_LOGS / "pubblica.richiesta"
+FILE_ESITO_PUBBLICAZIONE = CARTELLA_LOGS / "pubblica.esito"
+CANALE_PUBBLICAZIONE = "facebook"
 WINDOWS = os.name == "nt"
 
 SECONDI_ATTESA_API = 45
+SECONDI_ATTESA_PORTE = 20
 _COLORI_ANSI = re.compile(r"\x1b\[[0-9;?]*[A-Za-z]")
 _BLOCCO_REGISTRO = threading.Lock()
 
@@ -113,6 +125,24 @@ def _servizi(con_web: bool) -> list[Servizio]:
         npm = shutil.which("npm") or "npm"
         servizi.append(Servizio("web", [npm, "run", "dev"], FRONTEND, porta=5173))
     return servizi
+
+
+def _servizio_pubblicazione() -> Servizio:
+    """Il comando che fa uscire subito i post approvati di Facebook (a worker fermo)."""
+    return Servizio(
+        "pubblica",
+        [
+            "uv",
+            "run",
+            "python",
+            "-m",
+            "app.cli",
+            "pubblica-ora",
+            "--canale",
+            CANALE_PUBBLICAZIONE,
+        ],
+        BACKEND,
+    )
 
 
 def _porta_occupata(porta: int) -> bool:
@@ -347,10 +377,8 @@ def _inoltra(
             logger.info("%s %s", prefisso, _COLORI_ANSI.sub("", testo))
 
 
-def _lancia(
-    servizio: Servizio, larghezza: int, logger: logging.Logger | None
-) -> subprocess.Popen:
-    processo = subprocess.Popen(
+def _apri(servizio: Servizio) -> subprocess.Popen:
+    return subprocess.Popen(
         servizio.comando,
         cwd=servizio.cartella,
         stdout=subprocess.PIPE,
@@ -364,6 +392,12 @@ def _lancia(
         start_new_session=not WINDOWS,
         creationflags=subprocess.CREATE_NEW_PROCESS_GROUP if WINDOWS else 0,
     )
+
+
+def _lancia(
+    servizio: Servizio, larghezza: int, logger: logging.Logger | None
+) -> subprocess.Popen:
+    processo = _apri(servizio)
     threading.Thread(
         target=_inoltra,
         args=(servizio, processo, larghezza, logger),
@@ -393,6 +427,123 @@ def _ferma(processo: subprocess.Popen) -> None:
             os.killpg(processo.pid, signal.SIGKILL)
         except ProcessLookupError:
             pass
+
+
+# --- Pubblicazione dalla presentazione -------------------------------------
+
+
+def _consuma_richiesta(file_richiesta: Path) -> str | None:
+    """Il codice della richiesta di pubblicazione, che si cancella; None se non c'è."""
+    try:
+        codice = file_richiesta.read_text(encoding="utf-8").strip()
+        file_richiesta.unlink()
+    except OSError:
+        return None
+    return codice
+
+
+def _attendi_porte_libere(servizi: list[Servizio], secondi: int) -> bool:
+    """Aspetta che le porte dei servizi fermati si liberino, prima di rilanciarli."""
+    fine = time.monotonic() + secondi
+    while time.monotonic() < fine:
+        if not any(s.porta and _porta_occupata(s.porta) for s in servizi):
+            return True
+        time.sleep(0.5)
+    return False
+
+
+def _esegui_e_inoltra(
+    servizio: Servizio, larghezza: int, logger: logging.Logger | None
+) -> tuple[int, list[str]]:
+    """Esegue un comando fino in fondo, riporta le sue righe e torna codice e righe."""
+    prefisso = f"[{servizio.nome:<{larghezza}}]"
+    try:
+        processo = _apri(servizio)
+    except OSError as errore:
+        riga = f"non riesco a lanciare il comando: {errore}"
+        _stampa_sicura(f"{prefisso} {riga}", file=sys.stderr)
+        return 127, [riga]
+    righe: list[str] = []
+    try:
+        for riga in processo.stdout:
+            testo = riga.rstrip()
+            righe.append(testo)
+            _stampa_sicura(f"{prefisso} {testo}")
+            if logger is not None:
+                logger.info("%s %s", prefisso, _COLORI_ANSI.sub("", testo))
+        return processo.wait(), righe
+    finally:
+        _ferma(processo)
+
+
+def _scrivi_esito(file_esito: Path, esito: dict) -> None:
+    """Scrive l'esito in un colpo solo, perché `pubblica.py` non ne legga metà."""
+    provvisorio = file_esito.with_name(file_esito.name + ".tmp")
+    try:
+        file_esito.parent.mkdir(parents=True, exist_ok=True)
+        provvisorio.write_text(json.dumps(esito), encoding="utf-8")
+        os.replace(provvisorio, file_esito)
+    except OSError as errore:
+        _stampa_sicura(f"[avviso] Non scrivo {file_esito.name}: {errore}", sys.stderr)
+
+
+def pubblica_e_riavvia(
+    avviati: list[tuple[Servizio, subprocess.Popen]],
+    servizi: list[Servizio],
+    larghezza: int,
+    logger: logging.Logger | None,
+    file_registro: Path | None,
+    codice_richiesta: str,
+) -> None:
+    """Ferma tutto, pubblica su Facebook, rilancia tutto e scrive l'esito.
+
+    Si riavvia sempre, anche se la pubblicazione fallisce: l'esito dice com'è
+    andata. ``avviati`` si aggiorna sul posto, così l'arresto finale di
+    ``main`` ferma i processi nuovi.
+    """
+
+    def dillo(messaggio: str) -> None:
+        _stampa_sicura(f"[avvia] {messaggio}")
+        if logger is not None:
+            logger.info("[avvia] %s", messaggio)
+
+    dillo("Richiesta di pubblicazione: fermo tutto.")
+    for _, processo in reversed(avviati):
+        _ferma(processo)
+    if not _attendi_porte_libere(servizi, SECONDI_ATTESA_PORTE):
+        dillo("Le porte non si liberano: provo lo stesso.")
+
+    pubblicazione = _servizio_pubblicazione()
+    dillo(f"Pubblico su {CANALE_PUBBLICAZIONE}: {' '.join(pubblicazione.comando)}")
+    larghezza_comando = max(larghezza, len(pubblicazione.nome))
+    codice, righe = _esegui_e_inoltra(pubblicazione, larghezza_comando, logger)
+    esito = {
+        "codice_richiesta": codice_richiesta,
+        "codice": codice,
+        "righe": righe[-20:],
+        "riavviato": False,
+    }
+    try:
+        dillo("Riavvio tutto.")
+        avviati.clear()
+        for servizio in servizi:
+            avviati.append((servizio, _lancia(servizio, larghezza, logger)))
+        esito["riavviato"] = True
+        for servizio, processo in avviati:
+            if servizio.nome == "api" and servizio.porta:
+                _controlla_api_in_background(servizio, processo)
+        if file_registro:
+            figli = ", ".join(f"{s.nome}={p.pid}" for s, p in avviati)
+            _scrivi_registro(
+                file_registro,
+                _riga_registro(
+                    os.getpid(),
+                    "PUBBLICAZIONE",
+                    f"canale={CANALE_PUBBLICAZIONE} codice={codice} figli={figli}",
+                ),
+            )
+    finally:
+        _scrivi_esito(FILE_ESITO_PUBBLICAZIONE, esito)
 
 
 # --- Messaggi di avvio ------------------------------------------------------
@@ -503,6 +654,15 @@ def main() -> int:
                 "lo segno come interrotto."
             )
 
+    # Una richiesta rimasta da un'altra volta non deve pubblicare all'avvio.
+    try:
+        FILE_RICHIESTA_PUBBLICAZIONE.unlink()
+        _stampa_sicura(
+            "[avviso] Scarto una richiesta di pubblicazione rimasta da prima."
+        )
+    except OSError:
+        pass
+
     larghezza = max(len(s.nome) for s in servizi)
     avviati: list[tuple[Servizio, subprocess.Popen]] = []
     motivo = "Ctrl+C"
@@ -522,6 +682,11 @@ def main() -> int:
             if servizio.nome == "api" and servizio.porta:
                 _controlla_api_in_background(servizio, processo)
         while True:
+            richiesta = _consuma_richiesta(FILE_RICHIESTA_PUBBLICAZIONE)
+            if richiesta is not None:
+                pubblica_e_riavvia(
+                    avviati, servizi, larghezza, logger, file_registro, richiesta
+                )
             for servizio, processo in avviati:
                 if processo.poll() is not None:
                     motivo = (

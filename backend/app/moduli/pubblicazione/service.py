@@ -1,5 +1,6 @@
 """Logica del modulo pubblicazione: l'unica parte che gli altri moduli possono importare."""
 
+from collections.abc import Collection
 from dataclasses import dataclass
 from datetime import datetime
 
@@ -55,8 +56,13 @@ class RichiestaSocial:
     url_foto: list[str]
 
 
-def prepara_tentativi(db: Session, adesso: datetime) -> list[int]:
+def prepara_tentativi(
+    db: Session, adesso: datetime, canali: Collection[str] | None = None
+) -> list[int]:
     """Prima fase: registra i tentativi dei post dovuti e ne torna gli id.
+
+    ``canali`` restringe la fase ai post di quei canali (le prove a mano di
+    ``app.cli pubblica-ora --canale``); ``None`` li prende tutti, come il tick.
 
     Il chiamante fa commit subito dopo (constitution §2.6): da qui in poi il
     tentativo esiste nel database, qualunque cosa succeda al processo.
@@ -67,6 +73,8 @@ def prepara_tentativi(db: Session, adesso: datetime) -> list[int]:
     """
     ids: list[int] = []
     for post in contenuti.post_dovuti(db, adesso):
+        if canali is not None and post.canale not in canali:
+            continue
         gia_ok = db.scalar(
             select(Pubblicazione.id)
             .where(Pubblicazione.post_id == post.id, Pubblicazione.stato == "ok")
@@ -225,8 +233,12 @@ def chiudi_campagne(db: Session, adesso: datetime) -> None:
 def pubblica_dovuti(
     db: Session,
     adesso: datetime,
+    canali: Collection[str] | None = None,
 ) -> None:
     """Pubblica sui social tutti i post approvati con data raggiunta, in una sessione sola.
+
+    Con ``canali`` pubblica solo i post di quei canali: gli altri restano
+    ``approvato`` e escono al loro turno.
 
     Compone le fasi senza commit, come i service (constitution §2.6): serve ai
     test e a chi ha già una transazione. Il worker (``tick_pubblicazione``)
@@ -237,7 +249,7 @@ def pubblica_dovuti(
 
     Riceve ``adesso`` come argomento (plan §7, ``core/orologio.py``).
     """
-    for tentativo_id in prepara_tentativi(db, adesso):
+    for tentativo_id in prepara_tentativi(db, adesso, canali):
         richiesta = avvia_chiamata(db, tentativo_id, adesso)
         if richiesta is not None:
             registra_esito(db, tentativo_id, chiama_social(richiesta), adesso)

@@ -8,8 +8,10 @@ from __future__ import annotations
 
 from importlib.util import module_from_spec, spec_from_file_location
 import io
+import json
 import os
 from pathlib import Path
+import re
 import socket
 import sys
 import threading
@@ -32,6 +34,18 @@ def _carica_avvia():
 
 
 avvia = _carica_avvia()
+
+
+def _carica_pubblica():
+    spec = spec_from_file_location("pubblica", RADICE / "pubblica.py")
+    assert spec is not None and spec.loader is not None
+    modulo = module_from_spec(spec)
+    sys.modules["pubblica"] = modulo
+    spec.loader.exec_module(modulo)
+    return modulo
+
+
+pubblica = _carica_pubblica()
 
 PID_INESISTENTE = 2**22 + 12345
 
@@ -268,3 +282,199 @@ def test_main_rifiuta_secondo_avvia_vivo(monkeypatch, tmp_path: Path, capsys):
     (tmp_path / "logs" / "avvia.pid").write_text(str(os.getppid()))
     assert avvia.main() == 1
     assert "già in esecuzione" in capsys.readouterr().err
+
+
+def _prepara_pubblicazione(monkeypatch, tmp_path: Path, codice_uscita: int):
+    """File di richiesta ed esito in tmp_path e un comando di pubblicazione finto.
+
+    Il comando scrive in `ordine.txt` quanti avvii dell'API ha già visto: se
+    vale 1, ha girato a servizi fermati e prima del riavvio.
+    """
+    avvii = tmp_path / "avvii.txt"
+    ordine = tmp_path / "ordine.txt"
+    log, registro = _prepara_main(
+        monkeypatch,
+        tmp_path,
+        {
+            "api": f"import time; open({str(avvii)!r}, 'a').write('x'); time.sleep(60)",
+            "worker": "import time; time.sleep(60)",
+        },
+    )
+    richiesta = tmp_path / "logs" / "pubblica.richiesta"
+    esito = tmp_path / "logs" / "pubblica.esito"
+    monkeypatch.setattr(avvia, "FILE_RICHIESTA_PUBBLICAZIONE", richiesta)
+    monkeypatch.setattr(avvia, "FILE_ESITO_PUBBLICAZIONE", esito)
+    comando = (
+        "import pathlib; print('Pubblicati 2 post su 2.'); "
+        f"pathlib.Path({str(ordine)!r}).write_text("
+        f"str(len(pathlib.Path({str(avvii)!r}).read_text()))); "
+        f"raise SystemExit({codice_uscita})"
+    )
+    monkeypatch.setattr(
+        avvia,
+        "_servizio_pubblicazione",
+        lambda: avvia.Servizio("pubblica", [sys.executable, "-c", comando], tmp_path),
+    )
+    return registro, richiesta, esito, avvii, ordine
+
+
+@pytest.mark.parametrize("codice_uscita", [0, 3])
+def test_richiesta_di_pubblicazione_ferma_pubblica_e_riavvia(
+    monkeypatch, tmp_path: Path, codice_uscita: int
+):
+    registro, richiesta, esito, avvii, ordine = _prepara_pubblicazione(
+        monkeypatch, tmp_path, codice_uscita
+    )
+    fermati = threading.Event()
+
+    def interrompi(_secondi):
+        if threading.current_thread() is threading.main_thread():
+            if fermati.is_set():
+                raise KeyboardInterrupt
+            time.sleep(0.05)
+
+    monkeypatch.setattr(
+        avvia, "time", types.SimpleNamespace(monotonic=time.monotonic, sleep=interrompi)
+    )
+
+    def attendi(condizione) -> bool:
+        fine = time.monotonic() + 30
+        while time.monotonic() < fine:
+            if condizione():
+                return True
+            time.sleep(0.05)
+        return False
+
+    def pilota() -> None:
+        # La richiesta arriva quando tutto è partito, come a mano.
+        if attendi(lambda: registro.exists() and avvii.exists()):
+            richiesta.parent.mkdir(exist_ok=True)
+            richiesta.write_text("codice-di-prova")
+            # Fine quando l'esito c'è e l'API è ripartita (secondo avvio).
+            attendi(
+                lambda: esito.exists()
+                and avvii.exists()
+                and len(avvii.read_text()) >= 2
+            )
+        fermati.set()
+
+    threading.Thread(target=pilota, daemon=True).start()
+    assert avvia.main() == 0
+
+    risposta = json.loads(esito.read_text(encoding="utf-8"))
+    assert risposta["codice_richiesta"] == "codice-di-prova"
+    assert risposta["codice"] == codice_uscita
+    assert risposta["riavviato"] is True
+    assert "Pubblicati 2 post su 2." in risposta["righe"]
+    assert not richiesta.exists()
+    # La pubblicazione ha girato dopo il primo avvio e prima del secondo.
+    assert ordine.read_text() == "1"
+    assert avvii.read_text() == "xx"
+    righe = registro.read_text(encoding="utf-8").splitlines()
+    assert [r.split("|")[2].strip() for r in righe] == [
+        "AVVIO",
+        "PUBBLICAZIONE",
+        "ARRESTO",
+    ]
+    # I processi del primo giro sono stati fermati davvero.
+    primi = [int(n) for n in re.findall(r"=(\d+)", righe[0].split("figli=")[1])]
+    assert primi and not any(avvia._processo_vivo(pid) for pid in primi)
+
+
+def test_richiesta_rimasta_da_prima_non_pubblica_all_avvio(
+    monkeypatch, tmp_path: Path, capsys
+):
+    _prepara_main(monkeypatch, tmp_path, {"corto": "raise SystemExit(0)"})
+    richiesta = tmp_path / "logs" / "pubblica.richiesta"
+    richiesta.parent.mkdir()
+    richiesta.write_text("vecchia")
+    marcatore = tmp_path / "pubblicato.txt"
+    monkeypatch.setattr(avvia, "FILE_RICHIESTA_PUBBLICAZIONE", richiesta)
+    monkeypatch.setattr(
+        avvia,
+        "_servizio_pubblicazione",
+        lambda: avvia.Servizio(
+            "pubblica",
+            [sys.executable, "-c", f"open({str(marcatore)!r}, 'w')"],
+            tmp_path,
+        ),
+    )
+
+    assert avvia.main() == 1
+
+    assert not richiesta.exists()
+    assert not marcatore.exists()
+    assert "Scarto una richiesta di pubblicazione" in capsys.readouterr().out
+
+
+def test_comando_di_pubblicazione_e_solo_facebook():
+    assert avvia._servizio_pubblicazione().comando[-3:] == [
+        "pubblica-ora",
+        "--canale",
+        "facebook",
+    ]
+
+
+def test_pubblica_senza_avvia_pubblica_da_solo(monkeypatch):
+    chiamate = []
+    monkeypatch.setattr(pubblica, "avvia_in_esecuzione", lambda: False)
+    monkeypatch.setattr(
+        pubblica.subprocess,
+        "run",
+        lambda comando, cwd: chiamate.append((comando, cwd))
+        or types.SimpleNamespace(returncode=0),
+    )
+
+    assert pubblica.main() == 0
+
+    [(comando, cartella)] = chiamate
+    assert comando[-3:] == ["pubblica-ora", "--canale", "facebook"]
+    assert cartella == avvia.BACKEND
+
+
+@pytest.mark.parametrize(
+    ("codice", "riavviato", "atteso"), [(0, True, 0), (1, True, 1), (0, False, 1)]
+)
+def test_pubblica_con_avvia_scrive_la_richiesta_e_riporta_l_esito(
+    monkeypatch, tmp_path: Path, capsys, codice: int, riavviato: bool, atteso: int
+):
+    richiesta = tmp_path / "pubblica.richiesta"
+    esito = tmp_path / "pubblica.esito"
+    monkeypatch.setattr(avvia, "FILE_RICHIESTA_PUBBLICAZIONE", richiesta)
+    monkeypatch.setattr(avvia, "FILE_ESITO_PUBBLICAZIONE", esito)
+    monkeypatch.setattr(pubblica, "avvia_in_esecuzione", lambda: True)
+
+    def avvia_finto() -> None:
+        for _ in range(200):
+            if richiesta.exists():
+                esito.write_text(
+                    json.dumps(
+                        {
+                            "codice_richiesta": richiesta.read_text(),
+                            "codice": codice,
+                            "righe": ["Pubblicati 2 post su 2."],
+                            "riavviato": riavviato,
+                        }
+                    ),
+                    encoding="utf-8",
+                )
+                return
+            time.sleep(0.05)
+
+    threading.Thread(target=avvia_finto, daemon=True).start()
+
+    assert pubblica.main() == atteso
+    assert "Pubblicati 2 post su 2." in capsys.readouterr().out
+
+
+def test_pubblica_rinuncia_se_avvia_si_ferma(monkeypatch, tmp_path: Path, capsys):
+    richiesta = tmp_path / "pubblica.richiesta"
+    monkeypatch.setattr(avvia, "FILE_RICHIESTA_PUBBLICAZIONE", richiesta)
+    monkeypatch.setattr(avvia, "FILE_ESITO_PUBBLICAZIONE", tmp_path / "pubblica.esito")
+    risposte = iter([True, False])
+    monkeypatch.setattr(pubblica, "avvia_in_esecuzione", lambda: next(risposte))
+
+    assert pubblica.main() == 1
+
+    assert not richiesta.exists()
+    assert "si è fermato prima di rispondere" in capsys.readouterr().err
