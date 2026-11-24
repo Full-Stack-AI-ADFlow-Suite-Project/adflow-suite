@@ -35,33 +35,33 @@ VERSIONE_PROMPT = "finto-1"
 # una per inquadratura. Il finto le gira in ordine, così due uscite vicine
 # non hanno mai la stessa inquadratura.
 SCENE_DEL_FINTO: dict[str, tuple[str, str, str]] = {
-    "dettaglio_materia": (
-        "la materia prima sul banco, vista da vicino",
+    "dettaglio": (
+        "un particolare dei prodotti, visto da vicino",
         "luce morbida del mattino",
         "terra, ocra e grigio",
     ),
-    "banco_dall_alto": (
-        "il banco di lavoro visto dall'alto, con gli attrezzi in ordine",
-        "luce chiara e uniforme",
-        "legno, ferro e bianco",
-    ),
-    "attrezzi_still_life": (
-        "gli attrezzi della bottega appoggiati sul tavolo",
-        "luce laterale del pomeriggio",
-        "ferro scuro e legno caldo",
-    ),
-    "bottega_campo_largo": (
-        "l'interno della bottega con il banco e le mensole",
+    "ambiente_interno": (
+        "l'interno del locale con il bancone e le mensole",
         "luce naturale dalle finestre",
-        "legno, terra e verde",
+        "legno, bianco e verde",
+    ),
+    "ambiente_esterno": (
+        "l'ingresso e la vetrina visti dalla strada",
+        "luce chiara del pomeriggio",
+        "pietra chiara e verde",
     ),
     "materie_prime": (
-        "i sacchi di materia prima accanto al piano di lavoro",
+        "le materie prime accostate su un piano",
         "luce soffusa del mattino",
         "beige, ruggine e grigio",
     ),
+    "momento_d_uso": (
+        "un tavolo apparecchiato, senza persone",
+        "luce laterale del pomeriggio",
+        "legno caldo e toni neutri",
+    ),
     "atmosfera_stagione": (
-        "la luce della stagione sulla parete della bottega",
+        "la luce della stagione sulla vetrina",
         "luce calda che entra da una porta aperta",
         "ambra, rame e ombre morbide",
     ),
@@ -71,7 +71,7 @@ OPERAZIONI = ("analizza_gruppo", "pianifica_campagna", "genera_post", "genera_im
 ORA_DI_USCITA = time(10, 0)
 # Il testo del post: la prima frase è quella di sempre, le altre servono alle rigenerazioni.
 FRASI = (
-    "{tema}. {nome} vi aspetta in bottega.",
+    "{tema}. Vi aspetta {nome}.",
     "{tema}: venite a scoprirlo da {nome}.",
     "Da {nome}: {tema}. Passate a trovarci.",
     "{nome} racconta: {tema}.",
@@ -131,7 +131,7 @@ class AIFinto(AIAdapter):
       preselezionate, al massimo i post chiesti) nel loro ordine, poi i
       riempitivi `immagine_ai`, senza foto; date distribuite sul periodo,
       Instagram il giorno dopo Facebook.
-    - Testo: una frase con il tema e il nome della bottega, due hashtag.
+    - Testo: una frase con il tema e il nome dell'attività, due hashtag.
 
     Il resto si chiede a comando: ``carosello=True``, ``comanda_analisi()``,
     ``comanda_errore()``, ``comanda_piano_non_valido()``, ``comanda_testo()``.
@@ -382,7 +382,7 @@ class AIFinto(AIAdapter):
                     }
                 )
             if gruppo is not None:
-                tema = gruppo.descrizione or "Le creazioni della bottega"
+                tema = gruppo.descrizione or "Le nostre creazioni"
             else:
                 tema = TEMI_DEI_RIEMPITIVI[indice % len(TEMI_DEI_RIEMPITIVI)]
             scena = None
@@ -409,16 +409,27 @@ class AIFinto(AIAdapter):
         if self._piani_non_validi > 0:
             self._piani_non_validi -= 1
             uscite = uscite[:-1]
-        nome = snapshot.get("nome") or "la bottega"
+        nome = snapshot.get("nome") or "l'attività"
         strategia = (
             f"Raccontare {nome} con {n_uscite} uscite distribuite sul periodo: "
             f"prima le foto scelte dall'artigiano, poi le altre."
         )
-        self.ultimo_uso = self._uso(
-            "piano", chiamata, {"strategia": strategia, "uscite": uscite}
-        )
+        # Il contesto visivo (ADR-125) c'è solo se qualche uscita ha un'immagine AI.
+        contesto_visivo = None
+        if n_scene:
+            contesto_visivo = {
+                "attivita": f"{nome}, un'attività artigiana",
+                "mondo_visivo": snapshot.get("gamma") or "i prodotti e i luoghi",
+                "da_non_mostrare": "",
+            }
+        contenuto = {
+            "strategia": strategia,
+            "contesto_visivo": contesto_visivo,
+            "uscite": uscite,
+        }
+        self.ultimo_uso = self._uso("piano", chiamata, contenuto)
         return PianoAI(
-            contenuto={"strategia": strategia, "uscite": uscite},
+            contenuto=contenuto,
             provider=PROVIDER,
             modello=MODELLO,
             versione_prompt=VERSIONE_PROMPT,
@@ -464,7 +475,7 @@ class AIFinto(AIAdapter):
             foto=[foto.id for foto in post.foto],
             canale=post.canale,
         )
-        nome = snapshot.get("nome") or "La bottega"
+        nome = snapshot.get("nome") or "L'attività"
         rifiutate = {uno.strip() for uno in versioni_rifiutate or []}
         if testo_proposto is not None:
             testo = testo_proposto.strip()

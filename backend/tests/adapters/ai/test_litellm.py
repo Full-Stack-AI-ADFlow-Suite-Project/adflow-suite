@@ -319,7 +319,7 @@ def test_ultimo_uso_ha_modello_token_e_costo_di_litellm(completion, ai):
     assert (scritto.provider, scritto.modello, scritto.versione_prompt) == (
         "litellm",
         "testo-di-prova",
-        "post_v3",
+        "post_v4",
     )
 
 
@@ -365,7 +365,7 @@ def test_la_chiamata_usa_schema_chiave_e_nessun_tentativo_di_litellm(completion,
     assert sistema["role"] == "system"
     assert "copywriter" in sistema["content"]
     dati = json.loads(utente["content"])
-    assert dati["bottega"] == {
+    assert dati["profilo"] == {
         "nome": "Bottega di prova",
         "citta": "Deruta",
         "vincoli": "Non parlare di sconti.",
@@ -579,6 +579,7 @@ def test_il_piano_arriva_nella_forma_che_il_controllo_si_aspetta(completion, ai)
     assert limiti["facebook"]["post_chiesti"] == 3
     piano = {
         "strategia": "Raccontare la bottega.",
+        "contesto_visivo": None,
         "uscite": [
             {
                 "numero": numero,
@@ -612,7 +613,7 @@ def test_il_piano_arriva_nella_forma_che_il_controllo_si_aspetta(completion, ai)
     assert (scritto.provider, scritto.modello, scritto.versione_prompt) == (
         "litellm",
         "testo-di-prova",
-        "piano_v4",
+        "piano_v5",
     )
     assert scritto.contenuto == piano
     assert (
@@ -639,7 +640,9 @@ def test_il_piano_arriva_nella_forma_che_il_controllo_si_aspetta(completion, ai)
 
 
 def test_il_piano_riscritto_riceve_il_precedente_e_le_violazioni(completion, ai):
-    completion.metti(risposta({"strategia": "S", "uscite": []}))
+    completion.metti(
+        risposta({"strategia": "S", "contesto_visivo": None, "uscite": []})
+    )
     limiti = {
         "facebook": {
             "post_chiesti": 1,
@@ -678,7 +681,9 @@ def test_al_piano_vanno_solo_le_foto_che_i_limiti_ammettono(completion, ai):
             "riempitivi": 0,
         }
     }
-    completion.metti(risposta({"strategia": "S", "uscite": []}))
+    completion.metti(
+        risposta({"strategia": "S", "contesto_visivo": None, "uscite": []})
+    )
     ai.pianifica_campagna(
         SNAPSHOT,
         CAMPAGNA,
@@ -728,7 +733,7 @@ def test_i_tipi_di_foto_dello_schema_sono_quelli_di_campagne():
     assert set(TipoFoto.__args__) == set(TIPI_CONTENUTO)
 
 
-@pytest.mark.parametrize("nome", ["analisi_v3", "piano_v4", "post_v3"])
+@pytest.mark.parametrize("nome", ["analisi_v4", "piano_v5", "post_v4"])
 def test_i_prompt_esistono_e_hanno_la_versione_nel_nome(nome):
     assert modulo._prompt(nome).strip()
 
@@ -779,7 +784,7 @@ def test_l_immagine_si_chiede_quadrata_di_qualita_media_senza_tentativi_di_litel
         "litellm",
         "immagini-di-prova",
     )
-    assert immagine.versione_prompt == "immagine_v3"
+    assert immagine.versione_prompt == "immagine_v4"
     with Image.open(BytesIO(immagine.contenuto)) as aperta:
         assert aperta.size == (1024, 1024)
 
@@ -975,7 +980,7 @@ def test_senza_il_modello_delle_immagini_la_chiamata_e_di_configurazione(
 
 
 def test_il_prompt_dell_immagine_esiste_con_la_versione_nel_nome():
-    assert modulo._prompt("immagine_v3").strip()
+    assert modulo._prompt("immagine_v4").strip()
 
 
 # --- Prompt dell'immagine (R-43) -----------------------------------------------------
@@ -992,13 +997,62 @@ def test_il_prompt_dell_immagine_senza_scena_parte_dal_tema():
     prompt = prompt_immagine(PROFILO, "Il tornio al lavoro", date(2030, 1, 7))
 
     assert prompt == (
-        "Fotografia realistica, quadrata, per una bottega di ceramica e vetro a Deruta.\n"
-        "Soggetto: Il tornio al lavoro, mostrato attraverso ambiente, materiali o "
-        "attrezzi della lavorazione.\n"
+        "Fotografia realistica, quadrata, per Ceramiche Bianchi, un'attività "
+        "artigiana di ceramica e vetro a Deruta.\n"
+        "Soggetto: Il tornio al lavoro.\n"
         "Stagione: inverno.\n"
         "Tono: caldo, professionale.\n"
-        "Vincoli: nessun prodotto finito riconoscibile, nessuna persona riconoscibile, "
-        "nessun testo, logo o marchio."
+        "Vincoli: nessuna persona riconoscibile, nessun testo, logo o marchio."
+    )
+
+
+CONTESTO = {
+    "attivita": "gelateria artigianale a Perugia",
+    "mondo_visivo": "la vetrina dei gusti, i coni, la frutta fresca, il dehors",
+    "da_non_mostrare": "attrezzi da laboratorio, banchi da lavoro",
+}
+
+
+def test_il_contesto_visivo_dice_che_attivita_e_e_che_cosa_si_fotografa():
+    prompt = prompt_immagine(
+        {**PROFILO, "gamma": "Gelati, sorbetti e granite."},
+        "Tema",
+        date(2030, 7, 1),
+        contesto=CONTESTO,
+    )
+
+    righe = prompt.splitlines()
+    assert righe[0] == (
+        "Fotografia realistica, quadrata, per gelateria artigianale a Perugia a Deruta."
+    )
+    assert "Che cosa si fotografa in questa attività: la vetrina dei gusti" in prompt
+    assert "Prodotti dell'attività: Gelati, sorbetti e granite." in prompt
+    assert "Fuori luogo, da non mostrare: attrezzi da laboratorio" in prompt
+    # Il soggetto viene subito dopo l'attività, prima del resto del contesto.
+    assert righe[1] == "Soggetto: Tema."
+
+
+def test_il_prompt_non_dice_piu_bottega_ne_vieta_i_prodotti():
+    prompt = prompt_immagine(
+        PROFILO,
+        "Tema",
+        date(2030, 1, 7),
+        contesto=CONTESTO,
+        scena={**SCENA, "inquadratura": "dettaglio"},
+    )
+
+    assert "bottega" not in prompt.lower()
+    assert "attrezzi della lavorazione" not in prompt
+    assert "prodotto finito" not in prompt
+    assert "nessuna persona riconoscibile" in prompt
+
+
+def test_senza_contesto_l_attivita_si_ricava_dal_profilo():
+    assert prompt_immagine(
+        {"tipo_prodotto": "alimentare"}, "Tema", date(2030, 1, 7)
+    ).splitlines()[0] == (
+        "Fotografia realistica, quadrata, per un'attività artigiana di prodotti "
+        "alimentari."
     )
 
 
@@ -1019,8 +1073,8 @@ def test_il_prompt_semplice_non_ha_ne_tono_ne_stagione_ma_tiene_i_vincoli():
     prompt = prompt_immagine(PROFILO, "Tema", date(2030, 1, 7), semplice=True)
 
     assert "Stagione" not in prompt and "Tono" not in prompt
-    assert "Soggetto: Tema," in prompt
-    assert "Vincoli: nessun prodotto finito riconoscibile" in prompt
+    assert "Soggetto: Tema." in prompt
+    assert "Vincoli: nessuna persona riconoscibile" in prompt
 
 
 def test_il_prompt_senza_citta_tono_o_tipo_di_prodotto_esce_comunque():
@@ -1029,7 +1083,8 @@ def test_il_prompt_senza_citta_tono_o_tipo_di_prodotto_esce_comunque():
     )
 
     assert prompt.splitlines()[0] == (
-        "Fotografia realistica, quadrata, per una bottega di prodotti artigianali."
+        "Fotografia realistica, quadrata, per un'attività artigiana di prodotti "
+        "artigianali."
     )
     assert "Tono" not in prompt
     assert "Stagione: estate." in prompt
@@ -1045,7 +1100,7 @@ def test_un_tema_lungo_o_su_piu_righe_non_rompe_il_prompt():
 
 SCENA = {
     "soggetto": "argilla sul banco",
-    "inquadratura": "banco_dall_alto",
+    "inquadratura": "ambiente_interno",
     "luce": "luce del mattino",
     "colori": "terra e ocra",
 }
@@ -1070,7 +1125,7 @@ def test_ca113_il_prompt_parte_dalla_scena_e_dalla_campagna():
 
     for atteso in (
         "argilla sul banco",
-        "banco_dall_alto",
+        "ambiente_interno",
         "luce del mattino",
         "terra e ocra",
         "Autunno in bottega",
@@ -1093,18 +1148,18 @@ def test_ca113_due_scene_con_inquadrature_diverse_danno_prompt_diversi():
         PROFILO,
         "Tema",
         date(2030, 1, 7),
-        scena={**SCENA, "inquadratura": "dettaglio_materia"},
+        scena={**SCENA, "inquadratura": "dettaglio"},
     )
     dopo = prompt_immagine(
         PROFILO,
         "Tema",
         date(2030, 1, 7),
-        scena={**SCENA, "inquadratura": "bottega_campo_largo"},
+        scena={**SCENA, "inquadratura": "ambiente_esterno"},
     )
 
     assert prima != dopo
-    assert "dettaglio_materia" in prima
-    assert "bottega_campo_largo" in dopo
+    assert "dettaglio" in prima
+    assert "ambiente_esterno" in dopo
 
 
 def test_ca113_la_versione_semplice_toglie_stagione_e_tono_ma_tiene_la_scena():

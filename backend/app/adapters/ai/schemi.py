@@ -11,13 +11,15 @@ from typing import Any, Literal
 
 from pydantic import BaseModel, Field, field_validator
 
-# Le sei inquadrature della scena di un'immagine AI (R-43, ADR-119).
+# Le sei inquadrature della scena di un'immagine AI (R-43, ADR-119, ADR-125):
+# valgono per ogni attività, non solo per un laboratorio. Che cosa si vede in
+# ciascuna lo dice il contesto visivo del piano.
 INQUADRATURE = (
-    "dettaglio_materia",
-    "banco_dall_alto",
-    "attrezzi_still_life",
-    "bottega_campo_largo",
+    "dettaglio",
+    "ambiente_interno",
+    "ambiente_esterno",
     "materie_prime",
+    "momento_d_uso",
     "atmosfera_stagione",
 )
 
@@ -122,6 +124,18 @@ class Scena(BaseModel):
     colori: str = Field(max_length=100)
 
 
+class ContestoVisivo(BaseModel):
+    """Che cos'è l'attività e che cosa si fotografa in essa (R-43, ADR-125).
+
+    Lo scrive l'AI del piano dal profilo e dalle foto vere; vale per tutte le
+    immagini AI della campagna.
+    """
+
+    attivita: str = Field(max_length=200)
+    mondo_visivo: str = Field(max_length=400)
+    da_non_mostrare: str = Field(max_length=300)
+
+
 class UscitaDelPiano(BaseModel):
     numero: int
     tema: str
@@ -132,6 +146,7 @@ class UscitaDelPiano(BaseModel):
 
 class RispostaPiano(BaseModel):
     strategia: str
+    contesto_visivo: ContestoVisivo | None
     uscite: list[UscitaDelPiano]
 
 

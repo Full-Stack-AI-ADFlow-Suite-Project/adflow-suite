@@ -69,7 +69,7 @@ Ogni requisito rimanda alle regole di dettaglio (R-xx) e ai criteri di accettazi
 | **Privacy** | Dalle foto si toglie la posizione GPS prima della pubblicazione; dichiarazione dell'artigiano su prodotti e consenso delle persone; né dati personali né prompt/risposte AI finiscono nei log applicativi | CA-81, CA-113; test dei log |
 | **Integrità** | Nulla si cancella nelle campagne inviate: versioni dei post, piani, decisioni ed errori restano; la foto originale non si modifica mai | Invarianti della costituzione; test automatici |
 | **Affidabilità** | Generazione ripresa dalla tappa interrotta; pubblicazione registrata prima della chiamata al social, al massimo un esito positivo per post; campagne ferme da 30 minuti portate in errore | CA-36, CA-50, CA-68 |
-| **Controllo dei contenuti** | Validatore a regole su ogni testo (blocchi: prezzi o premi non nei dati, parole vietate, limiti della piattaforma; avvisi: limiti editoriali); immagini AI senza prodotti finiti, persone, testi o marchi, e dichiarate nel post | CA-18, CA-57 |
+| **Controllo dei contenuti** | Validatore a regole su ogni testo (blocchi: prezzi o premi non nei dati, parole vietate, limiti della piattaforma; avvisi: limiti editoriali); immagini AI coerenti con l'attività del profilo, senza persone riconoscibili, testi o marchi, e dichiarate nel post | CA-18, CA-57 |
 | **Costi e osservabilità AI** | Ogni chiamata all'AI registra tipo, modello, versione del prompt, prompt, risposta, durata e costo stimato; totale per campagna e storico globale con voti 1–5 visibili all'operatore | CA-82, CA-113…115 |
 | **Prestazioni** | Generazione di una campagna di 7 giorni in circa un minuto; pagine sotto il secondo in rete locale | Prova T3-32 (~1 min 18 s per 10 post) e demo reale T3-927 (~46 s per 6 post + 1 immagine AI) |
 | **Usabilità** | Interfaccia in italiano con palette artigianale ("Bottega calda"), contrasto WCAG AA verificato, etichette di stato leggibili con spiegazione, uso da telefono per l'artigiano | Prova di usabilità con due persone (`T3-86`) e verifica pagine statiche (`T3-926`) |
@@ -444,7 +444,7 @@ Con 50 botteghe attive, il costo vivo totale di infrastruttura + intelligenza ar
 | Foto degli artigiani con proporzioni incompatibili con Instagram | Soggetto tagliato male | Controllo delle proporzioni al caricamento (`CA-109`), anteprima dell'inquadratura in Vedi campagna e opzione **bordi sfocati** ricavati dalla foto stessa (`CA-111`, `CA-112`) |
 | Costo dell'AI fuori controllo | Spesa imprevista | Costo, token e durata di ogni chiamata registrati in `chiamata_ai` e aggregati in `GET /storico-ai/numeri`; tetto sul conto del provider |
 | Errori del provider AI durante la demo | Generazione ferma | Errori classificati in 5 famiglie con retry automatico e pulsante Riprova; video di riserva della demo registrato (`T3-07`) |
-| Foto non della bottega o persone senza consenso | Rischio legale e di reputazione | Dichiarazione obbligatoria all'invio e per ogni foto nuova; cambia foto e richiesta all'artigiano in revisione; dopo l'approvazione il singolo post si cambia o si annulla; immagini AI senza prodotti finiti o persone e dichiarate nel post |
+| Foto non della bottega o persone senza consenso | Rischio legale e di reputazione | Dichiarazione obbligatoria all'invio e per ogni foto nuova; cambia foto e richiesta all'artigiano in revisione; dopo l'approvazione il singolo post si cambia o si annulla; immagini AI senza persone riconoscibili e dichiarate nel post |
 
 ### 3.7 Dopo l'MVP
 

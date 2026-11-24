@@ -4,13 +4,17 @@ L'adattatore non conosce i moduli: riceve e restituisce dati semplici. Il
 piano ha la forma che ``contenuti`` controlla (``piano.contenuto``):
 
     {"strategia": "...",
+     "contesto_visivo": {"attivita": "...", "mondo_visivo": "...",
+                         "da_non_mostrare": "..."},
      "uscite": [{"numero": 1, "tema": "...", "gruppo_id": 3,
                  "post": [{"canale": "facebook", "formato": "singola",
                            "foto": [12], "riempitivo": null,
                            "data_ora": "2030-01-07T10:00:00+01:00"}]}]}
 
 ``riempitivo`` è vuoto (un post con la sua foto) o ``"immagine_ai"`` (senza
-foto: la sua immagine nasce dopo il piano, R-28).
+foto: la sua immagine nasce dopo il piano, R-28). ``contesto_visivo`` (ADR-125)
+dice che attività è e che cosa si fotografa in essa: è ``null`` se nessuna uscita
+ha un'immagine AI; ogni uscita con immagine AI ha anche la sua ``scena``.
 """
 
 from abc import ABC, abstractmethod

@@ -53,6 +53,7 @@ Versione corta (ADR-122): le decisioni che spiegano il prodotto com'è, una fras
 | 77, 78 | Notifiche agli operatori per campagna pronta, generazione fallita e post fallito; il piano approvato si legge dal calendario della campagna. |
 | 116 | Dopo l'approvazione l'operatore corregge il singolo post (modifica, cambia foto, sposta, annulla) senza AI; in revisione può chiedere all'artigiano una risposta e fino a 3 foto. Un errore si corregge senza buttare la campagna. |
 | 119 | Rigenera immagine, Cambia immagine dalla campagna e dall'archivio, «Rifai il post», storico dell'AI con i voti, foto da 4:5 a 1,91:1 senza deformazioni. Nate provando l'MVP. |
+| 125 | Le immagini AI nascono dall'attività del profilo, non da un laboratorio: il piano scrive un contesto visivo (che attività è, che cosa si fotografa, che cosa è fuori luogo) e le scene dentro quel contesto, con sei inquadrature neutre; cade il divieto di mostrare prodotti, restano persone, testi e marchi. Una gelateria o un negozio di oggettistica non si riconoscono in banchi e attrezzi. Prompt immagine v4, piano v5, analisi v4, post v4; nessuna chiamata AI in più, nessuna migrazione. |
 
 ## Accesso e pagine
 | ID | Decisione · perché |

@@ -31,7 +31,7 @@ def _analisi(rng: random.Random, altre_foto: list[int]) -> dict:
     if scelta == 4:
         return {"idonea": True, "punteggio": rng.randrange(1, 6), "simile_a": None}
     if scelta == 5:
-        return {"prompt": "una scena", "versione_prompt": "immagine_v3"}
+        return {"prompt": "una scena", "versione_prompt": "immagine_v4"}
     return {"idonea": None}
 
 
