@@ -73,6 +73,22 @@ Di default `SOCIAL_PROVIDER=finto`: nessuna chiamata di rete. Nell'MVP tutti gli
 
 **Dal tick.** Con la campagna della demo approvata e `OROLOGIO_GIORNI_AVANTI` oltre la data del primo post ma non del secondo (di solito `4`), il worker pubblica al minuto dopo: in `pubblicazione` c'è la riga `ok` con `id_esterno` (`{pagina}_{post}` per Facebook, il post si apre da `https://www.facebook.com/{post}`; `finto-N` per Instagram simulato). `app.cli pubblica-ora` pubblica subito tutti i post approvati e serve solo alle prove a mano.
 
+**Dalla presentazione, senza orologio.** Dopo la generazione l'operatore approva la campagna (i post restano approvati, con la loro data). Da un altro terminale, con `avvia.py` acceso:
+
+```bash
+uv run python pubblica.py
+```
+
+`avvia.py` ferma API, worker e frontend, fa uscire subito sulla Pagina tutti i post di Facebook e lascia gli altri approvati, poi rilancia tutto: serve rifare l'accesso solo se la sessione è scaduta, il database non cambia. Le righe della pubblicazione compaiono nel suo terminale (`[pubblica]`) e `pubblica.py` riporta `Pubblicati N post su N.` con il codice di uscita (0 solo se è uscito tutto ed è ripartito tutto). Va lanciato a generazione finita: se il worker sta ancora generando, quel lavoro viene interrotto. Con `avvia.py --no-log` non c'è il file dei PID e `pubblica.py` lo tratta come spento.
+
+Se `avvia.py` non c'è, `pubblica.py` pubblica e basta. Il comando sotto è lo stesso passo, a mano e a worker fermo:
+
+```bash
+uv run python -m app.cli pubblica-ora --canale facebook
+```
+
+Senza `--canale` esce tutto, Instagram compreso; `--canale` si ripete.
+
 ## In produzione
 
 Le regole di sicurezza sono in `docs/agenti/constitution.md` §3; ciò che manca per un'esposizione pubblica è in `docs/ROADMAP.md`. Il testo completo di questa sezione, con l'esempio di Nginx, è in `docs/archivio/sicurezza-accesso.md`.
